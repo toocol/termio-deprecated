@@ -4,6 +4,7 @@ import com.toocol.ssh.common.utils.PrintUtil;
 import com.toocol.ssh.core.command.vert.CommandAcceptorVerticle;
 import com.toocol.ssh.core.command.vert.CommandExecutorVerticle;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.EventBus;
 
 /**
@@ -23,7 +24,14 @@ public class TerminalViewVerticle extends AbstractVerticle {
             eventBus.send(CommandAcceptorVerticle.ADDRESS_START_ACCEPT, "start");
             eventBus.send(CommandExecutorVerticle.ADDRESS_EXECUTE, "ssh root@47.108.157.178");
         });
-        eventBus.send(CommandExecutorVerticle.ADDRESS_CLEAR, null);
         PrintUtil.println("success start the ssh terminal view verticle.");
+
+        WorkerExecutor executor = vertx.createSharedWorkerExecutor("terminal-view-worker");
+        executor.executeBlocking(future -> {
+            PrintUtil.loading();
+            future.complete("loaded");
+        }, res -> {
+            eventBus.send(CommandExecutorVerticle.ADDRESS_CLEAR, null);
+        });
     }
 }

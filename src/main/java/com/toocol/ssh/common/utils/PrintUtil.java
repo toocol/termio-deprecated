@@ -28,4 +28,19 @@ public class PrintUtil {
     public static void printHelp() {
         System.out.println("SSH TERMINAL HELP: ");
     }
+
+    public static void loading() {
+        try {
+            System.out.print("loading");
+            Thread.sleep(550);
+            System.out.print(".");
+            Thread.sleep(550);
+            System.out.print(".");
+            Thread.sleep(550);
+            System.out.println(".");
+            Thread.sleep(550);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 }
