@@ -1,11 +1,10 @@
 package com.toocol.ssh.core.view.vert;
 
 import com.toocol.ssh.common.utils.PrintUtil;
+import com.toocol.ssh.core.command.vert.CommandAcceptorVerticle;
+import com.toocol.ssh.core.command.vert.CommandExecutorVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.json.JsonObject;
-
-import java.util.Optional;
 
 /**
  * @author ZhaoZhe
@@ -14,18 +13,17 @@ import java.util.Optional;
  */
 public class TerminalViewVerticle extends AbstractVerticle {
 
-    public static final String ADDRESS = "ssh.terminal.view";
+    public static final String ADDRESS_SCREEN_HAS_CLEARED = "ssh.terminal.view";
 
     @Override
     public void start() throws Exception {
-        JsonObject config = config();
-        Optional<Boolean> hasCredentialsOpt = Optional.ofNullable(config.getBoolean("hasCredentials"));
         EventBus eventBus = vertx.eventBus();
-
-        eventBus.consumer(ADDRESS, showWitch -> {
-            PrintUtil.printPromptScene(hasCredentialsOpt.orElse(false));
+        eventBus.consumer(ADDRESS_SCREEN_HAS_CLEARED, showWitch -> {
+            PrintUtil.printPromptScene();
+            eventBus.send(CommandAcceptorVerticle.ADDRESS_START_ACCEPT, "start");
+            eventBus.send(CommandExecutorVerticle.ADDRESS_EXECUTE, "ssh root@47.108.157.178");
         });
-
+        eventBus.send(CommandExecutorVerticle.ADDRESS_CLEAR, null);
         PrintUtil.println("success start the ssh terminal view verticle.");
     }
 }

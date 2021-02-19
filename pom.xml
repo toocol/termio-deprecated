@@ -65,7 +65,7 @@
                                 </transformer>
                             </transformers>
                             <artifactSet />
-                            <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-prod.jar</outputFile>
+                            <outputFile>${project.build.directory}/${project.artifactId}.jar</outputFile>
                         </configuration>
                     </execution>
                 </executions>

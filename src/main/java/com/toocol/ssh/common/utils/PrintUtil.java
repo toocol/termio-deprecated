@@ -12,7 +12,7 @@ public class PrintUtil {
     }
 
     public static void printTitle() {
-        System.out.println("\n\n\n" +
+        System.out.println("\n" +
                 " _____ _____ _____    _____ _____ _____ _____ _____ _____ _____ __         _____ _____ _____ _____ _____ __    \n" +
                 "|   __|   __|  |  |  |_   _|   __| __  |     |     |   | |  _  |  |       |_   _|     |     |     |     |  |   \n" +
                 "|__   |__   |     |    | | |   __|    -| | | |-   -| | | |     |  |__    _  | | |  |  |  |  |   --|  |  |  |__ \n" +
@@ -20,8 +20,12 @@ public class PrintUtil {
                 "\n");
     }
 
-    public static void printPromptScene(boolean hasCredentials) {
+    public static void printPromptScene() {
         printTitle();
         System.out.println("SSH TERMINAL start up success, enter commands to operate. <enter 'help' to get more command>");
+    }
+
+    public static void printHelp() {
+        System.out.println("SSH TERMINAL HELP: ");
     }
 }

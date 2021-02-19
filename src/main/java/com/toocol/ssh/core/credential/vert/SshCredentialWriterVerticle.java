@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.credential.vert;
 
+import com.toocol.ssh.TerminalSystem;
 import com.toocol.ssh.common.utils.PrintUtil;
 import io.vertx.core.AbstractVerticle;
 
@@ -12,10 +13,11 @@ import io.vertx.core.AbstractVerticle;
  */
 public class SshCredentialWriterVerticle extends AbstractVerticle {
 
-    public static final String ADDRESS = "ssh.credential.writer";
+    public static final String ADDRESS_WRITE = "ssh.credential.writer";
 
     @Override
     public void start() throws Exception {
         PrintUtil.println("success start the ssh credential writer verticle.");
+        TerminalSystem.INITIAL_LATCH.countDown();
     }
 }
