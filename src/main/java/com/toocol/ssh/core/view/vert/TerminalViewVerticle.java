@@ -26,6 +26,6 @@ public class TerminalViewVerticle extends AbstractVerticle {
             PrintUtil.printPromptScene(hasCredentialsOpt.orElse(false));
         });
 
-        PrintUtil.println("success start the ssh terminal.");
+        PrintUtil.println("success start the ssh terminal view verticle.");
     }
 }
