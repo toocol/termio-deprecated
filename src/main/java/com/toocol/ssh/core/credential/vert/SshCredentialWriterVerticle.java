@@ -11,6 +11,9 @@ import io.vertx.core.AbstractVerticle;
  * @date 2021/2/19 16:26
  */
 public class SshCredentialWriterVerticle extends AbstractVerticle {
+
+    public static final String ADDRESS = "ssh.credential.writer";
+
     @Override
     public void start() throws Exception {
         PrintUtil.println("success start the ssh credential writer verticle.");

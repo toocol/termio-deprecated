@@ -12,6 +12,8 @@
 
         <!--third part dependency-->
         <vertx.version>3.4.2</vertx.version>
+        <lombok.version>1.16.18</lombok.version>
+        <commons.lang3.version>3.11</commons.lang3.version>
 	</properties>
 
     <dependencies>
@@ -19,6 +21,17 @@
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
             <version>${vertx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+            <version>${lombok.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons.lang3.version}</version>
         </dependency>
     </dependencies>
 
