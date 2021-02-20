@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.command.vert;
 
-import com.toocol.ssh.TerminalSystem;
+import com.toocol.ssh.common.anno.Deployment;
 import com.toocol.ssh.common.utils.PrintUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
@@ -11,6 +11,7 @@ import io.vertx.core.eventbus.EventBus;
  * @email joezane.cn@gmail.com
  * @date 2021/2/19 18:27
  */
+@Deployment
 public class CommandAcceptorVerticle extends AbstractVerticle {
 
     public static final String ADDRESS_START_ACCEPT = "ssh.command.accept.start";
@@ -29,6 +30,5 @@ public class CommandAcceptorVerticle extends AbstractVerticle {
             });
         });
         PrintUtil.println("success start the command acceptor verticle.");
-        TerminalSystem.INITIAL_LATCH.countDown();
     }
 }

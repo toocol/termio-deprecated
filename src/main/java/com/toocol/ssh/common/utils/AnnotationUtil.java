@@ -49,6 +49,10 @@ public final class AnnotationUtil {
     private static void addClassByAnnotation(List<Class<?>> list, String packageName, String clazzPath, Class<? extends Annotation> annotationClazz) {
         // 获取该文件目录下所有类和文件夹的File对象
         File[] files = new File(clazzPath).listFiles((file) -> file.isFile() && file.getName().endsWith(".class") || file.isDirectory());
+        if (files == null) {
+            System.out.println(packageName);
+            System.out.println(clazzPath);
+        }
 
         // 获取所有类的全路径名称
         Arrays.stream(files).forEach(file -> {
@@ -66,8 +70,8 @@ public final class AnnotationUtil {
                 }
             } else {
                 // 如果当前file是文件夹，继续进行递归
-                String subPacageName = packageName + "." + file.getName();
-                addClassByAnnotation(list, subPacageName, file.getPath(), annotationClazz);
+                String subPackageName = packageName + "." + file.getName();
+                addClassByAnnotation(list, subPackageName, file.getPath(), annotationClazz);
             }
         });
     }

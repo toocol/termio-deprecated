@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.connector.vert;
 
 import com.toocol.ssh.TerminalSystem;
+import com.toocol.ssh.common.anno.Deployment;
 import com.toocol.ssh.common.utils.PrintUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.EventBus;
@@ -13,6 +14,7 @@ import io.vertx.core.json.JsonObject;
  * @email joezane.cn@gmail.com
  * @date 2021/2/19 16:15
  */
+@Deployment
 public class SshConnectorVerticle extends AbstractVerticle {
 
     public static final String ADDRESS_CONNECT = "ssh.connector.connect.prepare";
@@ -28,6 +30,5 @@ public class SshConnectorVerticle extends AbstractVerticle {
         });
 
         PrintUtil.println("success start the ssh connect verticle.");
-        TerminalSystem.INITIAL_LATCH.countDown();
     }
 }

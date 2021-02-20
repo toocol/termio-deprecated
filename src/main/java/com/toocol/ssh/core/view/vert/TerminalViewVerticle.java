@@ -22,7 +22,7 @@ public class TerminalViewVerticle extends AbstractVerticle {
         eventBus.consumer(ADDRESS_SCREEN_HAS_CLEARED, showWitch -> {
             PrintUtil.printPromptScene();
             eventBus.send(CommandAcceptorVerticle.ADDRESS_START_ACCEPT, "start");
-            eventBus.send(CommandExecutorVerticle.ADDRESS_EXECUTE, "ssh root@47.108.157.178");
+            eventBus.send(CommandExecutorVerticle.ADDRESS_EXECUTE, "git-bash:/D/ZhaoZhe/software/Git/git-bash.exe");
         });
         PrintUtil.println("success start the ssh terminal view verticle.");
 

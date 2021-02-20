@@ -11,6 +11,10 @@ public class PrintUtil {
         System.out.println("<SSH TERMINAL> " + msg);
     }
 
+    public static void printErr(String msg) {
+        System.out.println("<ERROR> " + msg);
+    }
+
     public static void printTitle() {
         System.out.println("\n" +
                 " _____ _____ _____    _____ _____ _____ _____ _____ _____ _____ __         _____ _____ _____ _____ _____ __    \n" +
