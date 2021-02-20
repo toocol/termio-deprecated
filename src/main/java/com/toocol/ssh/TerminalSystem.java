@@ -45,10 +45,10 @@ public class TerminalSystem {
 
         /* Set the final verticle to deploy */
         vertx.executeBlocking(future -> {
-            Set<Class<?>> onreadyClassList = ClassUtil.scanPackageByAnnotation("com.toocol.ssh.core", FinalDeployment.class);
-            onreadyClassList.forEach(onreadyVerticle -> {
-                if (!onreadyVerticle.getSuperclass().equals(AbstractVerticle.class)) {
-                    PrintUtil.printErr("skip deploy verticle " + onreadyVerticle.getName() + ", please extends AbstractVerticle");
+            Set<Class<?>> finalClassList = ClassUtil.scanPackageByAnnotation("com.toocol.ssh.core", FinalDeployment.class);
+            finalClassList.forEach(finalVerticle -> {
+                if (!finalVerticle.getSuperclass().equals(AbstractVerticle.class)) {
+                    PrintUtil.printErr("skip deploy verticle " + finalVerticle.getName() + ", please extends AbstractVerticle");
                     return;
                 }
                 try {
@@ -56,7 +56,7 @@ public class TerminalSystem {
                     if (!ret) {
                         throw new RuntimeException();
                     }
-                    vertx.deployVerticle(onreadyVerticle.getName());
+                    vertx.deployVerticle(finalVerticle.getName());
                     future.complete();
                 } catch (Exception e) {
                     PrintUtil.printErr("SSH TERMINAL START UP FAILED!!");

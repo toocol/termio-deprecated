@@ -31,10 +31,11 @@ public class CommandExecutorVerticle extends AbstractVerticle {
                     eventBus.send(ClearScreenVerticle.ADDRESS_CLEAR, null);
 
                     String cmd = String.valueOf(cmdMessage.body());
-                    new ProcessBuilder("bash", "-c", cmd)
+                    Process process = new ProcessBuilder("bash", "-c", cmd)
                             .inheritIO()
-                            .start()
-                            .waitFor();
+                            .start();
+                    process.waitFor();
+                    process.destroy();
                     future.complete(cmd);
                 } catch (Exception e) {
                     PrintUtil.printErr("execute command failed!!");

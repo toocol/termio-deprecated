@@ -7,6 +7,8 @@ package com.toocol.ssh.common.utils;
  */
 public class PrintUtil {
 
+    private static final int LOADING_COUNT = 3;
+
     public static void println(String msg) {
         System.out.println("<SSH TERMINAL> " + msg);
     }
@@ -26,7 +28,10 @@ public class PrintUtil {
 
     public static void printPromptScene() {
         printTitle();
-        System.out.println("SSH TERMINAL is running, enter commands to operate. <enter 'help' to get more command>");
+        System.out.println(" ________________________________________________ PROPERTIES ________________________________________________\n\n");
+        System.out.println("                           YOU HAVE NO CONNECTION PROPERTIES, TYPE 'add' TO ADD PROPERTY\n\n");
+        System.out.println(" ____________________________________________________________________________________________________________\n");
+        System.out.println("SSH TERMINAL is running, enter commands to operate. <enter 'help' to get more command>\n");
     }
 
     public static void printHelp() {
@@ -36,13 +41,10 @@ public class PrintUtil {
     public static void loading() {
         try {
             System.out.print("loading");
-            Thread.sleep(550);
-            System.out.print(".");
-            Thread.sleep(550);
-            System.out.print(".");
-            Thread.sleep(550);
-            System.out.println(".");
-            Thread.sleep(550);
+            for (int idx = 0; idx < LOADING_COUNT; idx++) {
+                Thread.sleep(550);
+                System.out.print(".");
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

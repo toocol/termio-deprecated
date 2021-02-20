@@ -24,13 +24,13 @@ public class TerminalViewVerticle extends AbstractVerticle {
         EventBus eventBus = vertx.eventBus();
         eventBus.consumer(ADDRESS_SCREEN_HAS_CLEARED, showWitch -> {
             PrintUtil.printPromptScene();
-            eventBus.send(CommandAcceptorVerticle.ADDRESS_START_ACCEPT, "start");
+            eventBus.send(CommandAcceptorVerticle.ADDRESS_ACCEPT_COMMAND, "start");
         });
         PrintUtil.println("success start the ssh terminal view verticle.");
 
         executor.executeBlocking(future -> {
             PrintUtil.loading();
             future.complete("loaded");
-        }, res -> eventBus.send(ClearScreenVerticle.ADDRESS_CLEAR, null));
+        }, res -> eventBus.send(ClearScreenVerticle.ADDRESS_CLEAR, "prompt"));
     }
 }
