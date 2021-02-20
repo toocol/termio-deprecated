@@ -1,8 +1,8 @@
-package com.toocol.ssh.core.credential.vert;
+package com.toocol.ssh.core.file.vert;
 
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.PrintUtil;
-import com.toocol.ssh.core.credential.vo.SshCredential;
+import com.toocol.ssh.core.file.vo.SshCredential;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.file.AsyncFile;
@@ -20,9 +20,9 @@ import java.util.List;
  * @date 2021/2/19 16:27
  */
 @PreloadDeployment
-public class SshCredentialReaderVerticle extends AbstractVerticle {
+public class FileReaderVerticle extends AbstractVerticle {
 
-    public static final String ADDRESS = "ssh.credential.reader";
+    public static final String ADDRESS = "terminal.file.reader";
 
     private final List<SshCredential> sshCredentials = new ArrayList<>();
 

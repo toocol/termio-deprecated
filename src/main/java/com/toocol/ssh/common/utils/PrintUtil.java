@@ -26,7 +26,7 @@ public class PrintUtil {
 
     public static void printPromptScene() {
         printTitle();
-        System.out.println("SSH TERMINAL start up success, enter commands to operate. <enter 'help' to get more command>");
+        System.out.println("SSH TERMINAL is running, enter commands to operate. <enter 'help' to get more command>");
     }
 
     public static void printHelp() {

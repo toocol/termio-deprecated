@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.credential.vert;
+package com.toocol.ssh.core.file.vert;
 
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.PrintUtil;
@@ -12,9 +12,9 @@ import io.vertx.core.AbstractVerticle;
  * @date 2021/2/19 16:26
  */
 @PreloadDeployment
-public class SshCredentialWriterVerticle extends AbstractVerticle {
+public class FileWriterVerticle extends AbstractVerticle {
 
-    public static final String ADDRESS_WRITE = "ssh.credential.writer";
+    public static final String ADDRESS_WRITE = "terminal.file.writer";
 
     @Override
     public void start() throws Exception {

@@ -6,6 +6,8 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.EventBus;
 
+import java.util.Scanner;
+
 /**
  * @author ZhaoZhe
  * @email joezane.cn@gmail.com
@@ -16,8 +18,6 @@ public class CommandAcceptorVerticle extends AbstractVerticle {
 
     public static final String ADDRESS_START_ACCEPT = "ssh.command.accept.start";
 
-    public static final String ADDRESS_END_ACCEPT = "ssh.command.accept.end";
-
     @Override
     public void start() throws Exception {
         final WorkerExecutor executor = vertx.createSharedWorkerExecutor("command-acceptor-worker");
@@ -25,6 +25,9 @@ public class CommandAcceptorVerticle extends AbstractVerticle {
         eventBus.consumer(ADDRESS_START_ACCEPT, message -> {
             executor.executeBlocking(future -> {
                 System.out.println("-- INPUT --");
+                Scanner scanner = new Scanner(System.in);
+                String input = scanner.nextLine();
+                eventBus.send(CommandExecutorVerticle.ADDRESS_EXECUTE_OUTSIDE, input);
             }, res -> {
             });
         });
