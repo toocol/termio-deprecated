@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.credential.vert;
 
-import com.toocol.ssh.common.anno.Deployment;
+import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.PrintUtil;
 import io.vertx.core.AbstractVerticle;
 
@@ -11,7 +11,7 @@ import io.vertx.core.AbstractVerticle;
  * @email joezane.cn@gmail.com
  * @date 2021/2/19 16:26
  */
-@Deployment
+@PreloadDeployment
 public class SshCredentialWriterVerticle extends AbstractVerticle {
 
     public static final String ADDRESS_WRITE = "ssh.credential.writer";
