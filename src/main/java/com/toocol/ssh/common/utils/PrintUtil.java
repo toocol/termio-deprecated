@@ -34,6 +34,10 @@ public class PrintUtil {
         System.out.println("SSH TERMINAL is running, enter commands to operate. <enter 'help' to get more command>\n");
     }
 
+    public static void printCursorLine() {
+        System.out.print("[SSH TERMINAL] > ");
+    }
+
     public static void printHelp() {
         System.out.println("SSH TERMINAL HELP: ");
     }

@@ -2,6 +2,7 @@ package com.toocol.ssh.core.command.vert;
 
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.PrintUtil;
+import com.toocol.ssh.core.command.enums.OutsideCommand;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.EventBus;
@@ -27,17 +28,22 @@ public class CommandAcceptorVerticle extends AbstractVerticle {
 
         eventBus.consumer(ADDRESS_ACCEPT_COMMAND, message -> {
             executor.executeBlocking(future -> {
-                System.out.println("-- INPUT --");
-                Scanner scanner = new Scanner(System.in);
-                String input = scanner.nextLine();
-                eventBus.send(CommandExecutorVerticle.ADDRESS_EXECUTE_OUTSIDE, input);
+                while (true) {
+                    PrintUtil.printCursorLine();
+                    Scanner scanner = new Scanner(System.in);
+                    String input = scanner.nextLine();
+                    if (OutsideCommand.isOutsideCommand(input)) {
+                        eventBus.send(CommandExecutorVerticle.ADDRESS_EXECUTE_OUTSIDE, input);
+                        break;
+                    }
+                }
             }, res -> {
             });
         });
 
         eventBus.consumer(ADDRESS_ACCEPT_ANYKEY, message -> {
             executor.executeBlocking(future -> {
-                System.out.println("-- INPUT --");
+                PrintUtil.printCursorLine();
                 Scanner scanner = new Scanner(System.in);
                 scanner.next();
             }, res -> {

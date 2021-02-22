@@ -11,7 +11,7 @@ public enum InsideCommand {
     /**
      * Open a new Git-Bash window to execute OpenSSH
      */
-    NEW_WINDOW_OPENSSH("'/D/Program Files/Git/git-bash.exe' /f/sshterminal/openssh.sh")
+    NEW_WINDOW_OPENSSH("'/D/ZhaoZhe/software/Git/git-bash.exe' /f/ssh_terminal_starter/openssh.sh root 47.108.157.178")
     ;
     public String command;
 
