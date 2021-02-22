@@ -51,7 +51,7 @@ public class CommandExecutorVerticle extends AbstractVerticle {
             executor.executeBlocking(future -> {
                 String cmd = String.valueOf(cmdMessage.body());
                 if ("show".equals(cmd)) {
-                    eventBus.send(ADDRESS_EXECUTE_SHELL, InsideCommand.NEW_WINDOW_OPENSSH.command);
+                    eventBus.send(ADDRESS_EXECUTE_SHELL, InsideCommand.NEW_WINDOW_OPENSSH());
                 }
             }, res -> {
             });

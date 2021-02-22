@@ -21,6 +21,11 @@ public class SshCredential implements Serializable {
     private static final long serialVersionUID = 1184930928749870706L;
 
     /**
+     * the name of target server.
+     */
+    private String name;
+
+    /**
      * the ip of target server.
      */
     private String ip;
