@@ -39,7 +39,7 @@ public class FileReaderVerticle extends AbstractVerticle {
         /* read the stored ssh credential from file system, if success deploy the view verticle */
         Buffer resultBuffer = vertx.fileSystem().readFileBlocking("F:/credentials.json");
         String credentials = resultBuffer.getString(0, resultBuffer.length());
-        if (StringUtils.isEmpty(credentials)) {
+        if (!StringUtils.isEmpty(credentials)) {
             JsonArray credentialsArray = new JsonArray(credentials);
             credentialsArray.forEach(o -> {
                 JSONObject credentialJsonObj = CastUtil.cast(o);
