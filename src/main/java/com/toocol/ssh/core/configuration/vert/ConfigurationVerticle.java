@@ -27,6 +27,11 @@ public class ConfigurationVerticle extends AbstractVerticle {
      */
     public static String SCRIPT_SSH_DIR;
 
+    /**
+     * the start up selection: 1.[Single Window] 2.[Multiple Window]
+     */
+    public static int START_UP_MODE;
+
     @Override
     public void start() throws Exception {
         Buffer buffer = vertx.fileSystem().readFileBlocking("F:/ssh_terminal_starter/configuration.properties");

@@ -71,6 +71,15 @@ public class TerminalSystem {
         PrintUtil.println("TerminalSystem register the vertx service.");
 
         preloadVerticleClassList.forEach(verticleClass ->
-                vertx.deployVerticle(verticleClass.getName(), new DeploymentOptions(), result -> initialLatch.countDown()));
+                vertx.deployVerticle(verticleClass.getName(), new DeploymentOptions(), result -> {
+                    if (result.succeeded()) {
+                        initialLatch.countDown();
+                    } else {
+                        PrintUtil.printErr("SSH TERMINAL START UP FAILED!!");
+                        vertx.close();
+                        System.exit(-1);
+                    }
+                })
+        );
     }
 }

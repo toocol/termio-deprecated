@@ -18,19 +18,27 @@ public class TerminalViewVerticle extends AbstractVerticle {
 
     public static final String ADDRESS_SCREEN_HAS_CLEARED = "ssh.terminal.view";
 
+    public static final String ADDRESS_MODE_SELECTION_DONE = "ssh.mode.selection.done";
+
     @Override
     public void start() throws Exception {
         final WorkerExecutor executor = vertx.createSharedWorkerExecutor("terminal-view-worker");
         EventBus eventBus = vertx.eventBus();
+
+        eventBus.consumer(ADDRESS_MODE_SELECTION_DONE, message -> {
+            executor.executeBlocking(future -> {
+                PrintUtil.loading();
+                future.complete("loaded");
+            }, res -> eventBus.send(ClearScreenVerticle.ADDRESS_CLEAR, "start"));
+        });
+
         eventBus.consumer(ADDRESS_SCREEN_HAS_CLEARED, showWitch -> {
             PrintUtil.printPromptScene();
             eventBus.send(CommandAcceptorVerticle.ADDRESS_ACCEPT_COMMAND, "start");
         });
-        PrintUtil.println("success start the ssh terminal view verticle.");
 
-        executor.executeBlocking(future -> {
-            PrintUtil.loading();
-            future.complete("loaded");
-        }, res -> eventBus.send(ClearScreenVerticle.ADDRESS_CLEAR, "prompt"));
+        PrintUtil.println("success start the ssh terminal view verticle.");
+        PrintUtil.printSelections();
+        eventBus.send(CommandAcceptorVerticle.ADDRESS_ACCEPT_SELECTION, "start");
     }
 }
