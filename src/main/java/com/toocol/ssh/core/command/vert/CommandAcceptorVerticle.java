@@ -3,7 +3,6 @@ package com.toocol.ssh.core.command.vert;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.PrintUtil;
 import com.toocol.ssh.core.command.enums.OutsideCommand;
-import io.netty.util.internal.StringUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.EventBus;
