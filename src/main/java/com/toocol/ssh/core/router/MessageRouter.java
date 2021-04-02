@@ -17,6 +17,7 @@ public enum MessageRouter {
      */
     ERROR_ROUTER(null, null)
     ;
+
     private final String currentMsg;
 
     private final String nextMsg;
