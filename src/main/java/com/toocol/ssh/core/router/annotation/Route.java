@@ -15,5 +15,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Route {
-    String[] nextAddress();
+    /**
+     * the next command address string of current command address.
+     * @return
+     */
+    String nextAddress();
 }

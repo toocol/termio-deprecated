@@ -2,6 +2,10 @@ package com.toocol.ssh.core.router;
 
 import com.toocol.ssh.core.router.annotation.Route;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * @author ZhaoZhe
@@ -10,15 +14,70 @@ import lombok.AllArgsConstructor;
  */
 public class MessageAddress {
 
+    /**
+     * this method is writing for inner enum
+     *
+     * @param iAddress
+     * @return
+     */
+    private static Optional<String> nextAddress(IAddress iAddress) {
+        Route route = iAddress.getClass().getAnnotation(Route.class);
+        if (route == null) {
+            return Optional.empty();
+        }
+        String nextAddress = route.nextAddress();
+        if (StringUtils.isEmpty(nextAddress)) {
+            return Optional.empty();
+        }
+        return Optional.of(nextAddress);
+    }
+
+    /**
+     * this method is writing for inner enum
+     *
+     * @param objects
+     * @param address
+     * @return
+     */
+    private static Optional<IAddress> addressOf(IAddress[] objects, String address) {
+        if (StringUtils.isEmpty(address)) {
+            return Optional.empty();
+        }
+        return Arrays
+                .stream(objects)
+                .filter(obj -> address.equals(obj.address()))
+                .findFirst();
+    }
+
     public interface IAddress {
+        /**
+         * return the address string
+         *
+         * @return
+         */
+        String address();
+
+        /**
+         * return the next address string in all program process
+         * @return optional
+         */
+        Optional<String> nextAddress();
+
+        /**
+         * according to the address string returns the IAddress enum object;
+         *
+         * @param address the given address
+         * @return optional
+         */
+        Optional<IAddress> addressOf(String address);
     }
 
     @AllArgsConstructor
-    public enum TerminalViewVerticle implements IAddress{
+    public enum TerminalView implements IAddress{
         /**
          * when the screen has been cleaned.
          */
-        @Route(nextAddress = {})
+        @Route(nextAddress = "")
         ADDRESS_SCREEN_HAS_CLEARED("ssh.terminal.view"),
 
         /**
@@ -31,10 +90,25 @@ public class MessageAddress {
          * the address string of message
          */
         public final String address;
+
+        @Override
+        public String address() {
+            return address;
+        }
+
+        @Override
+        public Optional<String> nextAddress() {
+            return MessageAddress.nextAddress(this);
+        }
+
+        @Override
+        public Optional<IAddress> addressOf(String address) {
+            return MessageAddress.addressOf(values(), address);
+        }
     }
 
     @AllArgsConstructor
-    public enum ClearScreenVerticle implements IAddress{
+    public enum ClearScreen implements IAddress{
         /**
          * to clean the screen
          */
@@ -45,10 +119,25 @@ public class MessageAddress {
          * the address string of message
          */
         public final String address;
+
+        @Override
+        public String address() {
+            return address;
+        }
+
+        @Override
+        public Optional<String> nextAddress() {
+            return MessageAddress.nextAddress(this);
+        }
+
+        @Override
+        public Optional<IAddress> addressOf(String address) {
+            return MessageAddress.addressOf(values(), address);
+        }
     }
 
     @AllArgsConstructor
-    public enum CommandAcceptorVerticle implements IAddress {
+    public enum CommandAcceptor implements IAddress {
         /**
          * to accept the user command input
          */
@@ -66,14 +155,105 @@ public class MessageAddress {
          * the address string of message
          */
         public final String address;
+
+        @Override
+        public String address() {
+            return address;
+        }
+
+        @Override
+        public Optional<String> nextAddress() {
+            return MessageAddress.nextAddress(this);
+        }
+
+        @Override
+        public Optional<IAddress> addressOf(String address) {
+            return MessageAddress.addressOf(values(), address);
+        }
     }
 
     @AllArgsConstructor
-    public enum CommandExecutorVerticle implements IAddress {
+    public enum CommandExecutor implements IAddress {
+        /**
+         * execute shell command
+         */
+        ADDRESS_EXECUTE_SHELL("ssh.command.execute.shell"),
+        /**
+         * execute outside command
+         */
+        ADDRESS_EXECUTE_OUTSIDE("ssh.command.execute.outside")
         ;
         /**
          * the address string of message
          */
         public final String address;
+
+        @Override
+        public String address() {
+            return address;
+        }
+
+        @Override
+        public Optional<String> nextAddress() {
+            return MessageAddress.nextAddress(this);
+        }
+
+        @Override
+        public Optional<IAddress> addressOf(String address) {
+            return MessageAddress.addressOf(values(), address);
+        }
+    }
+
+    @AllArgsConstructor
+    public enum FileReader implements IAddress {
+        /**
+         * read the credential file(credentials.json)
+         */
+        ADDRESS_READ_CREDENTIAL("terminal.file.read.credential")
+        ;
+        /**
+         * the address string of message
+         */
+        public final String address;
+
+        @Override
+        public String address() {
+            return address;
+        }
+
+        @Override
+        public Optional<String> nextAddress() {
+            return MessageAddress.nextAddress(this);
+        }
+
+        @Override
+        public Optional<IAddress> addressOf(String address) {
+            return MessageAddress.addressOf(values(), address);
+        }
+    }
+
+    @AllArgsConstructor
+    public enum FileWriter implements IAddress {
+        /**
+         * write the file to disk
+         */
+        ADDRESS_WRITE("terminal.file.writer")
+        ;
+        public final String address;
+
+        @Override
+        public String address() {
+            return address;
+        }
+
+        @Override
+        public Optional<String> nextAddress() {
+            return MessageAddress.nextAddress(this);
+        }
+
+        @Override
+        public Optional<IAddress> addressOf(String address) {
+            return MessageAddress.addressOf(values(), address);
+        }
     }
 }

@@ -19,5 +19,7 @@ public class FileWriterVerticle extends AbstractVerticle {
     @Override
     public void start() throws Exception {
         PrintUtil.println("success start the ssh credential writer verticle.");
+
+        // TODO: complete the file write logic (write the connection info that user saved)
     }
 }
