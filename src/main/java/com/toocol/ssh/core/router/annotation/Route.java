@@ -1,5 +1,7 @@
 package com.toocol.ssh.core.router.annotation;
 
+import com.toocol.ssh.core.router.MessageAddress;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
