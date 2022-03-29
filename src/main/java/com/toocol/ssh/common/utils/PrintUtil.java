@@ -19,19 +19,19 @@ public class PrintUtil {
 
     public static void printTitle() {
         System.out.println("\n" +
-                " _____ _____ _____    _____ _____ _____ _____ _____ _____ _____ __         _____ _____ _____ _____ _____ __    \n" +
-                "|   __|   __|  |  |  |_   _|   __| __  |     |     |   | |  _  |  |       |_   _|     |     |     |     |  |   \n" +
-                "|__   |__   |     |    | | |   __|    -| | | |-   -| | | |     |  |__    _  | | |  |  |  |  |   --|  |  |  |__ \n" +
-                "|_____|_____|__|__|    |_| |_____|__|__|_|_|_|_____|_|___|__|__|_____|  |_| |_| |_____|_____|_____|_____|_____|\n" +
+                " _____ _____ _____    _____ _____ _____ _____ _____ _____ _____ __      \n" +
+                "|   __|   __|  |  |  |_   _|   __| __  |     |     |   | |  _  |  |     \n" +
+                "|__   |__   |     |    | | |   __|    -| | | |-   -| | | |     |  |__   \n" +
+                "|_____|_____|__|__|    |_| |_____|__|__|_|_|_|_____|_|___|__|__|_____|  \n" +
                 "\n");
     }
 
     public static void printPromptScene() {
         printTitle();
-        System.out.println(" ________________________________________________ PROPERTIES ________________________________________________\n\n");
-        System.out.println("                           YOU HAVE NO CONNECTION PROPERTIES, TYPE 'add' TO ADD PROPERTY\n\n");
-        System.out.println(" ____________________________________________________________________________________________________________\n");
-        System.out.println("SSH TERMINAL is running, enter commands to operate. <enter 'help' to get more command>\n");
+        System.out.print("___________________________________________ Properties ___________________________________________\n\n");
+        System.out.print("                     You have no connection properties, type 'add' to add property            \n");
+        System.out.print("__________________________________________________________________________________________________\n\n");
+        System.out.print("SSH TERMINAL is running, enter commands to operate. <enter 'help' to get more command>\n\n");
     }
 
     public static void printCursorLine() {
