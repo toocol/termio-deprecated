@@ -2,7 +2,6 @@ package com.toocol.ssh.core.command.vert;
 
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.PrintUtil;
-import com.toocol.ssh.core.configuration.vert.ConfigurationVerticle;
 import com.toocol.ssh.core.view.vert.TerminalViewVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
@@ -27,7 +26,7 @@ public class ClearScreenVerticle extends AbstractVerticle {
         eventBus.consumer(ADDRESS_CLEAR, cmdMessage -> {
             executor.executeBlocking(future -> {
                 try {
-                    new ProcessBuilder(BOOT_TYPE, "-c", getClearCmd())
+                    new ProcessBuilder(BOOT_TYPE, getExtraCmd(), getClearCmd())
                             .inheritIO()
                             .start()
                             .waitFor();
@@ -39,9 +38,4 @@ public class ClearScreenVerticle extends AbstractVerticle {
             }, res -> eventBus.send(TerminalViewVerticle.ADDRESS_SCREEN_HAS_CLEARED, "cleared"));
         });
     }
-
-    private String getClearCmd() {
-        return BOOT_TYPE_CMD.equals(BOOT_TYPE) ? "cls" : "clear";
-    }
-
 }

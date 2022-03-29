@@ -44,15 +44,16 @@ public class ConfigurationVerticle extends AbstractVerticle {
         InputStream configInputStream = new ByteArrayInputStream(config.getBytes());
         Properties properties = new Properties();
         properties.load(configInputStream);
-        if (BOOT_TYPE_CMD.equals(BOOT_TYPE)) {
-            GIT_BASH_DIR = properties.getProperty("ssh.terminal.git.bash.dir.cmd");
-        } else if (BOOT_TYPE_BASH.equals(BOOT_TYPE)) {
-            GIT_BASH_DIR = properties.getProperty("ssh.terminal.git.bash.dir.bash");
-        } else {
-            PrintUtil.printErr("Invalid boot type.");
-            System.exit(-1);
-        }
+        GIT_BASH_DIR = properties.getProperty("ssh.terminal.git.bash.dir.bash");
         SCRIPT_SSH_DIR = FileUtils.relativeToFixed("/starter/openssh.sh");
         PrintUtil.println("success start the configuration verticle.");
+    }
+
+    public static String getExtraCmd() {
+        return BOOT_TYPE_CMD.equals(BOOT_TYPE) ? "/c" : "-c";
+    }
+
+    public static String getClearCmd() {
+        return BOOT_TYPE_CMD.equals(BOOT_TYPE) ? "cls" : "clear";
     }
 }

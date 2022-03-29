@@ -4,10 +4,12 @@ import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.PrintUtil;
 import com.toocol.ssh.core.command.enums.InsideCommand;
 import com.toocol.ssh.core.command.enums.OutsideCommand;
-import com.toocol.ssh.core.configuration.vert.ConfigurationVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.EventBus;
+
+import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.BOOT_TYPE;
+import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.getExtraCmd;
 
 /**
  * execute the inside(shell) and outside(user)'s command;
@@ -33,7 +35,7 @@ public class CommandExecutorVerticle extends AbstractVerticle {
                     eventBus.send(ClearScreenVerticle.ADDRESS_CLEAR, null);
 
                     String cmd = String.valueOf(cmdMessage.body());
-                    Process process = new ProcessBuilder(ConfigurationVerticle.BOOT_TYPE, "-c", cmd)
+                    Process process = new ProcessBuilder(BOOT_TYPE, getExtraCmd(), cmd)
                             .inheritIO()
                             .start();
                     process.waitFor();
