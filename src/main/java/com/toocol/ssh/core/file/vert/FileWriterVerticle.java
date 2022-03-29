@@ -15,8 +15,6 @@ import io.vertx.core.AbstractVerticle;
 @PreloadDeployment(weight = 1)
 public class FileWriterVerticle extends AbstractVerticle {
 
-    public static final String ADDRESS_WRITE = "terminal.file.writer";
-
     @Override
     public void start() throws Exception {
         PrintUtil.println("success start the ssh credential writer verticle.");

@@ -2,11 +2,14 @@ package com.toocol.ssh.core.view.vert;
 
 import com.toocol.ssh.common.annotation.FinalDeployment;
 import com.toocol.ssh.common.utils.PrintUtil;
-import com.toocol.ssh.core.command.vert.ClearScreenVerticle;
-import com.toocol.ssh.core.command.vert.CommandAcceptorVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.EventBus;
+
+import static com.toocol.ssh.core.command.ClearScreenAddress.ADDRESS_CLEAR;
+import static com.toocol.ssh.core.command.CommandAcceptorAddress.ADDRESS_ACCEPT_COMMAND;
+import static com.toocol.ssh.core.view.TerminalViewAddress.ADDRESS_LOADING;
+import static com.toocol.ssh.core.view.TerminalViewAddress.ADDRESS_SCREEN_HAS_CLEARED;
 
 /**
  * @author ZhaoZhe
@@ -16,28 +19,24 @@ import io.vertx.core.eventbus.EventBus;
 @FinalDeployment
 public class TerminalViewVerticle extends AbstractVerticle {
 
-    public static final String ADDRESS_SCREEN_HAS_CLEARED = "ssh.terminal.view";
-
-    public static final String ADDRESS_LOADING = "ssh.loading";
-
     @Override
     public void start() throws Exception {
         final WorkerExecutor executor = vertx.createSharedWorkerExecutor("terminal-view-worker");
         EventBus eventBus = vertx.eventBus();
 
-        eventBus.consumer(ADDRESS_LOADING, message -> {
+        eventBus.consumer(ADDRESS_LOADING.address(), message -> {
             executor.executeBlocking(future -> {
                 PrintUtil.loading();
                 future.complete("loaded");
-            }, res -> eventBus.send(ClearScreenVerticle.ADDRESS_CLEAR, "start"));
+            }, res -> eventBus.send(ADDRESS_CLEAR.address(), "start"));
         });
 
-        eventBus.consumer(ADDRESS_SCREEN_HAS_CLEARED, showWitch -> {
+        eventBus.consumer(ADDRESS_SCREEN_HAS_CLEARED.address(), showWitch -> {
             PrintUtil.printPromptScene();
-            eventBus.send(CommandAcceptorVerticle.ADDRESS_ACCEPT_COMMAND, "start");
+            eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), "start");
         });
 
         PrintUtil.println("success start the ssh terminal view verticle.");
-        eventBus.send(ADDRESS_LOADING, "start");
+        eventBus.send(ADDRESS_LOADING.address(), "start");
     }
 }

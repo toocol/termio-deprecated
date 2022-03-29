@@ -9,6 +9,10 @@ import io.vertx.core.eventbus.EventBus;
 
 import java.util.Scanner;
 
+import static com.toocol.ssh.core.command.CommandAcceptorAddress.ADDRESS_ACCEPT_ANYKEY;
+import static com.toocol.ssh.core.command.CommandAcceptorAddress.ADDRESS_ACCEPT_COMMAND;
+import static com.toocol.ssh.core.command.CommandExecutorAddress.ADDRESS_EXECUTE_OUTSIDE;
+
 /**
  * @author ZhaoZhe
  * @email joezane.cn@gmail.com
@@ -17,23 +21,19 @@ import java.util.Scanner;
 @PreloadDeployment
 public class CommandAcceptorVerticle extends AbstractVerticle {
 
-    public static final String ADDRESS_ACCEPT_COMMAND = "ssh.command.accept";
-
-    public static final String ADDRESS_ACCEPT_ANYKEY = "ssh.accept.anykey";
-
     @Override
     public void start() throws Exception {
         final WorkerExecutor executor = vertx.createSharedWorkerExecutor("command-acceptor-worker");
         EventBus eventBus = vertx.eventBus();
 
-        eventBus.consumer(ADDRESS_ACCEPT_COMMAND, message -> {
+        eventBus.consumer(ADDRESS_ACCEPT_COMMAND.address(), message -> {
             executor.executeBlocking(future -> {
                 while (true) {
                     PrintUtil.printCursorLine();
                     Scanner scanner = new Scanner(System.in);
                     String input = scanner.nextLine();
                     if (OutsideCommand.isOutsideCommand(input)) {
-                        eventBus.send(CommandExecutorVerticle.ADDRESS_EXECUTE_OUTSIDE, input);
+                        eventBus.send(ADDRESS_EXECUTE_OUTSIDE.address, input);
                         break;
                     }
                 }
@@ -41,7 +41,7 @@ public class CommandAcceptorVerticle extends AbstractVerticle {
             });
         });
 
-        eventBus.consumer(ADDRESS_ACCEPT_ANYKEY, message -> {
+        eventBus.consumer(ADDRESS_ACCEPT_ANYKEY.address(), message -> {
             executor.executeBlocking(future -> {
                 PrintUtil.printCursorLine();
                 Scanner scanner = new Scanner(System.in);

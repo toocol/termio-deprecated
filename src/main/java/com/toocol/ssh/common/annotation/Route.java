@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.router.annotation;
+package com.toocol.ssh.common.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

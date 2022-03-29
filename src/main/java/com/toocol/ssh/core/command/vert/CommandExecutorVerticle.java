@@ -8,6 +8,9 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.EventBus;
 
+import static com.toocol.ssh.core.command.ClearScreenAddress.ADDRESS_CLEAR;
+import static com.toocol.ssh.core.command.CommandExecutorAddress.ADDRESS_EXECUTE_OUTSIDE;
+import static com.toocol.ssh.core.command.CommandExecutorAddress.ADDRESS_EXECUTE_SHELL;
 import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.BOOT_TYPE;
 import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.getExtraCmd;
 
@@ -21,18 +24,14 @@ import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.getEx
 @PreloadDeployment
 public class CommandExecutorVerticle extends AbstractVerticle {
 
-    public static final String ADDRESS_EXECUTE_SHELL = "ssh.command.execute.shell";
-
-    public static final String ADDRESS_EXECUTE_OUTSIDE = "ssh.command.execute.outside";
-
     @Override
     public void start() throws Exception {
         final WorkerExecutor executor = vertx.createSharedWorkerExecutor("command-executor-worker");
         EventBus eventBus = vertx.eventBus();
-        eventBus.consumer(ADDRESS_EXECUTE_SHELL, cmdMessage -> {
+        eventBus.consumer(ADDRESS_EXECUTE_SHELL.address, cmdMessage -> {
             executor.executeBlocking(future -> {
                 try {
-                    eventBus.send(ClearScreenVerticle.ADDRESS_CLEAR, null);
+                    eventBus.send(ADDRESS_CLEAR.address(), null);
 
                     String cmd = String.valueOf(cmdMessage.body());
                     Process process = new ProcessBuilder(BOOT_TYPE, getExtraCmd(), cmd)
@@ -51,11 +50,11 @@ public class CommandExecutorVerticle extends AbstractVerticle {
             });
         });
 
-        eventBus.consumer(ADDRESS_EXECUTE_OUTSIDE, cmdMessage -> {
+        eventBus.consumer(ADDRESS_EXECUTE_OUTSIDE.address, cmdMessage -> {
             executor.executeBlocking(future -> {
                 String cmd = String.valueOf(cmdMessage.body());
                 if (OutsideCommand.CMD_SHOW.equals(cmd)) {
-                    eventBus.send(ADDRESS_EXECUTE_SHELL, InsideCommand.newWindowOpenssh());
+                    eventBus.send(ADDRESS_EXECUTE_SHELL.address, InsideCommand.newWindowOpenssh());
                 }
             }, res -> {
             });

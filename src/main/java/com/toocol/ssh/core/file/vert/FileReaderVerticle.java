@@ -15,6 +15,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.toocol.ssh.core.file.FileReaderAddress.ADDRESS_READ_CREDENTIAL;
+
 /**
  * read the ssh credential from the local file system.
  *
@@ -25,14 +27,12 @@ import java.util.List;
 @PreloadDeployment
 public class FileReaderVerticle extends AbstractVerticle {
 
-    public static final String ADDRESS_READ_CREDENTIAL = "terminal.file.read.credential";
-
     private final List<SshCredential> sshCredentials = new ArrayList<>();
 
     @Override
     public void start() throws Exception {
         EventBus eventBus = vertx.eventBus();
-        eventBus.consumer(ADDRESS_READ_CREDENTIAL, message -> {
+        eventBus.consumer(ADDRESS_READ_CREDENTIAL.address(), message -> {
             JsonArray credentialsArray = new JsonArray(sshCredentials);
             message.reply(credentialsArray.toString());
         });
