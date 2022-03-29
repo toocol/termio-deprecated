@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PreloadDeployment {
     /**
-     * The execute weight of verticle, the bigger that number is, the more prior the verticle deployed.
+     * The executive weight of verticle, the bigger that number is, the more prior the verticle deployed.
      * If two verticle's weight is the same, the executive sequence is random.
      *
      * @return weight
