@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 starter/credentials.json
 starter/.vertx/
+.vertx/
 
 ### STS ###
 .apt_generated
