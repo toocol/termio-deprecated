@@ -78,12 +78,7 @@ public class MessageAddress {
          * when the screen has been cleaned.
          */
         @Route(nextAddress = "")
-        ADDRESS_SCREEN_HAS_CLEARED("ssh.terminal.view"),
-
-        /**
-         * when user selected the launch mode.
-         */
-        ADDRESS_MODE_SELECTION_DONE("ssh.mode.selection.done"),
+        ADDRESS_SCREEN_HAS_CLEARED("ssh.terminal.view")
         ;
 
         /**

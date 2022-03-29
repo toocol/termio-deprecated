@@ -42,10 +42,6 @@ public class PrintUtil {
         System.out.println("SSH TERMINAL HELP: ");
     }
 
-    public static void printSelections() {
-        System.out.println("Please select the boot mode: 1.[Single Window] 2.[Multiple Window]");
-    }
-
     public static void loading() {
         try {
             System.out.print("loading");

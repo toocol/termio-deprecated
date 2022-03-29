@@ -18,14 +18,14 @@ public class TerminalViewVerticle extends AbstractVerticle {
 
     public static final String ADDRESS_SCREEN_HAS_CLEARED = "ssh.terminal.view";
 
-    public static final String ADDRESS_MODE_SELECTION_DONE = "ssh.mode.selection.done";
+    public static final String ADDRESS_LOADING = "ssh.loading";
 
     @Override
     public void start() throws Exception {
         final WorkerExecutor executor = vertx.createSharedWorkerExecutor("terminal-view-worker");
         EventBus eventBus = vertx.eventBus();
 
-        eventBus.consumer(ADDRESS_MODE_SELECTION_DONE, message -> {
+        eventBus.consumer(ADDRESS_LOADING, message -> {
             executor.executeBlocking(future -> {
                 PrintUtil.loading();
                 future.complete("loaded");
@@ -38,7 +38,6 @@ public class TerminalViewVerticle extends AbstractVerticle {
         });
 
         PrintUtil.println("success start the ssh terminal view verticle.");
-        PrintUtil.printSelections();
-        eventBus.send(CommandAcceptorVerticle.ADDRESS_ACCEPT_SELECTION, "start");
+        eventBus.send(ADDRESS_LOADING, "start");
     }
 }

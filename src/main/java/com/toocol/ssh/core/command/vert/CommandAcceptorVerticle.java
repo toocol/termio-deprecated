@@ -6,11 +6,8 @@ import com.toocol.ssh.core.command.enums.OutsideCommand;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.EventBus;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Scanner;
-
-import static com.toocol.ssh.core.view.vert.TerminalViewVerticle.ADDRESS_MODE_SELECTION_DONE;
 
 /**
  * @author ZhaoZhe
@@ -24,31 +21,10 @@ public class CommandAcceptorVerticle extends AbstractVerticle {
 
     public static final String ADDRESS_ACCEPT_ANYKEY = "ssh.accept.anykey";
 
-    public static final String ADDRESS_ACCEPT_SELECTION = "ssh.accept.selection";
-
     @Override
     public void start() throws Exception {
         final WorkerExecutor executor = vertx.createSharedWorkerExecutor("command-acceptor-worker");
         EventBus eventBus = vertx.eventBus();
-
-        eventBus.consumer(ADDRESS_ACCEPT_SELECTION, message -> {
-            executor.executeBlocking(future -> {
-                while (true) {
-                    PrintUtil.printCursorLine();
-                    Scanner scanner = new Scanner(System.in);
-                    String input = scanner.nextLine();
-                    if (!StringUtils.isNumeric(input)) {
-                        continue;
-                    }
-                    if (Integer.parseInt(input) == 1 || Integer.parseInt(input) == 2) {
-                        eventBus.send(ADDRESS_MODE_SELECTION_DONE, "selected");
-                        break;
-                    }
-                }
-            }, res -> {
-
-            });
-        });
 
         eventBus.consumer(ADDRESS_ACCEPT_COMMAND, message -> {
             executor.executeBlocking(future -> {

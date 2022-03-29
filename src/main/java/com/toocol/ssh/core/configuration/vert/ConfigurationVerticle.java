@@ -25,7 +25,7 @@ public class ConfigurationVerticle extends AbstractVerticle {
     /**
      * the address of Git-Bash
      */
-    public static String GIT_BASH_DIR;
+    public static String SHELL_EXECUTE_OPENSSH_DIR;
 
     /**
      * the address of bash script 'openssh.sh'
@@ -44,7 +44,7 @@ public class ConfigurationVerticle extends AbstractVerticle {
         InputStream configInputStream = new ByteArrayInputStream(config.getBytes());
         Properties properties = new Properties();
         properties.load(configInputStream);
-        GIT_BASH_DIR = properties.getProperty("ssh.terminal.git.bash.dir.bash");
+        SHELL_EXECUTE_OPENSSH_DIR = properties.getProperty("ssh.terminal.openssh.execute.shell");
         SCRIPT_SSH_DIR = FileUtils.relativeToFixed("/starter/openssh.sh");
         PrintUtil.println("success start the configuration verticle.");
     }
