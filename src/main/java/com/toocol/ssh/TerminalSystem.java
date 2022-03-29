@@ -5,12 +5,14 @@ import com.toocol.ssh.common.annotation.FinalDeployment;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.CastUtil;
 import com.toocol.ssh.common.utils.PrintUtil;
+import com.toocol.ssh.core.configuration.vert.ConfigurationVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -26,6 +28,7 @@ public class TerminalSystem {
     private static final long BLOCKED_CHECK_INTERVAL = 30 * 24 * 60 * 60 * 1000L;
 
     public static void main(String[] args) {
+        ConfigurationVerticle.BOOT_TYPE = args[0];
         /* Get the verticle which need deploy in main class by annotation */
         Set<Class<?>> annotatedClassList = ClassUtil.scanPackageByAnnotation("com.toocol.ssh.core", PreloadDeployment.class);
         List<Class<? extends AbstractVerticle>> preloadVerticleClassList = new ArrayList<>();
@@ -70,12 +73,13 @@ public class TerminalSystem {
         PrintUtil.printTitle();
         PrintUtil.println("TerminalSystem register the vertx service.");
 
+        preloadVerticleClassList.sort(Comparator.comparingInt(clazz -> -1 * clazz.getAnnotation(PreloadDeployment.class).weight()));
         preloadVerticleClassList.forEach(verticleClass ->
                 vertx.deployVerticle(verticleClass.getName(), new DeploymentOptions(), result -> {
                     if (result.succeeded()) {
                         initialLatch.countDown();
                     } else {
-                        PrintUtil.printErr("SSH TERMINAL START UP FAILED!!");
+                        PrintUtil.printErr("Terminal start up failed, verticle = " + verticleClass.getSimpleName());
                         vertx.close();
                         System.exit(-1);
                     }

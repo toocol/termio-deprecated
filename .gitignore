@@ -3,6 +3,8 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+starter/credentials.json
+starter/.vertx/
 
 ### STS ###
 .apt_generated

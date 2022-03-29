@@ -3,6 +3,7 @@ package com.toocol.ssh.core.file.vert;
 import cn.hutool.json.JSONObject;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.CastUtil;
+import com.toocol.ssh.common.utils.FileUtils;
 import com.toocol.ssh.common.utils.PrintUtil;
 import com.toocol.ssh.core.file.vo.SshCredential;
 import io.vertx.core.AbstractVerticle;
@@ -37,7 +38,7 @@ public class FileReaderVerticle extends AbstractVerticle {
         });
 
         /* read the stored ssh credential from file system, if success deploy the view verticle */
-        Buffer resultBuffer = vertx.fileSystem().readFileBlocking("F:/credentials.json");
+        Buffer resultBuffer = vertx.fileSystem().readFileBlocking(FileUtils.relativeToFixed("/starter/credentials.json"));
         String credentials = resultBuffer.getString(0, resultBuffer.length());
         if (!StringUtils.isEmpty(credentials)) {
             JsonArray credentialsArray = new JsonArray(credentials);

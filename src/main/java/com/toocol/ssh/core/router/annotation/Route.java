@@ -1,7 +1,5 @@
 package com.toocol.ssh.core.router.annotation;
 
-import com.toocol.ssh.core.router.MessageAddress;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -17,7 +15,6 @@ import java.lang.annotation.Target;
 public @interface Route {
     /**
      * the next command address string of current command address.
-     * @return
      */
     String nextAddress();
 }

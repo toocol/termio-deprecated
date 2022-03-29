@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.configuration.vert;
 
 import com.toocol.ssh.common.annotation.PreloadDeployment;
+import com.toocol.ssh.common.utils.FileUtils;
 import com.toocol.ssh.common.utils.PrintUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.buffer.Buffer;
@@ -16,6 +17,10 @@ import java.util.Properties;
  */
 @PreloadDeployment
 public class ConfigurationVerticle extends AbstractVerticle {
+    public static final String BOOT_TYPE_CMD = "cmd";
+    public static final String BOOT_TYPE_BASH = "bash";
+
+    public static String BOOT_TYPE;
 
     /**
      * the address of Git-Bash
@@ -34,13 +39,20 @@ public class ConfigurationVerticle extends AbstractVerticle {
 
     @Override
     public void start() throws Exception {
-        Buffer buffer = vertx.fileSystem().readFileBlocking("F:/ssh_terminal_starter/configuration.properties");
+        Buffer buffer = vertx.fileSystem().readFileBlocking(FileUtils.relativeToFixed("/starter/configuration.properties"));
         String config = buffer.getString(0, buffer.length());
         InputStream configInputStream = new ByteArrayInputStream(config.getBytes());
         Properties properties = new Properties();
         properties.load(configInputStream);
-        GIT_BASH_DIR = properties.getProperty("ssh.terminal.git.bash.dir.bash");
-        SCRIPT_SSH_DIR = properties.getProperty("ssh.terminal.script.openssh");
+        if (BOOT_TYPE_CMD.equals(BOOT_TYPE)) {
+            GIT_BASH_DIR = properties.getProperty("ssh.terminal.git.bash.dir.cmd");
+        } else if (BOOT_TYPE_BASH.equals(BOOT_TYPE)) {
+            GIT_BASH_DIR = properties.getProperty("ssh.terminal.git.bash.dir.bash");
+        } else {
+            PrintUtil.printErr("Invalid boot type.");
+            System.exit(-1);
+        }
+        SCRIPT_SSH_DIR = FileUtils.relativeToFixed("/starter/openssh.sh");
         PrintUtil.println("success start the configuration verticle.");
     }
 }

@@ -3,6 +3,8 @@ package com.toocol.ssh.core.command.vert;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.PrintUtil;
 import com.toocol.ssh.core.command.enums.InsideCommand;
+import com.toocol.ssh.core.command.enums.OutsideCommand;
+import com.toocol.ssh.core.configuration.vert.ConfigurationVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.EventBus;
@@ -31,7 +33,7 @@ public class CommandExecutorVerticle extends AbstractVerticle {
                     eventBus.send(ClearScreenVerticle.ADDRESS_CLEAR, null);
 
                     String cmd = String.valueOf(cmdMessage.body());
-                    Process process = new ProcessBuilder("bash", "-c", cmd)
+                    Process process = new ProcessBuilder(ConfigurationVerticle.BOOT_TYPE, "-c", cmd)
                             .inheritIO()
                             .start();
                     process.waitFor();
@@ -50,8 +52,8 @@ public class CommandExecutorVerticle extends AbstractVerticle {
         eventBus.consumer(ADDRESS_EXECUTE_OUTSIDE, cmdMessage -> {
             executor.executeBlocking(future -> {
                 String cmd = String.valueOf(cmdMessage.body());
-                if ("show".equals(cmd)) {
-                    eventBus.send(ADDRESS_EXECUTE_SHELL, InsideCommand.NEW_WINDOW_OPENSSH());
+                if (OutsideCommand.CMD_SHOW.equals(cmd)) {
+                    eventBus.send(ADDRESS_EXECUTE_SHELL, InsideCommand.newWindowOpenssh());
                 }
             }, res -> {
             });

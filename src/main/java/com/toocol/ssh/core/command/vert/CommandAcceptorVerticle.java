@@ -10,6 +10,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Scanner;
 
+import static com.toocol.ssh.core.view.vert.TerminalViewVerticle.ADDRESS_MODE_SELECTION_DONE;
+
 /**
  * @author ZhaoZhe
  * @email joezane.cn@gmail.com
@@ -38,8 +40,9 @@ public class CommandAcceptorVerticle extends AbstractVerticle {
                     if (!StringUtils.isNumeric(input)) {
                         continue;
                     }
-                    if (Integer.parseInt(input) != 1 || Integer.parseInt(input) != 2) {
-                       continue;
+                    if (Integer.parseInt(input) == 1 || Integer.parseInt(input) == 2) {
+                        eventBus.send(ADDRESS_MODE_SELECTION_DONE, "selected");
+                        break;
                     }
                 }
             }, res -> {

@@ -13,9 +13,10 @@ public class InsideCommand {
     /**
      * Open a new Git-Bash window to execute OpenSSH
      */
-    public static String NEW_WINDOW_OPENSSH() {
+    public static String newWindowOpenssh() {
         return "'"+ ConfigurationVerticle.GIT_BASH_DIR +"' " + ConfigurationVerticle.SCRIPT_SSH_DIR + " root 47.108.157.178";
     }
+
     public String command;
 
     InsideCommand(String command) {
