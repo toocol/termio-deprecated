@@ -39,7 +39,6 @@ public class AcceptOutsideCommandHandler extends AbstractCommandHandler<Void> {
                 String input = scanner.nextLine();
                 if (OutsideCommand.isOutsideCommand(input)) {
                     eventBus.send(ADDRESS_EXECUTE_OUTSIDE.address(), input);
-                    PrintUtil.clear();
                 }
             } catch (Exception e) {
                 PrintUtil.printErr("Application run failed, now exit.");

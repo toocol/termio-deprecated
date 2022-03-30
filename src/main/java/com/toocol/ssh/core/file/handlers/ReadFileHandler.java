@@ -11,6 +11,7 @@ import io.vertx.core.WorkerExecutor;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,7 @@ public class ReadFileHandler extends AbstractCommandHandler<String> {
 
     @Override
     protected <T> void resultWithin(AsyncResult<String> asyncResult, Message<T> message) {
-        message.reply(new JsonArray(asyncResult.result()));
+        String result = asyncResult.result();
+        message.reply(StringUtils.isEmpty(result) ? new JsonArray() : new JsonArray(result));
     }
 }

@@ -10,5 +10,5 @@ public abstract class AbstractCommandProcessor {
      *
      * @param param param
      */
-    public abstract <T> void process(T param);
+    public abstract <T> void process(T param) throws Exception;
 }

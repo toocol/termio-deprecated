@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.command.commands;
 
+import com.toocol.ssh.core.command.commands.processors.ClearCmdProcessor;
 import com.toocol.ssh.core.command.commands.processors.ExecuteExternalShellProcessor;
 import com.toocol.ssh.core.command.commands.processors.ExitCmdProcessor;
 
@@ -14,6 +15,7 @@ public enum OutsideCommand {
     /**
      * outside command enums
      */
+    CMD_CLEAR("clear", new ClearCmdProcessor()),
     CMD_HELP("help", null),
     CMD_SHOW("show", new ExecuteExternalShellProcessor()),
     CMD_EXIT("exit", new ExitCmdProcessor()),
@@ -46,7 +48,7 @@ public enum OutsideCommand {
         return Optional.ofNullable(outsideCommand);
     }
 
-    public <T> void processCmd(T param) {
+    public <T> void processCmd(T param) throws Exception {
         if (this.commandProcessor == null) {
             return;
         }
