@@ -34,7 +34,7 @@ public class ExecuteOutsideCommandHandler extends AbstractCommandHandler<Void> {
         OutsideCommand.cmdOf(cmd)
                 .ifPresent(outsideCommand -> {
                     try {
-                        outsideCommand.processCmd(InsideCommand.insideCommandOf(outsideCommand));
+                        outsideCommand.processCmd(eventBus, InsideCommand.insideCommandOf(outsideCommand));
                     } catch (Exception e) {
                         PrintUtil.printErr("Execute command failed, message = " + e.getMessage());
                     }

@@ -3,6 +3,7 @@ package com.toocol.ssh.core.command.commands;
 import com.toocol.ssh.core.command.commands.processors.ClearCmdProcessor;
 import com.toocol.ssh.core.command.commands.processors.ExecuteExternalShellProcessor;
 import com.toocol.ssh.core.command.commands.processors.ExitCmdProcessor;
+import io.vertx.core.eventbus.EventBus;
 
 import java.util.Optional;
 
@@ -48,11 +49,11 @@ public enum OutsideCommand {
         return Optional.ofNullable(outsideCommand);
     }
 
-    public <T> void processCmd(T param) throws Exception {
+    public <T> void processCmd(EventBus eventBus, T param) throws Exception {
         if (this.commandProcessor == null) {
             return;
         }
-        this.commandProcessor.process(param);
+        this.commandProcessor.process(eventBus, param);
     }
 
     public String cmd() {

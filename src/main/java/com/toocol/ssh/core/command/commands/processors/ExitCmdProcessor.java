@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.command.commands.processors;
 
 import com.toocol.ssh.core.command.commands.AbstractCommandProcessor;
+import io.vertx.core.eventbus.EventBus;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -8,7 +9,7 @@ import com.toocol.ssh.core.command.commands.AbstractCommandProcessor;
  */
 public class ExitCmdProcessor extends AbstractCommandProcessor {
     @Override
-    public <T> void process(T param) {
+    public <T> void process(EventBus eventBus, T param) {
         System.exit(-1);
     }
 }
