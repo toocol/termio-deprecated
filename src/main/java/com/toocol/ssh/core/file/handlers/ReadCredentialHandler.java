@@ -1,45 +1,45 @@
-package com.toocol.ssh.core.file.vert;
+package com.toocol.ssh.core.file.handlers;
 
 import cn.hutool.json.JSONObject;
-import com.toocol.ssh.common.annotation.PreloadDeployment;
+import com.toocol.ssh.common.handler.AbstractCommandHandler;
+import com.toocol.ssh.common.router.IAddress;
 import com.toocol.ssh.common.utils.CastUtil;
 import com.toocol.ssh.common.utils.FileUtils;
-import com.toocol.ssh.common.utils.PrintUtil;
 import com.toocol.ssh.core.file.vo.SshCredential;
-import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.toocol.ssh.core.file.FileReaderAddress.ADDRESS_READ_CREDENTIAL;
+import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_READ_CREDENTIAL;
 
 /**
- * read the ssh credential from the local file system.
- *
- * @author ZhaoZhe
- * @email joezane.cn@gmail.com
- * @date 2021/2/19 16:27
+ * @author ZhaoZhe (joezane.cn@gmail.com)
+ * @date 2022/3/30 11:35
  */
-@PreloadDeployment
-public class FileReaderVerticle extends AbstractVerticle {
+public class ReadCredentialHandler extends AbstractCommandHandler {
 
-    private final List<SshCredential> sshCredentials = new ArrayList<>();
+    public ReadCredentialHandler(Vertx vertx, WorkerExecutor executor) {
+        super(vertx, executor);
+    }
 
     @Override
-    public void start() throws Exception {
-        EventBus eventBus = vertx.eventBus();
-        eventBus.consumer(ADDRESS_READ_CREDENTIAL.address(), message -> {
-            JsonArray credentialsArray = new JsonArray(sshCredentials);
-            message.reply(credentialsArray.toString());
-        });
+    public IAddress address() {
+        return ADDRESS_READ_CREDENTIAL;
+    }
 
-        /* read the stored ssh credential from file system, if success deploy the view verticle */
+    @Override
+    public <T> void handle(Message<T> message) {
+        List<SshCredential> sshCredentials = new ArrayList<>();
+
         Buffer resultBuffer = vertx.fileSystem().readFileBlocking(FileUtils.relativeToFixed("/starter/credentials.json"));
         String credentials = resultBuffer.getString(0, resultBuffer.length());
+
         if (!StringUtils.isEmpty(credentials)) {
             JsonArray credentialsArray = new JsonArray(credentials);
             credentialsArray.forEach(o -> {
@@ -54,6 +54,7 @@ public class FileReaderVerticle extends AbstractVerticle {
                 sshCredentials.add(sshCredential);
             });
         }
-        PrintUtil.println("success start the ssh credential reader verticle.");
+
+        message.reply(new JsonArray(sshCredentials).toString());
     }
 }

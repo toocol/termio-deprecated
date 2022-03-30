@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.command;
+package com.toocol.ssh.core.file;
 
 import com.toocol.ssh.common.router.IAddress;
 import lombok.AllArgsConstructor;
@@ -10,20 +10,21 @@ import java.util.Optional;
  * @date 2022/03/29 16:51:33
  */
 @AllArgsConstructor
-public enum CommandExecutorAddress implements IAddress {
+public enum FileVerticleAddress implements IAddress {
     /**
-     * execute shell command
+     * read the credential file(credentials.json)
      */
-    ADDRESS_EXECUTE_SHELL("ssh.command.execute.shell", null),
+    ADDRESS_READ_CREDENTIAL("terminal.file.read.credential", null),
     /**
-     * execute outside command
+     * write the file to disk
      */
-    ADDRESS_EXECUTE_OUTSIDE("ssh.command.execute.outside", null);
+    ADDRESS_WRITE_CREDENTIAL("terminal.file.write.credential", null);
+
     /**
      * the address string of message
      */
-    public final String address;
-    public final IAddress next;
+    private final String address;
+    private final IAddress next;
 
     @Override
     public String address() {

@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 
 import java.util.Optional;
 
-import static com.toocol.ssh.core.command.ClearScreenAddress.ADDRESS_CLEAR;
-import static com.toocol.ssh.core.command.CommandAcceptorAddress.ADDRESS_ACCEPT_COMMAND;
+import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
+import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_CLEAR;
 
 /**
  * @author JoeZane (joezane.cn@gmail.com)

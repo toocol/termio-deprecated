@@ -5,14 +5,29 @@ package com.toocol.ssh.core.command.enums;
  * @email joezane.cn@gmail.com
  * @date 2021/2/22 13:21
  */
-public class OutsideCommand {
+public enum OutsideCommand {
+    /**
+     * outside command enums
+     */
+    CMD_SHOW("show"),
+    CMD_EXIT("exit");
 
-    public static final String CMD_SHOW = "show";
+    private final String cmd;
+
+    OutsideCommand(String cmd) {
+        this.cmd = cmd;
+    }
 
     public static boolean isOutsideCommand(String cmd) {
-        if (CMD_SHOW.equals(cmd)) {
-            return true;
+        for (OutsideCommand command : values()) {
+            if (command.cmd.equals(cmd)) {
+                return true;
+            }
         }
         return false;
+    }
+
+    public String cmd() {
+        return cmd;
     }
 }

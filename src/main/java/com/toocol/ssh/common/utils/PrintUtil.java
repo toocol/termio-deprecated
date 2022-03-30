@@ -28,9 +28,9 @@ public class PrintUtil {
 
     public static void printPromptScene() {
         printTitle();
-        System.out.print("___________________________________________ Properties ___________________________________________\n\n");
-        System.out.print("                     You have no connection properties, type 'add' to add property            \n");
-        System.out.print("__________________________________________________________________________________________________\n\n");
+        System.out.print("_____________________________________ Properties _____________________________________\n\n");
+        System.out.print("               You have no connection properties, type 'add' to add property            \n");
+        System.out.print("______________________________________________________________________________________\n\n");
         System.out.print("SSH TERMINAL is running, enter commands to operate. <enter 'help' to get more command>\n\n");
     }
 
@@ -46,7 +46,7 @@ public class PrintUtil {
         try {
             System.out.print("loading");
             for (int idx = 0; idx < LOADING_COUNT; idx++) {
-                Thread.sleep(550);
+                Thread.sleep(450);
                 System.out.print(".");
             }
         } catch (InterruptedException e) {
