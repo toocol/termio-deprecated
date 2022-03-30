@@ -31,9 +31,9 @@ public interface IHandlerAssembler extends ICastable {
         Arrays.stream(registerHandler.handlers()).forEach(handlerClass -> {
             try {
 
-                Constructor<? extends AbstractCommandHandler> declaredConstructor = handlerClass.getDeclaredConstructor(Vertx.class, WorkerExecutor.class, boolean.class);
+                Constructor<? extends AbstractCommandHandler<?>> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, WorkerExecutor.class, boolean.class));
                 declaredConstructor.setAccessible(true);
-                AbstractCommandHandler commandHandler = declaredConstructor.newInstance(vertx, executor, parallel);
+                AbstractCommandHandler<?> commandHandler = declaredConstructor.newInstance(vertx, executor, parallel);
                 vertx.eventBus().consumer(commandHandler.address().address(), commandHandler::handle);
                 PrintUtil.println(clazz.getSimpleName() + " assemble handler " + handlerClass.getSimpleName() + " success.");
 
