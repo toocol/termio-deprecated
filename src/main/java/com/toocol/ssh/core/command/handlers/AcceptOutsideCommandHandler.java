@@ -11,6 +11,7 @@ import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_EXECUTE_OUTSIDE;
@@ -38,7 +39,9 @@ public class AcceptOutsideCommandHandler extends AbstractCommandHandler<Void> {
                 Scanner scanner = new Scanner(System.in);
                 String input = scanner.nextLine();
                 if (OutsideCommand.isOutsideCommand(input)) {
-                    eventBus.send(ADDRESS_EXECUTE_OUTSIDE.address(), input);
+                    CountDownLatch latch = new CountDownLatch(1);
+                    eventBus.send(ADDRESS_EXECUTE_OUTSIDE.address(), input, result -> latch.countDown());
+                    latch.await();
                 }
             } catch (Exception e) {
                 PrintUtil.printErr("Application run failed, now exit.");

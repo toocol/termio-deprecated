@@ -11,6 +11,5 @@ public class ClearCmdProcessor extends AbstractCommandProcessor {
     @Override
     public <T> void process(T param) throws Exception {
         PrintUtil.clear();
-        PrintUtil.printCursorLine();
     }
 }

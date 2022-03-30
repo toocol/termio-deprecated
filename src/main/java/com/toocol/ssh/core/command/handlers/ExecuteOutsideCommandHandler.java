@@ -39,10 +39,11 @@ public class ExecuteOutsideCommandHandler extends AbstractCommandHandler<Void> {
                         PrintUtil.printErr("Execute command failed, message = " + e.getMessage());
                     }
                 });
+        future.complete();
     }
 
     @Override
     protected <T> void resultWithin(AsyncResult<Void> asyncResult, Message<T> message) {
-
+        message.reply(null);
     }
 }

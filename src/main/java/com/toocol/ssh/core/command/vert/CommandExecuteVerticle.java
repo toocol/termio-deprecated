@@ -24,9 +24,9 @@ public class CommandExecuteVerticle extends AbstractVerticle implements IHandler
 
     @Override
     public void start() throws Exception {
-        final WorkerExecutor executor = vertx.createSharedWorkerExecutor("command-execute-worker", 10);
+        final WorkerExecutor executor = vertx.createSharedWorkerExecutor("command-execute-worker");
 
-        assemble(vertx, executor, true);
+        assemble(vertx, executor);
 
         PrintUtil.println("Success start the command acceptor verticle.");
     }
