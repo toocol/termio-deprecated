@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.credentials.vert;
 
 import com.toocol.ssh.common.annotation.PreloadDeployment;
-import com.toocol.ssh.common.handler.IHandlerAssembler;
+import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.FileUtils;
 import com.toocol.ssh.common.utils.PrintUtil;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
@@ -22,7 +22,7 @@ import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_READ_FILE;
  * @date 2022/3/30 15:03
  */
 @PreloadDeployment(weight = 1)
-public class CredentialVerticle extends AbstractVerticle implements IHandlerAssembler {
+public class CredentialVerticle extends AbstractVerticle implements IHandlerMounter {
 
     private final Map<String, SshCredential> credentialsMap = new ConcurrentHashMap<>();
 

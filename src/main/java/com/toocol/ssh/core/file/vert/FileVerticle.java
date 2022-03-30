@@ -2,7 +2,7 @@ package com.toocol.ssh.core.file.vert;
 
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
-import com.toocol.ssh.common.handler.IHandlerAssembler;
+import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.PrintUtil;
 import com.toocol.ssh.core.file.handlers.CheckFileExistHandler;
 import com.toocol.ssh.core.file.handlers.ReadFileHandler;
@@ -23,13 +23,13 @@ import io.vertx.core.WorkerExecutor;
         ReadFileHandler.class,
         WriteFileHandler.class
 })
-public class FileVerticle extends AbstractVerticle implements IHandlerAssembler {
+public class FileVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {
         final WorkerExecutor executor = vertx.createSharedWorkerExecutor("file-worker");
 
-        assemble(vertx, executor);
+        mountHandler(vertx, executor);
 
         PrintUtil.println("Success start the file verticle.");
     }

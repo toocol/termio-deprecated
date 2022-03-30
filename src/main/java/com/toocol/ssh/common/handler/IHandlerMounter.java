@@ -13,7 +13,7 @@ import java.util.Arrays;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:02
  */
-public interface IHandlerAssembler extends ICastable {
+public interface IHandlerMounter extends ICastable {
     /**
      * assemble the handler to the eventBus
      *
@@ -21,8 +21,8 @@ public interface IHandlerAssembler extends ICastable {
      * @param executor executor
      * @param parallel whether the handlers is handle parallel
      */
-    default void assemble(Vertx vertx, WorkerExecutor executor, boolean parallel) {
-        Class<? extends IHandlerAssembler> clazz = this.getClass();
+    default void mountHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
+        Class<? extends IHandlerMounter> clazz = this.getClass();
         RegisterHandler registerHandler = clazz.getAnnotation(RegisterHandler.class);
         if (registerHandler == null) {
             return;
@@ -52,7 +52,7 @@ public interface IHandlerAssembler extends ICastable {
      * @param vertx the vertx system object
      * @param executor executor
      */
-    default void assemble(Vertx vertx, WorkerExecutor executor) {
-        assemble(vertx, executor, false);
+    default void mountHandler(Vertx vertx, WorkerExecutor executor) {
+        mountHandler(vertx, executor, false);
     }
 }
