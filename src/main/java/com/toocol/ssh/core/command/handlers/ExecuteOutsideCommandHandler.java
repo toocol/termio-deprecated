@@ -2,14 +2,15 @@ package com.toocol.ssh.core.command.handlers;
 
 import com.toocol.ssh.common.handler.AbstractCommandHandler;
 import com.toocol.ssh.common.router.IAddress;
-import com.toocol.ssh.core.command.enums.InsideCommand;
-import com.toocol.ssh.core.command.enums.OutsideCommand;
+import com.toocol.ssh.core.command.commands.InsideCommand;
+import com.toocol.ssh.core.command.commands.OutsideCommand;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_EXECUTE_OUTSIDE;
-import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_EXECUTE_SHELL;
 
 
 /**
@@ -18,8 +19,8 @@ import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_EXECUTE
  */
 public class ExecuteOutsideCommandHandler extends AbstractCommandHandler {
 
-    public ExecuteOutsideCommandHandler(Vertx vertx, WorkerExecutor executor) {
-        super(vertx, executor);
+    public ExecuteOutsideCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
+        super(vertx, executor, parallel);
     }
 
     @Override
@@ -28,13 +29,14 @@ public class ExecuteOutsideCommandHandler extends AbstractCommandHandler {
     }
 
     @Override
-    public <T> void handle(Message<T> message) {
-        executor.executeBlocking(future -> {
-            String cmd = String.valueOf(message.body());
-            if (OutsideCommand.CMD_SHOW.cmd().equals(cmd)) {
-                eventBus.send(ADDRESS_EXECUTE_SHELL.address(), InsideCommand.newWindowOpenssh());
-            }
-        }, res -> {
-        });
+    protected <R, T> void handleWithin(Future<R> future, Message<T> message) {
+        String cmd = String.valueOf(message.body());
+        OutsideCommand.cmdOf(cmd)
+                .ifPresent(outsideCommand -> outsideCommand.processCmd(InsideCommand.insideCommandOf(outsideCommand)));
+    }
+
+    @Override
+    protected <R, T> void resultWithin(AsyncResult<R> asyncResult, Message<T> message) {
+
     }
 }

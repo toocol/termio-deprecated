@@ -3,7 +3,9 @@ package com.toocol.ssh.core.command.handlers;
 import com.toocol.ssh.common.handler.AbstractCommandHandler;
 import com.toocol.ssh.common.router.IAddress;
 import com.toocol.ssh.common.utils.PrintUtil;
-import com.toocol.ssh.core.command.enums.OutsideCommand;
+import com.toocol.ssh.core.command.commands.OutsideCommand;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
@@ -19,8 +21,8 @@ import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_EXECUTE
  */
 public class AcceptOutsideCommandHandler extends AbstractCommandHandler {
 
-    public AcceptOutsideCommandHandler(Vertx vertx, WorkerExecutor executor) {
-        super(vertx, executor);
+    public AcceptOutsideCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
+        super(vertx, executor, parallel);
     }
 
     @Override
@@ -29,18 +31,25 @@ public class AcceptOutsideCommandHandler extends AbstractCommandHandler {
     }
 
     @Override
-    public <T> void handle(Message<T> message) {
-        executor.executeBlocking(future -> {
-            while (true) {
+    protected <R, T> void handleWithin(Future<R> future, Message<T> message) {
+        while (true) {
+            try {
                 PrintUtil.printCursorLine();
                 Scanner scanner = new Scanner(System.in);
                 String input = scanner.nextLine();
                 if (OutsideCommand.isOutsideCommand(input)) {
                     eventBus.send(ADDRESS_EXECUTE_OUTSIDE.address(), input);
-                    break;
+                    PrintUtil.clear();
                 }
+            } catch (Exception e) {
+                PrintUtil.printErr("Application run failed, now exit.");
+                System.exit(-1);
             }
-        }, res -> {
-        });
+        }
+    }
+
+    @Override
+    protected <R, T> void resultWithin(AsyncResult<R> asyncResult, Message<T> message) {
+
     }
 }

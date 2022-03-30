@@ -5,9 +5,6 @@ import lombok.AllArgsConstructor;
 
 import java.util.Optional;
 
-import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
-import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_CLEAR;
-
 /**
  * @author JoeZane (joezane.cn@gmail.com)
  * @date 2022/03/29 16:51:33
@@ -15,11 +12,9 @@ import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_CLEAR;
 @AllArgsConstructor
 public enum TerminalViewAddress implements IAddress {
     /**
-     * when the screen has been cleaned.
+     * show loading pattern
      */
-    ADDRESS_SCREEN_HAS_CLEARED("ssh.terminal.view", ADDRESS_ACCEPT_COMMAND),
-
-    ADDRESS_LOADING("ssh.loading", ADDRESS_CLEAR),
+    ADDRESS_LOADING("ssh.loading", null),
     ;
 
     /**

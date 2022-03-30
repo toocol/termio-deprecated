@@ -3,9 +3,10 @@ package com.toocol.ssh.core.file.handlers;
 import cn.hutool.json.JSONObject;
 import com.toocol.ssh.common.handler.AbstractCommandHandler;
 import com.toocol.ssh.common.router.IAddress;
-import com.toocol.ssh.common.utils.CastUtil;
 import com.toocol.ssh.common.utils.FileUtils;
 import com.toocol.ssh.core.file.vo.SshCredential;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.buffer.Buffer;
@@ -24,8 +25,8 @@ import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_READ_CREDENTI
  */
 public class ReadCredentialHandler extends AbstractCommandHandler {
 
-    public ReadCredentialHandler(Vertx vertx, WorkerExecutor executor) {
-        super(vertx, executor);
+    public ReadCredentialHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
+        super(vertx, executor, parallel);
     }
 
     @Override
@@ -33,17 +34,17 @@ public class ReadCredentialHandler extends AbstractCommandHandler {
         return ADDRESS_READ_CREDENTIAL;
     }
 
-    @Override
-    public <T> void handle(Message<T> message) {
-        List<SshCredential> sshCredentials = new ArrayList<>();
+    List<SshCredential> sshCredentials = new ArrayList<>();
 
+    @Override
+    protected <R, T> void handleWithin(Future<R> future, Message<T> message) {
         Buffer resultBuffer = vertx.fileSystem().readFileBlocking(FileUtils.relativeToFixed("/starter/credentials.json"));
         String credentials = resultBuffer.getString(0, resultBuffer.length());
 
         if (!StringUtils.isEmpty(credentials)) {
             JsonArray credentialsArray = new JsonArray(credentials);
             credentialsArray.forEach(o -> {
-                JSONObject credentialJsonObj = CastUtil.cast(o);
+                JSONObject credentialJsonObj = cast(o);
                 SshCredential sshCredential = new SshCredential(
                         credentialJsonObj.getStr("name"),
                         credentialJsonObj.getStr("ip"),
@@ -54,7 +55,11 @@ public class ReadCredentialHandler extends AbstractCommandHandler {
                 sshCredentials.add(sshCredential);
             });
         }
+        future.complete();
+    }
 
-        message.reply(new JsonArray(sshCredentials).toString());
+    @Override
+    protected <R, T> void resultWithin(AsyncResult<R> asyncResult, Message<T> message) {
+        message.reply(new JsonArray(sshCredentials));
     }
 }

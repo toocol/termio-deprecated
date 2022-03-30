@@ -4,13 +4,11 @@ import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerAssembler;
 import com.toocol.ssh.common.utils.PrintUtil;
-import com.toocol.ssh.core.command.handlers.*;
+import com.toocol.ssh.core.command.handlers.AcceptOutsideCommandHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
-import io.vertx.core.eventbus.EventBus;
 
 /**
- * accept the outside(user)'s command;
  * execute the inside(shell) and outside(user)'s command.
  *
  * @author ZhaoZhe
@@ -19,17 +17,13 @@ import io.vertx.core.eventbus.EventBus;
  */
 @PreloadDeployment
 @RegisterHandler(handlers = {
-        AcceptAnyKeyHandler.class,
         AcceptOutsideCommandHandler.class,
-        ClearScreenHandler.class,
-        ExecuteExternalShellHandler.class,
-        ExecuteOutsideCommandHandler.class
 })
-public class CommandVerticle extends AbstractVerticle implements IHandlerAssembler {
+public class CommandAcceptVerticle extends AbstractVerticle implements IHandlerAssembler {
 
     @Override
     public void start() throws Exception {
-        final WorkerExecutor executor = vertx.createSharedWorkerExecutor("command-worker");
+        final WorkerExecutor executor = vertx.createSharedWorkerExecutor("command-accept-worker");
 
         assemble(vertx, executor);
 

@@ -1,5 +1,7 @@
 package com.toocol.ssh.common.utils;
 
+import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.*;
+
 /**
  * @author ZhaoZhe
  * @email joezane.cn@gmail.com
@@ -52,5 +54,13 @@ public class PrintUtil {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void clear() throws Exception {
+        new ProcessBuilder(BOOT_TYPE, getExtraCmd(), getClearCmd())
+                .inheritIO()
+                .start()
+                .waitFor();
+        printPromptScene();
     }
 }

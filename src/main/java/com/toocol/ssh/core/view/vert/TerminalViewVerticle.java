@@ -4,7 +4,6 @@ import com.toocol.ssh.common.annotation.FinalDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerAssembler;
 import com.toocol.ssh.common.utils.PrintUtil;
-import com.toocol.ssh.core.view.handlers.ScreenCleanedToAcceptCommandHandler;
 import com.toocol.ssh.core.view.handlers.ShowLoadingHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
@@ -18,7 +17,6 @@ import static com.toocol.ssh.core.view.TerminalViewAddress.ADDRESS_LOADING;
  */
 @FinalDeployment
 @RegisterHandler(handlers = {
-        ScreenCleanedToAcceptCommandHandler.class,
         ShowLoadingHandler.class
 })
 public class TerminalViewVerticle extends AbstractVerticle implements IHandlerAssembler {
@@ -29,7 +27,7 @@ public class TerminalViewVerticle extends AbstractVerticle implements IHandlerAs
 
         assemble(vertx, executor);
 
-        PrintUtil.println("success start the ssh terminal view verticle.");
+        PrintUtil.println("Success start the ssh terminal view verticle.");
         vertx.eventBus().send(ADDRESS_LOADING.address(), "start");
     }
 }
