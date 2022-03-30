@@ -19,7 +19,7 @@ import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_EXECUTE
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:11
  */
-public class AcceptOutsideCommandHandler extends AbstractCommandHandler {
+public class AcceptOutsideCommandHandler extends AbstractCommandHandler<Void> {
 
     public AcceptOutsideCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -31,7 +31,7 @@ public class AcceptOutsideCommandHandler extends AbstractCommandHandler {
     }
 
     @Override
-    protected <R, T> void handleWithin(Future<R> future, Message<T> message) {
+    protected <T> void handleWithin(Future<Void> future, Message<T> message) {
         while (true) {
             try {
                 PrintUtil.printCursorLine();
@@ -49,7 +49,7 @@ public class AcceptOutsideCommandHandler extends AbstractCommandHandler {
     }
 
     @Override
-    protected <R, T> void resultWithin(AsyncResult<R> asyncResult, Message<T> message) {
+    protected <T> void resultWithin(AsyncResult<Void> asyncResult, Message<T> message) {
 
     }
 }

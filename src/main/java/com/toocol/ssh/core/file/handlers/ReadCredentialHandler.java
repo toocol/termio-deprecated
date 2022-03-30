@@ -23,7 +23,7 @@ import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_READ_CREDENTI
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:35
  */
-public class ReadCredentialHandler extends AbstractCommandHandler {
+public class ReadCredentialHandler extends AbstractCommandHandler<String> {
 
     public ReadCredentialHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -37,12 +37,12 @@ public class ReadCredentialHandler extends AbstractCommandHandler {
     List<SshCredential> sshCredentials = new ArrayList<>();
 
     @Override
-    protected <R, T> void handleWithin(Future<R> future, Message<T> message) {
+    protected <T> void handleWithin(Future<String> future, Message<T> message) {
         Buffer resultBuffer = vertx.fileSystem().readFileBlocking(FileUtils.relativeToFixed("/starter/credentials.json"));
-        String credentials = resultBuffer.getString(0, resultBuffer.length());
+        String fileData = resultBuffer.getString(0, resultBuffer.length());
 
-        if (!StringUtils.isEmpty(credentials)) {
-            JsonArray credentialsArray = new JsonArray(credentials);
+        if (!StringUtils.isEmpty(fileData)) {
+            JsonArray credentialsArray = new JsonArray(fileData);
             credentialsArray.forEach(o -> {
                 JSONObject credentialJsonObj = cast(o);
                 SshCredential sshCredential = new SshCredential(
@@ -55,11 +55,11 @@ public class ReadCredentialHandler extends AbstractCommandHandler {
                 sshCredentials.add(sshCredential);
             });
         }
-        future.complete();
+        future.complete(fileData);
     }
 
     @Override
-    protected <R, T> void resultWithin(AsyncResult<R> asyncResult, Message<T> message) {
+    protected <T> void resultWithin(AsyncResult<String> asyncResult, Message<T> message) {
         message.reply(new JsonArray(sshCredentials));
     }
 }

@@ -14,7 +14,7 @@ import io.vertx.core.eventbus.Message;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 10:46
  */
-public abstract class AbstractCommandHandler implements IRoutable, ICastable {
+public abstract class AbstractCommandHandler<R> implements IRoutable, ICastable {
     /**
      * the vertx system object.
      */
@@ -54,9 +54,9 @@ public abstract class AbstractCommandHandler implements IRoutable, ICastable {
      */
     public <T> void handle(Message<T> message) {
         executor.executeBlocking(
-                future -> handleWithin(future, message),
+                future -> handleWithin(cast(future), message),
                 !parallel,
-                asyncResult -> resultWithin(asyncResult, message)
+                asyncResult -> resultWithin(cast(asyncResult), message)
         );
     }
 
@@ -65,18 +65,16 @@ public abstract class AbstractCommandHandler implements IRoutable, ICastable {
      *
      * @param future future
      * @param message message
-     * @param <R> generic type
      * @param <T> generic type
      */
-    protected abstract <R, T> void handleWithin(Future<R> future, Message<T> message);
+    protected abstract <T> void handleWithin(Future<R> future, Message<T> message);
 
     /**
      * response the blocked process result
      *
      * @param asyncResult async result
      * @param message message
-     * @param <R> generic type
      * @param <T> generic type
      */
-    protected abstract <R, T> void resultWithin(AsyncResult<R> asyncResult, Message<T> message);
+    protected abstract <T> void resultWithin(AsyncResult<R> asyncResult, Message<T> message);
 }

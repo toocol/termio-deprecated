@@ -14,7 +14,7 @@ import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_WRITE_CREDENT
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:45
  */
-public class WriteCredentialHandler extends AbstractCommandHandler {
+public class WriteCredentialHandler extends AbstractCommandHandler<Void> {
 
     public WriteCredentialHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -26,12 +26,12 @@ public class WriteCredentialHandler extends AbstractCommandHandler {
     }
 
     @Override
-    protected <R, T> void handleWithin(Future<R> future, Message<T> message) {
+    protected <T> void handleWithin(Future<Void> future, Message<T> message) {
 
     }
 
     @Override
-    protected <R, T> void resultWithin(AsyncResult<R> asyncResult, Message<T> message) {
+    protected <T> void resultWithin(AsyncResult<Void> asyncResult, Message<T> message) {
 
     }
 }
