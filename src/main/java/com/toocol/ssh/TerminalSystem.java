@@ -28,6 +28,14 @@ public class TerminalSystem {
     private static final long BLOCKED_CHECK_INTERVAL = 30 * 24 * 60 * 60 * 1000L;
 
     public static void main(String[] args) {
+        PrintUtil.printTitle();
+        PrintUtil.println("TerminalSystem register the vertx service.");
+
+        if (args.length != 1) {
+            PrintUtil.printErr("wrong boot parameter.");
+            System.exit(-1);
+        }
+
         ConfigurationVerticle.BOOT_TYPE = args[0];
         /* Get the verticle which need deploy in main class by annotation */
         Set<Class<?>> annotatedClassList = ClassUtil.scanPackageByAnnotation("com.toocol.ssh.core", PreloadDeployment.class);
@@ -69,9 +77,6 @@ public class TerminalSystem {
             });
         }, res -> {
         });
-
-        PrintUtil.printTitle();
-        PrintUtil.println("TerminalSystem register the vertx service.");
 
         preloadVerticleClassList.sort(Comparator.comparingInt(clazz -> -1 * clazz.getAnnotation(PreloadDeployment.class).weight()));
         preloadVerticleClassList.forEach(verticleClass ->
