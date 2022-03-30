@@ -8,21 +8,21 @@ import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 
-import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_WRITE_CREDENTIAL;
+import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_WRITE_FILE;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:45
  */
-public class WriteCredentialHandler extends AbstractCommandHandler<Void> {
+public class WriteFileHandler extends AbstractCommandHandler<Void> {
 
-    public WriteCredentialHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
+    public WriteFileHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
     }
 
     @Override
     public IAddress address() {
-        return ADDRESS_WRITE_CREDENTIAL;
+        return ADDRESS_WRITE_FILE;
     }
 
     @Override

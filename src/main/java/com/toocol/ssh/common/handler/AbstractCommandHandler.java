@@ -3,6 +3,7 @@ package com.toocol.ssh.common.handler;
 import com.toocol.ssh.common.router.IAddress;
 import com.toocol.ssh.common.router.IRoutable;
 import com.toocol.ssh.common.utils.ICastable;
+import com.toocol.ssh.common.utils.PrintUtil;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -54,9 +55,21 @@ public abstract class AbstractCommandHandler<R> implements IRoutable, ICastable 
      */
     public <T> void handle(Message<T> message) {
         executor.executeBlocking(
-                future -> handleWithin(cast(future), message),
+                future -> {
+                    try {
+                        handleWithin(cast(future), message);
+                    } catch (Exception e) {
+                        PrintUtil.printErr("Caught handle exception, message = " + e.getMessage());
+                    }
+                },
                 !parallel,
-                asyncResult -> resultWithin(cast(asyncResult), message)
+                asyncResult -> {
+                    try {
+                        resultWithin(cast(asyncResult), message);
+                    } catch (Exception e) {
+                        PrintUtil.printErr("Caught result exception, message = " + e.getMessage());
+                    }
+                }
         );
     }
 
@@ -66,8 +79,9 @@ public abstract class AbstractCommandHandler<R> implements IRoutable, ICastable 
      * @param future future
      * @param message message
      * @param <T> generic type
+     * @throws Exception exception
      */
-    protected abstract <T> void handleWithin(Future<R> future, Message<T> message);
+    protected abstract <T> void handleWithin(Future<R> future, Message<T> message) throws Exception;
 
     /**
      * response the blocked process result
@@ -75,6 +89,7 @@ public abstract class AbstractCommandHandler<R> implements IRoutable, ICastable 
      * @param asyncResult async result
      * @param message message
      * @param <T> generic type
+     * @throws Exception exception
      */
-    protected abstract <T> void resultWithin(AsyncResult<R> asyncResult, Message<T> message);
+    protected abstract <T> void resultWithin(AsyncResult<R> asyncResult, Message<T> message) throws Exception;
 }

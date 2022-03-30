@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.file.vo;
+package com.toocol.ssh.core.credentials.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

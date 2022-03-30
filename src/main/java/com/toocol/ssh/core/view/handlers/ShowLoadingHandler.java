@@ -28,13 +28,9 @@ public class ShowLoadingHandler extends AbstractCommandHandler<Void> {
     }
 
     @Override
-    protected <T> void handleWithin(Future<Void> future, Message<T> message) {
-        try {
-            PrintUtil.loading();
-            PrintUtil.clear();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    protected <T> void handleWithin(Future<Void> future, Message<T> message) throws Exception {
+        PrintUtil.loading();
+        PrintUtil.clear();
         future.complete(null);
     }
 
