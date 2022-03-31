@@ -50,6 +50,9 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
                 String echo = new String(tmp, 0, i);
                 if (CommandCache.CURRENT_COMMAND.equals(echo)) {
                     continue;
+                } else if (echo.startsWith(CommandCache.CURRENT_COMMAND)) {
+                    // cd command's echo is like this: cd /\r\n[host@user address]
+                    echo = echo.substring(CommandCache.CURRENT_COMMAND.length());
                 }
                 System.out.print(echo);
             }
