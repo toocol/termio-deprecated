@@ -4,7 +4,8 @@ import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.router.IAddress;
 import com.toocol.ssh.common.utils.PrintUtil;
-import com.toocol.ssh.core.ssh.session.SessionCache;
+import com.toocol.ssh.core.ssh.cache.CommandCache;
+import com.toocol.ssh.core.ssh.cache.SessionCache;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -48,13 +49,13 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
         final StringBuffer lastCmd = new StringBuffer();
         /*
          *  block ctrl+c.
-         *  after run this method, previous signal handler define in TerminalSystem will be replaced by this one.
+         *  after run this method, previous signal handler defined in TerminalSystem will be replaced by this one.
          */
         Signal.handle(new Signal("INT"), signal -> {
             try {
-                if (TOP.equals(lastCmd.toString().split(SPACE)[0])) {
+                if (TOP.equals(lastCmd.toString().split("\n")[0])) {
                     cmd.delete(0, cmd.length());
-                    cmd.append("q: \r\n");
+                    cmd.append("q:\n");
                     outputStream.write(cmd.toString().getBytes(StandardCharsets.UTF_8));
                     outputStream.flush();
                     cmd.delete(0, cmd.length());
@@ -97,7 +98,8 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                 cmd.delete(0, cmd.length());
             }
 
-            cmd.append(" \r\n");
+            CommandCache.CURRENT_COMMAND = cmd + "\r\n";
+            cmd.append("\n");
             outputStream.write(cmd.toString().getBytes(StandardCharsets.UTF_8));
             outputStream.flush();
         }

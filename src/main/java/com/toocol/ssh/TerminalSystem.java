@@ -5,7 +5,6 @@ import com.toocol.ssh.common.annotation.FinalDeployment;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.CastUtil;
 import com.toocol.ssh.common.utils.PrintUtil;
-import com.toocol.ssh.core.configuration.vert.ConfigurationVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -20,7 +19,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
-import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.*;
+import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.BOOT_TYPE;
+import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.BOOT_TYPE_CMD;
 
 /**
  * @author ZhaoZhe

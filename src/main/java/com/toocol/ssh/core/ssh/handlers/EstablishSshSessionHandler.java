@@ -6,7 +6,7 @@ import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.router.IAddress;
 import com.toocol.ssh.common.utils.SnowflakeGuidGenerator;
 import com.toocol.ssh.core.ssh.jsch.SshUserInfo;
-import com.toocol.ssh.core.ssh.session.SessionCache;
+import com.toocol.ssh.core.ssh.cache.SessionCache;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;

@@ -3,7 +3,8 @@ package com.toocol.ssh.core.ssh.handlers;
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.router.IAddress;
-import com.toocol.ssh.core.ssh.session.SessionCache;
+import com.toocol.ssh.core.ssh.cache.CommandCache;
+import com.toocol.ssh.core.ssh.cache.SessionCache;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -46,7 +47,11 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
                 if (i < 0) {
                     break;
                 }
-                System.out.print(new String(tmp, 0, i));
+                String echo = new String(tmp, 0, i);
+                if (CommandCache.CURRENT_COMMAND.equals(echo)) {
+                    continue;
+                }
+                System.out.print(echo);
             }
 
             if (channelShell.isClosed()) {

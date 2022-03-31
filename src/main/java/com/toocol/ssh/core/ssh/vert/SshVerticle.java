@@ -10,7 +10,7 @@ import com.toocol.ssh.core.ssh.handlers.AcceptShellCmdHandler;
 import com.toocol.ssh.core.ssh.handlers.ConnectChannelShellHandler;
 import com.toocol.ssh.core.ssh.handlers.EstablishSshSessionHandler;
 import com.toocol.ssh.core.ssh.handlers.ExhibitShellHandler;
-import com.toocol.ssh.core.ssh.session.SessionCache;
+import com.toocol.ssh.core.ssh.cache.SessionCache;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 

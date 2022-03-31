@@ -11,7 +11,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 
 /**
- * read the ssh credential from the local file system.
+ * read/write file through the local file system.
  *
  * @author ZhaoZhe
  * @email joezane.cn@gmail.com
