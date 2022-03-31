@@ -17,11 +17,11 @@ public enum OutsideCommand {
     /**
      * outside command enums
      */
-    CMD_HELP("help", new HelpCmdProcessor(), "show holistic executive command"),
-    CMD_CLEAR("clear", new ClearCmdProcessor(), "clear the screen"),
-    CMD_EXIT("exit", new ExitCmdProcessor(), "exit <ssh terminal>"),
-    CMD_CONC("conc", new ConcCmdProcessor(), "test ssh connection"),
-    CMD_NUMBER("", null, "select the connection properties");
+    CMD_HELP("help", new HelpCmdProcessor(), "show holistic executive command."),
+    CMD_CLEAR("clear", new ClearCmdProcessor(), "clear the screen."),
+    CMD_EXIT("exit", new ExitCmdProcessor(), "exit ssh terminal."),
+    CMD_CONC("conc", new ConcCmdProcessor(), "test ssh connection."),
+    CMD_NUMBER("", null, "select the connection properties.");
 
     private final String cmd;
     private final AbstractCommandProcessor commandProcessor;
@@ -67,7 +67,7 @@ public enum OutsideCommand {
         System.out.println();
         System.out.println("ssh terminal commands: ");
         for (OutsideCommand command : values()) {
-            System.out.println("\t" + command.cmd + "\t\t--" + command.comment);
+            System.out.println("\t" + command.cmd + "\t\t-- " + command.comment);
         }
         System.out.println();
     }

@@ -40,7 +40,7 @@ public class EstablishSshSessionHandler extends AbstractMessageHandler<Long> {
     @Override
     protected <T> void handleWithin(Future<Long> future, Message<T> message) throws Exception {
         Session session = jSch.getSession("root", "47.108.157.178", 22);
-        session.setPassword("@joezeo951219");
+        session.setPassword("");
         session.setUserInfo(new SshUserInfo());
         Properties config = new Properties();
         config.put("StrictHostKeyChecking", "no");
@@ -48,6 +48,7 @@ public class EstablishSshSessionHandler extends AbstractMessageHandler<Long> {
         int timeout = 30000;
         session.setTimeout(timeout);
         session.connect();
+
         long sessionId = guidGenerator.nextId();
         sessionCache.putSession(sessionId, session);
         future.complete(sessionId);

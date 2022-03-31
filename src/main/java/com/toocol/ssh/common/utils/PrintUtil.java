@@ -35,13 +35,12 @@ public class PrintUtil {
 
     public static void printScene(List<SshCredential> credentials) {
         printTitle();
-        System.out.print("Properties:                                                                           \n\n");
+        System.out.print("Properties:                                                                           \n");
         System.out.print("You have no connection properties, type 'add' to add property                         \n\n");
-        System.out.print("---                                                                                   \n\n");
     }
 
     public static void printPrompt(String wrongCmd) {
-        System.out.print(wrongCmd + "is not a command, enter 'help' to get more command\n");
+        System.out.print("'" + wrongCmd + "' is not a command, enter 'help' to get more command\n");
     }
 
     public static void printCursorLine() {

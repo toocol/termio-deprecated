@@ -31,7 +31,10 @@ public class SshVerticle extends AbstractVerticle implements IHandlerMounter {
     public void start() throws Exception {
         WorkerExecutor executor = vertx.createSharedWorkerExecutor("ssh-session-worker", 20);
 
-        mountHandler(vertx, executor, true, new JSch(), new SnowflakeGuidGenerator(), new SessionCache());
+        final SessionCache sessionCache = new SessionCache();
+        mountHandler(vertx, executor, true, new JSch(), new SnowflakeGuidGenerator(), sessionCache);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(sessionCache::stopAll));
 
         PrintUtil.println("Success start ssh verticle.");
     }

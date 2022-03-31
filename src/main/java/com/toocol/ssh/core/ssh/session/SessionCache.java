@@ -32,4 +32,9 @@ public class SessionCache {
         return channelShellMap.get(sessionId);
     }
 
+    public void stopAll() {
+        channelShellMap.forEach((k, v) -> v.disconnect());
+        sessionMap.forEach((k, v) -> v.disconnect());
+    }
+
 }
