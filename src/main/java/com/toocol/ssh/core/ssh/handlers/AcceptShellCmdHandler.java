@@ -64,7 +64,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
     @Override
     protected <T> void resultWithin(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         long sessionId = asyncResult.result();
-        sessionCache.getChannelShell(sessionId).disconnect();
+        sessionCache.stopChannel(sessionId);
         eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), true);
     }
 

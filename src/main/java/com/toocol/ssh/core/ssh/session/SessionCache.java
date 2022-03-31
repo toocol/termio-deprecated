@@ -12,8 +12,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SessionCache {
 
+    /**
+     * the map stored all alive ssh session.
+     */
     private final Map<Long, Session> sessionMap = new ConcurrentHashMap<>();
 
+    /**
+     * the map stored all alive ssh channelShell.
+     */
     private final Map<Long, ChannelShell> channelShellMap = new ConcurrentHashMap<>();
 
     public void putSession(Long sessionId, Session session) {
@@ -30,6 +36,13 @@ public class SessionCache {
 
     public ChannelShell getChannelShell(Long sessionId) {
         return channelShellMap.get(sessionId);
+    }
+
+    public void stopChannel(long sessionId) {
+        channelShellMap.computeIfPresent(sessionId, (k, v) -> {
+            v.disconnect();
+            return null;
+        });
     }
 
     public void stopAll() {

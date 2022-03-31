@@ -1,13 +1,13 @@
 # SSH TERMINAL
 
-> 程序基于Vert.x和JSch构建而成，一个轻量化命令行ssh终端工具;  
-> 提供ssh登录凭证存储、快速连接登录;
-> (暂时不支持vim文件编辑功能, 以后可能会想办法去做)
+> The program is based on Vert.x and JSch, it's a lightweight command line SSH terminal tool;   
+> Provide SSH login credential storage and fast connection login;  
+> Vim file editing function is not supported for the time now, and it may be accomplished in the future.  
 
 ### 使用方法
 ```
-1. 执行 maven-package 生成 jar 包;
-2. 执行 /starter/run.bat
+1. execute maven command 'maven-package' to generate .jar file;
+2. execute the batch file: /starter/run.bat
 ```
 
 ### 命令列表
