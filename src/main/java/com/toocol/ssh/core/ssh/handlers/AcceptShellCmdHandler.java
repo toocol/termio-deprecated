@@ -48,6 +48,9 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             } else if ("clear".equals(input)) {
                 PrintUtil.clear();
                 PrintUtil.printTitle();
+            } else if (input.contains("vi")) {
+                System.out.print("Don't support vi/vim for now.");
+                input = "";
             }
 
             input += "\r\n";
