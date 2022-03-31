@@ -1,9 +1,7 @@
 package com.toocol.ssh.core.file;
 
-import com.toocol.ssh.common.router.IAddress;
+import com.toocol.ssh.common.address.IAddress;
 import lombok.AllArgsConstructor;
-
-import java.util.Optional;
 
 /**
  * @author JoeZane (joezane.cn@gmail.com)
@@ -15,29 +13,23 @@ public enum FileVerticleAddress implements IAddress {
      * check the file is whether exist.
      * If not, create it.
      */
-    ADDRESS_CHECK_FILE_EXIST("terminal.file.check.exist", null),
+    ADDRESS_CHECK_FILE_EXIST("terminal.file.check.exist"),
     /**
      * read the credential file(credentials.json)
      */
-    ADDRESS_READ_FILE("terminal.file.read.file", null),
+    ADDRESS_READ_FILE("terminal.file.read.file"),
     /**
      * write the file to disk
      */
-    ADDRESS_WRITE_FILE("terminal.file.write.file", null);
+    ADDRESS_WRITE_FILE("terminal.file.write.file");
 
     /**
      * the address string of message
      */
     private final String address;
-    private final IAddress next;
 
     @Override
     public String address() {
         return address;
-    }
-
-    @Override
-    public Optional<IAddress> nextAddress() {
-        return Optional.ofNullable(next);
     }
 }

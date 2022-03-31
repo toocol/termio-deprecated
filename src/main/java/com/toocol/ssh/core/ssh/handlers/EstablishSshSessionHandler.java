@@ -3,7 +3,7 @@ package com.toocol.ssh.core.ssh.handlers;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.common.router.IAddress;
+import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.utils.SnowflakeGuidGenerator;
 import com.toocol.ssh.core.ssh.jsch.SshUserInfo;
 import com.toocol.ssh.core.ssh.cache.SessionCache;

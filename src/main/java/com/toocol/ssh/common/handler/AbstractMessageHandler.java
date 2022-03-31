@@ -1,7 +1,6 @@
 package com.toocol.ssh.common.handler;
 
-import com.toocol.ssh.common.router.IAddress;
-import com.toocol.ssh.common.router.IRoutable;
+import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.utils.ICastable;
 import com.toocol.ssh.common.utils.PrintUtil;
 import io.vertx.core.AsyncResult;
@@ -15,7 +14,7 @@ import io.vertx.core.eventbus.Message;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 10:46
  */
-public abstract class AbstractMessageHandler<R> implements IRoutable, ICastable {
+public abstract class AbstractMessageHandler<R> implements ICastable {
     /**
      * the vertx system object.
      */

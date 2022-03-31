@@ -2,7 +2,7 @@ package com.toocol.ssh.core.ssh.handlers;
 
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.common.router.IAddress;
+import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.core.ssh.cache.CommandCache;
 import com.toocol.ssh.core.ssh.cache.SessionCache;
 import io.vertx.core.AsyncResult;

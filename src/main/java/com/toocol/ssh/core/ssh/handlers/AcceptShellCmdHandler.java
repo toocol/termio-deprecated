@@ -2,7 +2,7 @@ package com.toocol.ssh.core.ssh.handlers;
 
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.common.router.IAddress;
+import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.utils.PrintUtil;
 import com.toocol.ssh.core.ssh.cache.CommandCache;
 import com.toocol.ssh.core.ssh.cache.SessionCache;
@@ -77,7 +77,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                 PrintUtil.printTitle();
                 cmd = "";
             } else if (isViVimCmd(cmd)) {
-                System.out.print("Don't support vi/vim for now.");
+                System.out.println("Don't support vi/vim for now.");
                 cmd = "";
             }
 

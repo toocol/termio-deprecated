@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.file.handlers;
 
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.common.router.IAddress;
+import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.utils.FileUtils;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
