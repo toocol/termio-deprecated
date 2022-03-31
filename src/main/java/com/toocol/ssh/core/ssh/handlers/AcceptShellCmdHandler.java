@@ -67,15 +67,21 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             }
         });
 
+        boolean shitHappen = false;
         while (true) {
-            lastCmd.delete(0, lastCmd.length());
-            lastCmd.append(cmd);
+            if (!shitHappen) {
+                lastCmd.delete(0, lastCmd.length());
+                lastCmd.append(cmd);
+            } else {
+                shitHappen = false;
+            }
 
             cmd.delete(0, cmd.length());
             try {
                 Scanner scanner = new Scanner(System.in);
                 cmd.append(scanner.nextLine());
             } catch (Exception e) {
+                shitHappen = true;
                 continue;
             }
 
