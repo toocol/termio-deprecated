@@ -20,7 +20,8 @@ import java.util.Scanner;
 
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
 import static com.toocol.ssh.core.ssh.SshVerticleAddress.ACCEPT_SHELL_CMD;
-import static com.toocol.ssh.core.ssh.constants.ShellCommands.*;
+import static com.toocol.ssh.core.ssh.constants.ShellCommands.CLEAR;
+import static com.toocol.ssh.core.ssh.constants.ShellCommands.EXIT;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -45,62 +46,44 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
         ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
         OutputStream outputStream = channelShell.getOutputStream();
 
-        final StringBuffer cmd = new StringBuffer();
-        final StringBuffer lastCmd = new StringBuffer();
         /*
          *  block ctrl+c.
          *  after run this method, previous signal handler defined in TerminalSystem will be replaced by this one.
          */
         Signal.handle(new Signal("INT"), signal -> {
             try {
-                if (TOP.equals(lastCmd.toString().split("\n")[0])) {
-                    cmd.delete(0, cmd.length());
-                    cmd.append("q:\n");
-                    outputStream.write(cmd.toString().getBytes(StandardCharsets.UTF_8));
-                    outputStream.flush();
-                    cmd.delete(0, cmd.length());
-                } else {
-                    channelShell.sendSignal("2");
-                }
+                outputStream.write(3);
+                outputStream.flush();
             } catch (Exception e) {
                 // do nothing
                 e.printStackTrace();
             }
         });
 
-        boolean shitHappen = false;
         while (true) {
-            if (!shitHappen) {
-                lastCmd.delete(0, lastCmd.length());
-                lastCmd.append(cmd);
-            } else {
-                shitHappen = false;
-            }
-
-            cmd.delete(0, cmd.length());
+            String cmd;
             try {
                 Scanner scanner = new Scanner(System.in);
-                cmd.append(scanner.nextLine());
+                cmd = scanner.nextLine();
             } catch (Exception e) {
-                shitHappen = true;
                 continue;
             }
 
-            if (EXIT.equals(cmd.toString())) {
+            if (EXIT.equals(cmd)) {
                 future.complete(sessionId);
                 break;
-            } else if (CLEAR.equals(cmd.toString())) {
+            } else if (CLEAR.equals(cmd)) {
                 PrintUtil.clear();
                 PrintUtil.printTitle();
-                cmd.delete(0, cmd.length());
-            } else if (isViVimCmd(cmd.toString())) {
+                cmd = "";
+            } else if (isViVimCmd(cmd)) {
                 System.out.print("Don't support vi/vim for now.");
-                cmd.delete(0, cmd.length());
+                cmd = "";
             }
 
             CommandCache.CURRENT_COMMAND = cmd + "\r\n";
-            cmd.append("\n");
-            outputStream.write(cmd.toString().getBytes(StandardCharsets.UTF_8));
+            cmd += ("\n");
+            outputStream.write(cmd.getBytes(StandardCharsets.UTF_8));
             outputStream.flush();
         }
     }
