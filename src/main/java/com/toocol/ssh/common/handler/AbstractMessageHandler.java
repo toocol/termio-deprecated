@@ -59,7 +59,8 @@ public abstract class AbstractMessageHandler<R> implements IRoutable, ICastable 
                     try {
                         handleWithin(cast(future), message);
                     } catch (Exception e) {
-                        PrintUtil.printErr("Caught handle exception, message = " + e.getMessage());
+                        PrintUtil.printErr("\nCaught handle exception, exit program.");
+                        System.exit(-1);
                     }
                 },
                 !parallel,
@@ -67,7 +68,8 @@ public abstract class AbstractMessageHandler<R> implements IRoutable, ICastable 
                     try {
                         resultWithin(cast(asyncResult), message);
                     } catch (Exception e) {
-                        PrintUtil.printErr("Caught result exception, message = " + e.getMessage());
+                        System.out.println("\nCaught handle exception, exit program.");
+                        System.exit(-1);
                     }
                 }
         );

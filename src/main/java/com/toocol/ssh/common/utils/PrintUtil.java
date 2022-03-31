@@ -3,6 +3,7 @@ package com.toocol.ssh.common.utils;
 import com.toocol.ssh.core.command.commands.OutsideCommand;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.*;
@@ -68,5 +69,16 @@ public class PrintUtil {
                 .inheritIO()
                 .start()
                 .waitFor();
+    }
+
+    public static void reviseChinese() {
+        try {
+            new ProcessBuilder(BOOT_TYPE, getExtraCmd(), "chcp 65001")
+                    .inheritIO()
+                    .start()
+                    .waitFor();
+        } catch (Exception e) {
+            System.exit(65001);
+        }
     }
 }

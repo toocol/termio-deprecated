@@ -10,6 +10,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import sun.misc.Signal;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -19,6 +20,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
+import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.*;
 
 /**
  * @author ZhaoZhe
@@ -30,15 +32,22 @@ public class TerminalSystem {
     private static final long BLOCKED_CHECK_INTERVAL = 30 * 24 * 60 * 60 * 1000L;
 
     public static void main(String[] args) {
-        PrintUtil.printTitle();
-        PrintUtil.println("TerminalSystem register the vertx service.");
-
         if (args.length != 1) {
             PrintUtil.printErr("wrong boot parameter.");
             System.exit(-1);
         }
 
-        ConfigurationVerticle.BOOT_TYPE = args[0];
+        BOOT_TYPE = args[0];
+        if (BOOT_TYPE_CMD.equals(BOOT_TYPE)) {
+            PrintUtil.reviseChinese();
+        }
+
+        PrintUtil.printTitle();
+        PrintUtil.println("TerminalSystem register the vertx service.");
+
+        Signal.handle(new Signal("INT"), signal -> {});
+
+
         /* Get the verticle which need deploy in main class by annotation */
         Set<Class<?>> annotatedClassList = ClassUtil.scanPackageByAnnotation("com.toocol.ssh.core", PreloadDeployment.class);
         List<Class<? extends AbstractVerticle>> preloadVerticleClassList = new ArrayList<>();

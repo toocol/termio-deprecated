@@ -39,6 +39,7 @@ public class EstablishSshSessionHandler extends AbstractMessageHandler<Long> {
 
     @Override
     protected <T> void handleWithin(Future<Long> future, Message<T> message) throws Exception {
+        // TODO: same ip of connection's connection need only create once.
         Session session = jSch.getSession("root", "47.108.157.178", 22);
         session.setPassword("");
         session.setUserInfo(new SshUserInfo());

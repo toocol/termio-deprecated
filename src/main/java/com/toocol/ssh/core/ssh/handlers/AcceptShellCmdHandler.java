@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.ssh.handlers;
 
+import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.router.IAddress;
 import com.toocol.ssh.common.utils.PrintUtil;
@@ -10,6 +11,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 import org.apache.commons.lang3.StringUtils;
+import sun.misc.Signal;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -17,6 +19,7 @@ import java.util.Scanner;
 
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
 import static com.toocol.ssh.core.ssh.SshVerticleAddress.ACCEPT_SHELL_CMD;
+import static com.toocol.ssh.core.ssh.constants.ShellCommands.*;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -38,25 +41,58 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
     @Override
     protected <T> void handleWithin(Future<Long> future, Message<T> message) throws Exception {
         long sessionId = cast(message.body());
-        OutputStream outputStream = sessionCache.getChannelShell(sessionId).getOutputStream();
-        while (true) {
-            Scanner scanner = new Scanner(System.in);
-            String cmd = scanner.nextLine();
+        ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
+        OutputStream outputStream = channelShell.getOutputStream();
 
-            if ("exit".equals(cmd)) {
-                future.complete(sessionId);
-                break;
-            } else if ("clear".equals(cmd)) {
-                PrintUtil.clear();
-                PrintUtil.printTitle();
-                cmd = "";
-            } else if (isViVimCmd(cmd)) {
-                System.out.print("Don't support vi/vim for now.");
-                cmd = "";
+        final StringBuffer cmd = new StringBuffer();
+        final StringBuffer lastCmd = new StringBuffer();
+        /*
+         *  block ctrl+c.
+         *  after run this method, previous signal handler define in TerminalSystem will be replaced by this one.
+         */
+        Signal.handle(new Signal("INT"), signal -> {
+            try {
+                if (TOP.equals(lastCmd.toString().split(SPACE)[0])) {
+                    cmd.delete(0, cmd.length());
+                    cmd.append("q: \r\n");
+                    outputStream.write(cmd.toString().getBytes(StandardCharsets.UTF_8));
+                    outputStream.flush();
+                    cmd.delete(0, cmd.length());
+                } else {
+                    channelShell.sendSignal("2");
+                }
+            } catch (Exception e) {
+                // do nothing
+                e.printStackTrace();
+            }
+        });
+
+        while (true) {
+            lastCmd.delete(0, lastCmd.length());
+            lastCmd.append(cmd);
+
+            cmd.delete(0, cmd.length());
+            try {
+                Scanner scanner = new Scanner(System.in);
+                cmd.append(scanner.nextLine());
+            } catch (Exception e) {
+                continue;
             }
 
-            cmd += "\r\n";
-            outputStream.write(cmd.getBytes(StandardCharsets.UTF_8));
+            if (EXIT.equals(cmd.toString())) {
+                future.complete(sessionId);
+                break;
+            } else if (CLEAR.equals(cmd.toString())) {
+                PrintUtil.clear();
+                PrintUtil.printTitle();
+                cmd.delete(0, cmd.length());
+            } else if (isViVimCmd(cmd.toString())) {
+                System.out.print("Don't support vi/vim for now.");
+                cmd.delete(0, cmd.length());
+            }
+
+            cmd.append(" \r\n");
+            outputStream.write(cmd.toString().getBytes(StandardCharsets.UTF_8));
             outputStream.flush();
         }
     }

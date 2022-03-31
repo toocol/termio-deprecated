@@ -35,12 +35,18 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Void> {
     protected <T> void handleWithin(Future<Void> future, Message<T> message) {
         try {
             boolean needClear = cast(message.body());
+            boolean tmpFlag = needClear;
             if (needClear) {
                 PrintUtil.clear();
                 PrintUtil.printScene(null);
             }
             while (true) {
-                PrintUtil.printCursorLine();
+                if (tmpFlag) {
+                    PrintUtil.printCursorLine();
+                } else {
+                    tmpFlag = true;
+                }
+
                 Scanner scanner = new Scanner(System.in);
                 String cmd = scanner.nextLine();
                 if (OutsideCommand.isOutsideCommand(cmd)) {
@@ -56,13 +62,13 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Void> {
                 }
             }
         } catch (Exception e) {
-            PrintUtil.printErr("Application run failed, now exit.");
-            System.exit(-1);
+            // to do nothing, enter the next round of accept command cycle
+            future.complete();
         }
     }
 
     @Override
     protected <T> void resultWithin(AsyncResult<Void> asyncResult, Message<T> message) {
-
+        eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), false);
     }
 }
