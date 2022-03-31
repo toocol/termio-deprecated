@@ -1,8 +1,9 @@
 package com.toocol.ssh.core.command.commands;
 
 import com.toocol.ssh.core.command.commands.processors.ClearCmdProcessor;
-import com.toocol.ssh.core.command.commands.processors.CreateSessionProcessor;
+import com.toocol.ssh.core.command.commands.processors.ConcCmdProcessor;
 import com.toocol.ssh.core.command.commands.processors.ExitCmdProcessor;
+import com.toocol.ssh.core.command.commands.processors.HelpCmdProcessor;
 import io.vertx.core.eventbus.EventBus;
 
 import java.util.Optional;
@@ -16,18 +17,20 @@ public enum OutsideCommand {
     /**
      * outside command enums
      */
-    CMD_CLEAR("clear", new ClearCmdProcessor()),
-    CMD_HELP("help", null),
-    CMD_EXIT("exit", new ExitCmdProcessor()),
-    CMD_CONC("conc", new CreateSessionProcessor()),
-    CMD_NUMBER("", null);
+    CMD_HELP("help", new HelpCmdProcessor(), "show holistic executive command"),
+    CMD_CLEAR("clear", new ClearCmdProcessor(), "clear the screen"),
+    CMD_EXIT("exit", new ExitCmdProcessor(), "exit <ssh terminal>"),
+    CMD_CONC("conc", new ConcCmdProcessor(), "test ssh connection"),
+    CMD_NUMBER("", null, "select the connection properties");
 
     private final String cmd;
     private final AbstractCommandProcessor commandProcessor;
+    private final String comment;
 
-    OutsideCommand(String cmd, AbstractCommandProcessor commandProcessor) {
+    OutsideCommand(String cmd, AbstractCommandProcessor commandProcessor, String comment) {
         this.cmd = cmd;
         this.commandProcessor = commandProcessor;
+        this.comment = comment;
     }
 
     public static boolean isOutsideCommand(String cmd) {
@@ -58,5 +61,14 @@ public enum OutsideCommand {
 
     public String cmd() {
         return cmd;
+    }
+
+    public static void printHelp() {
+        System.out.println();
+        System.out.println("ssh terminal commands: ");
+        for (OutsideCommand command : values()) {
+            System.out.println("\t" + command.cmd + "\t\t--" + command.comment);
+        }
+        System.out.println();
     }
 }

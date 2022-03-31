@@ -1,5 +1,6 @@
 package com.toocol.ssh.common.utils;
 
+import com.toocol.ssh.core.command.commands.OutsideCommand;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public class PrintUtil {
     private static final int LOADING_COUNT = 3;
 
     public static void println(String msg) {
-        System.out.println("<SSH TERMINAL> " + msg);
+        System.out.println("<ssh terminal> " + msg);
     }
 
     public static void printErr(String msg) {
@@ -32,20 +33,23 @@ public class PrintUtil {
                 "\n");
     }
 
-    public static void printPromptScene(List<SshCredential> credentials) {
+    public static void printScene(List<SshCredential> credentials) {
         printTitle();
-        System.out.print("Properties:                                                                           \n");
-        System.out.print("You have no connection properties, type 'add' to add property                         \n");
-        System.out.print("---                                                                                   \n");
-        System.out.print("<enter 'help' to get more command>\n\n");
+        System.out.print("Properties:                                                                           \n\n");
+        System.out.print("You have no connection properties, type 'add' to add property                         \n\n");
+        System.out.print("---                                                                                   \n\n");
+    }
+
+    public static void printPrompt(String wrongCmd) {
+        System.out.print(wrongCmd + "is not a command, enter 'help' to get more command\n");
     }
 
     public static void printCursorLine() {
-        System.out.print("[SSH TERMINAL] > ");
+        System.out.print("[ssh terminal] > ");
     }
 
     public static void printHelp() {
-        System.out.println("SSH TERMINAL HELP: ");
+        OutsideCommand.printHelp();
     }
 
     public static void loading() {

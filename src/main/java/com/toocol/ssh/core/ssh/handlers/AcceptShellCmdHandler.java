@@ -9,6 +9,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -40,21 +41,22 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
         OutputStream outputStream = sessionCache.getChannelShell(sessionId).getOutputStream();
         while (true) {
             Scanner scanner = new Scanner(System.in);
-            String input = scanner.nextLine();
+            String cmd = scanner.nextLine();
 
-            if ("exit".equals(input)) {
+            if ("exit".equals(cmd)) {
                 future.complete(sessionId);
                 break;
-            } else if ("clear".equals(input)) {
+            } else if ("clear".equals(cmd)) {
                 PrintUtil.clear();
                 PrintUtil.printTitle();
-            } else if (input.contains("vi")) {
+                cmd = "";
+            } else if (isViVimCmd(cmd)) {
                 System.out.print("Don't support vi/vim for now.");
-                input = "";
+                cmd = "";
             }
 
-            input += "\r\n";
-            outputStream.write(input.getBytes(StandardCharsets.UTF_8));
+            cmd += "\r\n";
+            outputStream.write(cmd.getBytes(StandardCharsets.UTF_8));
             outputStream.flush();
         }
     }
@@ -63,12 +65,19 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
     protected <T> void resultWithin(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         long sessionId = asyncResult.result();
         sessionCache.getChannelShell(sessionId).disconnect();
-        eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), null);
+        eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), true);
     }
 
     @SafeVarargs
     @Override
     public final <T> void inject(T... objs) {
         sessionCache = cast(objs[2]);
+    }
+
+    private boolean isViVimCmd(String cmd) {
+        cmd = cmd.toLowerCase();
+        return StringUtils.startsWith(cmd, "vi ") || StringUtils.startsWith(cmd, "vim ")
+                || StringUtils.startsWith(cmd, "sudo vi ") || StringUtils.startsWith(cmd, "sudo vim ")
+                || "vi".equals(cmd) || "vim".equals(cmd);
     }
 }

@@ -79,9 +79,7 @@ public class TerminalSystem {
         }, res -> {
             try {
                 PrintUtil.loading();
-                PrintUtil.clear();
-                PrintUtil.printPromptScene(null);
-                vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), "start");
+                vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), true);
             } catch (Exception e) {
                 PrintUtil.printErr("problem happened.");
                 System.exit(-1);

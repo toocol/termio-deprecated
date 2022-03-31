@@ -33,24 +33,31 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Void> {
 
     @Override
     protected <T> void handleWithin(Future<Void> future, Message<T> message) {
-        while (true) {
-            try {
+        try {
+            boolean needClear = cast(message.body());
+            if (needClear) {
+                PrintUtil.clear();
+                PrintUtil.printScene(null);
+            }
+            while (true) {
                 PrintUtil.printCursorLine();
                 Scanner scanner = new Scanner(System.in);
-                String input = scanner.nextLine();
-                if (OutsideCommand.isOutsideCommand(input)) {
-                    if (OutsideCommand.CMD_CONC.cmd().equals(input)) {
-                        eventBus.send(ADDRESS_EXECUTE_OUTSIDE.address(), input);
+                String cmd = scanner.nextLine();
+                if (OutsideCommand.isOutsideCommand(cmd)) {
+                    if (OutsideCommand.CMD_CONC.cmd().equals(cmd)) {
+                        eventBus.send(ADDRESS_EXECUTE_OUTSIDE.address(), cmd);
                         break;
                     }
                     CountDownLatch latch = new CountDownLatch(1);
-                    eventBus.send(ADDRESS_EXECUTE_OUTSIDE.address(), input, result -> latch.countDown());
+                    eventBus.send(ADDRESS_EXECUTE_OUTSIDE.address(), cmd, result -> latch.countDown());
                     latch.await();
+                } else {
+                    PrintUtil.printPrompt(cmd);
                 }
-            } catch (Exception e) {
-                PrintUtil.printErr("Application run failed, now exit.");
-                System.exit(-1);
             }
+        } catch (Exception e) {
+            PrintUtil.printErr("Application run failed, now exit.");
+            System.exit(-1);
         }
     }
 
