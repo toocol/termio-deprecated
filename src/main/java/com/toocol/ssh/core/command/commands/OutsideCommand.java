@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.command.commands;
 
 import com.toocol.ssh.core.command.commands.processors.ClearCmdProcessor;
-import com.toocol.ssh.core.command.commands.processors.ExecuteExternalShellProcessor;
+import com.toocol.ssh.core.command.commands.processors.CreateSessionProcessor;
 import com.toocol.ssh.core.command.commands.processors.ExitCmdProcessor;
 import io.vertx.core.eventbus.EventBus;
 
@@ -18,8 +18,8 @@ public enum OutsideCommand {
      */
     CMD_CLEAR("clear", new ClearCmdProcessor()),
     CMD_HELP("help", null),
-    CMD_SHOW("show", new ExecuteExternalShellProcessor()),
     CMD_EXIT("exit", new ExitCmdProcessor()),
+    CMD_CONC("conc", new CreateSessionProcessor()),
     CMD_NUMBER("", null);
 
     private final String cmd;

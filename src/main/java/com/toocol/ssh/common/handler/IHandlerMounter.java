@@ -20,8 +20,11 @@ public interface IHandlerMounter extends ICastable {
      * @param vertx the vertx system object
      * @param executor executor
      * @param parallel whether the handlers is handle parallel
+     * @param injects objs to inject
+     * @param <T>  generic type
      */
-    default void mountHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
+    @SuppressWarnings("all")
+    default <T> void mountHandler(Vertx vertx, WorkerExecutor executor, boolean parallel, T... injects) {
         Class<? extends IHandlerMounter> clazz = this.getClass();
         RegisterHandler registerHandler = clazz.getAnnotation(RegisterHandler.class);
         if (registerHandler == null) {
@@ -31,10 +34,11 @@ public interface IHandlerMounter extends ICastable {
         Arrays.stream(registerHandler.handlers()).forEach(handlerClass -> {
             try {
 
-                Constructor<? extends AbstractCommandHandler<?>> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, WorkerExecutor.class, boolean.class));
+                Constructor<? extends AbstractMessageHandler<?>> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, WorkerExecutor.class, boolean.class));
                 declaredConstructor.setAccessible(true);
-                AbstractCommandHandler<?> commandHandler = declaredConstructor.newInstance(vertx, executor, parallel);
+                AbstractMessageHandler<?> commandHandler = declaredConstructor.newInstance(vertx, executor, parallel);
                 vertx.eventBus().consumer(commandHandler.address().address(), commandHandler::handle);
+                commandHandler.inject(injects);
                 PrintUtil.println(clazz.getSimpleName() + " assemble handler " + handlerClass.getSimpleName() + " success.");
 
             } catch (Exception e) {

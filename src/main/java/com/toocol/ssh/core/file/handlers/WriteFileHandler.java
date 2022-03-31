@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.file.handlers;
 
-import com.toocol.ssh.common.handler.AbstractCommandHandler;
+import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.router.IAddress;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -14,7 +14,7 @@ import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_WRITE_FILE;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:45
  */
-public class WriteFileHandler extends AbstractCommandHandler<Void> {
+public class WriteFileHandler extends AbstractMessageHandler<Void> {
 
     public WriteFileHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);

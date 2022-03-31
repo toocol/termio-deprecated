@@ -1,5 +1,9 @@
 package com.toocol.ssh.common.utils;
 
+import com.toocol.ssh.core.credentials.vo.SshCredential;
+
+import java.util.List;
+
 import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.*;
 
 /**
@@ -21,19 +25,19 @@ public class PrintUtil {
 
     public static void printTitle() {
         System.out.println("\n" +
-                " _____ _____ _____    _____ _____ _____ _____ _____ _____ _____ __      \n" +
-                "|   __|   __|  |  |  |_   _|   __| __  |     |     |   | |  _  |  |     \n" +
-                "|__   |__   |     |    | | |   __|    -| | | |-   -| | | |     |  |__   \n" +
-                "|_____|_____|__|__|    |_| |_____|__|__|_|_|_|_____|_|___|__|__|_____|  \n" +
+                " _____ _____ _____    _____ _____ _____ _____ _____ _____ _____ __                    \n" +
+                "|   __|   __|  |  |  |_   _|   __| __  |     |     |   | |  _  |  |                   \n" +
+                "|__   |__   |     |    | | |   __|    -| | | |-   -| | | |     |  |__                 \n" +
+                "|_____|_____|__|__|    |_| |_____|__|__|_|_|_|_____|_|___|__|__|_____|                \n" +
                 "\n");
     }
 
-    public static void printPromptScene() {
+    public static void printPromptScene(List<SshCredential> credentials) {
         printTitle();
-        System.out.print("_____________________________________ Properties _____________________________________\n\n");
-        System.out.print("               You have no connection properties, type 'add' to add property            \n");
-        System.out.print("______________________________________________________________________________________\n\n");
-        System.out.print("SSH TERMINAL is running, enter commands to operate. <enter 'help' to get more command>\n\n");
+        System.out.print("Properties:                                                                           \n");
+        System.out.print("You have no connection properties, type 'add' to add property                         \n");
+        System.out.print("---                                                                                   \n");
+        System.out.print("<enter 'help' to get more command>\n\n");
     }
 
     public static void printCursorLine() {
@@ -61,6 +65,5 @@ public class PrintUtil {
                 .inheritIO()
                 .start()
                 .waitFor();
-        printPromptScene();
     }
 }

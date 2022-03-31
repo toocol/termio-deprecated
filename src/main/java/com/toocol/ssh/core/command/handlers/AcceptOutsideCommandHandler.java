@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.command.handlers;
 
-import com.toocol.ssh.common.handler.AbstractCommandHandler;
+import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.router.IAddress;
 import com.toocol.ssh.common.utils.PrintUtil;
 import com.toocol.ssh.core.command.commands.OutsideCommand;
@@ -20,7 +20,7 @@ import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_EXECUTE
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:11
  */
-public class AcceptOutsideCommandHandler extends AbstractCommandHandler<Void> {
+public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Void> {
 
     public AcceptOutsideCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -39,6 +39,10 @@ public class AcceptOutsideCommandHandler extends AbstractCommandHandler<Void> {
                 Scanner scanner = new Scanner(System.in);
                 String input = scanner.nextLine();
                 if (OutsideCommand.isOutsideCommand(input)) {
+                    if (OutsideCommand.CMD_CONC.cmd().equals(input)) {
+                        eventBus.send(ADDRESS_EXECUTE_OUTSIDE.address(), input);
+                        break;
+                    }
                     CountDownLatch latch = new CountDownLatch(1);
                     eventBus.send(ADDRESS_EXECUTE_OUTSIDE.address(), input, result -> latch.countDown());
                     latch.await();

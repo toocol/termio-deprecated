@@ -1,9 +1,8 @@
 package com.toocol.ssh.core.command.handlers;
 
-import com.toocol.ssh.common.handler.AbstractCommandHandler;
+import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.router.IAddress;
 import com.toocol.ssh.common.utils.PrintUtil;
-import com.toocol.ssh.core.command.commands.InsideCommand;
 import com.toocol.ssh.core.command.commands.OutsideCommand;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -17,7 +16,7 @@ import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_EXECUTE
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:09
  */
-public class ExecuteOutsideCommandHandler extends AbstractCommandHandler<Void> {
+public class ExecuteOutsideCommandHandler extends AbstractMessageHandler<Void> {
 
     public ExecuteOutsideCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -34,7 +33,7 @@ public class ExecuteOutsideCommandHandler extends AbstractCommandHandler<Void> {
         OutsideCommand.cmdOf(cmd)
                 .ifPresent(outsideCommand -> {
                     try {
-                        outsideCommand.processCmd(eventBus, InsideCommand.insideCommandOf(outsideCommand));
+                        outsideCommand.processCmd(eventBus, null);
                     } catch (Exception e) {
                         PrintUtil.printErr("Execute command failed, message = " + e.getMessage());
                     }

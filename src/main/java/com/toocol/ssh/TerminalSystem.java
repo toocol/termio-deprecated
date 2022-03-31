@@ -18,6 +18,8 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
+
 /**
  * @author ZhaoZhe
  * @email joezane.cn@gmail.com
@@ -67,8 +69,7 @@ public class TerminalSystem {
                     if (!ret) {
                         throw new RuntimeException();
                     }
-                    vertx.deployVerticle(finalVerticle.getName());
-                    future.complete();
+                    vertx.deployVerticle(finalVerticle.getName(), complete -> future.complete());
                 } catch (Exception e) {
                     PrintUtil.printErr("SSH TERMINAL START UP FAILED!!");
                     vertx.close();
@@ -76,6 +77,15 @@ public class TerminalSystem {
                 }
             });
         }, res -> {
+            try {
+                PrintUtil.loading();
+                PrintUtil.clear();
+                PrintUtil.printPromptScene(null);
+                vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), "start");
+            } catch (Exception e) {
+                PrintUtil.printErr("problem happened.");
+                System.exit(-1);
+            }
         });
 
         preloadVerticleClassList.sort(Comparator.comparingInt(clazz -> -1 * clazz.getAnnotation(PreloadDeployment.class).weight()));

@@ -1,6 +1,6 @@
 package com.toocol.ssh.common.annotation;
 
-import com.toocol.ssh.common.handler.AbstractCommandHandler;
+import com.toocol.ssh.common.handler.AbstractMessageHandler;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -19,5 +19,5 @@ public @interface RegisterHandler {
      *
      * @return the command handlers which belong to this verticle
      */
-    Class<? extends AbstractCommandHandler>[] handlers();
+    Class<? extends AbstractMessageHandler>[] handlers();
 }

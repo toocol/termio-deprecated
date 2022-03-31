@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.file.handlers;
 
-import com.toocol.ssh.common.handler.AbstractCommandHandler;
+import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.router.IAddress;
 import com.toocol.ssh.common.utils.FileUtils;
 import io.vertx.core.AsyncResult;
@@ -15,7 +15,7 @@ import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_CHECK_FILE_EX
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 16:19
  */
-public class CheckFileExistHandler extends AbstractCommandHandler<Void> {
+public class CheckFileExistHandler extends AbstractMessageHandler<Void> {
 
     public CheckFileExistHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);

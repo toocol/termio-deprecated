@@ -22,30 +22,8 @@ public class ConfigurationVerticle extends AbstractVerticle {
 
     public static String BOOT_TYPE;
 
-    /**
-     * the address of Git-Bash
-     */
-    public static String SHELL_EXECUTE_OPENSSH_DIR;
-
-    /**
-     * the address of bash script 'openssh.sh'
-     */
-    public static String SCRIPT_SSH_DIR;
-
-    /**
-     * the start up selection: 1.[Single Window] 2.[Multiple Window]
-     */
-    public static int START_UP_MODE;
-
     @Override
     public void start() throws Exception {
-        Buffer buffer = vertx.fileSystem().readFileBlocking(FileUtils.relativeToFixed("/starter/configuration.properties"));
-        String config = buffer.getString(0, buffer.length());
-        InputStream configInputStream = new ByteArrayInputStream(config.getBytes());
-        Properties properties = new Properties();
-        properties.load(configInputStream);
-        SHELL_EXECUTE_OPENSSH_DIR = properties.getProperty("ssh.terminal.openssh.execute.shell");
-        SCRIPT_SSH_DIR = FileUtils.relativeToFixed("/starter/openssh.sh");
         PrintUtil.println("success start the configuration verticle.");
     }
 

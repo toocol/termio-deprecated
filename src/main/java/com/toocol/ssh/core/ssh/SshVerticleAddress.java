@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.shell;
+package com.toocol.ssh.core.ssh;
 
 import com.toocol.ssh.common.router.IAddress;
 import lombok.AllArgsConstructor;
@@ -7,14 +7,26 @@ import java.util.Optional;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
- * @date 2022/3/30 20:44
+ * @date 2022/3/31 11:43
  */
 @AllArgsConstructor
-public enum ShellVerticleAddress implements IAddress{
+public enum SshVerticleAddress implements IAddress{
     /**
-     * execute outside command
+     * establish a ssh session
      */
-    ADDRESS_OPEN_SHELL("ssh.open.shell", null);
+    ESTABLISH_SESSION("ssh.establish.session", null),
+    /**
+     * connect the channel shell
+     */
+    CONNECT_CHANNEL_SHELL("ssh.connect.channel.shell", null),
+    /**
+     * accept the shell cmd
+     */
+    ACCEPT_SHELL_CMD("ssh.accept.shell.cmd", null),
+    /**
+     * exhibit the shell feedback
+     */
+    EXHIBIT_SHELL("ssh.exhibit.shell", null);
 
     /**
      * the address string of message

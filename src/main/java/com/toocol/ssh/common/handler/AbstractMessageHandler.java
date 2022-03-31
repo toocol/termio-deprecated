@@ -15,7 +15,7 @@ import io.vertx.core.eventbus.Message;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 10:46
  */
-public abstract class AbstractCommandHandler<R> implements IRoutable, ICastable {
+public abstract class AbstractMessageHandler<R> implements IRoutable, ICastable {
     /**
      * the vertx system object.
      */
@@ -33,7 +33,7 @@ public abstract class AbstractCommandHandler<R> implements IRoutable, ICastable 
      */
     private final boolean parallel;
 
-    public AbstractCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
+    public AbstractMessageHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         this.vertx = vertx;
         this.eventBus = vertx.eventBus();
         this.executor = executor;
@@ -51,7 +51,7 @@ public abstract class AbstractCommandHandler<R> implements IRoutable, ICastable 
      * handle the message event
      *
      * @param message message event
-     * @param <T>   generic type
+     * @param <T>     generic type
      */
     public <T> void handle(Message<T> message) {
         executor.executeBlocking(
@@ -74,11 +74,21 @@ public abstract class AbstractCommandHandler<R> implements IRoutable, ICastable 
     }
 
     /**
+     * To inject some extra obj inject,
+     * if needed, override this method.
+     *
+     * @param objs objs to inject
+     * @param <T>  generic type
+     */
+    public <T> void inject(T... objs) {
+    }
+
+    /**
      * execute the blocked process
      *
-     * @param future future
+     * @param future  future
      * @param message message
-     * @param <T> generic type
+     * @param <T>     generic type
      * @throws Exception exception
      */
     protected abstract <T> void handleWithin(Future<R> future, Message<T> message) throws Exception;
@@ -87,8 +97,8 @@ public abstract class AbstractCommandHandler<R> implements IRoutable, ICastable 
      * response the blocked process result
      *
      * @param asyncResult async result
-     * @param message message
-     * @param <T> generic type
+     * @param message     message
+     * @param <T>         generic type
      * @throws Exception exception
      */
     protected abstract <T> void resultWithin(AsyncResult<R> asyncResult, Message<T> message) throws Exception;
