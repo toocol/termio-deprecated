@@ -71,7 +71,10 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
                     });
 
                     return true;
-                }).orElse(false);
+                }).orElseGet(() -> {
+                    latch.countDown();
+                    return  false;
+                });
 
                 latch.await();
 
