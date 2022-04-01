@@ -33,16 +33,6 @@ public enum OutsideCommand {
         this.comment = comment;
     }
 
-    public static boolean isOutsideCommand(String cmd) {
-        String originCmd = cmd.trim().split(" ")[0].toLowerCase();
-        for (OutsideCommand command : values()) {
-            if (command.cmd.equals(originCmd)) {
-                return true;
-            }
-        }
-        return StringUtils.isNumeric(originCmd);
-    }
-
     public static Optional<OutsideCommand> cmdOf(String cmd) {
         String originCmd = cmd.trim().split(" ")[0].toLowerCase();
         OutsideCommand outsideCommand = null;

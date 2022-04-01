@@ -32,15 +32,6 @@ public enum ShellCommand {
         this.comment = comment;
     }
 
-    public static boolean isShellCommand(String cmd) {
-        for (ShellCommand command : values()) {
-            if (command.cmd.equals(cmd)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public static Optional<ShellCommand> cmdOf(String cmd) {
         ShellCommand outsideCommand = null;
         for (ShellCommand command : values()) {
