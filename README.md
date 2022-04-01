@@ -2,9 +2,11 @@
 
 ![Purely java project](https://img.shields.io/badge/Language-java-orange) ![License](https://img.shields.io/badge/License-Apache--2.0-red) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux-%2320B2AA)   
 
+<br>
+
 <big>***A light and handy command-line ssh client.***</big>
-<div align="right" style="margin-right: 50px; margin-top: -150px">
-    <img src="https://raw.githubusercontent.com/Joezeo/ssh_terminal/128bb7a8ce91d98ecd15ed9f51eaeb51dfa70fe0/github.svg">
+<div align="right" >
+    <img src="https://raw.githubusercontent.com/Joezeo/ssh_terminal/128bb7a8ce91d98ecd15ed9f51eaeb51dfa70fe0/github.svg"style=" margin-right: 50px; margin-top: -170px">
 </div>
 
 > The program is mainly based on Vert.x and JSch, it's a lightweight command line SSH terminal tool;   
