@@ -14,7 +14,7 @@
 
 <div align="center" >
 
-![Purely java project](https://img.shields.io/badge/Language-java-orange) ![License](https://img.shields.io/badge/License-Apache--2.0-red) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux-%2320B2AA) ![Vert.x](https://img.shields.io/badge/Vert.x-3.4.2-%236699CC) ![JSch](https://img.shields.io/badge/JSch-0.1.55-%23CCCCFF)   
+![Purely java project](https://img.shields.io/badge/Language-Java-orange) ![License](https://img.shields.io/badge/License-Apache--2.0-red) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux-%2320B2AA) ![Vert.x](https://img.shields.io/badge/Vert.x-3.5.4-%236699CC) ![JSch](https://img.shields.io/badge/JSch-0.1.55-%23CCCCFF)   
 
 </div>
 
@@ -39,9 +39,9 @@ Terminal commands:     [param] means optional param
         clear           -- Clear the screen.
         exit            -- Exit ssh terminal.
         add             -- Add new ssh connection property. Pattern: 'add --host@user@password[@port]',
-                        default port is 22
+                        default port is 22.
         delete          -- Delete ssh connection property. Pattern: 'delete --index', 
-                        for example: 'delete --1'
+                        for example: 'delete --1'.
         numbers         -- Select the connection properties.
 
 

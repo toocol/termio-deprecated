@@ -102,17 +102,4 @@ public class Printer {
             });
         });
     }
-
-    public static void reviseChinese() {
-        getExecuteMode().ifPresent(executeMode -> {
-            try {
-                new ProcessBuilder(BOOT_TYPE, executeMode, "chcp 65001")
-                        .inheritIO()
-                        .start()
-                        .waitFor();
-            } catch (Exception e) {
-                //do nothing
-            }
-        });
-    }
 }

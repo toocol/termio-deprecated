@@ -19,8 +19,8 @@ public enum OutsideCommand {
     CMD_HELP("help", new HelpCmdProcessor(), "Show holistic executive command."),
     CMD_CLEAR("clear", new ClearCmdProcessor(), "Clear the screen."),
     CMD_EXIT("exit", new ExitCmdProcessor(), "Exit ssh terminal."),
-    CMD_ADD("add", new AddCmdProcessor(), "Add new ssh connection property. Pattern: 'add --host@user@password[@port]',\n\t\t\tdefault port is 22"),
-    CMD_DELETE("delete", new DeleteCmdProcessor(), "Delete ssh connection property. Pattern: 'delete --index', for example: 'delete --1'"),
+    CMD_ADD("add", new AddCmdProcessor(), "Add new ssh connection property. Pattern: 'add --host@user@password[@port]',\n\t\t\tdefault port is 22."),
+    CMD_DELETE("delete", new DeleteCmdProcessor(), "Delete ssh connection property. Pattern: 'delete --index', for example: 'delete --1.'"),
     CMD_NUMBER("numbers", new NumberCmdProcessor(), "Select the connection properties.");
 
     private final String cmd;

@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
 import static com.toocol.ssh.core.configuration.SystemConfiguration.BOOT_TYPE;
-import static com.toocol.ssh.core.configuration.SystemConfiguration.BOOT_TYPE_CMD;
 
 /**
  * @author ZhaoZhe
@@ -33,15 +32,11 @@ public class TerminalSystem {
 
     public static void main(String[] args) {
         if (args.length != 1) {
-            Printer.printErr("wrong boot parameter.");
+            Printer.printErr("Wrong boot parameter.");
             System.exit(-1);
         }
 
         BOOT_TYPE = args[0];
-        if (BOOT_TYPE_CMD.equals(BOOT_TYPE)) {
-            Printer.reviseChinese();
-        }
-
         Printer.printTitle();
         Printer.printlnWithLogo("TerminalSystem register the vertx service.");
 
