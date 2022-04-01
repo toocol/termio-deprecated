@@ -53,32 +53,34 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
                 Scanner scanner = new Scanner(System.in);
                 String cmd = scanner.nextLine();
 
-                if (OutsideCommand.isOutsideCommand(cmd)) {
-                    CountDownLatch latch = new CountDownLatch(1);
-                    AtomicBoolean isBreak = new AtomicBoolean();
+                CountDownLatch latch = new CountDownLatch(1);
+                AtomicBoolean isBreak = new AtomicBoolean();
 
+                boolean isCommand = OutsideCommand.cmdOf(cmd).map(cmdCommand -> {
                     eventBus.send(ADDRESS_EXECUTE_OUTSIDE.address(), cmd, result -> {
                         String failedMsg = cast(result.result().body());
                         if (StringUtils.isNotEmpty(failedMsg)) {
                             Printer.println(failedMsg);
                         }
 
-                        OutsideCommand.cmdOf(cmd).ifPresent(cmdCommand -> {
-                            if (OutsideCommand.CMD_NUMBER.equals(cmdCommand) && StringUtils.isEmpty(failedMsg)) {
-                                isBreak.set(true);
-                            }
-                        });
+                        if (OutsideCommand.CMD_NUMBER.equals(cmdCommand) && StringUtils.isEmpty(failedMsg)) {
+                            isBreak.set(true);
+                        }
+
                         latch.countDown();
                     });
 
-                    latch.await();
+                    return true;
+                }).orElse(false);
 
-                    if (isBreak.get()) {
-                        // start to accept shell command, break the cycle.
-                        future.complete(false);
-                        break;
-                    }
-                } else {
+                latch.await();
+
+                if (isBreak.get()) {
+                    // start to accept shell's command, break the cycle.
+                    future.complete(false);
+                    break;
+                }
+                if (!isCommand) {
                     Printer.printPrompt(cmd);
                 }
             }
