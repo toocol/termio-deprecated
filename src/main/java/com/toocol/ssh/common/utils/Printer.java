@@ -64,7 +64,7 @@ public class Printer {
     }
 
     public static void printPrompt(String wrongCmd) {
-        PRINT.print("'" + wrongCmd + "' is not a command, enter 'help' to get more command.\n");
+        PRINT.print("'" + wrongCmd + "' is not a command, enter 'help' to get more information.\n");
     }
 
     public static void printCursorLine() {

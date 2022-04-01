@@ -16,11 +16,11 @@ import java.util.Optional;
  */
 public enum ShellCommand {
     /**
-     * shell command enums
+     * shell's command enums
      */
-    CMD_EXIT("exit", new ShellExitCmdProcessor(), "exit current shell, close ssh connection and destroy connect channel."),
-    CMD_HANG("hang", new ShellHangCmdProcessor(), "will not close the connection, exit shell with connection running on the back."),
-    CMD_CLEAR("clear", new ShellClearCmdProcessor(), "clear the screen.");
+    CMD_EXIT("exit", new ShellExitCmdProcessor(), "Exit current shell, close ssh connection and destroy connect channel."),
+    CMD_HANG("hang", new ShellHangCmdProcessor(), "Will not close the connection, exit shell with connection running in the background."),
+    CMD_CLEAR("clear", new ShellClearCmdProcessor(), "Clear the screen.");
 
     private final String cmd;
     private final AbstractCommandProcessor commandProcessor;

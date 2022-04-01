@@ -41,7 +41,7 @@ public class AddCmdProcessor extends AbstractCommandProcessor {
             try {
                 port = Integer.parseInt(params[3]);
             } catch (Exception e) {
-                resultAndMsg.first(false).second("port should be numbers.");
+                resultAndMsg.first(false).second("Port should be numbers.");
                 return;
             }
         } else {
@@ -50,7 +50,7 @@ public class AddCmdProcessor extends AbstractCommandProcessor {
 
         SshCredential credential = SshCredential.builder().host(host).user(user).password(password).port(port).build();
         if (Cache.containsCredential(credential)) {
-            resultAndMsg.first(false).second("connection property already exist.");
+            resultAndMsg.first(false).second("Connection property already exist.");
             return;
         }
 
