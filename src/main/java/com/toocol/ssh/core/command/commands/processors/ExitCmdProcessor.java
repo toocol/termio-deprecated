@@ -8,8 +8,9 @@ import io.vertx.core.eventbus.EventBus;
  * @date 2022/3/30 14:53
  */
 public class ExitCmdProcessor extends AbstractCommandProcessor {
+    @SafeVarargs
     @Override
-    public <T> void process(EventBus eventBus, T param) {
+    public final <T> void process(EventBus eventBus, T... param) {
         System.exit(-1);
     }
 }

@@ -22,7 +22,7 @@ public class CheckFileExistHandler extends AbstractMessageHandler<Void> {
     }
 
     @Override
-    public IAddress address() {
+    public IAddress consume() {
         return ADDRESS_CHECK_FILE_EXIST;
     }
 

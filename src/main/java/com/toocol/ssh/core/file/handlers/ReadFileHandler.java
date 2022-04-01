@@ -24,7 +24,7 @@ public class ReadFileHandler extends AbstractMessageHandler<String> {
     }
 
     @Override
-    public IAddress address() {
+    public IAddress consume() {
         return ADDRESS_READ_FILE;
     }
 

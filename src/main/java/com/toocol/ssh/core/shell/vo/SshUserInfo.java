@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.ssh.jsch;
+package com.toocol.ssh.core.shell.vo;
 
 import com.jcraft.jsch.UIKeyboardInteractive;
 import com.jcraft.jsch.UserInfo;

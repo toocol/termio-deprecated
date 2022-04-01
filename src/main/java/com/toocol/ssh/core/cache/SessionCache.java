@@ -1,8 +1,10 @@
-package com.toocol.ssh.core.ssh.cache;
+package com.toocol.ssh.core.cache;
 
 import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.Session;
+import com.toocol.ssh.common.utils.Printer;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,16 +40,22 @@ public class SessionCache {
         return channelShellMap.get(sessionId);
     }
 
-    public void stopChannel(long sessionId) {
-        channelShellMap.computeIfPresent(sessionId, (k, v) -> {
+    public void stop(long sessionId) {
+        sessionMap.computeIfPresent(sessionId, (k, v) -> {
             v.disconnect();
             return null;
         });
     }
 
     public void stopAll() {
-        channelShellMap.forEach((k, v) -> v.disconnect());
         sessionMap.forEach((k, v) -> v.disconnect());
     }
 
+    public long containSession(String ip) {
+        return sessionMap.entrySet().stream()
+                .filter(entry -> ip.equals(entry.getValue().getHost()))
+                .map(Map.Entry::getKey)
+                .findAny()
+                .orElse(0L);
+    }
 }

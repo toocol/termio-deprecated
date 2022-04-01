@@ -21,7 +21,7 @@ public class WriteFileHandler extends AbstractMessageHandler<Void> {
     }
 
     @Override
-    public IAddress address() {
+    public IAddress consume() {
         return ADDRESS_WRITE_FILE;
     }
 

@@ -1,10 +1,9 @@
 package com.toocol.ssh.core.command.commands;
 
-import com.toocol.ssh.core.command.commands.processors.ClearCmdProcessor;
-import com.toocol.ssh.core.command.commands.processors.ConcCmdProcessor;
-import com.toocol.ssh.core.command.commands.processors.ExitCmdProcessor;
-import com.toocol.ssh.core.command.commands.processors.HelpCmdProcessor;
+import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.command.commands.processors.*;
 import io.vertx.core.eventbus.EventBus;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Optional;
 
@@ -20,8 +19,9 @@ public enum OutsideCommand {
     CMD_HELP("help", new HelpCmdProcessor(), "show holistic executive command."),
     CMD_CLEAR("clear", new ClearCmdProcessor(), "clear the screen."),
     CMD_EXIT("exit", new ExitCmdProcessor(), "exit ssh terminal."),
-    CMD_CONC("conc", new ConcCmdProcessor(), "test ssh connection."),
-    CMD_NUMBER("", null, "select the connection properties.");
+    CMD_ADD("add", new AddCmdProcessor(), "add new ssh connection property. pattern: 'add --host@user@password[@port]',\n\t\t\tdefault port is 22"),
+    CMD_DELETE("delete", new DeleteCmdProcessor(), "delete ssh connection property. pattern: 'delete --index', for example: 'delete --1'"),
+    CMD_NUMBER("numbers", new NumberCmdProcessor(), "select the connection properties.");
 
     private final String cmd;
     private final AbstractCommandProcessor commandProcessor;
@@ -34,25 +34,31 @@ public enum OutsideCommand {
     }
 
     public static boolean isOutsideCommand(String cmd) {
+        String originCmd = cmd.trim().split(" ")[0].toLowerCase();
         for (OutsideCommand command : values()) {
-            if (command.cmd.equals(cmd)) {
+            if (command.cmd.equals(originCmd)) {
                 return true;
             }
         }
-        return false;
+        return StringUtils.isNumeric(originCmd);
     }
 
     public static Optional<OutsideCommand> cmdOf(String cmd) {
+        String originCmd = cmd.trim().split(" ")[0].toLowerCase();
         OutsideCommand outsideCommand = null;
         for (OutsideCommand command : values()) {
-            if (command.cmd.equals(cmd)) {
+            if (command.cmd.equals(originCmd)) {
                 outsideCommand = command;
             }
+        }
+        if (StringUtils.isNumeric(originCmd)) {
+            outsideCommand = CMD_NUMBER;
         }
         return Optional.ofNullable(outsideCommand);
     }
 
-    public <T> void processCmd(EventBus eventBus, T param) throws Exception {
+    @SafeVarargs
+    public final <T> void processCmd(EventBus eventBus, T... param) throws Exception {
         if (this.commandProcessor == null) {
             return;
         }
@@ -64,11 +70,11 @@ public enum OutsideCommand {
     }
 
     public static void printHelp() {
-        System.out.println();
-        System.out.println("ssh terminal commands: ");
+        Printer.println();
+        Printer.println("Terminal commands:     [param] means optional param");
         for (OutsideCommand command : values()) {
-            System.out.println("\t" + command.cmd + "\t\t-- " + command.comment);
+            Printer.println("\t" + command.cmd + "\t\t-- " + command.comment);
         }
-        System.out.println();
+        Printer.println();
     }
 }

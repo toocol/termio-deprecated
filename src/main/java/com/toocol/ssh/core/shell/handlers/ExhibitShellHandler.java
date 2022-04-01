@@ -1,10 +1,11 @@
-package com.toocol.ssh.core.ssh.handlers;
+package com.toocol.ssh.core.shell.handlers;
 
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.core.ssh.cache.CommandCache;
-import com.toocol.ssh.core.ssh.cache.SessionCache;
+import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.cache.Cache;
+import com.toocol.ssh.core.cache.SessionCache;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -13,7 +14,7 @@ import io.vertx.core.eventbus.Message;
 
 import java.io.InputStream;
 
-import static com.toocol.ssh.core.ssh.SshVerticleAddress.EXHIBIT_SHELL;
+import static com.toocol.ssh.core.shell.ShellVerticleAddress.EXHIBIT_SHELL;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -28,7 +29,7 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
     }
 
     @Override
-    public IAddress address() {
+    public IAddress consume() {
         return EXHIBIT_SHELL;
     }
 
@@ -48,28 +49,39 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
                     break;
                 }
                 String echo = new String(tmp, 0, i);
-                if (CommandCache.CURRENT_COMMAND.equals(echo)) {
+                if (Cache.CURRENT_COMMAND.equals(echo)) {
                     continue;
-                } else if (echo.startsWith(CommandCache.CURRENT_COMMAND)) {
+                } else if (echo.startsWith(Cache.CURRENT_COMMAND)) {
                     // cd command's echo is like this: cd /\r\n[host@user address]
-                    echo = echo.substring(CommandCache.CURRENT_COMMAND.length());
+                    echo = echo.substring(Cache.CURRENT_COMMAND.length());
                 }
-                System.out.print(echo);
+                Printer.print(echo);
             }
 
+            if (Cache.HANGED_QUIT) {
+                if (in.available() > 0) {
+                    continue;
+                }
+                Printer.println("hang up connection.");
+                break;
+            }
             if (channelShell.isClosed()) {
                 if (in.available() > 0) {
                     continue;
                 }
-                System.out.println("exit-status: " + channelShell.getExitStatus());
+                Printer.println("exit-status: " + channelShell.getExitStatus());
                 break;
             }
         }
+        future.complete();
     }
 
     @Override
     protected <T> void resultWithin(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
-
+        if (Cache.HANGED_QUIT) {
+            Cache.HANGED_QUIT = false;
+            Cache.HANGED_ENTER = true;
+        }
     }
 
     @SafeVarargs

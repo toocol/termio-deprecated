@@ -1,16 +1,15 @@
-package com.toocol.ssh.core.ssh.vert;
+package com.toocol.ssh.core.shell.vert;
 
 import com.jcraft.jsch.JSch;
 import com.toocol.ssh.common.annotation.FinalDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
-import com.toocol.ssh.common.utils.PrintUtil;
+import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.SnowflakeGuidGenerator;
-import com.toocol.ssh.core.ssh.handlers.AcceptShellCmdHandler;
-import com.toocol.ssh.core.ssh.handlers.ConnectChannelShellHandler;
-import com.toocol.ssh.core.ssh.handlers.EstablishSshSessionHandler;
-import com.toocol.ssh.core.ssh.handlers.ExhibitShellHandler;
-import com.toocol.ssh.core.ssh.cache.SessionCache;
+import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.shell.handlers.AcceptShellCmdHandler;
+import com.toocol.ssh.core.shell.handlers.EstablishSessionChannelHandler;
+import com.toocol.ssh.core.shell.handlers.ExhibitShellHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 
@@ -20,23 +19,22 @@ import io.vertx.core.WorkerExecutor;
  */
 @FinalDeployment
 @RegisterHandler(handlers = {
-        EstablishSshSessionHandler.class,
-        ConnectChannelShellHandler.class,
+        EstablishSessionChannelHandler.class,
         ExhibitShellHandler.class,
         AcceptShellCmdHandler.class,
 })
-public class SshVerticle extends AbstractVerticle implements IHandlerMounter {
+public class ShellVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {
-        WorkerExecutor executor = vertx.createSharedWorkerExecutor("ssh-session-worker", 20);
+        WorkerExecutor executor = vertx.createSharedWorkerExecutor("ssh-shell-worker", 3);
 
         final SessionCache sessionCache = new SessionCache();
         mountHandler(vertx, executor, true, new JSch(), new SnowflakeGuidGenerator(), sessionCache);
 
         Runtime.getRuntime().addShutdownHook(new Thread(sessionCache::stopAll));
 
-        PrintUtil.println("Success start ssh verticle.");
+        Printer.printlnWithLogo("Success start ssh verticle.");
     }
 
 }

@@ -2,7 +2,7 @@ package com.toocol.ssh.common.handler;
 
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.utils.ICastable;
-import com.toocol.ssh.common.utils.PrintUtil;
+import com.toocol.ssh.common.utils.Printer;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 
@@ -37,13 +37,13 @@ public interface IHandlerMounter extends ICastable {
                 Constructor<? extends AbstractMessageHandler<?>> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, WorkerExecutor.class, boolean.class));
                 declaredConstructor.setAccessible(true);
                 AbstractMessageHandler<?> commandHandler = declaredConstructor.newInstance(vertx, executor, parallel);
-                vertx.eventBus().consumer(commandHandler.address().address(), commandHandler::handle);
+                vertx.eventBus().consumer(commandHandler.consume().address(), commandHandler::handle);
                 commandHandler.inject(injects);
-                PrintUtil.println(clazz.getSimpleName() + " assemble handler " + handlerClass.getSimpleName() + " success.");
+                Printer.printlnWithLogo(clazz.getSimpleName() + " assemble handler " + handlerClass.getSimpleName() + " success.");
 
             } catch (Exception e) {
                 e.printStackTrace();
-                PrintUtil.printErr("Assemble handler failed, message = " + e.getMessage());
+                Printer.printErr("Assemble handler failed, message = " + e.getMessage());
                 System.exit(-1);
 
             }

@@ -2,7 +2,7 @@ package com.toocol.ssh.common.handler;
 
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.utils.ICastable;
-import com.toocol.ssh.common.utils.PrintUtil;
+import com.toocol.ssh.common.utils.Printer;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -44,7 +44,7 @@ public abstract class AbstractMessageHandler<R> implements ICastable {
      *
      * @return address
      */
-    public abstract IAddress address();
+    public abstract IAddress consume();
 
     /**
      * handle the message event
@@ -58,7 +58,7 @@ public abstract class AbstractMessageHandler<R> implements ICastable {
                     try {
                         handleWithin(cast(future), message);
                     } catch (Exception e) {
-                        PrintUtil.printErr("\nCaught handle exception, exit program.");
+                        Printer.printErr("\nCaught handle exception, exit program.");
                         System.exit(-1);
                     }
                 },
@@ -67,7 +67,7 @@ public abstract class AbstractMessageHandler<R> implements ICastable {
                     try {
                         resultWithin(cast(asyncResult), message);
                     } catch (Exception e) {
-                        System.out.println("\nCaught handle exception, exit program.");
+                        Printer.println("\nCaught handle exception, exit program.");
                         System.exit(-1);
                     }
                 }

@@ -3,7 +3,7 @@ package com.toocol.ssh.core.file.vert;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
-import com.toocol.ssh.common.utils.PrintUtil;
+import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.file.handlers.CheckFileExistHandler;
 import com.toocol.ssh.core.file.handlers.ReadFileHandler;
 import com.toocol.ssh.core.file.handlers.WriteFileHandler;
@@ -31,7 +31,7 @@ public class FileVerticle extends AbstractVerticle implements IHandlerMounter {
 
         mountHandler(vertx, executor);
 
-        PrintUtil.println("Success start the file verticle.");
+        Printer.printlnWithLogo("Success start the file verticle.");
     }
 
 }

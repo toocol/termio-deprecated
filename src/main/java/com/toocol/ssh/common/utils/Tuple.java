@@ -16,6 +16,9 @@ public class Tuple<F, S> {
         this.second = var2;
     }
 
+    public Tuple() {
+    }
+
     public F _1() {
         return first;
     }
@@ -32,11 +35,13 @@ public class Tuple<F, S> {
         return second;
     }
 
-    public void setFirst(F first) {
+    public Tuple<F, S> first(F first) {
         this.first = first;
+        return this;
     }
 
-    public void setSecond(S second) {
+    public Tuple<F, S> second(S second) {
         this.second = second;
+        return this;
     }
 }

@@ -1,11 +1,12 @@
-package com.toocol.ssh.core.ssh.handlers;
+package com.toocol.ssh.core.shell.handlers;
 
 import com.jcraft.jsch.ChannelShell;
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.utils.PrintUtil;
-import com.toocol.ssh.core.ssh.cache.CommandCache;
-import com.toocol.ssh.core.ssh.cache.SessionCache;
+import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.cache.Cache;
+import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.shell.commands.ShellCommand;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -17,11 +18,10 @@ import sun.misc.Signal;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
-import static com.toocol.ssh.core.ssh.SshVerticleAddress.ACCEPT_SHELL_CMD;
-import static com.toocol.ssh.core.ssh.constants.ShellCommands.CLEAR;
-import static com.toocol.ssh.core.ssh.constants.ShellCommands.EXIT;
+import static com.toocol.ssh.core.shell.ShellVerticleAddress.ACCEPT_SHELL_CMD;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -36,7 +36,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
     }
 
     @Override
-    public IAddress address() {
+    public IAddress consume() {
         return ACCEPT_SHELL_CMD;
     }
 
@@ -45,6 +45,12 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
         long sessionId = cast(message.body());
         ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
         OutputStream outputStream = channelShell.getOutputStream();
+
+        if (Cache.HANGED_ENTER) {
+            outputStream.write("\n".getBytes(StandardCharsets.UTF_8));
+            outputStream.flush();
+            Cache.HANGED_ENTER = false;
+        }
 
         /*
          *  block ctrl+c.
@@ -56,42 +62,51 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                 outputStream.flush();
             } catch (Exception e) {
                 // do nothing
-                e.printStackTrace();
             }
         });
 
         while (true) {
-            String cmd;
+            final StringBuilder cmd = new StringBuilder();
             try {
                 Scanner scanner = new Scanner(System.in);
-                cmd = scanner.nextLine();
+                cmd.append(scanner.nextLine());
             } catch (Exception e) {
                 continue;
             }
 
-            if (EXIT.equals(cmd)) {
-                future.complete(sessionId);
+            AtomicBoolean isBreak = new AtomicBoolean();
+            ShellCommand.cmdOf(cmd.toString()).ifPresent(shellCommand -> {
+                try {
+                    shellCommand.processCmd(eventBus, future, sessionId, isBreak);
+                    cmd.delete(0, cmd.length());
+                } catch (Exception e) {
+                    // do noting
+                }
+            });
+            if (isBreak.get()) {
                 break;
-            } else if (CLEAR.equals(cmd)) {
-                PrintUtil.clear();
-                PrintUtil.printTitle();
-                cmd = "";
-            } else if (isViVimCmd(cmd)) {
-                System.out.println("Don't support vi/vim for now.");
-                cmd = "";
+            }
+            if (isViVimCmd(cmd.toString())) {
+                Printer.println("Don't support vi/vim for now.");
+                cmd.delete(0, cmd.length());
             }
 
-            CommandCache.CURRENT_COMMAND = cmd + "\r\n";
-            cmd += ("\n");
-            outputStream.write(cmd.getBytes(StandardCharsets.UTF_8));
+            Cache.CURRENT_COMMAND = cmd + "\r\n";
+            cmd.append("\n");
+            outputStream.write(cmd.toString().getBytes(StandardCharsets.UTF_8));
             outputStream.flush();
         }
     }
 
     @Override
     protected <T> void resultWithin(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
-        long sessionId = asyncResult.result();
-        sessionCache.stopChannel(sessionId);
+        if (asyncResult.succeeded()) {
+            long sessionId = asyncResult.result();
+            sessionCache.stop(sessionId);
+        } else {
+            // hang up the session
+            Cache.HANGED_QUIT = true;
+        }
         eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), true);
     }
 

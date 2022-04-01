@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.ssh;
+package com.toocol.ssh.core.shell;
 
 import com.toocol.ssh.common.address.IAddress;
 import lombok.AllArgsConstructor;
@@ -8,15 +8,11 @@ import lombok.AllArgsConstructor;
  * @date 2022/3/31 11:43
  */
 @AllArgsConstructor
-public enum SshVerticleAddress implements IAddress{
+public enum ShellVerticleAddress implements IAddress{
     /**
      * establish a ssh session
      */
     ESTABLISH_SESSION("ssh.establish.session"),
-    /**
-     * connect the channel shell
-     */
-    CONNECT_CHANNEL_SHELL("ssh.connect.channel.shell"),
     /**
      * accept the shell cmd
      */

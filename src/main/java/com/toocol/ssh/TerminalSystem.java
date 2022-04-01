@@ -4,7 +4,7 @@ import cn.hutool.core.util.ClassUtil;
 import com.toocol.ssh.common.annotation.FinalDeployment;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.CastUtil;
-import com.toocol.ssh.common.utils.PrintUtil;
+import com.toocol.ssh.common.utils.Printer;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -19,8 +19,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
-import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.BOOT_TYPE;
-import static com.toocol.ssh.core.configuration.vert.ConfigurationVerticle.BOOT_TYPE_CMD;
+import static com.toocol.ssh.core.configuration.SystemConfiguration.BOOT_TYPE;
+import static com.toocol.ssh.core.configuration.SystemConfiguration.BOOT_TYPE_CMD;
 
 /**
  * @author ZhaoZhe
@@ -33,17 +33,17 @@ public class TerminalSystem {
 
     public static void main(String[] args) {
         if (args.length != 1) {
-            PrintUtil.printErr("wrong boot parameter.");
+            Printer.printErr("wrong boot parameter.");
             System.exit(-1);
         }
 
         BOOT_TYPE = args[0];
         if (BOOT_TYPE_CMD.equals(BOOT_TYPE)) {
-            PrintUtil.reviseChinese();
+            Printer.reviseChinese();
         }
 
-        PrintUtil.printTitle();
-        PrintUtil.println("TerminalSystem register the vertx service.");
+        Printer.printTitle();
+        Printer.printlnWithLogo("TerminalSystem register the vertx service.");
 
         Signal.handle(new Signal("INT"), signal -> {});
 
@@ -55,7 +55,7 @@ public class TerminalSystem {
             if (annotatedClass.getSuperclass().equals(AbstractVerticle.class)) {
                 preloadVerticleClassList.add(CastUtil.cast(annotatedClass));
             } else {
-                PrintUtil.printErr("skip deploy verticle " + annotatedClass.getName() + ", please extends AbstractVerticle");
+                Printer.printErr("skip deploy verticle " + annotatedClass.getName() + ", please extends AbstractVerticle");
             }
         });
         final CountDownLatch initialLatch = new CountDownLatch(preloadVerticleClassList.size());
@@ -70,7 +70,7 @@ public class TerminalSystem {
             Set<Class<?>> finalClassList = ClassUtil.scanPackageByAnnotation("com.toocol.ssh.core", FinalDeployment.class);
             finalClassList.forEach(finalVerticle -> {
                 if (!finalVerticle.getSuperclass().equals(AbstractVerticle.class)) {
-                    PrintUtil.printErr("skip deploy verticle " + finalVerticle.getName() + ", please extends AbstractVerticle");
+                    Printer.printErr("skip deploy verticle " + finalVerticle.getName() + ", please extends AbstractVerticle");
                     return;
                 }
                 try {
@@ -80,17 +80,17 @@ public class TerminalSystem {
                     }
                     vertx.deployVerticle(finalVerticle.getName(), complete -> future.complete());
                 } catch (Exception e) {
-                    PrintUtil.printErr("SSH TERMINAL START UP FAILED!!");
+                    Printer.printErr("SSH TERMINAL START UP FAILED!!");
                     vertx.close();
                     System.exit(-1);
                 }
             });
         }, res -> {
             try {
-                PrintUtil.loading();
+                Printer.loading();
                 vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), true);
             } catch (Exception e) {
-                PrintUtil.printErr("problem happened.");
+                Printer.printErr("problem happened.");
                 System.exit(-1);
             }
         });
@@ -101,7 +101,7 @@ public class TerminalSystem {
                     if (result.succeeded()) {
                         initialLatch.countDown();
                     } else {
-                        PrintUtil.printErr("Terminal start up failed, verticle = " + verticleClass.getSimpleName());
+                        Printer.printErr("Terminal start up failed, verticle = " + verticleClass.getSimpleName());
                         vertx.close();
                         System.exit(-1);
                     }
