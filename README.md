@@ -1,19 +1,24 @@
-# SSH Terminal 
 
-![Purely java project](https://img.shields.io/badge/Language-java-orange) ![License](https://img.shields.io/badge/License-Apache--2.0-red) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux-%2320B2AA)   
+<div align="center" >
+    <img src="https://raw.githubusercontent.com/Joezeo/ssh_terminal/128bb7a8ce91d98ecd15ed9f51eaeb51dfa70fe0/github.svg">
+</div>
 
+<h1 align="center"> SSH Terminal </h1>
 
-<div style="float: left">
+<div align="center">
 
 <big>***A light and handy command-line ssh client.***</big>
 
 </div>
 
-<div align="right" >
-    <img src="https://raw.githubusercontent.com/Joezeo/ssh_terminal/128bb7a8ce91d98ecd15ed9f51eaeb51dfa70fe0/github.svg" style="padding-right: 50px; margin-top: -100px">
+
+<div align="center" >
+
+![Purely java project](https://img.shields.io/badge/Language-java-orange) ![License](https://img.shields.io/badge/License-Apache--2.0-red) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux-%2320B2AA) ![Vert.x](https://img.shields.io/badge/Vert.x-3.4.2-%236699CC) ![JSch](https://img.shields.io/badge/JSch-0.1.55-%23CCCCFF)   
+
 </div>
 
-
+### Profile
 > The program is mainly based on Vert.x and JSch, it's a lightweight command line SSH terminal tool;   
 >  
 > Provide SSH login **credential storage** and **fast login**, as well as the **async ftp function**;  
@@ -46,3 +51,6 @@ Shell commands:        [param] means optional param
                         in the background.
         clear           -- Clear the screen.
 ```
+
+## License
+[Apache-2.0](LICENSE) © Joe Zane
