@@ -4,7 +4,6 @@ import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.shell.commands.processors.ShellClearCmdProcessor;
 import com.toocol.ssh.core.shell.commands.processors.ShellExitCmdProcessor;
 import com.toocol.ssh.core.shell.commands.processors.ShellHangCmdProcessor;
-import com.toocol.ssh.core.shell.commands.processors.ShellTabCmdProcessor;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
 
@@ -22,7 +21,6 @@ public enum ShellCommand {
      */
     CMD_EXIT("exit", new ShellExitCmdProcessor(), "Exit current shell, close ssh connection and destroy connect channel."),
     CMD_HANG("hang", new ShellHangCmdProcessor(), "Will not close the connection, exit shell with connection running in the background."),
-    CMD_TAB("\t", new ShellTabCmdProcessor(), null),
     CMD_CLEAR("clear", new ShellClearCmdProcessor(), null);
 
     private final String cmd;

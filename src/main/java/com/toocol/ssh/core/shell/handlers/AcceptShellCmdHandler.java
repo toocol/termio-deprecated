@@ -6,6 +6,7 @@ import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.Cache;
 import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.listener.GlobalKeyBoardListener;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -50,6 +51,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
         long sessionId = cast(message.body());
         ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
         OutputStream outputStream = channelShell.getOutputStream();
+        GlobalKeyBoardListener.setOutputStream(outputStream);
 
         if (Cache.HANGED_ENTER) {
             outputStream.write("\n".getBytes(StandardCharsets.UTF_8));
@@ -72,13 +74,8 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
 
         while (true) {
             final StringBuilder cmd = new StringBuilder();
-                while (true) {
-                    char read = (char) System.in.read();
-                    cmd.append(read);
-                    if (read == '\t' || read == '\n') {
-                        break;
-                    }
-                }
+            Scanner scanner = new Scanner(System.in);
+            cmd.append(scanner.nextLine());
 
             AtomicBoolean isBreak = new AtomicBoolean();
             ShellCommand.cmdOf(cmd.toString()).ifPresent(shellCommand -> {
@@ -118,6 +115,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             // hang up the session
             Cache.HANGED_QUIT = true;
         }
+        GlobalKeyBoardListener.setOutputStream(null);
         eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 3);
     }
 
