@@ -107,7 +107,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             // hang up the session
             Cache.HANGED_QUIT = true;
         }
-        eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), true);
+        eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 3);
     }
 
     @SafeVarargs

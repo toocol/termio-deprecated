@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_EXECUTE_OUTSIDE;
@@ -24,6 +23,11 @@ import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_EXECUTE
  * @date 2022/3/30 11:11
  */
 public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean> {
+
+    private static final int FIRST_IN = 0;
+    private static final int SELF_ERROR = 1;
+    private static final int ERROR_BACK = 2;
+    private static final int NORMAL_BACK = 3;
 
     public AcceptOutsideCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -37,17 +41,16 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
     @Override
     protected <T> void handleWithin(Future<Boolean> future, Message<T> message) {
         try {
-            boolean needClear = cast(message.body());
-            boolean tmpFlag = needClear;
-            if (needClear) {
+            int signal = cast(message.body());
+            if (signal == NORMAL_BACK || signal == FIRST_IN) {
                 Printer.clear();
                 Printer.printScene();
             }
             while (true) {
-                if (tmpFlag) {
-                    Printer.printCursorLine();
+                if (signal == SELF_ERROR) {
+                    signal = FIRST_IN;
                 } else {
-                    tmpFlag = true;
+                    Printer.printCursorLine();
                 }
 
                 Scanner scanner = new Scanner(System.in);
@@ -96,7 +99,7 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
     @Override
     protected <T> void resultWithin(AsyncResult<Boolean> asyncResult, Message<T> message) {
         if (asyncResult.result()) {
-            eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), false);
+            eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 1);
         }
     }
 }

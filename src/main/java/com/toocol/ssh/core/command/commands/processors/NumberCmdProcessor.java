@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.command.commands.processors;
 
 import com.toocol.ssh.common.utils.Tuple;
-import com.toocol.ssh.core.cache.Cache;
+import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.command.commands.AbstractCommandProcessor;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
@@ -27,8 +27,8 @@ public class NumberCmdProcessor extends AbstractCommandProcessor {
             resultAndMsg.first(false).second("The input number must > 0.");
             return;
         }
-        if (idx > Cache.credentialsSize()) {
-            resultAndMsg.first(false).second("The input number exceeds stored credentials' size, max number should be " + Cache.credentialsSize() + ".");
+        if (idx > CredentialCache.credentialsSize()) {
+            resultAndMsg.first(false).second("The input number exceeds stored credentials' size, max number should be " + CredentialCache.credentialsSize() + ".");
             return;
         }
 

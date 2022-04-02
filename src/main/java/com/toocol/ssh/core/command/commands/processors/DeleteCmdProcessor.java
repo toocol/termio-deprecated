@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.command.commands.processors;
 
 import com.toocol.ssh.common.utils.Tuple;
-import com.toocol.ssh.core.cache.Cache;
+import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.command.commands.AbstractCommandProcessor;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +28,7 @@ public class DeleteCmdProcessor extends AbstractCommandProcessor {
             return;
         }
         int index = Integer.parseInt(indexStr);
-        if (Cache.credentialsSize() < index) {
+        if (CredentialCache.credentialsSize() < index) {
             resultAndMsg.first(false).second("The index correspond credential didn't exist.");
             return;
         }

@@ -42,7 +42,6 @@ public class TerminatioSystem {
 
         Signal.handle(new Signal("INT"), signal -> {});
 
-
         /* Get the verticle which need deploy in main class by annotation */
         Set<Class<?>> annotatedClassList = ClassUtil.scanPackageByAnnotation("com.toocol.ssh.core", PreloadDeployment.class);
         List<Class<? extends AbstractVerticle>> preloadVerticleClassList = new ArrayList<>();
@@ -83,7 +82,7 @@ public class TerminatioSystem {
         }, res -> {
             try {
                 Printer.loading();
-                vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), true);
+                vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), 0);
             } catch (Exception e) {
                 Printer.printErr("problem happened.");
                 System.exit(-1);

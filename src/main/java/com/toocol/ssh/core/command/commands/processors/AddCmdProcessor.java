@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.command.commands.processors;
 
 import com.toocol.ssh.common.utils.Tuple;
-import com.toocol.ssh.core.cache.Cache;
+import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.command.commands.AbstractCommandProcessor;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 import io.vertx.core.eventbus.EventBus;
@@ -49,7 +49,7 @@ public class AddCmdProcessor extends AbstractCommandProcessor {
         }
 
         SshCredential credential = SshCredential.builder().host(host).user(user).password(password).port(port).build();
-        if (Cache.containsCredential(credential)) {
+        if (CredentialCache.containsCredential(credential)) {
             resultAndMsg.first(false).second("Connection property already exist.");
             return;
         }

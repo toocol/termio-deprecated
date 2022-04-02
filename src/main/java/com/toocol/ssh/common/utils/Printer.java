@@ -1,14 +1,10 @@
 package com.toocol.ssh.common.utils;
 
-import com.toocol.ssh.core.cache.Cache;
+import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.command.commands.OutsideCommand;
-import com.toocol.ssh.core.credentials.vo.SshCredential;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 
 import java.io.PrintStream;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.toocol.ssh.core.configuration.SystemConfiguration.*;
 
@@ -44,20 +40,21 @@ public class Printer {
     }
 
     public static void printTitle() {
-        PRINT.println(" _____                          _          \n" +
-                "|_   _|__ _ _ _ __  _ _ _  __ _| |_ _ ___  \n" +
-                "  | |/ -_) '_| '  \\| | ' \\/ _` |  _| / _ \\ \n" +
-                "  |_|\\___|_| |_|_|_|_|_||_\\__,_|\\__|_\\___/ \n" +
-                "                                           ");
+        PRINT.println("\n" +
+                " _____ _____ _____ _____ ____ _____ _____ _____ ____ _____                   \n" +
+                "|_   _|   __| __  |     |    |   | |  _  |_   _|    |  _  |                  \n" +
+                "  | | |   __|    -| | | |-  -| | | |     | | | |-  -|  |  |                  \n" +
+                "  |_| |_____|__|__|_|_|_|____|_|___|__|__| |_| |____|_____|                  \n"
+        );
     }
 
     public static void printScene() {
         printTitle();
         PRINT.print("Properties:                                                                           \n");
-        if (Cache.credentialsSize() == 0) {
+        if (CredentialCache.credentialsSize() == 0) {
             PRINT.print("You have no connection properties, type 'help' to get more information.                         \n\n");
         } else {
-            Cache.showCredentials();
+            CredentialCache.showCredentials();
             PRINT.println();
         }
     }

@@ -5,6 +5,7 @@ import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.FileUtils;
 import com.toocol.ssh.core.cache.Cache;
+import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.credentials.handlers.AddCredentialHandler;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 import io.vertx.core.AbstractVerticle;
@@ -41,7 +42,7 @@ public class CredentialVerticle extends AbstractVerticle implements IHandlerMoun
                 sshCredentials.forEach(o -> {
                     JsonObject credentialJsonObj = cast(o);
                     SshCredential sshCredential = SshCredential.transFromJson(credentialJsonObj);
-                    Cache.addCredential(sshCredential);
+                    CredentialCache.addCredential(sshCredential);
                 });
             });
         });
