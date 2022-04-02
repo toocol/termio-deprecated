@@ -2,13 +2,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
         <modelVersion>4.0.0</modelVersion>
     <groupId>com.toocol</groupId>
-    <artifactId>terminal</artifactId>
+    <artifactId>terminatio</artifactId>
     <version>0.0.1</version>
-    <name>ssh_terminal</name>
+    <name>terminatio</name>
 
 	<properties>
         <java.version>1.8</java.version>
-        <main.class>com.toocol.ssh.TerminalSystem</main.class>
+        <main.class>com.toocol.ssh.TerminatioSystem</main.class>
 
         <!--third part dependency-->
         <vertx.version>3.5.4</vertx.version>

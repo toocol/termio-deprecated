@@ -26,7 +26,7 @@ import static com.toocol.ssh.core.configuration.SystemConfiguration.BOOT_TYPE;
  * @email joezane.cn@gmail.com
  * @date 2021/2/19 15:00
  */
-public class TerminalSystem {
+public class TerminatioSystem {
 
     private static final long BLOCKED_CHECK_INTERVAL = 30 * 24 * 60 * 60 * 1000L;
 

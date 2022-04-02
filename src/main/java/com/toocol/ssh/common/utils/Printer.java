@@ -36,20 +36,19 @@ public class Printer {
     }
 
     public static void printlnWithLogo(String msg) {
-        PRINT.println("<ssh terminal> " + msg);
+        PRINT.println("<terminatio> " + msg);
     }
 
     public static void printErr(String msg) {
-        PRINT.println("<ERROR> " + msg);
+        PRINT.println("<error> " + msg);
     }
 
     public static void printTitle() {
-        PRINT.println("\n" +
-                " _____ _____ _____    _____ _____ _____ _____ _____ _____ _____ __                    \n" +
-                "|   __|   __|  |  |  |_   _|   __| __  |     |     |   | |  _  |  |                   \n" +
-                "|__   |__   |     |    | | |   __|    -| | | |-   -| | | |     |  |__                 \n" +
-                "|_____|_____|__|__|    |_| |_____|__|__|_|_|_|_____|_|___|__|__|_____|                \n" +
-                "\n");
+        PRINT.println(" _____                          _          \n" +
+                "|_   _|__ _ _ _ __  _ _ _  __ _| |_ _ ___  \n" +
+                "  | |/ -_) '_| '  \\| | ' \\/ _` |  _| / _ \\ \n" +
+                "  |_|\\___|_| |_|_|_|_|_||_\\__,_|\\__|_\\___/ \n" +
+                "                                           ");
     }
 
     public static void printScene() {
@@ -68,7 +67,7 @@ public class Printer {
     }
 
     public static void printCursorLine() {
-        PRINT.print("[ssh terminal] > ");
+        PRINT.print("[terminatio] > ");
     }
 
     public static void printHelp() {

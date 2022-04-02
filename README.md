@@ -1,9 +1,9 @@
 
 <div align="center" >
-    <img src="https://raw.githubusercontent.com/Joezeo/ssh_terminal/128bb7a8ce91d98ecd15ed9f51eaeb51dfa70fe0/github.svg">
+    <img src="https://raw.githubusercontent.com/Joezeo/terminatio/8a94449d3ee343151a397fe7b7db4fad212fa00b/github.svg">
 </div>
 
-<h1 align="center"> SSH Terminal </h1>
+<h1 align="center"> Terminatio </h1>
 
 <div align="center">
 
