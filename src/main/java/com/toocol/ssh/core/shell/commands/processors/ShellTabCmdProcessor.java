@@ -8,13 +8,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
- * @date 2022/4/1 13:52
+ * @date 2022/4/2 17:30
  */
-public class ShellHangCmdProcessor extends ShellCommandProcessor {
+public class ShellTabCmdProcessor extends ShellCommandProcessor {
     @Override
     public String process(EventBus eventBus, Future<Long> future, long sessionId, AtomicBoolean isBreak) {
-        isBreak.set(true);
-        future.fail("Hang up the session.");
-        return "";
+        return "\t";
     }
 }

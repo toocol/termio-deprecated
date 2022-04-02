@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.command.commands;
 
 import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.common.utils.Tuple;
 import com.toocol.ssh.core.command.commands.processors.*;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
@@ -24,10 +25,10 @@ public enum OutsideCommand {
     CMD_NUMBER("numbers", new NumberCmdProcessor(), "Select the connection properties.");
 
     private final String cmd;
-    private final AbstractCommandProcessor commandProcessor;
+    private final OutsideCommandProcessor commandProcessor;
     private final String comment;
 
-    OutsideCommand(String cmd, AbstractCommandProcessor commandProcessor, String comment) {
+    OutsideCommand(String cmd, OutsideCommandProcessor commandProcessor, String comment) {
         this.cmd = cmd;
         this.commandProcessor = commandProcessor;
         this.comment = comment;
@@ -47,12 +48,11 @@ public enum OutsideCommand {
         return Optional.ofNullable(outsideCommand);
     }
 
-    @SafeVarargs
-    public final <T> void processCmd(EventBus eventBus, T... param) throws Exception {
+    public final <T> void processCmd(EventBus eventBus, String cmd, Tuple<Boolean, String> resultAndMsg) throws Exception {
         if (this.commandProcessor == null) {
             return;
         }
-        this.commandProcessor.process(eventBus, param);
+        this.commandProcessor.process(eventBus, cmd, resultAndMsg);
     }
 
     public String cmd() {

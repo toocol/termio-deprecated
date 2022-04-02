@@ -15,6 +15,11 @@ import io.vertx.core.eventbus.Message;
 import org.apache.commons.lang3.StringUtils;
 import sun.misc.Signal;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
@@ -67,18 +72,20 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
 
         while (true) {
             final StringBuilder cmd = new StringBuilder();
-            try {
-                Scanner scanner = new Scanner(System.in);
-                cmd.append(scanner.nextLine());
-            } catch (Exception e) {
-                continue;
-            }
+                while (true) {
+                    char read = (char) System.in.read();
+                    cmd.append(read);
+                    if (read == '\t' || read == '\n') {
+                        break;
+                    }
+                }
 
             AtomicBoolean isBreak = new AtomicBoolean();
             ShellCommand.cmdOf(cmd.toString()).ifPresent(shellCommand -> {
                 try {
-                    shellCommand.processCmd(eventBus, future, sessionId, isBreak);
+                    String finalCmd = shellCommand.processCmd(eventBus, future, sessionId, isBreak);
                     cmd.delete(0, cmd.length());
+                    cmd.append(finalCmd);
                 } catch (Exception e) {
                     // do noting
                 }
@@ -91,8 +98,12 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                 cmd.delete(0, cmd.length());
             }
 
-            Cache.CURRENT_COMMAND = cmd + "\r\n";
-            cmd.append("\n");
+            if ("\t".equals(cmd.toString())) {
+                Cache.CURRENT_COMMAND = cmd.toString();
+            } else {
+                Cache.CURRENT_COMMAND = cmd + "\r\n";
+                cmd.append("\n");
+            }
             outputStream.write(cmd.toString().getBytes(StandardCharsets.UTF_8));
             outputStream.flush();
         }

@@ -1,17 +1,20 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.core.command.commands.AbstractCommandProcessor;
+import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
+import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/1 11:48
  */
-public class ShellClearCmdProcessor extends AbstractCommandProcessor {
-    @SafeVarargs
+public class ShellClearCmdProcessor extends ShellCommandProcessor {
     @Override
-    public final <T> void process(EventBus eventBus, T... param) throws Exception {
+    public String process(EventBus eventBus, Future<Long> future, long sessionId, AtomicBoolean isBreak) {
         Printer.clear();
+        return "";
     }
 }

@@ -1,13 +1,15 @@
 package com.toocol.ssh.core.shell.commands;
 
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.core.command.commands.AbstractCommandProcessor;
 import com.toocol.ssh.core.shell.commands.processors.ShellClearCmdProcessor;
 import com.toocol.ssh.core.shell.commands.processors.ShellExitCmdProcessor;
 import com.toocol.ssh.core.shell.commands.processors.ShellHangCmdProcessor;
+import com.toocol.ssh.core.shell.commands.processors.ShellTabCmdProcessor;
+import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author ZhaoZhe
@@ -20,13 +22,14 @@ public enum ShellCommand {
      */
     CMD_EXIT("exit", new ShellExitCmdProcessor(), "Exit current shell, close ssh connection and destroy connect channel."),
     CMD_HANG("hang", new ShellHangCmdProcessor(), "Will not close the connection, exit shell with connection running in the background."),
-    CMD_CLEAR("clear", new ShellClearCmdProcessor(), "Clear the screen.");
+    CMD_TAB("\t", new ShellTabCmdProcessor(), null),
+    CMD_CLEAR("clear", new ShellClearCmdProcessor(), null);
 
     private final String cmd;
-    private final AbstractCommandProcessor commandProcessor;
+    private final ShellCommandProcessor commandProcessor;
     private final String comment;
 
-    ShellCommand(String cmd, AbstractCommandProcessor commandProcessor, String comment) {
+    ShellCommand(String cmd, ShellCommandProcessor commandProcessor, String comment) {
         this.cmd = cmd;
         this.commandProcessor = commandProcessor;
         this.comment = comment;
@@ -42,12 +45,11 @@ public enum ShellCommand {
         return Optional.ofNullable(outsideCommand);
     }
 
-    @SafeVarargs
-    public final <T> void processCmd(EventBus eventBus, T... param) throws Exception {
+    public final String processCmd(EventBus eventBus, Future<Long> future, long sessionId, AtomicBoolean isBreak) throws Exception {
         if (this.commandProcessor == null) {
-            return;
+            return "";
         }
-        this.commandProcessor.process(eventBus, param);
+        return this.commandProcessor.process(eventBus, future, sessionId, isBreak);
     }
 
     public String cmd() {
@@ -58,6 +60,9 @@ public enum ShellCommand {
         Printer.println();
         Printer.println("Shell commands:        [param] means optional param");
         for (ShellCommand command : values()) {
+            if (command.comment == null) {
+                continue;
+            }
             Printer.println("\t" + command.cmd + "\t\t-- " + command.comment);
         }
         Printer.println();
