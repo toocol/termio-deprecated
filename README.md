@@ -49,7 +49,6 @@ Shell commands:        [param] means optional param
         exit            -- Exit current shell, close ssh connection and destroy connect channel.
         hang            -- Will not close the connection, exit shell with connection running 
                         in the background.
-        clear           -- Clear the screen.
 ```
 
 ## License
