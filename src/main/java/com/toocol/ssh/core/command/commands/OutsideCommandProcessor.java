@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.command.commands;
 
-import com.toocol.ssh.common.utils.Tuple;
+import com.toocol.ssh.common.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 
 /**
@@ -16,6 +16,6 @@ public abstract class OutsideCommandProcessor {
      * @param cmd cmd
      * @param tuple tuple
      */
-    public abstract void process(EventBus eventBus, String cmd, Tuple<Boolean, String> tuple);
+    public abstract void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> tuple);
 
 }

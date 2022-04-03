@@ -18,7 +18,7 @@ public class SnowflakeGuidGenerator {
     private long lastTimestamp = 0;
 
     public long nextId() {
-        Tuple<Long, Long> tuple = sequenceOf();
+        Tuple2<Long, Long> tuple = sequenceOf();
         return (tuple._1() << TIMESTAMP_SHIFT_BITS)
                 | (1 << SERVER_ID_SHIFT_BITS)
                 | tuple._2();
@@ -27,7 +27,7 @@ public class SnowflakeGuidGenerator {
     /**
      * @return Tuple<时间戳, 序列号>
      */
-    private synchronized Tuple<Long, Long> sequenceOf() {
+    private synchronized Tuple2<Long, Long> sequenceOf() {
         long timestamp = timeGen();
 
         if (timestamp == lastTimestamp) {
@@ -41,7 +41,7 @@ public class SnowflakeGuidGenerator {
         }
 
         lastTimestamp = timestamp;
-        return new Tuple<>(timestamp, sequence);
+        return new Tuple2<>(timestamp, sequence);
     }
 
     private long timeGen() {

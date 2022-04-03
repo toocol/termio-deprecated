@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.command.commands.processors;
 
 import com.toocol.ssh.core.command.commands.OutsideCommandProcessor;
-import com.toocol.ssh.common.utils.Tuple;
+import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 public class DeleteCmdProcessor extends OutsideCommandProcessor {
 
     @Override
-    public void process(EventBus eventBus, String cmd, Tuple<Boolean, String> resultAndMsg) {
+    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         String[] split = cmd.replaceAll("\\s*", "").split("--");
         if (split.length != 2) {
             resultAndMsg.first(false).second("Wrong 'delete' command, the correct pattern is 'delete --index'.");

@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.command.commands.processors;
 
 import com.toocol.ssh.core.command.commands.OutsideCommandProcessor;
-import com.toocol.ssh.common.utils.Tuple;
+import com.toocol.ssh.common.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 
 /**
@@ -10,7 +10,7 @@ import io.vertx.core.eventbus.EventBus;
  */
 public class ExitCmdProcessor extends OutsideCommandProcessor {
     @Override
-    public void process(EventBus eventBus, String cmd, Tuple<Boolean, String> tuple) {
+    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> tuple) {
         System.exit(-1);
     }
 }

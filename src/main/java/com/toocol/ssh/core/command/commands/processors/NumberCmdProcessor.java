@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.command.commands.processors;
 
 import com.toocol.ssh.core.command.commands.OutsideCommandProcessor;
-import com.toocol.ssh.common.utils.Tuple;
+import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
@@ -14,7 +14,7 @@ import static com.toocol.ssh.core.shell.ShellVerticleAddress.ESTABLISH_SESSION;
  */
 public class NumberCmdProcessor extends OutsideCommandProcessor {
     @Override
-    public void process(EventBus eventBus, String cmd, Tuple<Boolean, String> resultAndMsg) {
+    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         if (!StringUtils.isNumeric(cmd)) {
             resultAndMsg.first(false).second("There can't be any spaces or other character between numbers.");
             return;

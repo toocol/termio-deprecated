@@ -52,45 +52,5 @@ Shell commands:        [param] means optional param
         clear           -- Clear the screen.
 ```
 
-### Maven
-If you want to run this program through source code, you need configure your maven's setting.xml to get the jnativehook dependency.  
-Add flowing configuration to your local maven's settings.xml.
-```xml
-<?xml version="1.0"?>
-<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
-    
-    <profiles>
-        
-        <profile>
-         <id>github-maven</id>
-            
-         <activation>
-             <activeByDefault>true</activeByDefault>
-             <jdk>1.8</jdk>
-         </activation>
-            
-         <repositories>
-             <repository>
-                 <id>github-maven-snapshot-repository</id>
-                 <name>github-maven-snapshot-repository</name>
-                 <url>https://oss.sonatype.org/content/repositories/snapshots/com</url>
-             </repository>
-         </repositories>
-        </profile>
-        
-    </profiles>
- 
-    <pluginGroups>
-        <pluginGroup>org.apache.maven.plugins</pluginGroup>
-    </pluginGroups>
- 
-    <activeProfiles>
-        <activeProfile>github-maven</activeProfile>
-    </activeProfiles>
- 
-</settings>
-```
-
 ## License
 [Apache-2.0](LICENSE) © Joe Zane

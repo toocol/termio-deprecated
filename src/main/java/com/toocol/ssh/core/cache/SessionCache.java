@@ -3,6 +3,7 @@ package com.toocol.ssh.core.cache;
 import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.Session;
 import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.shell.core.Shell;
 
 import java.io.IOException;
 import java.util.Map;
@@ -24,6 +25,11 @@ public class SessionCache {
      */
     private final Map<Long, ChannelShell> channelShellMap = new ConcurrentHashMap<>();
 
+    /**
+     * the map stored all alive ssh session shell's object.
+     */
+    private final Map<Long, Shell> shellMap = new ConcurrentHashMap<>();
+
     public void putSession(Long sessionId, Session session) {
         sessionMap.put(sessionId, session);
     }
@@ -38,6 +44,14 @@ public class SessionCache {
 
     public ChannelShell getChannelShell(Long sessionId) {
         return channelShellMap.get(sessionId);
+    }
+
+    public void putShell(Long sessionId, Shell shell) {
+        shellMap.put(sessionId, shell);
+    }
+
+    public Shell getShell(Long sessionId) {
+        return shellMap.get(sessionId);
     }
 
     public void stop(long sessionId) {

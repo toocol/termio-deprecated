@@ -11,6 +11,7 @@ import com.toocol.ssh.core.cache.Cache;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
+import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.vo.SshUserInfo;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -69,6 +70,9 @@ public class EstablishSessionChannelHandler extends AbstractMessageHandler<Long>
                 ChannelShell channelShell = cast(session.openChannel("shell"));
                 channelShell.connect();
                 sessionCache.putChannelShell(sessionId, channelShell);
+
+                Shell shell = new Shell(channelShell.getOutputStream(), channelShell.getInputStream());
+                sessionCache.putShell(sessionId, shell);
             } catch (Exception e) {
                 Printer.println("Connect failed, message = " + e.getMessage());
                 success = false;
@@ -86,8 +90,10 @@ public class EstablishSessionChannelHandler extends AbstractMessageHandler<Long>
     protected <T> void resultWithin(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         Long sessionId = asyncResult.result();
         if (sessionId != null) {
+
             Printer.clear();
             if (Cache.HANGED_ENTER) {
+                Cache.HANGED_ENTER = false;
                 Printer.println("Invoke hanged session.");
             } else {
                 Printer.println("Session established.\n");
@@ -95,6 +101,7 @@ public class EstablishSessionChannelHandler extends AbstractMessageHandler<Long>
 
             eventBus.send(EXHIBIT_SHELL.address(), sessionId);
             eventBus.send(ACCEPT_SHELL_CMD.address(), sessionId);
+
         } else {
 
             eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 2);

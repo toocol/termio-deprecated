@@ -6,6 +6,7 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.Cache;
 import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.shell.core.Shell;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -38,6 +39,13 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
         long sessionId = cast(message.body());
 
         ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
+        Shell shell = sessionCache.getShell(sessionId);
+
+        if (shell.getWelcome() != null) {
+            Printer.print(shell.getWelcome());
+        }
+
+        Printer.print(shell.getPrompt());
 
         //从远程端到达的所有数据都能从这个流中读取到
         InputStream in = channelShell.getInputStream();
@@ -51,6 +59,18 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
                 String echo = new String(tmp, 0, i);
                 if (Cache.CURRENT_COMMAND.equals(echo)) {
                     continue;
+                } else if (Cache.CURRENT_COMMAND.contains("\t")){
+                    if (echo.startsWith("ect/\u0007")) {
+                        // remove system prompt voice
+                        echo = echo.split("\u0007")[1];
+                    }
+                    if (Cache.CURRENT_COMMAND.startsWith(echo)) {
+                        continue;
+                    }
+                    String[] split = echo.split("\r\n");
+                    if (split.length != 0) {
+                        echo = "\r\n" + split[split.length - 1];
+                    }
                 } else if (echo.startsWith(Cache.CURRENT_COMMAND)) {
                     // cd command's echo is like this: cd /\r\n[host@user address]
                     echo = echo.substring(Cache.CURRENT_COMMAND.length());

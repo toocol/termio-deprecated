@@ -1,13 +1,10 @@
 package com.toocol.ssh;
 
 import cn.hutool.core.util.ClassUtil;
-import com.github.kwhat.jnativehook.GlobalScreen;
-import com.github.kwhat.jnativehook.NativeHookException;
 import com.toocol.ssh.common.annotation.FinalDeployment;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.CastUtil;
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.core.listener.GlobalKeyBoardListener;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -44,16 +41,6 @@ public class TerminatioSystem {
         Printer.printlnWithLogo("TerminalSystem register the vertx service.");
 
         Signal.handle(new Signal("INT"), signal -> {});
-
-        /* Register global key board listener */
-        // TODO: There are some problems.
-        try {
-            GlobalScreen.registerNativeHook();
-            GlobalScreen.addNativeKeyListener(new GlobalKeyBoardListener());
-        } catch (NativeHookException e) {
-            Printer.println("Register native hook failed, message = " + e.getMessage());
-            System.exit(-1);
-        }
 
         /* Get the verticle which need deploy in main class by annotation */
         Set<Class<?>> annotatedClassList = ClassUtil.scanPackageByAnnotation("com.toocol.ssh.core", PreloadDeployment.class);

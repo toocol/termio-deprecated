@@ -2,7 +2,7 @@ package com.toocol.ssh.core.command.commands.processors;
 
 import com.toocol.ssh.core.command.commands.OutsideCommandProcessor;
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.common.utils.Tuple;
+import com.toocol.ssh.common.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 
 /**
@@ -11,7 +11,7 @@ import io.vertx.core.eventbus.EventBus;
  */
 public class ClearCmdProcessor extends OutsideCommandProcessor {
     @Override
-    public void process(EventBus eventBus, String cmd, Tuple<Boolean, String> resultAndMsg) {
+    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         Printer.clear();
         Printer.printScene();
 

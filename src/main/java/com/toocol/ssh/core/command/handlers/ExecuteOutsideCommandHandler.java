@@ -3,7 +3,7 @@ package com.toocol.ssh.core.command.handlers;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.common.utils.Tuple;
+import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.command.commands.OutsideCommand;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -11,15 +11,13 @@ import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_EXECUTE_OUTSIDE;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:09
  */
-public class ExecuteOutsideCommandHandler extends AbstractMessageHandler<Tuple<Boolean, String>> {
+public class ExecuteOutsideCommandHandler extends AbstractMessageHandler<Tuple2<Boolean, String>> {
 
     public ExecuteOutsideCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -31,9 +29,9 @@ public class ExecuteOutsideCommandHandler extends AbstractMessageHandler<Tuple<B
     }
 
     @Override
-    protected <T> void handleWithin(Future<Tuple<Boolean, String>> future, Message<T> message) {
+    protected <T> void handleWithin(Future<Tuple2<Boolean, String>> future, Message<T> message) {
         String cmd = String.valueOf(message.body());
-        Tuple<Boolean, String> resultAndMessage = new Tuple<>();
+        Tuple2<Boolean, String> resultAndMessage = new Tuple2<>();
         OutsideCommand.cmdOf(cmd)
                 .ifPresent(outsideCommand -> {
                     try {
@@ -46,8 +44,8 @@ public class ExecuteOutsideCommandHandler extends AbstractMessageHandler<Tuple<B
     }
 
     @Override
-    protected <T> void resultWithin(AsyncResult<Tuple<Boolean, String>> asyncResult, Message<T> message) {
-        Tuple<Boolean, String> resultAndMessage = asyncResult.result();
+    protected <T> void resultWithin(AsyncResult<Tuple2<Boolean, String>> asyncResult, Message<T> message) {
+        Tuple2<Boolean, String> resultAndMessage = asyncResult.result();
         if (resultAndMessage._1()) {
             message.reply(null);
         } else {

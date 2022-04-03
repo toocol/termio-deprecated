@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.command.commands.processors;
 
 import com.toocol.ssh.core.command.commands.OutsideCommandProcessor;
-import com.toocol.ssh.common.utils.Tuple;
+import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 import io.vertx.core.eventbus.EventBus;
@@ -16,7 +16,7 @@ import static com.toocol.ssh.core.credentials.CredentialVerticleAddress.ADD_CRED
 public class AddCmdProcessor extends OutsideCommandProcessor {
 
     @Override
-    public void process(EventBus eventBus, String cmd, Tuple<Boolean, String> resultAndMsg) {
+    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         String[] split = cmd.replaceAll("\\s*", "").split("--");
         if (split.length != 2) {
             resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add --host@user@password[@port]'.");

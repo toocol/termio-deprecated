@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.command.commands;
 
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.common.utils.Tuple;
+import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.command.commands.processors.*;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +48,7 @@ public enum OutsideCommand {
         return Optional.ofNullable(outsideCommand);
     }
 
-    public final <T> void processCmd(EventBus eventBus, String cmd, Tuple<Boolean, String> resultAndMsg) throws Exception {
+    public final <T> void processCmd(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) throws Exception {
         if (this.commandProcessor == null) {
             return;
         }
