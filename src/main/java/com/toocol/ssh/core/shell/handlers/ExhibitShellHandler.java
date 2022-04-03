@@ -47,7 +47,10 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
 
         Printer.print(shell.getPrompt());
 
-        //从远程端到达的所有数据都能从这个流中读取到
+        /*
+        * All the remote feedback data is getting from this InputStream.
+        * And don't know why, there should get a new InputStream from channelShell.
+        **/
         InputStream in = channelShell.getInputStream();
         byte[] tmp = new byte[1024];
         while (true) {
@@ -56,26 +59,7 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
                 if (i < 0) {
                     break;
                 }
-                String echo = new String(tmp, 0, i);
-                if (Cache.CURRENT_COMMAND.equals(echo)) {
-                    continue;
-                } else if (Cache.CURRENT_COMMAND.contains("\t")){
-                    if (echo.startsWith("ect/\u0007")) {
-                        // remove system prompt voice
-                        echo = echo.split("\u0007")[1];
-                    }
-                    if (Cache.CURRENT_COMMAND.startsWith(echo)) {
-                        continue;
-                    }
-                    String[] split = echo.split("\r\n");
-                    if (split.length != 0) {
-                        echo = "\r\n" + split[split.length - 1];
-                    }
-                } else if (echo.startsWith(Cache.CURRENT_COMMAND)) {
-                    // cd command's echo is like this: cd /\r\n[host@user address]
-                    echo = echo.substring(Cache.CURRENT_COMMAND.length());
-                }
-                Printer.print(echo);
+                shell.print(new String(tmp, 0, i));
             }
 
             if (Cache.HANGED_QUIT) {

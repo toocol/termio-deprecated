@@ -1,6 +1,9 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.utils.Tuple;
+import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.common.utils.Single;
+import com.toocol.ssh.core.cache.Cache;
+import jline.ConsoleReader;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -16,16 +19,29 @@ import java.util.concurrent.CountDownLatch;
  * @date: 2022/4/3 20:57
  */
 public class Shell {
+    private static ConsoleReader reader = null;
+
+    static {
+        try {
+            reader = new ConsoleReader(System.in, null);
+        } catch (IOException e) {
+            Printer.println("Register console reader failed.");
+            System.exit(-1);
+        }
+    }
+
     /**
      * the output/input Stream belong to JSch's channelShell;
      */
     private final OutputStream outputStream;
     private final InputStream inputStream;
-    private final Tuple<String> welcome = new Tuple<>();
-    private final Tuple<String> prompt = new Tuple<>();
+    private final Single<String> welcome = new Single<>();
+    private final Single<String> prompt = new Single<>();
 
-    private volatile boolean returnNow = false;
-    private volatile boolean executeNow = false;
+    private final StringBuffer cmd = new StringBuffer();
+
+    private volatile boolean returnWrite = false;
+    private volatile boolean promptNow = false;
 
     private String localCmd;
     private String remoteCmd;
@@ -35,8 +51,8 @@ public class Shell {
     private enum Status {
         NORMAL(1, "Shell is under normal cmd input status."),
         TAB_ACCOMPLISH(2, "Shell is under tab key to auto-accomplish address status."),
-        VIM(3, "Shell is under Vim/Vi edit status.")
-        ;
+        VIM(3, "Shell is under Vim/Vi edit status."),
+        HANG_UP(4, "Shell is under hang-up status.");
         public final int status;
         public final String comment;
     }
@@ -45,40 +61,94 @@ public class Shell {
         assert outputStream != null && inputStream != null;
         this.outputStream = outputStream;
         this.inputStream = inputStream;
-        this.getPromptFromRemote();
+        this.status = Status.NORMAL;
+        this.initialFirstCorrespondence();
 
     }
 
     public void print(String msg) {
-
+        if (Cache.CURRENT_COMMAND.equals(msg)) {
+            return;
+        } else if (Cache.CURRENT_COMMAND.contains("\t")) {
+            if (msg.startsWith("ect/\u0007")) {
+                // remove system prompt voice
+                msg = msg.split("\u0007")[1];
+            }
+            if (Cache.CURRENT_COMMAND.startsWith(msg)) {
+                return;
+            }
+            String[] split = msg.split("\r\n");
+            if (split.length != 0) {
+                msg = "\r\n" + split[split.length - 1];
+            }
+        } else if (msg.startsWith(Cache.CURRENT_COMMAND)) {
+            // cd command's echo is like this: cd /\r\n[host@user address]
+            msg = msg.substring(Cache.CURRENT_COMMAND.length());
+        }
+        Printer.print(msg);
     }
 
-    public String readCmd() {
-        return null;
+    public String readCmd() throws Exception {
+        cmd.delete(0, cmd.length());
+        while (true) {
+            char inChar = (char) reader.readVirtualKey();
+            if (inChar == '\t') {
+                Cache.CURRENT_COMMAND = cmd.append('\t').toString();
+                cmd.append(inChar);
+                outputStream.write(cmd.append('\t').toString().getBytes(StandardCharsets.UTF_8));
+                outputStream.flush();
+                cmd.delete(0, cmd.length());
+            } else if (inChar == '\b') {
+                if (cmd.toString().trim().length() == 0) {
+                    continue;
+                }
+                Printer.print("\b");
+                Printer.print(" ");
+                Printer.print("\b");
+                cmd.deleteCharAt(cmd.length() - 1);
+            } else if (inChar == '\r' || inChar == '\n') {
+                Printer.print("\r\n");
+                break;
+            } else {
+                Printer.print(String.valueOf(inChar));
+                cmd.append(inChar);
+            }
+        }
+        return cmd.toString();
     }
 
     public String getWelcome() {
-        return StringUtils.isEmpty(welcome._1()) ? null : welcome._1();
+        return StringUtils.isEmpty(welcome.getValue()) ? null : welcome.getValue();
     }
 
     public String getPrompt() {
-        return prompt._1();
+        return prompt.getValue();
     }
 
-    private void getPromptFromRemote() {
+    public OutputStream getOutputStream() {
+        return outputStream;
+    }
+
+    public InputStream getInputStream() {
+        return inputStream;
+    }
+
+    @SuppressWarnings("all")
+    private void initialFirstCorrespondence() {
         try {
             CountDownLatch mainLatch = new CountDownLatch(2);
 
             new Thread(() -> {
                 try {
                     do {
-                        if (returnNow) {
+                        if (returnWrite) {
                             return;
                         }
-                    } while (!executeNow);
+                    } while (!promptNow);
 
                     outputStream.write("\n".getBytes(StandardCharsets.UTF_8));
                     outputStream.flush();
+                    Printer.println("writed");
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
@@ -96,21 +166,33 @@ public class Shell {
                                 break;
                             }
                             String inputStr = new String(tmp, 0, i);
+
                             if (!inputStr.startsWith("[")) {
-                                welcome.first(inputStr);
-                                returnNow = true;
+                                welcome.valueOf(inputStr);
+                                returnWrite = true;
                                 break;
                             }
+
                             if (inputStr.startsWith("\r\n")) {
-                                this.prompt.first(RegExUtils.removeAll("prompt", "\r\n"));
-                                returnNow = true;
+                                this.prompt.valueOf(RegExUtils.removeAll("prompt", "\r\n"));
+                                returnWrite = true;
                                 break;
                             }
-                            executeNow = true;
-                            prompt.first(inputStr.trim() + " ");
+
+                            if (inputStr.startsWith("[")){
+                                prompt.valueOf(inputStr.trim() + " ");
+                                returnWrite = true;
+                                break;
+                            }
+
+                            // Just in case the remote connection deon't send the first prompt information, getting this by ourselves.
+                            promptNow = true;
+                            if (StringUtils.isNoneEmpty(inputStr)) {
+                                prompt.valueOf(inputStr.trim() + " ");
+                            }
                         }
 
-                        if (StringUtils.isNoneEmpty(prompt._1())) {
+                        if (StringUtils.isNoneEmpty(prompt.getValue())) {
                             mainLatch.countDown();
                             break;
                         }
@@ -124,6 +206,6 @@ public class Shell {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        assert prompt._1() != null;
+        assert prompt.getValue() != null;
     }
 }

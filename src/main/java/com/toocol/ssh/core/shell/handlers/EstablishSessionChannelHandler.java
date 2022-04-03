@@ -92,6 +92,7 @@ public class EstablishSessionChannelHandler extends AbstractMessageHandler<Long>
         if (sessionId != null) {
 
             Printer.clear();
+
             if (Cache.HANGED_ENTER) {
                 Cache.HANGED_ENTER = false;
                 Printer.println("Invoke hanged session.");

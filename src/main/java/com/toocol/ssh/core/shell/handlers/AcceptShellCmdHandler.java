@@ -7,6 +7,7 @@ import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.Cache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
+import com.toocol.ssh.core.shell.core.Shell;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -29,20 +30,11 @@ import static com.toocol.ssh.core.shell.ShellVerticleAddress.ACCEPT_SHELL_CMD;
  */
 public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
 
-    final StringBuffer cmd = new StringBuffer();
 
     private SessionCache sessionCache;
-    private ConsoleReader reader;
 
     public AcceptShellCmdHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
-        try {
-//            reader = new ConsoleReader(System.in, new PrintWriter(new OutputStreamWriter(System.out, System.getProperty("jline.WindowsTerminal.output.encoding", System.getProperty("file.encoding")))));
-            reader = new ConsoleReader(System.in, null);
-        } catch (IOException e) {
-            Printer.println("Register console reader failed.");
-            System.exit(-1);
-        }
     }
 
     @Override
@@ -53,35 +45,11 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
     @Override
     protected <T> void handleWithin(Future<Long> future, Message<T> message) throws Exception {
         long sessionId = cast(message.body());
-        ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
-        OutputStream outputStream = channelShell.getOutputStream();
+        Shell shell = sessionCache.getShell(sessionId);
+        OutputStream outputStream = shell.getOutputStream();
 
         while (true) {
-            cmd.delete(0, cmd.length());
-            while (true) {
-                char inChar = (char) reader.readVirtualKey();
-                if (inChar == '\t') {
-                    Cache.CURRENT_COMMAND = cmd.append('\t').toString();
-                    cmd.append(inChar);
-                    outputStream.write(cmd.append('\t').toString().getBytes(StandardCharsets.UTF_8));
-                    outputStream.flush();
-                    cmd.delete(0, cmd.length());
-                } else if(inChar == '\b') {
-                    if (cmd.toString().trim().length() == 0) {
-                        continue;
-                    }
-                    Printer.print("\b");
-                    Printer.print(" ");
-                    Printer.print("\b");
-                    cmd.deleteCharAt(cmd.length() - 1);
-                } else if (inChar == '\r' || inChar == '\n') {
-                    Printer.print("\r\n");
-                    break;
-                } else {
-                    Printer.print(String.valueOf(inChar));
-                    cmd.append(inChar);
-                }
-            }
+            StringBuilder cmd = new StringBuilder(shell.readCmd());
 
             AtomicBoolean isBreak = new AtomicBoolean();
             ShellCommand.cmdOf(cmd.toString()).ifPresent(shellCommand -> {
