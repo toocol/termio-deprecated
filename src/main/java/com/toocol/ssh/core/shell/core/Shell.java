@@ -17,6 +17,7 @@ import java.util.concurrent.CountDownLatch;
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/3 20:57
  */
+@SuppressWarnings("all")
 public class Shell {
     private static ConsoleReader reader = null;
 
@@ -44,9 +45,8 @@ public class Shell {
     private volatile boolean promptNow = false;
 
     public volatile String localLastCmd;
-    private volatile StringBuffer localOnWriteCmd;
     private String remoteCmd;
-    private Status status;
+    private Status status = Status.NORMAL;
 
     @AllArgsConstructor
     private enum Status {
@@ -54,6 +54,7 @@ public class Shell {
         TAB_ACCOMPLISH(2, "Shell is under tab key to auto-accomplish address status."),
         VIM(3, "Shell is under Vim/Vi edit status."),
         HANG_UP(4, "Shell is under hang-up status.");
+
         public final int status;
         public final String comment;
     }
@@ -62,29 +63,30 @@ public class Shell {
         assert outputStream != null && inputStream != null;
         this.outputStream = outputStream;
         this.inputStream = inputStream;
-        this.status = Status.NORMAL;
         this.initialFirstCorrespondence();
-
     }
 
     public void print(String msg) {
         if (localLastCmd.equals(msg)) {
             return;
-        } else if (localLastCmd.contains("\t")) {
+        } else if (msg.startsWith("\b\u001B[K")) {
+            String[] split = msg.split("\r\n");
+            if (split.length == 1) {
+                return;
+            }
+            msg = split[1];
+        } else if (status.equals(Status.TAB_ACCOMPLISH)) {
             if (StringUtils.isEmpty(msg)) {
                 return;
             }
             if (msg.equals(localLastCmd.replaceAll("\t", ""))) {
                 return;
             }
-//            if (Cache.CURRENT_COMMAND.startsWith(msg)) {
-//                return;
-//            }
 
-            // remove system prompt voice
             if (msg.startsWith("ect/")) {
                 msg = msg.replaceFirst("ect/", "");
             }
+            // remove system prompt voice
             msg = msg.replaceAll("\u0007", "");
 
             String[] split = msg.split("\r\n");
@@ -95,11 +97,13 @@ public class Shell {
                         Printer.print("\b");
                     }
                     msg = split[split.length - 1];
+                    this.remoteCmd = msg.replaceAll(getPrompt(), "");
                 } else {
                     for (String input : split) {
                         if (StringUtils.isEmpty(input)) {
                             continue;
                         }
+                        this.remoteCmd = input.replaceAll(getPrompt(), "");
                         Printer.print("\r\n" + input);
                     }
                     return;
@@ -122,19 +126,31 @@ public class Shell {
                 outputStream.write(cmd.append('\t').toString().getBytes(StandardCharsets.UTF_8));
                 outputStream.flush();
                 cmd.delete(0, cmd.length());
+                this.status = Status.TAB_ACCOMPLISH;
             } else if (inChar == '\b') {
-                if (cmd.toString().trim().length() == 0) {
+                if (cmd.toString().trim().length() == 0 && this.status.equals(Status.NORMAL)) {
                     continue;
+                }
+                if (this.status.equals(Status.TAB_ACCOMPLISH) && this.remoteCmd.length() > 0) {
+                    // This is ctrl+backspace
+                    cmd.append('\u007F');
+                    this.remoteCmd = this.remoteCmd.substring(0, this.remoteCmd.length() - 1);
                 }
                 Printer.print("\b");
                 Printer.print(" ");
                 Printer.print("\b");
-                cmd.deleteCharAt(cmd.length() - 1);
+                if (this.status.equals(Status.NORMAL)) {
+                    cmd.deleteCharAt(cmd.length() - 1);
+                }
             } else if (inChar == '\r' || inChar == '\n') {
                 Printer.print("\r\n");
+                this.status = Status.NORMAL;
                 break;
             } else {
                 Printer.print(String.valueOf(inChar));
+                if (this.status.equals(Status.TAB_ACCOMPLISH)) {
+                    this.remoteCmd += inChar;
+                }
                 cmd.append(inChar);
             }
         }
@@ -199,7 +215,7 @@ public class Shell {
                                 break;
                             }
 
-                            if (inputStr.startsWith("[")){
+                            if (inputStr.startsWith("[")) {
                                 prompt.valueOf(inputStr.trim() + " ");
                                 returnWrite = true;
                                 break;
