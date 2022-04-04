@@ -97,13 +97,17 @@ public class Shell {
                         Printer.print("\b");
                     }
                     msg = split[split.length - 1];
-                    this.remoteCmd = msg.replaceAll(getPrompt(), "");
+                    if (msg.split("#").length == 2) {
+                        this.remoteCmd = msg.split("#")[1].trim();
+                    }
                 } else {
                     for (String input : split) {
                         if (StringUtils.isEmpty(input)) {
                             continue;
                         }
-                        this.remoteCmd = input.replaceAll(getPrompt(), "");
+                        if (input.split("#").length == 2) {
+                            this.remoteCmd = input.split("#")[1].trim();
+                        }
                         Printer.print("\r\n" + input);
                     }
                     return;
@@ -131,27 +135,30 @@ public class Shell {
                 if (cmd.toString().trim().length() == 0 && this.status.equals(Status.NORMAL)) {
                     continue;
                 }
+                if (this.remoteCmd.length() == 0 && this.status.equals(Status.TAB_ACCOMPLISH)) {
+                    continue;
+                }
                 if (this.status.equals(Status.TAB_ACCOMPLISH) && this.remoteCmd.length() > 0) {
                     // This is ctrl+backspace
                     cmd.append('\u007F');
                     this.remoteCmd = this.remoteCmd.substring(0, this.remoteCmd.length() - 1);
                 }
-                Printer.print("\b");
-                Printer.print(" ");
-                Printer.print("\b");
                 if (this.status.equals(Status.NORMAL)) {
                     cmd.deleteCharAt(cmd.length() - 1);
                 }
+                Printer.print("\b");
+                Printer.print(" ");
+                Printer.print("\b");
             } else if (inChar == '\r' || inChar == '\n') {
                 Printer.print("\r\n");
                 this.status = Status.NORMAL;
                 break;
             } else {
-                Printer.print(String.valueOf(inChar));
                 if (this.status.equals(Status.TAB_ACCOMPLISH)) {
                     this.remoteCmd += inChar;
                 }
                 cmd.append(inChar);
+                Printer.print(String.valueOf(inChar));
             }
         }
         return cmd.toString();
