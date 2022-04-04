@@ -2,7 +2,6 @@ package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.Single;
-import com.toocol.ssh.core.cache.Cache;
 import jline.ConsoleReader;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.RegExUtils;
@@ -34,7 +33,8 @@ public class Shell {
      * the output/input Stream belong to JSch's channelShell;
      */
     private final OutputStream outputStream;
-    private final InputStream inputStream;
+    private InputStream inputStream;
+
     private final Single<String> welcome = new Single<>();
     private final Single<String> prompt = new Single<>();
 
@@ -43,7 +43,8 @@ public class Shell {
     private volatile boolean returnWrite = false;
     private volatile boolean promptNow = false;
 
-    private String localCmd;
+    public volatile String localLastCmd;
+    private volatile StringBuffer localOnWriteCmd;
     private String remoteCmd;
     private Status status;
 
@@ -67,23 +68,46 @@ public class Shell {
     }
 
     public void print(String msg) {
-        if (Cache.CURRENT_COMMAND.equals(msg)) {
+        if (localLastCmd.equals(msg)) {
             return;
-        } else if (Cache.CURRENT_COMMAND.contains("\t")) {
-            if (msg.startsWith("ect/\u0007")) {
-                // remove system prompt voice
-                msg = msg.split("\u0007")[1];
-            }
-            if (Cache.CURRENT_COMMAND.startsWith(msg)) {
+        } else if (localLastCmd.contains("\t")) {
+            if (StringUtils.isEmpty(msg)) {
                 return;
             }
+            if (msg.equals(localLastCmd.replaceAll("\t", ""))) {
+                return;
+            }
+//            if (Cache.CURRENT_COMMAND.startsWith(msg)) {
+//                return;
+//            }
+
+            // remove system prompt voice
+            if (msg.startsWith("ect/")) {
+                msg = msg.replaceFirst("ect/", "");
+            }
+            msg = msg.replaceAll("\u0007", "");
+
             String[] split = msg.split("\r\n");
             if (split.length != 0) {
-                msg = "\r\n" + split[split.length - 1];
+                if (!split[split.length - 1].equals(getPrompt() + localLastCmd.replaceAll("\t", ""))) {
+                    // have already auto-accomplish address
+                    for (int idx = 0; idx < (getPrompt() + localLastCmd.replaceAll("\t", "")).length(); idx++) {
+                        Printer.print("\b");
+                    }
+                    msg = split[split.length - 1];
+                } else {
+                    for (String input : split) {
+                        if (StringUtils.isEmpty(input)) {
+                            continue;
+                        }
+                        Printer.print("\r\n" + input);
+                    }
+                    return;
+                }
             }
-        } else if (msg.startsWith(Cache.CURRENT_COMMAND)) {
+        } else if (msg.startsWith(localLastCmd)) {
             // cd command's echo is like this: cd /\r\n[host@user address]
-            msg = msg.substring(Cache.CURRENT_COMMAND.length());
+            msg = msg.substring(localLastCmd.length());
         }
         Printer.print(msg);
     }
@@ -93,7 +117,7 @@ public class Shell {
         while (true) {
             char inChar = (char) reader.readVirtualKey();
             if (inChar == '\t') {
-                Cache.CURRENT_COMMAND = cmd.append('\t').toString();
+                localLastCmd = cmd.append('\t').toString();
                 cmd.append(inChar);
                 outputStream.write(cmd.append('\t').toString().getBytes(StandardCharsets.UTF_8));
                 outputStream.flush();
@@ -127,10 +151,6 @@ public class Shell {
 
     public OutputStream getOutputStream() {
         return outputStream;
-    }
-
-    public InputStream getInputStream() {
-        return inputStream;
     }
 
     @SuppressWarnings("all")
@@ -207,5 +227,7 @@ public class Shell {
             e.printStackTrace();
         }
         assert prompt.getValue() != null;
+        // this InputStream is already invalid.
+        this.inputStream = null;
     }
 }

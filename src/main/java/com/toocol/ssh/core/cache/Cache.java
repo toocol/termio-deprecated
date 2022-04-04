@@ -7,8 +7,6 @@ package com.toocol.ssh.core.cache;
  */
 public class Cache {
 
-    public volatile static String CURRENT_COMMAND = "";
-
     public volatile static boolean HANGED_QUIT = false;
 
     public volatile static boolean HANGED_ENTER = false;

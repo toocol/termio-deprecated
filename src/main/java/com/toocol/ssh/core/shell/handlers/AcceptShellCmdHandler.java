@@ -1,6 +1,5 @@
 package com.toocol.ssh.core.shell.handlers;
 
-import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.utils.Printer;
@@ -13,10 +12,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
-import jline.ConsoleReader;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -69,7 +66,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                 cmd.delete(0, cmd.length());
             }
 
-            Cache.CURRENT_COMMAND = cmd + "\r\n";
+            shell.localLastCmd = cmd + "\r\n";
             String actualCmd = cmd.toString().trim() + "\n";
             outputStream.write(actualCmd.getBytes(StandardCharsets.UTF_8));
             outputStream.flush();
