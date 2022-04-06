@@ -104,7 +104,11 @@ public class Shell {
         StringBuilder localLastInputBuffer = new StringBuilder();
         while (true) {
             char inChar = (char) reader.readVirtualKey();
-            if (inChar == '\t') {
+            if(inChar == '\u0003') {
+                // Ctrl+C
+                outputStream.write(3);
+                outputStream.flush();
+            } else if (inChar == '\t') {
                 if (status.equals(Status.NORMAL)) {
                     localLastCmd.set(cmd.toString());
                     remoteCmd.set(cmd.toString());
