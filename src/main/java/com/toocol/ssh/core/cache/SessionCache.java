@@ -2,10 +2,8 @@ package com.toocol.ssh.core.cache;
 
 import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.Session;
-import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.shell.core.Shell;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

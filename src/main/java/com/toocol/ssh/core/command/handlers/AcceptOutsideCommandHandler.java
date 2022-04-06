@@ -76,7 +76,7 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
                     return true;
                 }).orElseGet(() -> {
                     latch.countDown();
-                    return  false;
+                    return false;
                 });
 
                 latch.await();
@@ -86,7 +86,7 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
                     future.complete(false);
                     break;
                 }
-                if (!isCommand) {
+                if (!isCommand && StringUtils.isNotEmpty(cmd)) {
                     Printer.printPrompt(cmd);
                 }
             }

@@ -97,12 +97,8 @@ public class ShellPrinter {
                     if (input.split("#").length == 2) {
                         shell.remoteCmd.set(msg.split("#")[1].trim());
                     }
-                    if (shell.tabFeedbackRec.contains(input)) {
-                        continue;
-                    }
                     Printer.print("\r\n" + input);
                     shell.currentPrint.set(input);
-                    shell.tabFeedbackRec.add(input);
                 }
                 return;
             }

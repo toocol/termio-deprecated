@@ -17,11 +17,7 @@ public enum FileVerticleAddress implements IAddress {
     /**
      * read the credential file(credentials.json)
      */
-    ADDRESS_READ_FILE("terminal.file.read.file"),
-    /**
-     * write the file to disk
-     */
-    ADDRESS_WRITE_FILE("terminal.file.write.file");
+    ADDRESS_READ_FILE("terminal.file.read.file");
 
     /**
      * the address string of message

@@ -2,7 +2,9 @@ package com.toocol.ssh.core.cache;
 
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
+import io.vertx.core.json.JsonArray;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
@@ -34,13 +36,27 @@ public class CredentialCache {
         return 0;
     }
 
+    public static String getCredentialsJson() {
+        Lock lock = READ_WRITE_LOCK.readLock();
+        lock.lock();
+        try {
+            return new JsonArray(new ArrayList<>(CREDENTIAL_SET)).toString();
+        } catch (Exception e) {
+            Printer.println("System devastating error.");
+            System.exit(-1);
+        } finally {
+            lock.unlock();
+        }
+        return null;
+    }
+
     public static void showCredentials() {
         Lock lock = READ_WRITE_LOCK.readLock();
         lock.lock();
         try {
             AtomicInteger idx = new AtomicInteger(1);
             CREDENTIAL_SET.forEach(credential -> {
-                Printer.println("[" + idx + "]\t\t" + credential.getHost() + "@" + credential.getUser());
+                Printer.println("[" + idx.getAndIncrement() + "]\t\t" + credential.getHost() + "@" + credential.getUser());
             });
         } catch (Exception e) {
             Printer.println("System devastating error.");

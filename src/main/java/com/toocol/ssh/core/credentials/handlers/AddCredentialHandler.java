@@ -2,12 +2,14 @@ package com.toocol.ssh.core.credentials.handlers;
 
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.utils.FileUtils;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
 
 import static com.toocol.ssh.core.credentials.CredentialVerticleAddress.ADD_CREDENTIAL;
@@ -31,11 +33,15 @@ public class AddCredentialHandler extends AbstractMessageHandler<Boolean> {
     protected <T> void handleWithin(Future<Boolean> future, Message<T> message) throws Exception {
         SshCredential credential = SshCredential.transFromJson(cast(message.body()));
         CredentialCache.addCredential(credential);
+
+        String filePath = FileUtils.relativeToFixed("/starter/credentials.json");
+        vertx.fileSystem().writeFileBlocking(filePath, Buffer.buffer(CredentialCache.getCredentialsJson()));
+
         future.complete(true);
     }
 
     @Override
     protected <T> void resultWithin(AsyncResult<Boolean> asyncResult, Message<T> message) throws Exception {
-
+        message.reply(null);
     }
 }

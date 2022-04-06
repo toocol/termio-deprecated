@@ -40,7 +40,7 @@ public class Printer {
     }
 
     public static void printTitle() {
-        PRINT.println("\n" +
+        PRINT.println(
                 " _____ _____ _____ _____ ____ _____ _____ _____ ____ _____                   \n" +
                 "|_   _|   __| __  |     |    |   | |  _  |_   _|    |  _  |                  \n" +
                 "  | | |   __|    -| | | |-  -| | | |     | | | |-  -|  |  |                  \n" +

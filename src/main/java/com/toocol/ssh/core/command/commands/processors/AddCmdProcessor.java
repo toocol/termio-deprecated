@@ -1,8 +1,10 @@
 package com.toocol.ssh.core.command.commands.processors;
 
-import com.toocol.ssh.core.command.commands.OutsideCommandProcessor;
+import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.common.utils.RegexUtils;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
+import com.toocol.ssh.core.command.commands.OutsideCommandProcessor;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
@@ -23,13 +25,17 @@ public class AddCmdProcessor extends OutsideCommandProcessor {
             return;
         }
 
-        String[] params = split[0].split("@");
+        String[] params = split[1].split("@");
         if (params.length < 3) {
             resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add --host@user@password[@port]'.");
             return;
         }
 
         String host = params[0];
+        if (!RegexUtils.matchIp(host)) {
+            resultAndMsg.first(false).second("Wrong host format, just supporting Ip address.");
+            return;
+        }
         String user = params[1];
         String password = params[2];
         int port;
@@ -50,7 +56,11 @@ public class AddCmdProcessor extends OutsideCommandProcessor {
             return;
         }
 
-        eventBus.send(ADD_CREDENTIAL.address(), new JsonObject(credential.toMap()));
+        eventBus.send(ADD_CREDENTIAL.address(), new JsonObject(credential.toMap()), res -> {
+            Printer.clear();
+            Printer.printScene();
+            Printer.printCursorLine();
+        });
         resultAndMsg.first(true);
     }
 
