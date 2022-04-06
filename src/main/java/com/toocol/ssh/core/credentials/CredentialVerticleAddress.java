@@ -12,7 +12,8 @@ public enum CredentialVerticleAddress implements IAddress{
     /**
      * add a ssh credential
      */
-    ADD_CREDENTIAL("ssh.add.credential");
+    ADD_CREDENTIAL("ssh.add.credential"),
+    DELETE_CREDENTIAL("ssh.delete.credential");
 
     /**
      * the address string of message

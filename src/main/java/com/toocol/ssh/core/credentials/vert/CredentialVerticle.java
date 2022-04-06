@@ -4,9 +4,9 @@ import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.FileUtils;
-import com.toocol.ssh.core.cache.Cache;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.credentials.handlers.AddCredentialHandler;
+import com.toocol.ssh.core.credentials.handlers.DeleteCredentialHandler;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
@@ -22,7 +22,8 @@ import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_READ_FILE;
  */
 @PreloadDeployment(weight = 1)
 @RegisterHandler(handlers = {
-        AddCredentialHandler.class
+        AddCredentialHandler.class,
+        DeleteCredentialHandler.class
 })
 public class CredentialVerticle extends AbstractVerticle implements IHandlerMounter {
 

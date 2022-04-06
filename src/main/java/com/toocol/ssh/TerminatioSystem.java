@@ -83,6 +83,7 @@ public class TerminatioSystem {
             try {
                 Printer.loading();
                 vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), 0);
+                System.gc();
             } catch (Exception e) {
                 Printer.printErr("problem happened.");
                 System.exit(-1);
