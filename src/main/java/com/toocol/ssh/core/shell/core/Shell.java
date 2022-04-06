@@ -11,6 +11,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -24,6 +28,7 @@ public class Shell {
     private static final Pattern PATTERN = Pattern.compile("(\\[(.*?)])");
 
     private static ConsoleReader reader = null;
+
     static {
         try {
             reader = new ConsoleReader(System.in, null);
@@ -33,18 +38,11 @@ public class Shell {
         }
     }
 
-    private final ShellPrinter shellPrinter = new ShellPrinter(this);
-
     /**
      * the output/input Stream belong to JSch's channelShell;
      */
     private final OutputStream outputStream;
     private InputStream inputStream;
-
-    private final Single<String> welcome = new Single<>();
-    private final Single<String> prompt = new Single<>();
-
-    private final StringBuffer cmd = new StringBuffer();
 
     private volatile boolean returnWrite = false;
     private volatile boolean promptNow = false;
@@ -54,6 +52,13 @@ public class Shell {
     protected volatile AtomicReference<String> currentPrint = new AtomicReference<>("");
     protected volatile String localLastInput = "";
     private Status status = Status.NORMAL;
+
+    private final ShellPrinter shellPrinter = new ShellPrinter(this);
+    protected final Set<String> tabFeedbackRec = new HashSet<>();
+
+    private final StringBuffer cmd = new StringBuffer();
+    private final Single<String> welcome = new Single<>();
+    private final Single<String> prompt = new Single<>();
 
     @AllArgsConstructor
     public static enum Status {
@@ -80,7 +85,7 @@ public class Shell {
         if (localLastCmd.get().contains("cd")) {
             Matcher matcher = PATTERN.matcher(msg);
             if (matcher.find()) {
-                this.prompt.valueOf(matcher.group(0) + "# ");
+                prompt.valueOf(matcher.group(0) + "# ");
             }
         }
 
@@ -113,20 +118,21 @@ public class Shell {
                 outputStream.write(cmd.append('\t').toString().getBytes(StandardCharsets.UTF_8));
                 outputStream.flush();
                 cmd.delete(0, cmd.length());
-                this.status = Status.TAB_ACCOMPLISH;
+                tabFeedbackRec.clear();
+                status = Status.TAB_ACCOMPLISH;
             } else if (inChar == '\b') {
-                if (cmd.toString().trim().length() == 0 && this.status.equals(Status.NORMAL)) {
+                if (cmd.toString().trim().length() == 0 && status.equals(Status.NORMAL)) {
                     continue;
                 }
-                if (this.remoteCmd.get().length() == 0 && this.status.equals(Status.TAB_ACCOMPLISH)) {
+                if (remoteCmd.get().length() == 0 && status.equals(Status.TAB_ACCOMPLISH)) {
                     continue;
                 }
-                if (this.status.equals(Status.TAB_ACCOMPLISH) && this.remoteCmd.get().length() > 0) {
+                if (status.equals(Status.TAB_ACCOMPLISH) && remoteCmd.get().length() > 0) {
                     // This is ctrl+backspace
                     cmd.append('\u007F');
-                    this.remoteCmd.getAndUpdate(prev -> this.remoteCmd.get().substring(0, this.remoteCmd.get().length() - 1));
+                    remoteCmd.getAndUpdate(prev -> remoteCmd.get().substring(0, remoteCmd.get().length() - 1));
                 }
-                if (this.status.equals(Status.NORMAL)) {
+                if (status.equals(Status.NORMAL)) {
                     cmd.deleteCharAt(cmd.length() - 1);
                 }
                 if (localLastInputBuffer.length() > 0) {
@@ -142,12 +148,12 @@ public class Shell {
                 localLastInput = localLastInputBuffer.toString();
                 currentPrint.set("");
                 Printer.print("\r\n");
-                this.status = Status.NORMAL;
+                status = Status.NORMAL;
                 break;
             } else {
-                if (this.status.equals(Status.TAB_ACCOMPLISH)) {
-                    this.remoteCmd.getAndUpdate(prev -> prev + inChar);
-                    this.localLastCmd.getAndUpdate(prev -> prev + inChar);
+                if (status.equals(Status.TAB_ACCOMPLISH)) {
+                    remoteCmd.getAndUpdate(prev -> prev + inChar);
+                    localLastCmd.getAndUpdate(prev -> prev + inChar);
                 }
                 currentPrint.getAndUpdate(prev -> prev + inChar);
                 cmd.append(inChar);
@@ -215,7 +221,7 @@ public class Shell {
                             }
 
                             if (inputStr.startsWith("\r\n")) {
-                                this.prompt.valueOf(RegExUtils.removeAll("prompt", "\r\n"));
+                                prompt.valueOf(RegExUtils.removeAll("prompt", "\r\n"));
                                 returnWrite = true;
                                 break;
                             }
