@@ -72,7 +72,7 @@ public class Printer {
                 "|_   _|   __| __  |     |    |   | |  _  |_   _|    |  _  |                  \n" +
                 "  | | |   __|    -| | | |-  -| | | |     | | | |-  -|  |  |                  \n" +
                 "  |_| |_____|__|__|_|_|_|____|_|___|__|__| |_| |____|_____|                  \n\n" +
-                "github\t\thttps://github.com/Joezeo/terminatio\n" +
+                "website\t\thttps://github.com/Joezeo/terminatio\n" +
                 "os\t\t" + System.getProperty("os.name") + "\n" +
                 "shell env\t" + BOOT_TYPE + "\n" +
                 "memory use\ttotal:" + totalMemory() + "MB, max:" + maxMemory() + "MB, free:" + freeMemory() + "MB, used:" + usedMemory() + "MB\n" +

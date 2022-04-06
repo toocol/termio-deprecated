@@ -34,7 +34,7 @@ public class ShellVerticle extends AbstractVerticle implements IHandlerMounter {
 
         Runtime.getRuntime().addShutdownHook(new Thread(sessionCache::stopAll));
 
-        Printer.printlnWithLogo("Success start ssh verticle.");
+        Printer.printlnWithLogo("Success start ssh shell verticle.");
     }
 
 }

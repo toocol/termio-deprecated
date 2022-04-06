@@ -4,6 +4,7 @@ import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.FileUtils;
+import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.credentials.handlers.AddCredentialHandler;
 import com.toocol.ssh.core.credentials.handlers.DeleteCredentialHandler;
@@ -48,5 +49,6 @@ public class CredentialVerticle extends AbstractVerticle implements IHandlerMoun
             });
         });
 
+        Printer.printlnWithLogo("Success start the credential verticle.");
     }
 }

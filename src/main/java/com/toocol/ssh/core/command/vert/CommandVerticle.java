@@ -29,7 +29,7 @@ public class CommandVerticle extends AbstractVerticle implements IHandlerMounter
 
         mountHandler(vertx, executor, true);
 
-        Printer.printlnWithLogo("Success start the command acceptor verticle.");
+        Printer.printlnWithLogo("Success start the command verticle.");
     }
 
 }
