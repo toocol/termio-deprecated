@@ -41,6 +41,10 @@ public class ShellPrinter {
         if (StringUtils.isEmpty(msg)) {
             return;
         }
+        msg = msg.replaceAll("\b", "")
+                .replaceAll("\u001B", "")
+                .replaceAll("\\[K", "")
+                .replaceAll("\\[k", "");
         if (msg.equals(shell.localLastCmd.get().replaceAll("\t", ""))) {
             return;
         }
@@ -63,13 +67,21 @@ public class ShellPrinter {
             Printer.print(msg);
             String tmp = msg;
             shell.remoteCmd.getAndUpdate(prev -> prev + tmp);
+            shell.localLastCmd.getAndUpdate(prev -> prev.replaceAll("\t", "") + tmp);
             return;
         }
         String[] split = msg.split("\r\n");
         if (split.length != 0) {
-            if (!split[split.length - 1].equals(shell.getPrompt() + shell.localLastCmd.get().replaceAll("\t", ""))) {
+            String localLine = shell.getPrompt()
+                    + shell.localLastCmd.get()
+                    .replaceAll("\t", "")
+                    .replaceAll("\b", "")
+                    .replaceAll("\u001B", "")
+                    .replaceAll("\\[k", "")
+                    .replaceAll("\\[K", "");
+            if (!split[split.length - 1].equals(localLine)) {
                 // have already auto-accomplish address
-                int backspaceLen = (shell.getPrompt() + shell.localLastCmd.get().replaceAll("\t", "") + shell.currentPrint).length();
+                int backspaceLen = (localLine + shell.currentPrint).length();
                 for (int idx = 0; idx < backspaceLen; idx++) {
                     Printer.print("\b");
                 }

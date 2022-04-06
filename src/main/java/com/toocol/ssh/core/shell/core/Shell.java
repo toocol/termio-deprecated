@@ -107,15 +107,14 @@ public class Shell {
         while (true) {
             char inChar = (char) reader.readVirtualKey();
             if (inChar == '\t') {
-                if (status.equals(Status.TAB_ACCOMPLISH)) {
-                    localLastCmd.getAndUpdate(prev -> prev + "\t");
-                } else {
-                    localLastCmd.set(cmd.append('\t').toString());
+                if (status.equals(Status.NORMAL)) {
+                    localLastCmd.set(cmd.toString());
+                    remoteCmd.set(cmd.toString());
                 }
                 localLastInput = localLastInputBuffer.toString();
                 localLastInputBuffer = new StringBuilder();
                 cmd.append(inChar);
-                outputStream.write(cmd.append('\t').toString().getBytes(StandardCharsets.UTF_8));
+                outputStream.write(cmd.append("\t").toString().getBytes(StandardCharsets.UTF_8));
                 outputStream.flush();
                 cmd.delete(0, cmd.length());
                 tabFeedbackRec.clear();
@@ -127,10 +126,15 @@ public class Shell {
                 if (remoteCmd.get().length() == 0 && status.equals(Status.TAB_ACCOMPLISH)) {
                     continue;
                 }
-                if (status.equals(Status.TAB_ACCOMPLISH) && remoteCmd.get().length() > 0) {
+                if (status.equals(Status.TAB_ACCOMPLISH)) {
                     // This is ctrl+backspace
                     cmd.append('\u007F');
-                    remoteCmd.getAndUpdate(prev -> remoteCmd.get().substring(0, remoteCmd.get().length() - 1));
+                    if (remoteCmd.get().length() > 0) {
+                        remoteCmd.getAndUpdate(prev -> remoteCmd.get().substring(0, remoteCmd.get().length() - 1));
+                    }
+                    if (localLastCmd.get().length() > 0) {
+                        localLastCmd.getAndUpdate(prev -> localLastCmd.get().substring(0, localLastCmd.get().length() - 1));
+                    }
                 }
                 if (status.equals(Status.NORMAL)) {
                     cmd.deleteCharAt(cmd.length() - 1);
@@ -147,6 +151,7 @@ public class Shell {
                 }
                 localLastInput = localLastInputBuffer.toString();
                 currentPrint.set("");
+                remoteCmd.set("");
                 Printer.print("\r\n");
                 status = Status.NORMAL;
                 break;
