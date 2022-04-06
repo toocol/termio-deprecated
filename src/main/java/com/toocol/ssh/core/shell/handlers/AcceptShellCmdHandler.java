@@ -66,7 +66,9 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                 cmd.delete(0, cmd.length());
             }
 
-            shell.localLastCmd = cmd + "\r\n";
+            if (shell.getStatus().equals(Shell.Status.NORMAL)) {
+                shell.localLastCmd.set(cmd + "\r\n");
+            }
             String actualCmd = cmd.toString().trim() + "\n";
             outputStream.write(actualCmd.getBytes(StandardCharsets.UTF_8));
             outputStream.flush();

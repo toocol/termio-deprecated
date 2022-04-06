@@ -12,15 +12,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/3 20:57
  */
-@SuppressWarnings("all")
 public class Shell {
-    private static ConsoleReader reader = null;
+    private static final Pattern PATTERN = Pattern.compile("(\\[(.*?)])");
 
+    private static ConsoleReader reader = null;
     static {
         try {
             reader = new ConsoleReader(System.in, null);
@@ -29,6 +32,8 @@ public class Shell {
             System.exit(-1);
         }
     }
+
+    private final ShellPrinter shellPrinter = new ShellPrinter(this);
 
     /**
      * the output/input Stream belong to JSch's channelShell;
@@ -44,12 +49,17 @@ public class Shell {
     private volatile boolean returnWrite = false;
     private volatile boolean promptNow = false;
 
-    public volatile String localLastCmd;
-    private String remoteCmd;
+    public volatile AtomicReference<String> localLastCmd = new AtomicReference<>("");
+    protected volatile AtomicReference<String> remoteCmd = new AtomicReference<>("");
+    protected volatile AtomicReference<String> currentPrint = new AtomicReference<>("");
+    protected volatile String localLastInput = "";
     private Status status = Status.NORMAL;
 
     @AllArgsConstructor
-    private enum Status {
+    public static enum Status {
+        /**
+         * The status of Shell.
+         */
         NORMAL(1, "Shell is under normal cmd input status."),
         TAB_ACCOMPLISH(2, "Shell is under tab key to auto-accomplish address status."),
         VIM(3, "Shell is under Vim/Vi edit status."),
@@ -67,65 +77,38 @@ public class Shell {
     }
 
     public void print(String msg) {
-        if (localLastCmd.equals(msg)) {
-            return;
-        } else if (msg.startsWith("\b\u001B[K")) {
-            String[] split = msg.split("\r\n");
-            if (split.length == 1) {
-                return;
+        if (localLastCmd.get().contains("cd")) {
+            Matcher matcher = PATTERN.matcher(msg);
+            if (matcher.find()) {
+                this.prompt.valueOf(matcher.group(0) + "# ");
             }
-            msg = split[1];
-        } else if (status.equals(Status.TAB_ACCOMPLISH)) {
-            if (StringUtils.isEmpty(msg)) {
-                return;
-            }
-            if (msg.equals(localLastCmd.replaceAll("\t", ""))) {
-                return;
-            }
-
-            if (msg.startsWith("ect/")) {
-                msg = msg.replaceFirst("ect/", "");
-            }
-            // remove system prompt voice
-            msg = msg.replaceAll("\u0007", "");
-
-            String[] split = msg.split("\r\n");
-            if (split.length != 0) {
-                if (!split[split.length - 1].equals(getPrompt() + localLastCmd.replaceAll("\t", ""))) {
-                    // have already auto-accomplish address
-                    for (int idx = 0; idx < (getPrompt() + localLastCmd.replaceAll("\t", "")).length(); idx++) {
-                        Printer.print("\b");
-                    }
-                    msg = split[split.length - 1];
-                    if (msg.split("#").length == 2) {
-                        this.remoteCmd = msg.split("#")[1].trim();
-                    }
-                } else {
-                    for (String input : split) {
-                        if (StringUtils.isEmpty(input)) {
-                            continue;
-                        }
-                        if (input.split("#").length == 2) {
-                            this.remoteCmd = input.split("#")[1].trim();
-                        }
-                        Printer.print("\r\n" + input);
-                    }
-                    return;
-                }
-            }
-        } else if (msg.startsWith(localLastCmd)) {
-            // cd command's echo is like this: cd /\r\n[host@user address]
-            msg = msg.substring(localLastCmd.length());
         }
-        Printer.print(msg);
+
+        switch (status) {
+            case NORMAL:
+                shellPrinter.printInNormal(msg);
+                break;
+            case TAB_ACCOMPLISH:
+                shellPrinter.printInTabAccomplish(msg);
+                break;
+            default:
+                break;
+        }
     }
 
     public String readCmd() throws Exception {
         cmd.delete(0, cmd.length());
+        StringBuilder localLastInputBuffer = new StringBuilder();
         while (true) {
             char inChar = (char) reader.readVirtualKey();
             if (inChar == '\t') {
-                localLastCmd = cmd.append('\t').toString();
+                if (status.equals(Status.TAB_ACCOMPLISH)) {
+                    localLastCmd.getAndUpdate(prev -> prev + "\t");
+                } else {
+                    localLastCmd.set(cmd.append('\t').toString());
+                }
+                localLastInput = localLastInputBuffer.toString();
+                localLastInputBuffer = new StringBuilder();
                 cmd.append(inChar);
                 outputStream.write(cmd.append('\t').toString().getBytes(StandardCharsets.UTF_8));
                 outputStream.flush();
@@ -135,33 +118,48 @@ public class Shell {
                 if (cmd.toString().trim().length() == 0 && this.status.equals(Status.NORMAL)) {
                     continue;
                 }
-                if (this.remoteCmd.length() == 0 && this.status.equals(Status.TAB_ACCOMPLISH)) {
+                if (this.remoteCmd.get().length() == 0 && this.status.equals(Status.TAB_ACCOMPLISH)) {
                     continue;
                 }
-                if (this.status.equals(Status.TAB_ACCOMPLISH) && this.remoteCmd.length() > 0) {
+                if (this.status.equals(Status.TAB_ACCOMPLISH) && this.remoteCmd.get().length() > 0) {
                     // This is ctrl+backspace
                     cmd.append('\u007F');
-                    this.remoteCmd = this.remoteCmd.substring(0, this.remoteCmd.length() - 1);
+                    this.remoteCmd.getAndUpdate(prev -> this.remoteCmd.get().substring(0, this.remoteCmd.get().length() - 1));
                 }
                 if (this.status.equals(Status.NORMAL)) {
                     cmd.deleteCharAt(cmd.length() - 1);
+                }
+                if (localLastInputBuffer.length() > 0) {
+                    localLastInputBuffer = new StringBuilder(localLastInputBuffer.substring(0, localLastInputBuffer.length() - 1));
                 }
                 Printer.print("\b");
                 Printer.print(" ");
                 Printer.print("\b");
             } else if (inChar == '\r' || inChar == '\n') {
+                if (status.equals(Status.TAB_ACCOMPLISH)) {
+                    localLastCmd.set(remoteCmd.get() + "\r\n");
+                }
+                localLastInput = localLastInputBuffer.toString();
+                currentPrint.set("");
                 Printer.print("\r\n");
                 this.status = Status.NORMAL;
                 break;
             } else {
                 if (this.status.equals(Status.TAB_ACCOMPLISH)) {
-                    this.remoteCmd += inChar;
+                    this.remoteCmd.getAndUpdate(prev -> prev + inChar);
+                    this.localLastCmd.getAndUpdate(prev -> prev + inChar);
                 }
+                currentPrint.getAndUpdate(prev -> prev + inChar);
                 cmd.append(inChar);
+                localLastInputBuffer.append(inChar);
                 Printer.print(String.valueOf(inChar));
             }
         }
         return cmd.toString();
+    }
+
+    public Status getStatus() {
+        return status;
     }
 
     public String getWelcome() {
