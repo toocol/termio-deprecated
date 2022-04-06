@@ -41,13 +41,20 @@ public class ShellPrinter {
         if (StringUtils.isEmpty(msg)) {
             return;
         }
-        msg = msg.replaceAll("\b", "")
-                .replaceAll("\u001B", "")
-                .replaceAll("\\[K", "")
-                .replaceAll("\\[k", "");
-        if (msg.equals(shell.localLastCmd.get().replaceAll("\t", ""))) {
+
+        if (msg.contains("\u001B")) {
             return;
         }
+
+        msg = msg.replaceAll("\b", "");
+
+        if (msg.trim().equals(shell.localLastCmd.get().replaceAll("\t", ""))) {
+            if (msg.endsWith(" ")) {
+                Printer.print(" ");
+            }
+            return;
+        }
+
         if (msg.equals(shell.localLastInput)) {
             return;
         }
@@ -56,6 +63,9 @@ public class ShellPrinter {
         if (msg.contains("\u0007")) {
             msg = msg.replaceAll("\u0007", "");
             Printer.print(msg);
+            String tmp = msg;
+            shell.remoteCmd.getAndUpdate(prev -> prev + tmp);
+            shell.localLastCmd.getAndUpdate(prev -> prev.replaceAll("\t", "") + tmp);
             return;
         }
 
@@ -97,8 +107,12 @@ public class ShellPrinter {
                     if (input.split("#").length == 2) {
                         shell.remoteCmd.set(msg.split("#")[1].trim());
                     }
+                    if (shell.tabFeedbackRec.contains(input)) {
+                        continue;
+                    }
                     Printer.print("\r\n" + input);
                     shell.currentPrint.set(input);
+                    shell.tabFeedbackRec.add(input);
                 }
                 return;
             }

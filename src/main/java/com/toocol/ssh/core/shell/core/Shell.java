@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -50,6 +52,7 @@ public class Shell {
     private Status status = Status.NORMAL;
 
     private final ShellPrinter shellPrinter = new ShellPrinter(this);
+    protected final Set<String> tabFeedbackRec = new HashSet<>();
 
     private final StringBuffer cmd = new StringBuffer();
     private final Single<String> welcome = new Single<>();
@@ -109,6 +112,7 @@ public class Shell {
                 localLastInput = localLastInputBuffer.toString();
                 localLastInputBuffer = new StringBuilder();
                 cmd.append(inChar);
+                tabFeedbackRec.clear();
                 outputStream.write(cmd.append("\t").toString().getBytes(StandardCharsets.UTF_8));
                 outputStream.flush();
                 cmd.delete(0, cmd.length());

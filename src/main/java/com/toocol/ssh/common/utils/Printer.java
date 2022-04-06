@@ -14,6 +14,23 @@ import static com.toocol.ssh.core.configuration.SystemConfiguration.*;
  * @date 2021/2/19 16:20
  */
 public class Printer {
+    private static final Runtime RUNTIME = Runtime.getRuntime();
+
+    private static long totalMemory() {
+        return RUNTIME.totalMemory() / 1024 / 1024;
+    }
+
+    private static long maxMemory() {
+        return RUNTIME.maxMemory() / 1024 / 1024;
+    }
+
+    private static long freeMemory() {
+        return RUNTIME.freeMemory() / 1024 / 1024;
+    }
+
+    private static long usedMemory() {
+        return totalMemory() - freeMemory();
+    }
 
     private static final PrintStream PRINT = System.out;
 
@@ -48,8 +65,21 @@ public class Printer {
         );
     }
 
+    public static void printTitleAndInfo() {
+        PRINT.println(
+                " _____ _____ _____ _____ ____ _____ _____ _____ ____ _____                   \n" +
+                "|_   _|   __| __  |     |    |   | |  _  |_   _|    |  _  |                  \n" +
+                "  | | |   __|    -| | | |-  -| | | |     | | | |-  -|  |  |                  \n" +
+                "  |_| |_____|__|__|_|_|_|____|_|___|__|__| |_| |____|_____|                  \n\n" +
+                "github\t\thttps://github.com/Joezeo/terminatio\n" +
+                "os\t\t" + System.getProperty("os.name") + "\n" +
+                "shell env\t" + BOOT_TYPE + "\n" +
+                "memory use\ttotal:" + totalMemory() + "MB, max:" + maxMemory() + "MB, free:" + freeMemory() + "MB, used:" + usedMemory() + "MB\n"
+        );
+    }
+
     public static void printScene() {
-        printTitle();
+        printTitleAndInfo();
         PRINT.print("Properties:                                                                           \n");
         if (CredentialCache.credentialsSize() == 0) {
             PRINT.print("You have no connection properties, type 'help' to get more information.                         \n\n");
