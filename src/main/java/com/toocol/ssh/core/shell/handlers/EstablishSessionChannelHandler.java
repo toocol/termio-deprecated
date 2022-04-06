@@ -53,6 +53,7 @@ public class EstablishSessionChannelHandler extends AbstractMessageHandler<Long>
         boolean success = true;
 
         if (sessionId == 0) {
+            Cache.HANGED_ENTER = false;
             try {
                 Session session = jSch.getSession(credential.getUser(), credential.getHost(), credential.getPort());
                 session.setPassword(credential.getPassword());
@@ -76,8 +77,14 @@ public class EstablishSessionChannelHandler extends AbstractMessageHandler<Long>
             } catch (Exception e) {
                 Printer.println("Connect failed, message = " + e.getMessage());
                 success = false;
+            } finally {
+                // invoke gc() to clean up already un-use object during initial processing. (it's very efficacious :))
+                System.gc();
             }
+        } else {
+            Cache.HANGED_ENTER = true;
         }
+        Cache.HANGED_QUIT = false;
 
         if (success) {
             future.complete(sessionId);
@@ -94,7 +101,6 @@ public class EstablishSessionChannelHandler extends AbstractMessageHandler<Long>
             Printer.clear();
 
             if (Cache.HANGED_ENTER) {
-                Cache.HANGED_ENTER = false;
                 Printer.println("Invoke hanged session.");
             } else {
                 Printer.println("Session established.\n");

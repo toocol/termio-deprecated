@@ -82,10 +82,7 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
 
     @Override
     protected <T> void resultWithin(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
-        if (Cache.HANGED_QUIT) {
-            Cache.HANGED_QUIT = false;
-            Cache.HANGED_ENTER = true;
-        }
+
     }
 
     @SafeVarargs

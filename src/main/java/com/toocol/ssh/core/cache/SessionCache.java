@@ -57,6 +57,9 @@ public class SessionCache {
             v.disconnect();
             return null;
         });
+        shellMap.computeIfPresent(sessionId, (k, v) -> null);
+        // notify GC to clean up
+        System.gc();
     }
 
     public void stopAll() {
