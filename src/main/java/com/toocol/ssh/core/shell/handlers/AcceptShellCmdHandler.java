@@ -80,11 +80,9 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
         if (asyncResult.succeeded()) {
             long sessionId = asyncResult.result();
             sessionCache.stop(sessionId);
-            Cache.disconnect();
         } else {
             // hang up the session
             Cache.HANGED_QUIT = true;
-            Cache.hangUp();
         }
         eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 3);
     }

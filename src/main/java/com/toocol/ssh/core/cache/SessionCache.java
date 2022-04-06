@@ -13,6 +13,18 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SessionCache {
 
+    private SessionCache(){}
+
+    private static final SessionCache INSTANCE = new SessionCache();
+
+    public static SessionCache getInstance() {
+        return INSTANCE;
+    }
+
+    public static int getHangUp() {
+        return INSTANCE.sessionMap.size();
+    }
+
     /**
      * the map stored all alive ssh session.
      */

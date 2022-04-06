@@ -1,7 +1,7 @@
 package com.toocol.ssh.common.utils;
 
-import com.toocol.ssh.core.cache.Cache;
 import com.toocol.ssh.core.cache.CredentialCache;
+import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.command.commands.OutsideCommand;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 
@@ -76,7 +76,7 @@ public class Printer {
                 "os\t\t" + System.getProperty("os.name") + "\n" +
                 "shell env\t" + BOOT_TYPE + "\n" +
                 "memory use\ttotal:" + totalMemory() + "MB, max:" + maxMemory() + "MB, free:" + freeMemory() + "MB, used:" + usedMemory() + "MB\n" +
-                "hang-up\t\t" + Cache.getHangUp() + "\n"
+                "hang-up\t\t" + SessionCache.getHangUp() + "\n"
         );
     }
 
