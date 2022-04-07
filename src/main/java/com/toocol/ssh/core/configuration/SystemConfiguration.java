@@ -35,4 +35,19 @@ public class SystemConfiguration {
                 return Optional.empty();
         }
     }
+
+    public static void setOs(String type) {
+        switch (type) {
+            case BOOT_TYPE_CMD:
+                System.setProperty("os.name", "Windows");
+                break;
+            case BOOT_TYPE_BASH:
+                System.setProperty("os.name", "Unix");
+                break;
+            default:
+                System.exit(-1);
+                break;
+        }
+        BOOT_TYPE = type;
+    }
 }
