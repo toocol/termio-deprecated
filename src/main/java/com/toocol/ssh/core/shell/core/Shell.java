@@ -2,6 +2,7 @@ package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.Single;
+import com.toocol.ssh.common.utils.StrUtil;
 import jline.ConsoleReader;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.RegExUtils;
@@ -23,7 +24,7 @@ import java.util.regex.Pattern;
  * @date: 2022/4/3 20:57
  */
 public class Shell {
-    private static final Pattern PATTERN = Pattern.compile("(\\[(.*?)])");
+    private static final Pattern PATTERN = Pattern.compile("(\\[(.*?)]#)");
 
     private static ConsoleReader reader = null;
 
@@ -82,7 +83,7 @@ public class Shell {
     public void print(String msg) {
         Matcher matcher = PATTERN.matcher(msg);
         if (matcher.find()) {
-            prompt.valueOf(matcher.group(0) + "# ");
+            prompt.valueOf(matcher.group(0) + StrUtil.SPACE);
             if (status.equals(Status.VIM_UNDER)) {
                 status = Status.NORMAL;
                 Printer.clear();

@@ -67,7 +67,6 @@ public class ClassScanner {
     private void scanJavaClassPaths() {
         final String[] javaClassPaths = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
         for (String classPath : javaClassPaths) {
-            // bug修复，由于路径中空格和中文导致的Jar找不到
             classPath = URLUtil.decode(classPath, CharsetUtil.systemCharsetName());
 
             scanFile(new File(classPath), null);
@@ -79,10 +78,8 @@ public class ClassScanner {
             final String fileName = file.getAbsolutePath();
             if (fileName.endsWith(FileUtil.CLASS_EXT)) {
                 final String className = fileName
-                        // 8为classes长度，fileName.length() - 6为".class"的长度
                         .substring(rootDir.length(), fileName.length() - 6)
                         .replace(File.separatorChar, CharUtil.DOT);
-                //加入满足条件的类
                 addIfAccept(className);
             } else if (fileName.endsWith(FileUtil.JAR_FILE_EXT)) {
                 try {
@@ -123,12 +120,10 @@ public class ClassScanner {
         int classLen = className.length();
         int packageLen = this.packageName.length();
         if (classLen == packageLen) {
-            //类名和包名长度一致，用户可能传入的包名是类名
             if (className.equals(this.packageName)) {
                 addIfAccept(loadClass(className));
             }
         } else if (classLen > packageLen) {
-            //检查类名是否以指定包名为前缀，包名后加.
             if (className.startsWith(this.packageNameWithDot)) {
                 addIfAccept(loadClass(className));
             }
