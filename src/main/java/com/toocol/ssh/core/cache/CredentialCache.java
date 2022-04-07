@@ -16,7 +16,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class CredentialCache {
 
-    private static final Set<SshCredential> CREDENTIAL_SET = new TreeSet<>(Comparator.comparingInt(credential -> credential.getHost().hashCode()));
+    private static final Set<SshCredential> CREDENTIAL_SET = new TreeSet<>(Comparator.comparingInt(credential -> -1 * credential.getHost().hashCode()));
     private static final ReadWriteLock READ_WRITE_LOCK = new ReentrantReadWriteLock();
 
     public static int credentialsSize() {

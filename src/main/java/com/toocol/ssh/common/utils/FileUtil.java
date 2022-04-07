@@ -9,7 +9,7 @@ import java.io.IOException;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/17 13:58
  */
-public class FileUtils {
+public class FileUtil {
     private static final String TWO_POINT = "..";
     private static final String POINT = ".";
 
@@ -59,4 +59,29 @@ public class FileUtils {
         }
         return file.isFile();
     }
+
+
+    /**
+     * Class文件扩展名
+     */
+    public static final String CLASS_EXT = FileNameUtil.EXT_CLASS;
+    /**
+     * Jar文件扩展名
+     */
+    public static final String JAR_FILE_EXT = FileNameUtil.EXT_JAR;
+    /**
+     * 在Jar中的路径jar的扩展名形式
+     */
+    public static final String JAR_PATH_EXT = ".jar!";
+
+    /**
+     * 是否为Windows环境
+     *
+     * @return 是否为Windows环境
+     * @since 3.0.9
+     */
+    public static boolean isWindows() {
+        return FileNameUtil.WINDOWS_SEPARATOR == File.separatorChar;
+    }
+
 }

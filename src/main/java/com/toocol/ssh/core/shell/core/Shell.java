@@ -66,8 +66,7 @@ public class Shell {
         NORMAL(1, "Shell is under normal cmd input status."),
         TAB_ACCOMPLISH(2, "Shell is under tab key to auto-accomplish address status."),
         VIM_BEFORE(3, "Shell is before Vim/Vi edit status."),
-        VIM_UNDER(4, "Shell is under Vim/Vi edit status."),
-        HANG_UP(5, "Shell is under hang-up status.");
+        VIM_UNDER(4, "Shell is under Vim/Vi edit status.");
 
         public final int status;
         public final String comment;

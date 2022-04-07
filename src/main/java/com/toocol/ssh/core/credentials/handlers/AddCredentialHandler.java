@@ -2,7 +2,7 @@ package com.toocol.ssh.core.credentials.handlers;
 
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.common.utils.FileUtils;
+import com.toocol.ssh.common.utils.FileUtil;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 import io.vertx.core.AsyncResult;
@@ -34,7 +34,7 @@ public class AddCredentialHandler extends AbstractMessageHandler<Boolean> {
         SshCredential credential = SshCredential.transFromJson(cast(message.body()));
         CredentialCache.addCredential(credential);
 
-        String filePath = FileUtils.relativeToFixed("/starter/credentials.json");
+        String filePath = FileUtil.relativeToFixed("/starter/credentials.json");
         vertx.fileSystem().writeFile(filePath, Buffer.buffer(CredentialCache.getCredentialsJson()), result -> {
         });
 

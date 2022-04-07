@@ -3,7 +3,7 @@ package com.toocol.ssh.core.credentials.vert;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
-import com.toocol.ssh.common.utils.FileUtils;
+import com.toocol.ssh.common.utils.FileUtil;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.credentials.handlers.AddCredentialHandler;
@@ -31,7 +31,7 @@ public class CredentialVerticle extends AbstractVerticle implements IHandlerMoun
     @Override
     public void start() throws Exception {
         final WorkerExecutor executor = vertx.createSharedWorkerExecutor("credential-worker");
-        String filePath = FileUtils.relativeToFixed("/starter/credentials.json");
+        String filePath = FileUtil.relativeToFixed("/starter/credentials.json");
 
         mountHandler(vertx, executor);
 

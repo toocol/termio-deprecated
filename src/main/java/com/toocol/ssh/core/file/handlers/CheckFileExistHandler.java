@@ -2,7 +2,7 @@ package com.toocol.ssh.core.file.handlers;
 
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.utils.FileUtils;
+import com.toocol.ssh.common.utils.FileUtil;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -29,7 +29,7 @@ public class CheckFileExistHandler extends AbstractMessageHandler<Void> {
     @Override
     protected <T> void handleWithin(Future<Void> future, Message<T> message) throws Exception{
         String filePath = cast(message.body());
-        boolean success = FileUtils.checkAndCreateFile(filePath);
+        boolean success = FileUtil.checkAndCreateFile(filePath);
         if (!success) {
             throw new RuntimeException("Create credential file failed.");
         }

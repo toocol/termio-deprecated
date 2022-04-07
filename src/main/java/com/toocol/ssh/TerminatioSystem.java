@@ -1,9 +1,9 @@
 package com.toocol.ssh;
 
-import cn.hutool.core.util.ClassUtil;
 import com.toocol.ssh.common.annotation.FinalDeployment;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.CastUtil;
+import com.toocol.ssh.common.utils.ClassScanner;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.SessionCache;
 import io.vertx.core.AbstractVerticle;
@@ -45,7 +45,7 @@ public class TerminatioSystem {
         Signal.handle(new Signal("INT"), signal -> {});
 
         /* Get the verticle which need deploy in main class by annotation */
-        Set<Class<?>> annotatedClassList = ClassUtil.scanPackageByAnnotation("com.toocol.ssh.core", PreloadDeployment.class);
+        Set<Class<?>> annotatedClassList = new ClassScanner("com.toocol.ssh.core", clazz -> clazz.isAnnotationPresent(PreloadDeployment.class)).scan();
         List<Class<? extends AbstractVerticle>> preloadVerticleClassList = new ArrayList<>();
         annotatedClassList.forEach(annotatedClass -> {
             if (annotatedClass.getSuperclass().equals(AbstractVerticle.class)) {
@@ -69,7 +69,7 @@ public class TerminatioSystem {
 
         /* Deploy the final verticle */
         vertx.executeBlocking(future -> {
-            Set<Class<?>> finalClassList = ClassUtil.scanPackageByAnnotation("com.toocol.ssh.core", FinalDeployment.class);
+            Set<Class<?>> finalClassList = new ClassScanner("com.toocol.ssh.core", clazz -> clazz.isAnnotationPresent(FinalDeployment.class)).scan();
             finalClassList.forEach(finalVerticle -> {
                 if (!finalVerticle.getSuperclass().equals(AbstractVerticle.class)) {
                     Printer.printErr("Skip deploy verticle " + finalVerticle.getName() + ", please extends AbstractVerticle");
