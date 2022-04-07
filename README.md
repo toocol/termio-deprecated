@@ -37,8 +37,8 @@
 Terminal commands:     [param] means optional param
         help            -- Show holistic executive command.
         clear           -- Clear the screen.
-        exit            -- Exit ssh terminal.
-        add             -- Add new ssh connection property. Pattern: 'add --host@user@password[@port]',
+        exit            -- Exit terminatio.
+        add             -- Add new ssh connection property. Pattern: 'add --host@user -c=password [-p=port]',
                         default port is 22.
         delete          -- Delete ssh connection property. Pattern: 'delete --index', 
                         for example: 'delete --1'.

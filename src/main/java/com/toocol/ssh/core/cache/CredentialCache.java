@@ -4,10 +4,7 @@ import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 import io.vertx.core.json.JsonArray;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -105,6 +102,28 @@ public class CredentialCache {
         try {
             CREDENTIAL_SET.add(credential);
         }  catch (Exception e) {
+            Printer.println("System devastating error.");
+            System.exit(-1);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public static void deleteCredential(int index) {
+        Lock lock = READ_WRITE_LOCK.writeLock();
+        lock.lock();
+        try {
+            int tag = 0;
+            Iterator<SshCredential> iterator = CREDENTIAL_SET.iterator();
+            while (iterator.hasNext()) {
+                tag++;
+                iterator.next();
+                if (tag == index) {
+                    iterator.remove();
+                }
+            }
+        }  catch (Exception e) {
+            e.printStackTrace();
             Printer.println("System devastating error.");
             System.exit(-1);
         } finally {

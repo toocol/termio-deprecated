@@ -35,7 +35,8 @@ public class AddCredentialHandler extends AbstractMessageHandler<Boolean> {
         CredentialCache.addCredential(credential);
 
         String filePath = FileUtils.relativeToFixed("/starter/credentials.json");
-        vertx.fileSystem().writeFileBlocking(filePath, Buffer.buffer(CredentialCache.getCredentialsJson()));
+        vertx.fileSystem().writeFile(filePath, Buffer.buffer(CredentialCache.getCredentialsJson()), result -> {
+        });
 
         future.complete(true);
     }

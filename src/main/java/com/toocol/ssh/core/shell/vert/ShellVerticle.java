@@ -32,7 +32,6 @@ public class ShellVerticle extends AbstractVerticle implements IHandlerMounter {
         final SessionCache sessionCache = SessionCache.getInstance();
         mountHandler(vertx, executor, true, new JSch(), new SnowflakeGuidGenerator(), sessionCache);
 
-        Runtime.getRuntime().addShutdownHook(new Thread(sessionCache::stopAll));
 
         Printer.printlnWithLogo("Success start ssh shell verticle.");
     }

@@ -19,29 +19,45 @@ public class AddCmdProcessor extends OutsideCommandProcessor {
 
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
-        String[] split = cmd.replaceAll("\\s*", "").split("--");
+        String[] split = cmd.trim().replaceAll(" {2,}"," ").split("--");
         if (split.length != 2) {
-            resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add --host@user@password[@port]'.");
+            resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add --host@user -c=password [-p=port]'.");
             return;
         }
 
-        String[] params = split[1].split("@");
-        if (params.length < 3) {
-            resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add --host@user@password[@port]'.");
+        String[] params = split[1].split(" ");
+        if (params.length < 2) {
+            resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add --host@user -c=password [-p=port]'.");
             return;
         }
 
-        String host = params[0];
+        String[] hostUser = params[0].split("@");
+        if (hostUser.length != 2) {
+            resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add --host@user -c=password [-p=port]'.");
+            return;
+        }
+        String host = hostUser[0];
         if (!RegexUtils.matchIp(host)) {
             resultAndMsg.first(false).second("Wrong host format, just supporting Ip address.");
             return;
         }
-        String user = params[1];
-        String password = params[2];
+        String user = hostUser[1];
+
+        String[] passwordParam = params[1].split("=");
+        if (passwordParam.length != 2) {
+            resultAndMsg.first(false).second("Wrong host format, just supporting Ip address.");
+            return;
+        }
+        String password= passwordParam[1];
         int port;
-        if (params.length > 3) {
+        if (params.length == 3) {
             try {
-                port = Integer.parseInt(params[3]);
+                String[] portParam = params[2].split("=");
+                if (portParam.length != 2) {
+                    resultAndMsg.first(false).second("Wrong host format, just supporting Ip address.");
+                    return;
+                }
+                port = Integer.parseInt(portParam[1]);
             } catch (Exception e) {
                 resultAndMsg.first(false).second("Port should be numbers.");
                 return;

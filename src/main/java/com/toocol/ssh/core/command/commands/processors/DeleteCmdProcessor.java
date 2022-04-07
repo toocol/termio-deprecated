@@ -1,10 +1,13 @@
 package com.toocol.ssh.core.command.commands.processors;
 
+import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.command.commands.OutsideCommandProcessor;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
+
+import static com.toocol.ssh.core.credentials.CredentialVerticleAddress.DELETE_CREDENTIAL;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -29,6 +32,12 @@ public class DeleteCmdProcessor extends OutsideCommandProcessor {
             resultAndMsg.first(false).second("The index correspond credential didn't exist.");
             return;
         }
+
+        eventBus.send(DELETE_CREDENTIAL.address(), index, res -> {
+            Printer.clear();
+            Printer.printScene();
+            Printer.printCursorLine();
+        });
 
         resultAndMsg.first(true);
     }

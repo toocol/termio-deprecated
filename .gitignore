@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 starter/credentials.json
 starter/.vertx/
+starter/arthas-output
 
 ### STS ###
 .apt_generated
