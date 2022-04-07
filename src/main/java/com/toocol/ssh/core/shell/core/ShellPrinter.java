@@ -37,24 +37,25 @@ public class ShellPrinter {
         Printer.print(msg);
     }
 
+    protected void printInVim(String msg) {
+        Printer.print(msg);
+    }
+
     protected void printInTabAccomplish(String msg) {
         if (StringUtils.isEmpty(msg)) {
             return;
         }
-
         if (msg.contains("\u001B")) {
             return;
         }
 
         msg = msg.replaceAll("\b", "");
-
         if (msg.trim().equals(shell.localLastCmd.get().replaceAll("\t", ""))) {
             if (msg.endsWith(" ")) {
                 Printer.print(" ");
             }
             return;
         }
-
         if (msg.equals(shell.localLastInput)) {
             return;
         }
@@ -68,11 +69,9 @@ public class ShellPrinter {
             shell.localLastCmd.getAndUpdate(prev -> prev.replaceAll("\t", "") + tmp);
             return;
         }
-
         if (StringUtils.isEmpty(msg)) {
             return;
         }
-
         if (!msg.contains("\r\n")) {
             Printer.print(msg);
             String tmp = msg;
@@ -80,6 +79,7 @@ public class ShellPrinter {
             shell.localLastCmd.getAndUpdate(prev -> prev.replaceAll("\t", "") + tmp);
             return;
         }
+
         String[] split = msg.split("\r\n");
         if (split.length != 0) {
             String localLine = shell.getPrompt()

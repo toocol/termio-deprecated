@@ -49,7 +49,7 @@ public class Shell {
     protected volatile AtomicReference<String> remoteCmd = new AtomicReference<>("");
     protected volatile AtomicReference<String> currentPrint = new AtomicReference<>("");
     protected volatile String localLastInput = "";
-    private Status status = Status.NORMAL;
+    private volatile Status status = Status.NORMAL;
 
     private final ShellPrinter shellPrinter = new ShellPrinter(this);
     protected final Set<String> tabFeedbackRec = new HashSet<>();
@@ -65,8 +65,9 @@ public class Shell {
          */
         NORMAL(1, "Shell is under normal cmd input status."),
         TAB_ACCOMPLISH(2, "Shell is under tab key to auto-accomplish address status."),
-        VIM(3, "Shell is under Vim/Vi edit status."),
-        HANG_UP(4, "Shell is under hang-up status.");
+        VIM_BEFORE(3, "Shell is before Vim/Vi edit status."),
+        VIM_UNDER(4, "Shell is under Vim/Vi edit status."),
+        HANG_UP(5, "Shell is under hang-up status.");
 
         public final int status;
         public final String comment;
@@ -80,10 +81,12 @@ public class Shell {
     }
 
     public void print(String msg) {
-        if (localLastCmd.get().contains("cd")) {
-            Matcher matcher = PATTERN.matcher(msg);
-            if (matcher.find()) {
-                prompt.valueOf(matcher.group(0) + "# ");
+        Matcher matcher = PATTERN.matcher(msg);
+        if (matcher.find()) {
+            prompt.valueOf(matcher.group(0) + "# ");
+            if (status.equals(Status.VIM_UNDER)) {
+                status = Status.NORMAL;
+                Printer.clear();
             }
         }
 
@@ -94,6 +97,9 @@ public class Shell {
             case TAB_ACCOMPLISH:
                 shellPrinter.printInTabAccomplish(msg);
                 break;
+            case VIM_BEFORE:
+            case VIM_UNDER:
+                shellPrinter.printInVim(msg);
             default:
                 break;
         }
@@ -104,75 +110,90 @@ public class Shell {
         StringBuilder localLastInputBuffer = new StringBuilder();
         while (true) {
             char inChar = (char) reader.readVirtualKey();
-            if(inChar == '\u0003') {
-                // Ctrl+C
-                outputStream.write(3);
+            if (status.equals(Status.VIM_UNDER)) {
+                outputStream.write(inChar);
                 outputStream.flush();
-            } else if (inChar == '\t') {
-                if (status.equals(Status.NORMAL)) {
-                    localLastCmd.set(cmd.toString());
-                    remoteCmd.set(cmd.toString());
-                }
-                localLastInput = localLastInputBuffer.toString();
-                localLastInputBuffer = new StringBuilder();
-                cmd.append(inChar);
-                tabFeedbackRec.clear();
-                outputStream.write(cmd.append("\t").toString().getBytes(StandardCharsets.UTF_8));
-                outputStream.flush();
-                cmd.delete(0, cmd.length());
-                status = Status.TAB_ACCOMPLISH;
-            } else if (inChar == '\b') {
-                if (cmd.toString().trim().length() == 0 && status.equals(Status.NORMAL)) {
-                    continue;
-                }
-                if (remoteCmd.get().length() == 0 && status.equals(Status.TAB_ACCOMPLISH)) {
-                    continue;
-                }
-                if (status.equals(Status.TAB_ACCOMPLISH)) {
-                    // This is ctrl+backspace
-                    cmd.append('\u007F');
-                    if (remoteCmd.get().length() > 0) {
-                        remoteCmd.getAndUpdate(prev -> remoteCmd.get().substring(0, remoteCmd.get().length() - 1));
-                    }
-                    if (localLastCmd.get().length() > 0) {
-                        localLastCmd.getAndUpdate(prev -> localLastCmd.get().substring(0, localLastCmd.get().length() - 1));
-                    }
-                }
-                if (status.equals(Status.NORMAL)) {
-                    cmd.deleteCharAt(cmd.length() - 1);
-                }
-                if (localLastInputBuffer.length() > 0) {
-                    localLastInputBuffer = new StringBuilder(localLastInputBuffer.substring(0, localLastInputBuffer.length() - 1));
-                }
-                Printer.print("\b");
-                Printer.print(" ");
-                Printer.print("\b");
-            } else if (inChar == '\r' || inChar == '\n') {
-                if (status.equals(Status.TAB_ACCOMPLISH)) {
-                    localLastCmd.set(remoteCmd.get() + "\r\n");
-                }
-                localLastInput = localLastInputBuffer.toString();
-                currentPrint.set("");
-                remoteCmd.set("");
-                Printer.print("\r\n");
-                status = Status.NORMAL;
-                break;
             } else {
-                if (status.equals(Status.TAB_ACCOMPLISH)) {
-                    remoteCmd.getAndUpdate(prev -> prev + inChar);
-                    localLastCmd.getAndUpdate(prev -> prev + inChar);
+                if (inChar == '\u0003') {
+                    // Ctrl+C
+                    outputStream.write(3);
+                    outputStream.flush();
+                } else if (inChar == '\t') {
+                    if (status.equals(Status.NORMAL)) {
+                        localLastCmd.set(cmd.toString());
+                        remoteCmd.set(cmd.toString());
+                    }
+                    localLastInput = localLastInputBuffer.toString();
+                    localLastInputBuffer = new StringBuilder();
+                    cmd.append(inChar);
+                    tabFeedbackRec.clear();
+                    outputStream.write(cmd.append("\t").toString().getBytes(StandardCharsets.UTF_8));
+                    outputStream.flush();
+                    cmd.delete(0, cmd.length());
+                    status = Status.TAB_ACCOMPLISH;
+                } else if (inChar == '\b') {
+                    if (cmd.toString().trim().length() == 0 && status.equals(Status.NORMAL)) {
+                        continue;
+                    }
+                    if (remoteCmd.get().length() == 0 && status.equals(Status.TAB_ACCOMPLISH)) {
+                        continue;
+                    }
+                    if (status.equals(Status.TAB_ACCOMPLISH)) {
+                        // This is ctrl+backspace
+                        cmd.append('\u007F');
+                        if (remoteCmd.get().length() > 0) {
+                            remoteCmd.getAndUpdate(prev -> remoteCmd.get().substring(0, remoteCmd.get().length() - 1));
+                        }
+                        if (localLastCmd.get().length() > 0) {
+                            localLastCmd.getAndUpdate(prev -> localLastCmd.get().substring(0, localLastCmd.get().length() - 1));
+                        }
+                    }
+                    if (status.equals(Status.NORMAL)) {
+                        cmd.deleteCharAt(cmd.length() - 1);
+                    }
+                    if (localLastInputBuffer.length() > 0) {
+                        localLastInputBuffer = new StringBuilder(localLastInputBuffer.substring(0, localLastInputBuffer.length() - 1));
+                    }
+                    Printer.print("\b");
+                    Printer.print(" ");
+                    Printer.print("\b");
+                } else if (inChar == '\r' || inChar == '\n') {
+                    if (status.equals(Status.TAB_ACCOMPLISH)) {
+                        localLastCmd.set(remoteCmd.get() + "\r\n");
+                    }
+                    localLastInput = localLastInputBuffer.toString();
+                    currentPrint.set("");
+                    remoteCmd.set("");
+                    Printer.print("\r\n");
+                    status = Status.NORMAL;
+                    break;
+                } else {
+                    if (status.equals(Status.TAB_ACCOMPLISH)) {
+                        remoteCmd.getAndUpdate(prev -> prev + inChar);
+                        localLastCmd.getAndUpdate(prev -> prev + inChar);
+                    }
+                    currentPrint.getAndUpdate(prev -> prev + inChar);
+                    cmd.append(inChar);
+                    localLastInputBuffer.append(inChar);
+                    Printer.print(String.valueOf(inChar));
                 }
-                currentPrint.getAndUpdate(prev -> prev + inChar);
-                cmd.append(inChar);
-                localLastInputBuffer.append(inChar);
-                Printer.print(String.valueOf(inChar));
             }
         }
-        return cmd.toString();
+
+        String cmdStr = cmd.toString();
+        boolean isVimCmd = (StringUtils.isEmpty(cmd) && isViVimCmd(localLastCmd.get())) || isViVimCmd(cmd.toString());
+        if (isVimCmd) {
+            status = Status.VIM_BEFORE;
+        }
+        return cmdStr;
     }
 
     public Status getStatus() {
         return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     public String getWelcome() {
@@ -263,5 +284,12 @@ public class Shell {
         assert prompt.getValue() != null;
         // this InputStream is already invalid.
         this.inputStream = null;
+    }
+
+    private boolean isViVimCmd(String cmd) {
+        cmd = cmd.trim();
+        return StringUtils.startsWith(cmd, "vi ") || StringUtils.startsWith(cmd, "vim ")
+                || StringUtils.startsWith(cmd, "sudo vi ") || StringUtils.startsWith(cmd, "sudo vim ")
+                || "vi".equals(cmd) || "vim".equals(cmd);
     }
 }

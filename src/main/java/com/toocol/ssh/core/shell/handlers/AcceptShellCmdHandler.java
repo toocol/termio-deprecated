@@ -2,7 +2,6 @@ package com.toocol.ssh.core.shell.handlers;
 
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.Cache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
@@ -12,7 +11,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -58,12 +56,13 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                     // do noting
                 }
             });
+
             if (isBreak.get()) {
                 break;
             }
-            if (isViVimCmd(cmd.toString())) {
-                Printer.println("Don't support vi/vim for now.");
-                cmd.delete(0, cmd.length());
+
+            if (shell.getStatus().equals(Shell.Status.VIM_BEFORE)) {
+                shell.setStatus(Shell.Status.VIM_UNDER);
             }
 
             if (shell.getStatus().equals(Shell.Status.NORMAL)) {
@@ -91,12 +90,5 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
     @Override
     public final <T> void inject(T... objs) {
         sessionCache = cast(objs[2]);
-    }
-
-    private boolean isViVimCmd(String cmd) {
-        cmd = cmd.toLowerCase();
-        return StringUtils.startsWith(cmd, "vi ") || StringUtils.startsWith(cmd, "vim ")
-                || StringUtils.startsWith(cmd, "sudo vi ") || StringUtils.startsWith(cmd, "sudo vim ")
-                || "vi".equals(cmd) || "vim".equals(cmd);
     }
 }
