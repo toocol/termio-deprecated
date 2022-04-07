@@ -26,7 +26,7 @@ public class AddCmdProcessor extends OutsideCommandProcessor {
         }
 
         String[] params = split[1].split(" ");
-        if (params.length < 2) {
+        if (params.length < 2 || params.length > 3) {
             resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add --host@user -c=password [-p=port]'.");
             return;
         }

@@ -17,7 +17,7 @@ public class DeleteCmdProcessor extends OutsideCommandProcessor {
 
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
-        String[] split = cmd.replaceAll("\\s*", "").split("--");
+        String[] split = cmd.trim().replaceAll(" {2,}", " ").split("--");
         if (split.length != 2) {
             resultAndMsg.first(false).second("Wrong 'delete' command, the correct pattern is 'delete --index'.");
             return;
