@@ -42,7 +42,19 @@ public class TerminatioSystem {
         Printer.printlnWithLogo("TerminalSystem register the vertx service.");
 
         /* Block the Ctrl+C */
-        Signal.handle(new Signal("INT"), signal -> {});
+        Signal.handle(new Signal("INT"), signal -> {
+        });
+
+        /* Because need to establish SSH connections, increase the blocking check time */
+        VertxOptions options = new VertxOptions();
+        options.setBlockedThreadCheckInterval(BLOCKED_CHECK_INTERVAL);
+        final Vertx vertx = Vertx.vertx(options);
+
+        /* Add shutdown hook */
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            SessionCache.getInstance().stopAll();
+            vertx.close();
+        }));
 
         /* Get the verticle which need deploy in main class by annotation */
         Set<Class<?>> annotatedClassList = new ClassScanner("com.toocol.ssh.core", clazz -> clazz.isAnnotationPresent(PreloadDeployment.class)).scan();
@@ -56,16 +68,19 @@ public class TerminatioSystem {
         });
         final CountDownLatch initialLatch = new CountDownLatch(preloadVerticleClassList.size());
 
-        /* Because need to establish SSH connections, increase the blocking check time */
-        VertxOptions options = new VertxOptions();
-        options.setBlockedThreadCheckInterval(BLOCKED_CHECK_INTERVAL);
-        final Vertx vertx = Vertx.vertx(options);
-
-        /* Add shutdown hook */
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            SessionCache.getInstance().stopAll();
-            vertx.close();
-        }));
+        /* Deploy the preload verticle */
+        preloadVerticleClassList.sort(Comparator.comparingInt(clazz -> -1 * clazz.getAnnotation(PreloadDeployment.class).weight()));
+        preloadVerticleClassList.forEach(verticleClass ->
+                vertx.deployVerticle(verticleClass.getName(), new DeploymentOptions(), result -> {
+                    if (result.succeeded()) {
+                        initialLatch.countDown();
+                    } else {
+                        Printer.printErr("Terminal start up failed, verticle = " + verticleClass.getSimpleName());
+                        vertx.close();
+                        System.exit(-1);
+                    }
+                })
+        );
 
         /* Deploy the final verticle */
         vertx.executeBlocking(future -> {
@@ -98,19 +113,5 @@ public class TerminatioSystem {
                 System.exit(-1);
             }
         });
-
-        /* Deploy the preload verticle */
-        preloadVerticleClassList.sort(Comparator.comparingInt(clazz -> -1 * clazz.getAnnotation(PreloadDeployment.class).weight()));
-        preloadVerticleClassList.forEach(verticleClass ->
-                vertx.deployVerticle(verticleClass.getName(), new DeploymentOptions(), result -> {
-                    if (result.succeeded()) {
-                        initialLatch.countDown();
-                    } else {
-                        Printer.printErr("Terminal start up failed, verticle = " + verticleClass.getSimpleName());
-                        vertx.close();
-                        System.exit(-1);
-                    }
-                })
-        );
     }
 }

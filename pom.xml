@@ -15,7 +15,6 @@
         <lombok.version>1.16.18</lombok.version>
         <commons.lang3.version>3.11</commons.lang3.version>
         <jsch.version>0.1.55</jsch.version>
-        <guava.version>30.1.1-jre</guava.version>
         <jline.version>0.9.94</jline.version>
     </properties>
 

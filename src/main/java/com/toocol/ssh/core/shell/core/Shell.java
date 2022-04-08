@@ -60,7 +60,7 @@ public class Shell {
     private final Single<String> prompt = new Single<>();
 
     @AllArgsConstructor
-    public static enum Status {
+    public enum Status {
         /**
          * The status of Shell.
          */
