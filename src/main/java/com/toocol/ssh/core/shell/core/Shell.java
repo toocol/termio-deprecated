@@ -1,12 +1,11 @@
 package com.toocol.ssh.core.shell.core;
 
+import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.Single;
 import com.toocol.ssh.common.utils.StrUtil;
-import com.toocol.ssh.core.configuration.SystemConfiguration;
 import jline.ConsoleReader;
 import lombok.AllArgsConstructor;
-import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -31,9 +30,7 @@ public class Shell {
 
     static {
         try {
-            String os = SystemConfiguration.setMockOs();
             reader = new ConsoleReader(System.in, null);
-            System.setProperty("os.name", os);
         } catch (IOException e) {
             Printer.println("Register console reader failed.");
             System.exit(-1);
@@ -160,14 +157,14 @@ public class Shell {
                     Printer.print("\b");
                     Printer.print(" ");
                     Printer.print("\b");
-                } else if (inChar == '\r' || inChar == '\n') {
+                } else if (inChar == CharUtil.CR || inChar == CharUtil.LF) {
                     if (status.equals(Status.TAB_ACCOMPLISH)) {
-                        localLastCmd.set(remoteCmd.get() + "\r\n");
+                        localLastCmd.set(remoteCmd.get() + StrUtil.CRLF);
                     }
                     localLastInput = localLastInputBuffer.toString();
                     currentPrint.set("");
                     remoteCmd.set("");
-                    Printer.print("\r\n");
+                    Printer.print(StrUtil.CRLF);
                     status = Status.NORMAL;
                     break;
                 } else {
@@ -226,7 +223,6 @@ public class Shell {
 
                     outputStream.write("\n".getBytes(StandardCharsets.UTF_8));
                     outputStream.flush();
-                    Printer.println("writed");
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
@@ -237,6 +233,7 @@ public class Shell {
             new Thread(() -> {
                 try {
                     byte[] tmp = new byte[1024];
+                    long startTime = System.currentTimeMillis();
                     while (true) {
                         while (inputStream.available() > 0) {
                             int i = inputStream.read(tmp, 0, 1024);
@@ -245,29 +242,20 @@ public class Shell {
                             }
                             String inputStr = new String(tmp, 0, i);
 
-                            if (!inputStr.startsWith("[")) {
+                            Matcher matcher = PATTERN.matcher(inputStr);
+                            if (matcher.find()) {
+                                prompt.valueOf(matcher.group(0) + StrUtil.SPACE);
+                                returnWrite = true;
+                                break;
+                            } else {
                                 welcome.valueOf(inputStr);
                                 returnWrite = true;
                                 break;
                             }
+                        }
 
-                            if (inputStr.startsWith("\r\n")) {
-                                prompt.valueOf(RegExUtils.removeAll("prompt", "\r\n"));
-                                returnWrite = true;
-                                break;
-                            }
-
-                            if (inputStr.startsWith("[")) {
-                                prompt.valueOf(inputStr.trim() + " ");
-                                returnWrite = true;
-                                break;
-                            }
-
-                            // Just in case the remote connection deon't send the first prompt information, getting this by ourselves.
+                        if (System.currentTimeMillis() - startTime >= 1000) {
                             promptNow = true;
-                            if (StringUtils.isNoneEmpty(inputStr)) {
-                                prompt.valueOf(inputStr.trim() + " ");
-                            }
                         }
 
                         if (StringUtils.isNoneEmpty(prompt.getValue())) {

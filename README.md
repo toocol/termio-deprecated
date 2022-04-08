@@ -31,8 +31,10 @@
 
 2. Execute maven command 'mvn package' to generate .jar file;
 
-3. Execute the batch file: /starter/run.bat or /starter/run.sh .
-   (Windows user can run it with 'Windows Terminal' to get better performance)
+3. Execute the batch file: 
+        /starter/run.bat (For Windows, running it with 'Windows Terminal' to get better performance)
+        /starter/run.sh  (For Unix/Linux)
+        /starter/winpty_run.sh (If you use Cygwin or Git-Bash which terminals base on mintty)
 ```
 
 ### Commands
