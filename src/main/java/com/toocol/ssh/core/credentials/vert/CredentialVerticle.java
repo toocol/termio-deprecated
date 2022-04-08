@@ -31,7 +31,7 @@ public class CredentialVerticle extends AbstractVerticle implements IHandlerMoun
     @Override
     public void start() throws Exception {
         final WorkerExecutor executor = vertx.createSharedWorkerExecutor("credential-worker");
-        String filePath = FileUtil.relativeToFixed("/starter/credentials.json");
+        String filePath = FileUtil.relativeToFixed("./credentials.json");
 
         mountHandler(vertx, executor);
 

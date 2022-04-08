@@ -31,7 +31,7 @@ public class AddCredentialHandler extends AbstractMessageHandler<Boolean> {
         SshCredential credential = SshCredential.transFromJson(cast(message.body()));
         CredentialCache.addCredential(credential);
 
-        String filePath = FileUtil.relativeToFixed("/starter/credentials.json");
+        String filePath = FileUtil.relativeToFixed("./credentials.json");
         vertx.fileSystem().writeFile(filePath, Buffer.buffer(CredentialCache.getCredentialsJson()), result -> {
         });
 
