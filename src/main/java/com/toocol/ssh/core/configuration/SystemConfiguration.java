@@ -30,12 +30,13 @@ public class SystemConfiguration {
         };
     }
 
-    public static void setOs(String type) {
-        switch (type) {
+    public static String setMockOs() {
+        String oldOsName = System.getProperty("os.name");
+        switch (BOOT_TYPE) {
             case BOOT_TYPE_CMD -> System.setProperty("os.name", "Windows");
             case BOOT_TYPE_BASH -> System.setProperty("os.name", "Unix");
             default -> System.exit(-1);
         }
-        BOOT_TYPE = type;
+        return oldOsName;
     }
 }

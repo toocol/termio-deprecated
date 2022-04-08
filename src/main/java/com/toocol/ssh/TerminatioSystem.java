@@ -37,7 +37,7 @@ public class TerminatioSystem {
             System.exit(-1);
         }
 
-        SystemConfiguration.setOs(args[0]);
+        SystemConfiguration.BOOT_TYPE = args[0];
         Printer.printTitle();
         Printer.printlnWithLogo("TerminalSystem register the vertx service.");
 

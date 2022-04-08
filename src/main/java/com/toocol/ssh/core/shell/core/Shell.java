@@ -3,6 +3,7 @@ package com.toocol.ssh.core.shell.core;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.Single;
 import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.core.configuration.SystemConfiguration;
 import jline.ConsoleReader;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.RegExUtils;
@@ -30,7 +31,9 @@ public class Shell {
 
     static {
         try {
+            String os = SystemConfiguration.setMockOs();
             reader = new ConsoleReader(System.in, null);
+            System.setProperty("os.name", os);
         } catch (IOException e) {
             Printer.println("Register console reader failed.");
             System.exit(-1);
