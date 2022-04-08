@@ -4,10 +4,7 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.command.commands.OutsideCommand;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 import org.apache.commons.lang3.StringUtils;
 
@@ -39,7 +36,7 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
     }
 
     @Override
-    protected <T> void handleWithin(Future<Boolean> future, Message<T> message) {
+    protected <T> void handleWithin(Promise<Boolean> promise, Message<T> message) {
         try {
             int signal = cast(message.body());
             if (signal == NORMAL_BACK || signal == FIRST_IN) {
@@ -60,7 +57,7 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
                 AtomicBoolean isBreak = new AtomicBoolean();
 
                 boolean isCommand = OutsideCommand.cmdOf(cmd).map(cmdCommand -> {
-                    eventBus.send(ADDRESS_EXECUTE_OUTSIDE.address(), cmd, result -> {
+                    eventBus.request(ADDRESS_EXECUTE_OUTSIDE.address(), cmd, result -> {
                         String failedMsg = cast(result.result().body());
                         if (StringUtils.isNotEmpty(failedMsg)) {
                             Printer.println(failedMsg);
@@ -83,7 +80,7 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
 
                 if (isBreak.get()) {
                     // start to accept shell's command, break the cycle.
-                    future.complete(false);
+                    promise.complete(false);
                     break;
                 }
                 if (!isCommand && StringUtils.isNotEmpty(cmd)) {
@@ -92,7 +89,7 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
             }
         } catch (Exception e) {
             // to do nothing, enter the next round of accept command cycle
-            future.complete(true);
+            promise.complete(true);
         }
     }
 

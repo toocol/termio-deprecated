@@ -4,10 +4,7 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.utils.FileUtil;
 import com.toocol.ssh.core.cache.CredentialCache;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
 
@@ -29,7 +26,7 @@ public class DeleteCredentialHandler extends AbstractMessageHandler<Boolean> {
     }
 
     @Override
-    protected <T> void handleWithin(Future<Boolean> future, Message<T> message) throws Exception {
+    protected <T> void handleWithin(Promise<Boolean> promise, Message<T> message) throws Exception {
         int index = cast(message.body());
         CredentialCache.deleteCredential(index);
 
@@ -37,7 +34,7 @@ public class DeleteCredentialHandler extends AbstractMessageHandler<Boolean> {
         vertx.fileSystem().writeFile(filePath, Buffer.buffer(CredentialCache.getCredentialsJson()), result -> {
         });
 
-        future.complete(true);
+        promise.complete(true);
     }
 
     @Override

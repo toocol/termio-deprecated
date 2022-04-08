@@ -22,10 +22,10 @@ public class FileUtil {
     }
 
     /**
-     * 将相对地址转化为固定地址
+     * Transfer relative file path to fixed file path.
      *
-     * @param relativePath 相对地址
-     * @return 固定地址
+     * @param relativePath relative path
+     * @return fixed path
      */
     public static String relativeToFixed(String relativePath) {
         String fixedPath = "";
@@ -62,23 +62,22 @@ public class FileUtil {
 
 
     /**
-     * Class文件扩展名
+     * .class file extension name
      */
     public static final String CLASS_EXT = FileNameUtil.EXT_CLASS;
     /**
-     * Jar文件扩展名
+     * .jar file extension name
      */
     public static final String JAR_FILE_EXT = FileNameUtil.EXT_JAR;
     /**
-     * 在Jar中的路径jar的扩展名形式
+     * .jar file extension name in jar file.
      */
     public static final String JAR_PATH_EXT = ".jar!";
 
     /**
-     * 是否为Windows环境
+     * whether is Windows environment
      *
-     * @return 是否为Windows环境
-     * @since 3.0.9
+     * @return is Windows
      */
     public static boolean isWindows() {
         return FileNameUtil.WINDOWS_SEPARATOR == File.separatorChar;

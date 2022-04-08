@@ -4,7 +4,7 @@ import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.shell.commands.processors.ShellClearCmdProcessor;
 import com.toocol.ssh.core.shell.commands.processors.ShellExitCmdProcessor;
 import com.toocol.ssh.core.shell.commands.processors.ShellHangCmdProcessor;
-import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 
 import java.util.Optional;
@@ -43,11 +43,11 @@ public enum ShellCommand {
         return Optional.ofNullable(outsideCommand);
     }
 
-    public final String processCmd(EventBus eventBus, Future<Long> future, long sessionId, AtomicBoolean isBreak) throws Exception {
+    public final String processCmd(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak) throws Exception {
         if (this.commandProcessor == null) {
             return "";
         }
-        return this.commandProcessor.process(eventBus, future, sessionId, isBreak);
+        return this.commandProcessor.process(eventBus, promise, sessionId, isBreak);
     }
 
     public String cmd() {

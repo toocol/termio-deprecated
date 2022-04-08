@@ -7,10 +7,7 @@ import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.Cache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.core.Shell;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
 import java.io.InputStream;
@@ -35,7 +32,7 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
     }
 
     @Override
-    protected <T> void handleWithin(Future<Void> future, Message<T> message) throws Exception {
+    protected <T> void handleWithin(Promise<Void> promise, Message<T> message) throws Exception {
         long sessionId = cast(message.body());
 
         ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
@@ -77,7 +74,7 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
                 break;
             }
         }
-        future.complete();
+        promise.complete();
     }
 
     @Override

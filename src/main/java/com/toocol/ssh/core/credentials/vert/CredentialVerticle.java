@@ -36,9 +36,9 @@ public class CredentialVerticle extends AbstractVerticle implements IHandlerMoun
         mountHandler(vertx, executor);
 
         executor.executeBlocking(future -> {
-            vertx.eventBus().send(ADDRESS_CHECK_FILE_EXIST.address(), filePath, reply -> future.complete());
+            vertx.eventBus().request(ADDRESS_CHECK_FILE_EXIST.address(), filePath, reply -> future.complete());
         }, result -> {
-            vertx.eventBus().send(ADDRESS_READ_FILE.address(), filePath, reply -> {
+            vertx.eventBus().request(ADDRESS_READ_FILE.address(), filePath, reply -> {
                 JsonArray sshCredentials = cast(reply.result().body());
 
                 sshCredentials.forEach(o -> {

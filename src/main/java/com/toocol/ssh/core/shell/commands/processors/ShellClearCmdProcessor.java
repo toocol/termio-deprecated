@@ -2,7 +2,7 @@ package com.toocol.ssh.core.shell.commands.processors;
 
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
-import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ShellClearCmdProcessor extends ShellCommandProcessor {
     @Override
-    public String process(EventBus eventBus, Future<Long> future, long sessionId, AtomicBoolean isBreak) {
+    public String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak) {
         Printer.clear();
         return "";
     }

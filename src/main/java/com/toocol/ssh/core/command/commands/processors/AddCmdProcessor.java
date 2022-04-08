@@ -72,7 +72,7 @@ public class AddCmdProcessor extends OutsideCommandProcessor {
             return;
         }
 
-        eventBus.send(ADD_CREDENTIAL.address(), new JsonObject(credential.toMap()), res -> {
+        eventBus.request(ADD_CREDENTIAL.address(), new JsonObject(credential.toMap()), res -> {
             Printer.clear();
             Printer.printScene();
             Printer.printCursorLine();

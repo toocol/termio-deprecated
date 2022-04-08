@@ -1,5 +1,6 @@
 package com.toocol.ssh.common.utils;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -9,33 +10,34 @@ import java.util.Iterator;
  *
  * @author Joezeo
  */
-public class EnumerationIter<E> implements Iterator<E>, Iterable<E>, Serializable{
-	private static final long serialVersionUID = 1L;
-	
-	private final Enumeration<E> e;
-	
-	public EnumerationIter(Enumeration<E> enumeration) {
-		this.e = enumeration;
-	}
+public class EnumerationIter<E> implements Iterator<E>, Iterable<E>, Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	public boolean hasNext() {
-		return e.hasMoreElements();
-	}
+    private final Enumeration<E> e;
 
-	@Override
-	public E next() {
-		return e.nextElement();
-	}
+    public EnumerationIter(Enumeration<E> enumeration) {
+        this.e = enumeration;
+    }
 
-	@Override
-	public void remove() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public boolean hasNext() {
+        return e.hasMoreElements();
+    }
 
-	@Override
-	public Iterator<E> iterator() {
-		return this;
-	}
+    @Override
+    public E next() {
+        return e.nextElement();
+    }
+
+    @Override
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+        return this;
+    }
 
 }

@@ -6,10 +6,7 @@ import com.toocol.ssh.core.cache.Cache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.shell.core.Shell;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
 import java.io.OutputStream;
@@ -38,7 +35,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
     }
 
     @Override
-    protected <T> void handleWithin(Future<Long> future, Message<T> message) throws Exception {
+    protected <T> void handleWithin(Promise<Long> promise, Message<T> message) throws Exception {
         long sessionId = cast(message.body());
         Shell shell = sessionCache.getShell(sessionId);
         OutputStream outputStream = shell.getOutputStream();
@@ -49,7 +46,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             AtomicBoolean isBreak = new AtomicBoolean();
             ShellCommand.cmdOf(cmd.toString()).ifPresent(shellCommand -> {
                 try {
-                    String finalCmd = shellCommand.processCmd(eventBus, future, sessionId, isBreak);
+                    String finalCmd = shellCommand.processCmd(eventBus, promise, sessionId, isBreak);
                     cmd.delete(0, cmd.length());
                     cmd.append(finalCmd);
                 } catch (Exception e) {

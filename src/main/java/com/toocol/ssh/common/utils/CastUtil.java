@@ -6,17 +6,17 @@ package com.toocol.ssh.common.utils;
  */
 public class CastUtil {
     /**
-     * 自动推导类型转换，忽视 unchecked 警告
+     * Automatically deduce the type.
      *
-     * @param obj
-     * @param <T>
-     * @return
+     * @param obj obj
+     * @param <T> generic type
+     * @return result
      */
     @SuppressWarnings("unchecked")
     public static <T> T cast(Object obj) {
         if (obj == null) {
             return null;
         }
-        return (T)obj;
+        return (T) obj;
     }
 }

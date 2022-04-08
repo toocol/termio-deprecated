@@ -2,10 +2,7 @@ package com.toocol.ssh.core.file.handlers;
 
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.address.IAddress;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
@@ -29,12 +26,12 @@ public class ReadFileHandler extends AbstractMessageHandler<String> {
     }
 
     @Override
-    protected <T> void handleWithin(Future<String> future, Message<T> message) {
+    protected <T> void handleWithin(Promise<String> promise, Message<T> message) {
         String filePath = cast(message.body());
         Buffer resultBuffer = vertx.fileSystem().readFileBlocking(filePath);
         String fileData = resultBuffer.getString(0, resultBuffer.length());
 
-        future.complete(fileData);
+        promise.complete(fileData);
     }
 
     @Override

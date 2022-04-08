@@ -33,7 +33,7 @@ public class DeleteCmdProcessor extends OutsideCommandProcessor {
             return;
         }
 
-        eventBus.send(DELETE_CREDENTIAL.address(), index, res -> {
+        eventBus.request(DELETE_CREDENTIAL.address(), index, res -> {
             Printer.clear();
             Printer.printScene();
             Printer.printCursorLine();

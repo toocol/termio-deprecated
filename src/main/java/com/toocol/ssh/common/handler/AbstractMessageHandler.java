@@ -3,10 +3,7 @@ package com.toocol.ssh.common.handler;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.utils.ICastable;
 import com.toocol.ssh.common.utils.Printer;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 
@@ -87,12 +84,12 @@ public abstract class AbstractMessageHandler<R> implements ICastable {
     /**
      * execute the blocked process
      *
-     * @param future  future
+     * @param promise promise
      * @param message message
      * @param <T>     generic type
      * @throws Exception exception
      */
-    protected abstract <T> void handleWithin(Future<R> future, Message<T> message) throws Exception;
+    protected abstract <T> void handleWithin(Promise<R> promise, Message<T> message) throws Exception;
 
     /**
      * response the blocked process result

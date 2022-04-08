@@ -1,6 +1,7 @@
 package com.toocol.ssh.common.utils;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Serial;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 
@@ -16,6 +17,7 @@ import java.nio.charset.Charset;
  * @author looly
  */
 public class URLDecoder implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static final byte ESCAPE_CHAR = '%';

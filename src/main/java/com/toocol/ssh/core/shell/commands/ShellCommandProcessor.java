@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.commands;
 
-import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -15,11 +15,11 @@ public abstract class ShellCommandProcessor {
      * process the shell command
      *
      * @param eventBus event bus
-     * @param future future
+     * @param promise promise
      * @param sessionId session's id
      * @param isBreak break the shell accept cycle
-     * @return final cmd should be execute
+     * @return final cmd should be executed
      */
-    public abstract String process(EventBus eventBus, Future<Long> future, long sessionId, AtomicBoolean isBreak);
+    public abstract String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak);
 
 }

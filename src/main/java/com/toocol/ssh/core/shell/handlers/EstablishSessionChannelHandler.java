@@ -13,10 +13,7 @@ import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.vo.SshUserInfo;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
 import java.util.Properties;
@@ -44,7 +41,7 @@ public class EstablishSessionChannelHandler extends AbstractMessageHandler<Long>
     }
 
     @Override
-    protected <T> void handleWithin(Future<Long> future, Message<T> message) throws Exception {
+    protected <T> void handleWithin(Promise<Long> promise, Message<T> message) throws Exception {
         int index = cast(message.body());
         SshCredential credential = CredentialCache.getCredential(index);
         assert credential != null;
@@ -87,9 +84,9 @@ public class EstablishSessionChannelHandler extends AbstractMessageHandler<Long>
         Cache.HANGED_QUIT = false;
 
         if (success) {
-            future.complete(sessionId);
+            promise.complete(sessionId);
         } else {
-            future.complete(null);
+            promise.fail("Session establish failed.");
         }
     }
 

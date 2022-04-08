@@ -5,10 +5,7 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.command.commands.OutsideCommand;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_EXECUTE_OUTSIDE;
@@ -29,7 +26,7 @@ public class ExecuteOutsideCommandHandler extends AbstractMessageHandler<Tuple2<
     }
 
     @Override
-    protected <T> void handleWithin(Future<Tuple2<Boolean, String>> future, Message<T> message) {
+    protected <T> void handleWithin(Promise<Tuple2<Boolean, String>> promise, Message<T> message) {
         String cmd = String.valueOf(message.body());
         Tuple2<Boolean, String> resultAndMessage = new Tuple2<>();
         OutsideCommand.cmdOf(cmd)
@@ -40,7 +37,7 @@ public class ExecuteOutsideCommandHandler extends AbstractMessageHandler<Tuple2<
                         Printer.printErr("Execute command failed, message = " + e.getMessage());
                     }
                 });
-        future.complete(resultAndMessage);
+        promise.complete(resultAndMessage);
     }
 
     @Override

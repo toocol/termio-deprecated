@@ -14,22 +14,25 @@
 
 <div align="center" >
 
-![Purely java project](https://img.shields.io/badge/Language-Java-orange) ![License](https://img.shields.io/badge/License-Apache--2.0-red) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux-%2320B2AA) ![Vert.x](https://img.shields.io/badge/Vert.x-3.5.4-%236699CC) ![JSch](https://img.shields.io/badge/JSch-0.1.55-%23CCCCFF)   
+![Purely java project](https://img.shields.io/badge/Language-Java/OracleOpenJDK17-orange) ![License](https://img.shields.io/badge/License-Apache--2.0-red) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux-%2320B2AA) ![Vert.x](https://img.shields.io/badge/Vert.x-3.5.4-%236699CC) ![JSch](https://img.shields.io/badge/JSch-0.1.55-%23CCCCFF)   
 
 </div>
 
 ### Profile
-> The program is mainly based on Vert.x and JSch, it's a lightweight command line SSH terminal tool;   
+> The program is mainly based on Java OpenJDK 17 with Vert.x and JSch, it's a lightweight command line SSH terminal tool;   
 >  
 > Provide SSH login **credential storage** and **fast login**, as well as the **async ftp function**;  
 > 
 > Vim file editing function is not supported for the time now, and it may be accomplished in the future.  
 
-### Usage
+### Build with source code 
 ```
-1. Execute maven command 'mvn package' to generate .jar file;
+1. Download the Oracle OpenJDK 17, and add it's home path to System Variable "%JAVA17_HOME%";
 
-2. Execute the batch file: /starter/run.bat (Use 'Windows Terminal' to get better performance).
+2. Execute maven command 'mvn package' to generate .jar file;
+
+3. Execute the batch file: /starter/run.bat or /starter/run.sh .
+   (Windows user can run it with 'Windows Terminal' to get better performance)
 ```
 
 ### Commands
