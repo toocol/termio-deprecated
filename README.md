@@ -27,7 +27,7 @@
 
 ### Build with source code 
 ```
-1. Download the Oracle OpenJDK 17, and add it's home path to System Variable "JAVA17_HOME";
+1. Download the Oracle OpenJDK 17, and add it's home path to System Variable "JAVA_HOME";
 
 2. Execute maven command 'mvn package' to generate .jar file;
 

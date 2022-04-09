@@ -57,15 +57,6 @@ public class Printer {
         PRINT.println("<error> " + msg);
     }
 
-    public static void printTitle() {
-        PRINT.println(
-                " _____ _____ _____ _____ ____ _____ _____ _____ ____ _____                   \n" +
-                "|_   _|   __| __  |     |    |   | |  _  |_   _|    |  _  |                  \n" +
-                "  | | |   __|    -| | | |-  -| | | |     | | | |-  -|  |  |                  \n" +
-                "  |_| |_____|__|__|_|_|_|____|_|___|__|__| |_| |____|_____|                  \n"
-        );
-    }
-
     public static void printTitleAndInfo() {
         PRINT.println(
                 " _____ _____ _____ _____ ____ _____ _____ _____ ____ _____                   \n" +

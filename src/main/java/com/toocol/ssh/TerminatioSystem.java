@@ -40,7 +40,6 @@ public class TerminatioSystem extends Application {
         }
 
         SystemConfiguration.BOOT_TYPE = args[0];
-        Printer.printTitle();
         Printer.printlnWithLogo("TerminalSystem register the vertx service.");
 
         /* Block the Ctrl+C */
@@ -115,7 +114,7 @@ public class TerminatioSystem extends Application {
                 System.exit(-1);
             } finally {
                 /* launch the JavaFx */
-                launch(TerminatioSystem.class.getName());
+                launch();
             }
         });
     }

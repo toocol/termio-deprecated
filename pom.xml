@@ -17,6 +17,8 @@
         <commons.lang3.version>3.12.0</commons.lang3.version>
         <jsch.version>0.1.55</jsch.version>
         <jline.version>0.9.94</jline.version>
+        <javafx.controls.version>17.0.2</javafx.controls.version>
+        <javafx.fxml.version>15.0.1</javafx.fxml.version>
     </properties>
 
     <dependencies>
@@ -49,12 +51,12 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>17.0.2</version>
+            <version>${javafx.controls.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>15.0.1</version>
+            <version>${javafx.fxml.version}</version>
         </dependency>
     </dependencies>
 
