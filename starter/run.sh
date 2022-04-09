@@ -1,5 +1,5 @@
 #!/bin/bash
-$JAVA17_HOME/bin/java \
+$JAVA_HOME/bin/java \
 -Djavafx.verbose=true \
 -Dprism.verbose=true \
 --module-path ./libs/javafx-sdk-17.0.2-linux-x64/lib \
