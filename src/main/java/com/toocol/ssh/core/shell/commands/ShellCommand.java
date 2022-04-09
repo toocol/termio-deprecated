@@ -1,9 +1,7 @@
 package com.toocol.ssh.core.shell.commands;
 
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.core.shell.commands.processors.ShellClearCmdProcessor;
-import com.toocol.ssh.core.shell.commands.processors.ShellExitCmdProcessor;
-import com.toocol.ssh.core.shell.commands.processors.ShellHangCmdProcessor;
+import com.toocol.ssh.core.shell.commands.processors.*;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 
@@ -21,6 +19,8 @@ public enum ShellCommand {
      */
     CMD_EXIT("exit", new ShellExitCmdProcessor(), "Exit current shell, close ssh connection and destroy connect channel."),
     CMD_HANG("hang", new ShellHangCmdProcessor(), "Will not close the connection, exit shell with connection running in the background."),
+    CMD_UF("uf", new ShellUfCmdProcessor(), "Batch upload local files to remote connection."),
+    CMD_DF("df", new ShellDfCmdProcessor(), "Batch download remote files to local."),
     CMD_CLEAR("clear", new ShellClearCmdProcessor(), null);
 
     private final String cmd;

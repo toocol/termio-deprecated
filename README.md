@@ -21,7 +21,7 @@
 ### Profile
 > The program is mainly based on Java OpenJDK 17 with Vert.x and JSch, it's a lightweight command line SSH terminal tool;   
 >  
-> Provide SSH login **credential storage** and **fast login**, as well as the **async ftp function**;  
+> Provide SSH login **credential storage** and **fast login**, as well as the **async sftp function**;  
 > 
 > Vim file editing function is not supported for the time now, and it may be accomplished in the future.  
 

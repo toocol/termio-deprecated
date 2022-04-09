@@ -10,7 +10,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum ShellVerticleAddress implements IAddress{
     /**
-     * establish a ssh session
+     * establish the ssh session
      */
     ESTABLISH_SESSION("ssh.establish.session"),
     /**
@@ -20,7 +20,16 @@ public enum ShellVerticleAddress implements IAddress{
     /**
      * exhibit the shell feedback
      */
-    EXHIBIT_SHELL("ssh.exhibit.shell");
+    EXHIBIT_SHELL("ssh.exhibit.shell"),
+    /**
+     * start uf command: chose file to upload
+     */
+    START_UF_COMMAND("ssh.start.uf"),
+    /**
+     * start uf command: chose file and download to local
+     */
+    START_DF_COMMAND("ssh.start.df")
+    ;
 
     /**
      * the address string of message

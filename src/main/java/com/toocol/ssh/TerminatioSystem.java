@@ -11,6 +11,8 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import javafx.application.Application;
+import javafx.stage.Stage;
 import sun.misc.Signal;
 
 import java.util.ArrayList;
@@ -27,13 +29,13 @@ import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_
  * @email joezane.cn@gmail.com
  * @date 2021/2/19 15:00
  */
-public class TerminatioSystem {
+public class TerminatioSystem extends Application {
 
     private static final long BLOCKED_CHECK_INTERVAL = 30 * 24 * 60 * 60 * 1000L;
 
     public static void main(String[] args) {
         if (args.length != 1) {
-            Printer.printErr("Wrong boot parameter.");
+            Printer.printErr("Wrong boot type.");
             System.exit(-1);
         }
 
@@ -111,7 +113,14 @@ public class TerminatioSystem {
                 vertx.close();
                 Printer.printErr("Terminatio start up error, failed to accept command.");
                 System.exit(-1);
+            } finally {
+                /* launch the JavaFx */
+                launch(TerminatioSystem.class.getName());
             }
         });
+    }
+
+    @Override
+    public void start(Stage stage) throws Exception {
     }
 }
