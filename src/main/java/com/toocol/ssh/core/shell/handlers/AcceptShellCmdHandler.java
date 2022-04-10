@@ -8,6 +8,7 @@ import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.shell.core.Shell;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
+import org.checkerframework.checker.units.qual.A;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -43,12 +44,15 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             StringBuilder cmd = new StringBuilder(shell.readCmd());
 
             AtomicBoolean isBreak = new AtomicBoolean();
+            AtomicBoolean isContinue = new AtomicBoolean();
             ShellCommand.cmdOf(cmd.toString()).ifPresent(shellCommand -> {
                 try {
                     String finalCmd = shellCommand.processCmd(eventBus, promise, sessionId, isBreak);
                     cmd.delete(0, cmd.length());
                     if (finalCmd != null) {
                         cmd.append(finalCmd);
+                    } else {
+                        isContinue.set(true);
                     }
                 } catch (Exception e) {
                     // do noting
@@ -57,6 +61,9 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
 
             if (isBreak.get()) {
                 break;
+            }
+            if (isContinue.get()) {
+                continue;
             }
 
             if (shell.getStatus().equals(Shell.Status.VIM_BEFORE)) {
@@ -67,9 +74,6 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                 shell.localLastCmd.set(cmd + "\r\n");
             }
 
-            if (cmd.length() == 0) {
-                continue;
-            }
             String actualCmd = cmd.toString().trim() + "\n";
             outputStream.write(actualCmd.getBytes(StandardCharsets.UTF_8));
             outputStream.flush();

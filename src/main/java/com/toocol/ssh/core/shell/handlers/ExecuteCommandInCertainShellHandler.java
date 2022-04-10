@@ -45,6 +45,7 @@ public class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<
         Long sessionId = request.getLong("sessionId");
         String cmd = request.getString("cmd");
 
+        Cache.JUST_CLOSE_EXHIBIT_SHELL = true;
         ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
         Shell shell = sessionCache.getShell(sessionId);
 
