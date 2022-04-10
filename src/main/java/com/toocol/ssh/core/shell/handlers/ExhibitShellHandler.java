@@ -20,7 +20,7 @@ import static com.toocol.ssh.core.shell.ShellVerticleAddress.EXHIBIT_SHELL;
  */
 public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
 
-    private SessionCache sessionCache;
+    private final SessionCache sessionCache = SessionCache.getInstance();
 
     public ExhibitShellHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -80,11 +80,5 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
     @Override
     protected <T> void resultWithin(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
 
-    }
-
-    @SafeVarargs
-    @Override
-    public final <T> void inject(T... objs) {
-        sessionCache = cast(objs[2]);
     }
 }

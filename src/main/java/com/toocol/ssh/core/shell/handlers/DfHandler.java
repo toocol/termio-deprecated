@@ -8,6 +8,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 
+import static com.toocol.ssh.core.shell.ShellVerticleAddress.START_DF_COMMAND;
+
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/9 16:39
@@ -21,7 +23,7 @@ public class DfHandler extends AbstractMessageHandler<Void> {
 
     @Override
     public IAddress consume() {
-        return null;
+        return START_DF_COMMAND;
     }
 
     @Override

@@ -28,7 +28,11 @@ public enum ShellVerticleAddress implements IAddress{
     /**
      * start uf command: chose file and download to local
      */
-    START_DF_COMMAND("ssh.start.df")
+    START_DF_COMMAND("ssh.start.df"),
+    /**
+     * execute the single command and response the execution's result.
+     */
+    EXECUTE_SINGLE_COMMAND("ssh.exec.single.command")
     ;
 
     /**

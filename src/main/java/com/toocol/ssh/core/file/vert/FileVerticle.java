@@ -5,6 +5,7 @@ import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.file.handlers.CheckFileExistHandler;
+import com.toocol.ssh.core.file.handlers.ChooseFileHandler;
 import com.toocol.ssh.core.file.handlers.ReadFileHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
@@ -19,7 +20,8 @@ import io.vertx.core.WorkerExecutor;
 @PreloadDeployment(weight = 10)
 @RegisterHandler(handlers = {
         CheckFileExistHandler.class,
-        ReadFileHandler.class
+        ReadFileHandler.class,
+        ChooseFileHandler.class
 })
 public class FileVerticle extends AbstractVerticle implements IHandlerMounter {
 

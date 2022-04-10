@@ -13,7 +13,10 @@ import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.vo.SshUserInfo;
-import io.vertx.core.*;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 
 import java.util.Properties;
@@ -25,13 +28,14 @@ import static com.toocol.ssh.core.shell.ShellVerticleAddress.*;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-public class EstablishSessionChannelHandler extends AbstractMessageHandler<Long> {
+public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<Long> {
+
+    private final SessionCache sessionCache = SessionCache.getInstance();
 
     private JSch jSch;
     private SnowflakeGuidGenerator guidGenerator;
-    private SessionCache sessionCache;
 
-    public EstablishSessionChannelHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
+    public EstablishSessionShellChannelHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
     }
 
@@ -58,8 +62,7 @@ public class EstablishSessionChannelHandler extends AbstractMessageHandler<Long>
                 Properties config = new Properties();
                 config.put("StrictHostKeyChecking", "no");
                 session.setConfig(config);
-                int timeout = 30000;
-                session.setTimeout(timeout);
+                session.setTimeout(30000);
                 session.connect();
 
                 sessionId = guidGenerator.nextId();
@@ -79,6 +82,24 @@ public class EstablishSessionChannelHandler extends AbstractMessageHandler<Long>
                 System.gc();
             }
         } else {
+            boolean regenerateShell = false;
+            Session session = sessionCache.getSession(sessionId);
+            if (!session.isConnected()) {
+                session.connect();
+                regenerateShell = true;
+            }
+
+            ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
+            if (channelShell.isClosed() || !channelShell.isConnected()) {
+                channelShell.connect();
+                regenerateShell = true;
+            }
+
+            if (regenerateShell) {
+                Shell shell = new Shell(channelShell.getOutputStream(), channelShell.getInputStream());
+                sessionCache.putShell(sessionId, shell);
+            }
+
             Cache.HANGED_ENTER = true;
         }
         Cache.HANGED_QUIT = false;
@@ -118,6 +139,5 @@ public class EstablishSessionChannelHandler extends AbstractMessageHandler<Long>
     public final <T> void inject(T... objs) {
         jSch = cast(objs[0]);
         guidGenerator = cast(objs[1]);
-        sessionCache = cast(objs[2]);
     }
 }

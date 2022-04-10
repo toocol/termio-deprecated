@@ -22,8 +22,7 @@ import static com.toocol.ssh.core.shell.ShellVerticleAddress.ACCEPT_SHELL_CMD;
  */
 public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
 
-
-    private SessionCache sessionCache;
+    private final SessionCache sessionCache = SessionCache.getInstance();
 
     public AcceptShellCmdHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -81,11 +80,5 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             Cache.HANGED_QUIT = true;
         }
         eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 3);
-    }
-
-    @SafeVarargs
-    @Override
-    public final <T> void inject(T... objs) {
-        sessionCache = cast(objs[2]);
     }
 }

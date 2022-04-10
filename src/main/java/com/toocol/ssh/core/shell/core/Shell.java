@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  * @date: 2022/4/3 20:57
  */
 public class Shell {
-    private static final Pattern PATTERN = Pattern.compile("(\\[(.*?)]#)");
+    public static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(.*?)]#)");
 
     private static ConsoleReader reader = null;
 
@@ -81,7 +81,7 @@ public class Shell {
     }
 
     public void print(String msg) {
-        Matcher matcher = PATTERN.matcher(msg);
+        Matcher matcher = PROMPT_PATTERN.matcher(msg);
         if (matcher.find()) {
             prompt.valueOf(matcher.group(0) + StrUtil.SPACE);
             if (status.equals(Status.VIM_UNDER)) {
@@ -242,7 +242,7 @@ public class Shell {
                             }
                             String inputStr = new String(tmp, 0, i);
 
-                            Matcher matcher = PATTERN.matcher(inputStr);
+                            Matcher matcher = PROMPT_PATTERN.matcher(inputStr);
                             if (matcher.find()) {
                                 prompt.valueOf(matcher.group(0) + StrUtil.SPACE);
                                 returnWrite = true;

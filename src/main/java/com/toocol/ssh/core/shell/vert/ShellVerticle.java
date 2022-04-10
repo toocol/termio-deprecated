@@ -7,9 +7,7 @@ import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.SnowflakeGuidGenerator;
 import com.toocol.ssh.core.cache.SessionCache;
-import com.toocol.ssh.core.shell.handlers.AcceptShellCmdHandler;
-import com.toocol.ssh.core.shell.handlers.EstablishSessionChannelHandler;
-import com.toocol.ssh.core.shell.handlers.ExhibitShellHandler;
+import com.toocol.ssh.core.shell.handlers.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 
@@ -19,17 +17,20 @@ import io.vertx.core.WorkerExecutor;
  */
 @FinalDeployment
 @RegisterHandler(handlers = {
-        EstablishSessionChannelHandler.class,
+        EstablishSessionShellChannelHandler.class,
         ExhibitShellHandler.class,
         AcceptShellCmdHandler.class,
+        ExecuteSingleCommandHandler.class,
+        DfHandler.class,
+        UfHandler.class
 })
 public class ShellVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {
-        WorkerExecutor executor = vertx.createSharedWorkerExecutor("ssh-shell-worker", 3);
+        WorkerExecutor executor = vertx.createSharedWorkerExecutor("ssh-shell-worker", 10);
 
-        mountHandler(vertx, executor, true, new JSch(), new SnowflakeGuidGenerator(), SessionCache.getInstance());
+        mountHandler(vertx, executor, true, new JSch(), new SnowflakeGuidGenerator());
 
         Printer.printlnWithLogo("Success start ssh shell verticle.");
     }

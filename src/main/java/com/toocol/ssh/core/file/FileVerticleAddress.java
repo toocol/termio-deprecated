@@ -17,7 +17,12 @@ public enum FileVerticleAddress implements IAddress {
     /**
      * read the credential file(credentials.json)
      */
-    ADDRESS_READ_FILE("terminal.file.read.file");
+    ADDRESS_READ_FILE("terminal.file.read.file"),
+    /**
+     * choose the local file.
+     */
+    CHOOSE_FILE("terminal.file.choose")
+    ;
 
     /**
      * the address string of message
