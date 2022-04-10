@@ -32,7 +32,11 @@ public enum ShellVerticleAddress implements IAddress{
     /**
      * execute the single command and response the execution's result.
      */
-    EXECUTE_SINGLE_COMMAND("ssh.exec.single.command")
+    EXECUTE_SINGLE_COMMAND("ssh.exec.single.command"),
+    /**
+     * execute the single command in certain shell and response the execution's result.
+     */
+    EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL("ssh.exec.single.command.in.certain.shell"),
     ;
 
     /**

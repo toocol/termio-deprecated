@@ -73,6 +73,10 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
                 Printer.println("exit-status: " + channelShell.getExitStatus());
                 break;
             }
+            if (Cache.JUST_CLOSE_EXHIBIT_SHELL) {
+                Cache.JUST_CLOSE_EXHIBIT_SHELL = false;
+                break;
+            }
         }
         promise.complete();
     }

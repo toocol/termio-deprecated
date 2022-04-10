@@ -3,20 +3,27 @@ package com.toocol.ssh.core.shell.handlers;
 import com.jcraft.jsch.ChannelSftp;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.common.utils.FileNameUtil;
+import com.toocol.ssh.common.utils.FileUtil;
+import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.shell.core.SftpChannelProvider;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.file.AsyncFile;
 import io.vertx.core.json.JsonObject;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.net.URL;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 import static com.toocol.ssh.core.file.FileVerticleAddress.CHOOSE_FILE;
-import static com.toocol.ssh.core.shell.ShellVerticleAddress.EXECUTE_SINGLE_COMMAND;
+import static com.toocol.ssh.core.shell.ShellVerticleAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
 import static com.toocol.ssh.core.shell.ShellVerticleAddress.START_UF_COMMAND;
 
 /**
@@ -46,7 +53,7 @@ public class UfHandler extends AbstractMessageHandler<Void> {
         StringBuilder remotePathBuilder = new StringBuilder();
         execRequest.put("sessionId", sessionId);
         execRequest.put("cmd", "pwd");
-        eventBus.request(EXECUTE_SINGLE_COMMAND.address(), execRequest, result -> {
+        eventBus.request(EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL.address(), execRequest, result -> {
             remotePathBuilder.append(Objects.requireNonNullElse(result.result().body(), "-1"));
             latch.countDown();
         });
@@ -67,8 +74,8 @@ public class UfHandler extends AbstractMessageHandler<Void> {
 
         ChannelSftp channelSftp = sftpChannelProvider.getChannelSftp(sessionId);
         latch.await();
-        Printer.println("Remote path ->" + remotePathBuilder);
-        Printer.println("Local  path ->" + localPathBuilder);
+        channelSftp.cd(remotePathBuilder.toString());
+        channelSftp.put(new FileInputStream(localPathBuilder.toString()), FileNameUtil.getName(localPathBuilder.toString()));
     }
 
     @Override

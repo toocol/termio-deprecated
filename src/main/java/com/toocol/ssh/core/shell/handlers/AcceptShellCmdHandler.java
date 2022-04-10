@@ -47,7 +47,9 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                 try {
                     String finalCmd = shellCommand.processCmd(eventBus, promise, sessionId, isBreak);
                     cmd.delete(0, cmd.length());
-                    cmd.append(finalCmd);
+                    if (finalCmd != null) {
+                        cmd.append(finalCmd);
+                    }
                 } catch (Exception e) {
                     // do noting
                 }
@@ -63,6 +65,10 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
 
             if (shell.getStatus().equals(Shell.Status.NORMAL)) {
                 shell.localLastCmd.set(cmd + "\r\n");
+            }
+
+            if (cmd.length() == 0) {
+                continue;
             }
             String actualCmd = cmd.toString().trim() + "\n";
             outputStream.write(actualCmd.getBytes(StandardCharsets.UTF_8));

@@ -21,6 +21,7 @@ import io.vertx.core.WorkerExecutor;
         ExhibitShellHandler.class,
         AcceptShellCmdHandler.class,
         ExecuteSingleCommandHandler.class,
+        ExecuteCommandInCertainShellHandler.class,
         DfHandler.class,
         UfHandler.class
 })

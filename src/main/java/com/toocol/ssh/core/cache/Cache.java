@@ -11,4 +11,5 @@ public class Cache {
 
     public volatile static boolean HANGED_ENTER = false;
 
+    public volatile static boolean JUST_CLOSE_EXHIBIT_SHELL = false;
 }
