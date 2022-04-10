@@ -269,7 +269,7 @@ public class Shell {
             }).start();
 
             mainLatch.await();
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         assert prompt.getValue() != null;
