@@ -27,12 +27,12 @@ public record CmdFeedbackExtractor(InputStream inputStream, String cmd, Shell sh
                 }
                 String msg = new String(tmp, 0, i);
                 Matcher matcher = Shell.PROMPT_PATTERN.matcher(msg);
-                String cleandMsg = msg.replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY);
+                String cleanedMsg = msg.replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY);
                 if (!matcher.find()
                         && !msg.contains(StrUtil.CRLF)
-                        && !cleandMsg.equals(cmd)
-                        && !cleandMsg.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY))
-                        && !cleandMsg.equals(shell.localLastCmd.get().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY))) {
+                        && !cleanedMsg.equals(cmd)
+                        && !cleanedMsg.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY))
+                        && !cleanedMsg.equals(shell.localLastCmd.get().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY))) {
                     feedback = msg;
                 } else {
                     shell.setPrompt(matcher.group(0) + StrUtil.SPACE);

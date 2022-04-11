@@ -44,6 +44,12 @@ public class UfHandler extends AbstractMessageHandler<Void> {
 
         CountDownLatch latch = new CountDownLatch(2);
         JsonObject execRequest = new JsonObject();
+
+        /*
+        * Although there is already a full path in Shell's object, we need send a 'pwd' command to get curren path no matter what.
+        * Because using the Shell's object full path, if user changed the directory before choosing the file, the upload path is changed too.
+        * We want the upload file path is the path where user input the 'uf' command.
+        **/
         StringBuilder remotePathBuilder = new StringBuilder();
         execRequest.put("sessionId", sessionId);
         execRequest.put("cmd", "pwd");
