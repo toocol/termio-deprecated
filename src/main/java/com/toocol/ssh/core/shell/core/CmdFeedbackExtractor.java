@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/11 15:14
  */
-public record CmdFeedbackExtractor(InputStream inputStream, String cmd) {
+public record CmdFeedbackExtractor(InputStream inputStream, String cmd, Shell shell) {
 
     public String extractFeedback() throws Exception {
         String feedback = null;
@@ -27,17 +27,25 @@ public record CmdFeedbackExtractor(InputStream inputStream, String cmd) {
                 }
                 String msg = new String(tmp, 0, i);
                 Matcher matcher = Shell.PROMPT_PATTERN.matcher(msg);
+                String cleandMsg = msg.replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY);
                 if (!matcher.find()
                         && !msg.contains(StrUtil.CRLF)
-                        && !msg.replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).equals(cmd)) {
+                        && !cleandMsg.equals(cmd)
+                        && !cleandMsg.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY))
+                        && !cleandMsg.equals(shell.localLastCmd.get().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY))) {
                     feedback = msg;
+                } else {
+                    shell.setPrompt(matcher.group(0) + StrUtil.SPACE);
+                    shell.extractUserFromPrompt();
                 }
 
                 if (msg.contains(StrUtil.CRLF)) {
                     for (String split : msg.split(StrUtil.CRLF)) {
                         Matcher insideMatcher = Shell.PROMPT_PATTERN.matcher(split);
                         if (!insideMatcher.find()
-                                && !split.replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).equals(cmd)) {
+                                && !split.replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).equals(cmd)
+                                && !split.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY))
+                                && !split.equals(shell.localLastCmd.get().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY))) {
                             feedback = split;
                         }
                     }

@@ -9,13 +9,16 @@ import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.shell.core.Shell;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonObject;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
 import static com.toocol.ssh.core.shell.ShellVerticleAddress.ACCEPT_SHELL_CMD;
+import static com.toocol.ssh.core.shell.ShellVerticleAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -77,6 +80,21 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             String actualCmd = cmd.toString().trim() + StrUtil.LF;
             outputStream.write(actualCmd.getBytes(StandardCharsets.UTF_8));
             outputStream.flush();
+
+            CountDownLatch latch = new CountDownLatch(1);
+            if (isCdCmd(shell.getLastRemoteCmd()) || isCdCmd(cmd.toString())) {
+                JsonObject request = new JsonObject();
+                request.put("sessionId", sessionId);
+                request.put("cmd", "pwd");
+                eventBus.request(EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL.address(), request, result -> {
+                    shell.setFullPath(cast(result.result().body()));
+                    latch.countDown();
+                });
+            } else {
+                latch.countDown();
+            }
+            latch.await();
+
         }
     }
 
@@ -90,5 +108,15 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             Cache.HANGED_QUIT = true;
         }
         eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 3);
+    }
+
+    private boolean isCdCmd(String cmd) {
+        String clearLastCmd = cmd
+                .trim()
+                .replaceAll(" {2,}"," ")
+                .replaceAll(StrUtil.CR, StrUtil.EMPTY)
+                .replaceAll(StrUtil.LF, StrUtil.EMPTY);
+
+        return "cd".equals(clearLastCmd.replaceAll(StrUtil.SPACE, StrUtil.EMPTY)) || clearLastCmd.startsWith("cd ");
     }
 }

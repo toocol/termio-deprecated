@@ -1,8 +1,11 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
+import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
+import com.toocol.ssh.core.shell.core.Shell;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -21,7 +24,27 @@ public class ShellDfCmdProcessor extends ShellCommandProcessor {
             return "";
         }
 
-        String remotePath = split[1];
+        String inputPath = split[1];
+        Shell shell = SessionCache.getInstance().getShell(sessionId);
+        String user = shell.getUser().get();
+        String currentPath = shell.getFullPath().get();
+
+        String remotePath = null;
+        if (inputPath.startsWith("./")) {
+            if ("~".equals(currentPath)) {
+                remotePath = "/" + user + inputPath.substring(1);
+            } else {
+                remotePath = currentPath + inputPath.substring(1);
+            }
+        } else if (inputPath.startsWith("../")) {
+            String[] singlePaths = currentPath.split("/");
+
+        } else if (inputPath.startsWith("/")) {
+
+        } else {
+
+        }
+
         eventBus.send(START_DF_COMMAND.address(), remotePath);
 
         return "";

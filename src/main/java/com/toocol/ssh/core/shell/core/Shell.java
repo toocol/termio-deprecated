@@ -1,6 +1,8 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.utils.*;
+import com.toocol.ssh.common.utils.CharUtil;
+import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.common.utils.StrUtil;
 import jline.ConsoleReader;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -44,19 +46,20 @@ public class Shell {
     private volatile boolean promptNow = false;
 
     public volatile AtomicReference<String> localLastCmd = new AtomicReference<>(StrUtil.EMPTY);
-    protected volatile AtomicReference<String> remoteCmd = new AtomicReference<>(StrUtil.EMPTY);
+    public volatile AtomicReference<String> remoteCmd = new AtomicReference<>(StrUtil.EMPTY);
     protected volatile AtomicReference<String> currentPrint = new AtomicReference<>(StrUtil.EMPTY);
     protected volatile String localLastInput = StrUtil.EMPTY;
+    protected volatile String lastRemoteCmd = StrUtil.EMPTY;
     private volatile Status status = Status.NORMAL;
 
     private final ShellPrinter shellPrinter = new ShellPrinter(this);
     protected final Set<String> tabFeedbackRec = new HashSet<>();
 
     private final StringBuffer cmd = new StringBuffer();
-    private final AtmomicReference<String> welcome = new AtmomicReference<>();
-    private final AtmomicReference<String> prompt = new AtmomicReference<>();
-    private final AtmomicReference<String> user = new AtmomicReference<>();
-    private final AtmomicReference<String> path = new AtmomicReference<>();
+    private final AtomicReference<String> welcome = new AtomicReference<>();
+    private final AtomicReference<String> prompt = new AtomicReference<>();
+    private final AtomicReference<String> user = new AtomicReference<>();
+    private final AtomicReference<String> fullPath = new AtomicReference<>();
 
     @AllArgsConstructor
     public enum Status {
@@ -82,8 +85,8 @@ public class Shell {
     public void print(String msg) {
         Matcher matcher = PROMPT_PATTERN.matcher(msg);
         if (matcher.find()) {
-            prompt.valueOf(matcher.group(0) + StrUtil.SPACE);
-            extractUserPathFromPrompt();
+            prompt.set(matcher.group(0) + StrUtil.SPACE);
+            extractUserFromPrompt();
             if (status.equals(Status.VIM_UNDER)) {
                 status = Status.NORMAL;
                 Printer.clear();
@@ -173,6 +176,7 @@ public class Shell {
                     }
                     localLastInput = localLastInputBuffer.toString();
                     currentPrint.set(StrUtil.EMPTY);
+                    lastRemoteCmd = remoteCmd.get();
                     remoteCmd.set(StrUtil.EMPTY);
                     Printer.print(StrUtil.CRLF);
                     status = Status.NORMAL;
@@ -198,6 +202,7 @@ public class Shell {
         if (isVimCmd) {
             status = Status.VIM_BEFORE;
         }
+
         return cmdStr;
     }
 
@@ -210,23 +215,35 @@ public class Shell {
     }
 
     public String getWelcome() {
-        return StringUtils.isEmpty(welcome.getValue()) ? null : welcome.getValue();
+        return StringUtils.isEmpty(welcome.get()) ? null : welcome.get();
     }
 
     public String getPrompt() {
-        return prompt.getValue();
+        return prompt.get();
     }
 
-    public AtmomicReference<String> getUser() {
+    public AtomicReference<String> getUser() {
         return user;
     }
 
-    public AtmomicReference<String> getPath() {
-        return path;
+    public AtomicReference<String> getFullPath() {
+        return fullPath;
     }
 
     public OutputStream getOutputStream() {
         return outputStream;
+    }
+
+    public String getLastRemoteCmd() {
+        return lastRemoteCmd;
+    }
+
+    public void setPrompt(String prompt) {
+        this.prompt.set(prompt);
+    }
+
+    public void setFullPath(String fullPath) {
+        this.fullPath.set(fullPath);
     }
 
     @SuppressWarnings("all")
@@ -265,11 +282,11 @@ public class Shell {
 
                             Matcher matcher = PROMPT_PATTERN.matcher(inputStr);
                             if (matcher.find()) {
-                                prompt.valueOf(matcher.group(0) + StrUtil.SPACE);
+                                prompt.set(matcher.group(0) + StrUtil.SPACE);
                                 returnWrite = true;
                                 break;
                             } else {
-                                welcome.valueOf(inputStr);
+                                welcome.set(inputStr);
                                 returnWrite = true;
                                 break;
                             }
@@ -279,7 +296,7 @@ public class Shell {
                             promptNow = true;
                         }
 
-                        if (StringUtils.isNoneEmpty(prompt.getValue())) {
+                        if (StringUtils.isNoneEmpty(prompt.get())) {
                             mainLatch.countDown();
                             break;
                         }
@@ -293,8 +310,9 @@ public class Shell {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        assert prompt.getValue() != null;
-        extractUserPathFromPrompt();
+        assert prompt.get() != null;
+        extractUserFromPrompt();
+        fullPath.set("/" + user.get());
         // this InputStream is already invalid.
         this.inputStream = null;
     }
@@ -306,12 +324,12 @@ public class Shell {
                 || "vi".equals(cmd) || "vim".equals(cmd);
     }
 
-    private void extractUserPathFromPrompt() {
-        String preprocess = prompt.getValue().trim().replaceAll("\\[", "")
+    public void extractUserFromPrompt() {
+        String preprocess = prompt.get().trim().replaceAll("\\[", "")
                 .replaceAll("]", "")
                 .replaceAll("#", "")
                 .trim();
-        user.valueOf(preprocess.split("@")[0]);
-        path.valueOf(preprocess.split(" ")[1]);
+        user.set(preprocess.split("@")[0]);
     }
+
 }

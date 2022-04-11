@@ -16,8 +16,8 @@ import static com.toocol.ssh.core.configuration.SystemConfiguration.BOOT_TYPE;
 public class VimCmdTestProcessor extends OutsideCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> tuple) {
-        tuple.first(true);
         if (!SystemConfiguration.HAVE_INSTALLED_VIM) {
+            tuple.first(false).second("Don't have Vim on this computer.");
             return;
         }
 
@@ -33,5 +33,6 @@ public class VimCmdTestProcessor extends OutsideCommandProcessor {
                 // do nothing
             }
         }).start();
+        tuple.first(true);
     }
 }

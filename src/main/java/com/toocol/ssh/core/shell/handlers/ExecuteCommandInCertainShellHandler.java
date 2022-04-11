@@ -60,7 +60,7 @@ public class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<
         outputStream.write((cmd + StrUtil.LF).getBytes(StandardCharsets.UTF_8));
         outputStream.flush();
 
-        String feedback = new CmdFeedbackExtractor(inputStream, cmd).extractFeedback();
+        String feedback = new CmdFeedbackExtractor(inputStream, cmd, shell).extractFeedback();
 
         eventBus.send(EXHIBIT_SHELL.address(), sessionId);
 

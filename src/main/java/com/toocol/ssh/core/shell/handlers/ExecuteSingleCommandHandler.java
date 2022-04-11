@@ -55,7 +55,7 @@ public class ExecuteSingleCommandHandler extends AbstractMessageHandler<String> 
         channelExec.setCommand(cmd);
         channelExec.connect();
 
-        String feedback = new CmdFeedbackExtractor(inputStream, cmd).extractFeedback();
+        String feedback = new CmdFeedbackExtractor(inputStream, cmd, shell).extractFeedback();
 
         channelExec.disconnect();
 
