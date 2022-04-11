@@ -41,7 +41,12 @@ public class TerminatioApplication extends Application {
         }
 
         SystemConfiguration.BOOT_TYPE = args[0];
-        Printer.printlnWithLogo("TerminalSystem register the vertx service.");
+        Printer.printlnWithLogo("TerminalApplication register the vertx service.");
+
+        /* launch the JavaFX */
+        Thread javaFxThread = new Thread(Application::launch);
+        javaFxThread.setName("java-fx-app-thread");
+        javaFxThread.start();
 
         /* Block the Ctrl+C */
         Signal.handle(new Signal("INT"), signal -> {
@@ -117,9 +122,6 @@ public class TerminatioApplication extends Application {
                 vertx.close();
                 Printer.printErr("Terminatio start up error, failed to accept command.");
                 System.exit(-1);
-            } finally {
-                /* launch the JavaFX */
-                launch();
             }
         });
     }

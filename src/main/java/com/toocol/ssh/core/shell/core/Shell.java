@@ -115,10 +115,18 @@ public class Shell {
                 outputStream.flush();
             } else {
                 if (inChar == CharUtil.CTRL_C) {
-                    // Ctrl+C
+
                     outputStream.write(inChar);
                     outputStream.flush();
+
+                } else if (inChar == CharUtil.UP_ARROW || inChar == CharUtil.DOWN_ARROW) {
+
+                    localLastCmd.set("");
+                    outputStream.write(inChar);
+                    outputStream.flush();
+
                 } else if (inChar == CharUtil.TAB) {
+
                     if (status.equals(Status.NORMAL)) {
                         localLastCmd.set(cmd.toString());
                         remoteCmd.set(cmd.toString());
@@ -131,7 +139,9 @@ public class Shell {
                     outputStream.flush();
                     cmd.delete(0, cmd.length());
                     status = Status.TAB_ACCOMPLISH;
+
                 } else if (inChar == CharUtil.BACKSPACE) {
+
                     if (cmd.toString().trim().length() == 0 && status.equals(Status.NORMAL)) {
                         continue;
                     }
@@ -155,7 +165,9 @@ public class Shell {
                         localLastInputBuffer = new StringBuilder(localLastInputBuffer.substring(0, localLastInputBuffer.length() - 1));
                     }
                     Printer.virtualBackspace();
+
                 } else if (inChar == CharUtil.CR || inChar == CharUtil.LF) {
+
                     if (status.equals(Status.TAB_ACCOMPLISH)) {
                         localLastCmd.set(remoteCmd.get() + StrUtil.CRLF);
                     }
@@ -164,8 +176,10 @@ public class Shell {
                     remoteCmd.set(StrUtil.EMPTY);
                     Printer.print(StrUtil.CRLF);
                     status = Status.NORMAL;
+
                     break;
                 } else if (CharUtil.isAsciiPrintable(inChar)){
+
                     if (status.equals(Status.TAB_ACCOMPLISH)) {
                         remoteCmd.getAndUpdate(prev -> prev + inChar);
                         localLastCmd.getAndUpdate(prev -> prev + inChar);
@@ -174,6 +188,7 @@ public class Shell {
                     cmd.append(inChar);
                     localLastInputBuffer.append(inChar);
                     Printer.print(String.valueOf(inChar));
+
                 }
             }
         }

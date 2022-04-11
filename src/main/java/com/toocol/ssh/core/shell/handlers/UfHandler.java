@@ -59,15 +59,18 @@ public class UfHandler extends AbstractMessageHandler<Void> {
             latch.countDown();
         });
 
+        latch.await();
+
         if ("-1".equals(remotePathBuilder.toString())) {
             promise.fail("-1");
+            return;
         }
         if ("-1".equals(localPathBuilder.toString())) {
             promise.fail("-1");
+            return;
         }
 
         ChannelSftp channelSftp = sftpChannelProvider.getChannelSftp(sessionId);
-        latch.await();
         channelSftp.cd(remotePathBuilder.toString());
         channelSftp.put(new FileInputStream(localPathBuilder.toString()), FileNameUtil.getName(localPathBuilder.toString()));
     }

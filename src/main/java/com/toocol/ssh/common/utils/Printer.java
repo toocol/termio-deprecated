@@ -62,12 +62,12 @@ public class Printer {
     }
 
     public static void printTitleAndInfo() {
-        PRINT.println("Terminatio\tv" + PomUtil.getVersion() + "\n" +
-                "Website\t\thttps://github.com/Joezeo/terminatio\n" +
-                "OS\t\t" + System.getProperty("os.name") + "\n" +
-                "Shell env\t" + BOOT_TYPE + "\n" +
-                "Memory use\ttotal:" + totalMemory() + "MB, max:" + maxMemory() + "MB, free:" + freeMemory() + "MB, used:" + usedMemory() + "MB\n" +
-                "Hang-up\t\t" + SessionCache.getHangUp() + "\n"
+        PRINT.println("terminatio\tv" + PomUtil.getVersion() + "\n" +
+                "website\t\thttps://github.com/Joezeo/terminatio\n" +
+                "os\t\t" + System.getProperty("os.name") + "\n" +
+                "shell env\t" + BOOT_TYPE + "\n" +
+                "memory use\ttotal:" + totalMemory() + "MB, max:" + maxMemory() + "MB, free:" + freeMemory() + "MB, used:" + usedMemory() + "MB\n" +
+                "hang-up\t\t" + SessionCache.getHangUp() + "\n"
         );
     }
 

@@ -3,8 +3,10 @@ package com.toocol.ssh.core.shell.handlers;
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.cache.Cache;
 import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.shell.core.CmdFeedbackExtractor;
 import com.toocol.ssh.core.shell.core.Shell;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Promise;
@@ -16,7 +18,6 @@ import io.vertx.core.json.JsonObject;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.regex.Matcher;
 
 import static com.toocol.ssh.core.shell.ShellVerticleAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
 import static com.toocol.ssh.core.shell.ShellVerticleAddress.EXHIBIT_SHELL;
@@ -56,38 +57,10 @@ public class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<
 
         InputStream inputStream = channelShell.getInputStream();
         OutputStream outputStream = shell.getOutputStream();
-        outputStream.write((cmd+"\n").getBytes(StandardCharsets.UTF_8));
+        outputStream.write((cmd + StrUtil.LF).getBytes(StandardCharsets.UTF_8));
         outputStream.flush();
 
-        String feedback = null;
-
-        long startTime = System.currentTimeMillis();
-        byte[] tmp = new byte[1024];
-        do {
-            if (System.currentTimeMillis() - startTime >= 10000) {
-                feedback = "";
-            }
-            while (inputStream.available() > 0) {
-                int i = inputStream.read(tmp, 0, 1024);
-                if (i < 0) {
-                    break;
-                }
-                String msg = new String(tmp, 0, i);
-                Matcher matcher = Shell.PROMPT_PATTERN.matcher(msg);
-                if (!matcher.find() && !msg.contains("\r\n") && !msg.replaceAll("\r", "").replaceAll("\n", "").equals(cmd)) {
-                    feedback = msg;
-                }
-
-                if (msg.contains("\r\n")) {
-                    for (String split : msg.split("\r\n")) {
-                        Matcher insideMatcher = Shell.PROMPT_PATTERN.matcher(split);
-                        if (!insideMatcher.find() && !split.replaceAll("\r", "").replaceAll("\n", "").equals(cmd)) {
-                            feedback = split;
-                        }
-                    }
-                }
-            }
-        } while (feedback == null);
+        String feedback = new CmdFeedbackExtractor(inputStream, cmd).extractFeedback();
 
         eventBus.send(EXHIBIT_SHELL.address(), sessionId);
 

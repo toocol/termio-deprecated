@@ -8,6 +8,14 @@ package com.toocol.ssh.common.utils;
  */
 public class CharUtil {
     /**
+     * {@code up-arrow}
+     */
+    public static final char UP_ARROW = '\u0010';
+    /**
+     * {@code down-arrow}
+     */
+    public static final char DOWN_ARROW = '\u000E';
+    /**
      * {@code Ctrl+C}
      */
     public static final char CTRL_C = '\u0003';
