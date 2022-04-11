@@ -1,9 +1,6 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.utils.CharUtil;
-import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.common.utils.Single;
-import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.common.utils.*;
 import jline.ConsoleReader;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -56,8 +53,10 @@ public class Shell {
     protected final Set<String> tabFeedbackRec = new HashSet<>();
 
     private final StringBuffer cmd = new StringBuffer();
-    private final Single<String> welcome = new Single<>();
-    private final Single<String> prompt = new Single<>();
+    private final AtmomicReference<String> welcome = new AtmomicReference<>();
+    private final AtmomicReference<String> prompt = new AtmomicReference<>();
+    private final AtmomicReference<String> user = new AtmomicReference<>();
+    private final AtmomicReference<String> path = new AtmomicReference<>();
 
     @AllArgsConstructor
     public enum Status {
@@ -84,6 +83,7 @@ public class Shell {
         Matcher matcher = PROMPT_PATTERN.matcher(msg);
         if (matcher.find()) {
             prompt.valueOf(matcher.group(0) + StrUtil.SPACE);
+            extractUserPathFromPrompt();
             if (status.equals(Status.VIM_UNDER)) {
                 status = Status.NORMAL;
                 Printer.clear();
@@ -217,6 +217,14 @@ public class Shell {
         return prompt.getValue();
     }
 
+    public AtmomicReference<String> getUser() {
+        return user;
+    }
+
+    public AtmomicReference<String> getPath() {
+        return path;
+    }
+
     public OutputStream getOutputStream() {
         return outputStream;
     }
@@ -286,6 +294,7 @@ public class Shell {
             e.printStackTrace();
         }
         assert prompt.getValue() != null;
+        extractUserPathFromPrompt();
         // this InputStream is already invalid.
         this.inputStream = null;
     }
@@ -295,5 +304,14 @@ public class Shell {
         return StringUtils.startsWith(cmd, "vi ") || StringUtils.startsWith(cmd, "vim ")
                 || StringUtils.startsWith(cmd, "sudo vi ") || StringUtils.startsWith(cmd, "sudo vim ")
                 || "vi".equals(cmd) || "vim".equals(cmd);
+    }
+
+    private void extractUserPathFromPrompt() {
+        String preprocess = prompt.getValue().trim().replaceAll("\\[", "")
+                .replaceAll("]", "")
+                .replaceAll("#", "")
+                .trim();
+        user.valueOf(preprocess.split("@")[0]);
+        path.valueOf(preprocess.split(" ")[1]);
     }
 }

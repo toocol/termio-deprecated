@@ -37,7 +37,7 @@ public enum OutsideCommand {
     }
 
     public static Optional<OutsideCommand> cmdOf(String cmd) {
-        String originCmd = cmd.trim().split(" ")[0].toLowerCase();
+        String originCmd = cmd.trim().replaceAll(" {2,}"," ").split(" ")[0];
         OutsideCommand outsideCommand = null;
         for (OutsideCommand command : values()) {
             if (command.cmd.equals(originCmd)) {

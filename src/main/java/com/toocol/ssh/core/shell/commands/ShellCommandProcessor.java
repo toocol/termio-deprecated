@@ -20,6 +20,6 @@ public abstract class ShellCommandProcessor {
      * @param isBreak break the shell accept cycle
      * @return final cmd should be executed
      */
-    public abstract String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak);
+    public abstract String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak, String cmd);
 
 }

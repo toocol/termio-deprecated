@@ -47,7 +47,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             AtomicBoolean isContinue = new AtomicBoolean();
             ShellCommand.cmdOf(cmd.toString()).ifPresent(shellCommand -> {
                 try {
-                    String finalCmd = shellCommand.processCmd(eventBus, promise, sessionId, isBreak);
+                    String finalCmd = shellCommand.processCmd(eventBus, promise, sessionId, isBreak, cmd.toString());
                     cmd.delete(0, cmd.length());
                     if (finalCmd != null) {
                         cmd.append(finalCmd);

@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ShellHangCmdProcessor extends ShellCommandProcessor {
     @Override
-    public String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak) {
+    public String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak, String cmd) {
         isBreak.set(true);
         promise.fail("Hang up the session.");
         return "";

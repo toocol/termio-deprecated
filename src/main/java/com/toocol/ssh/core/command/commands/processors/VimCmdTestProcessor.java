@@ -17,7 +17,7 @@ public class VimCmdTestProcessor extends OutsideCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> tuple) {
         tuple.first(true);
-        if (!SystemConfiguration.HAVE_INSTALL_VIM) {
+        if (!SystemConfiguration.HAVE_INSTALLED_VIM) {
             return;
         }
 
@@ -28,7 +28,7 @@ public class VimCmdTestProcessor extends OutsideCommandProcessor {
                         .inheritIO()
                         .start()
                         .waitFor();
-                eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 2);
+                eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 3);
             } catch (Exception e) {
                 // do nothing
             }

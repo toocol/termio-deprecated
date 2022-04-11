@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ShellExitCmdProcessor extends ShellCommandProcessor {
     @Override
-    public String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak) {
+    public String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak, String cmd) {
         isBreak.set(true);
         promise.complete(sessionId);
         return "";

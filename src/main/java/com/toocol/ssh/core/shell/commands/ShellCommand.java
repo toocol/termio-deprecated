@@ -34,20 +34,21 @@ public enum ShellCommand {
     }
 
     public static Optional<ShellCommand> cmdOf(String cmd) {
-        ShellCommand outsideCommand = null;
+        String originCmd = cmd.trim().replaceAll(" {2,}"," ").split(" ")[0];
+        ShellCommand shellCommand = null;
         for (ShellCommand command : values()) {
-            if (command.cmd.equals(cmd)) {
-                outsideCommand = command;
+            if (command.cmd.equals(originCmd)) {
+                shellCommand = command;
             }
         }
-        return Optional.ofNullable(outsideCommand);
+        return Optional.ofNullable(shellCommand);
     }
 
-    public final String processCmd(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak) throws Exception {
+    public final String processCmd(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak, String msg) throws Exception {
         if (this.commandProcessor == null) {
             return "";
         }
-        return this.commandProcessor.process(eventBus, promise, sessionId, isBreak);
+        return this.commandProcessor.process(eventBus, promise, sessionId, isBreak, msg);
     }
 
     public String cmd() {

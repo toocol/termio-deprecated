@@ -15,21 +15,22 @@ public class SystemConfiguration {
     public static final String BOOT_TYPE_CMD = "cmd";
     public static final String BOOT_TYPE_BASH = "bash";
 
-    public static final boolean HAVE_INSTALL_VIM;
+    public static final boolean HAVE_INSTALLED_VIM;
     static {
         Map<String, String> map = System.getenv();
         boolean flag = false;
         for (String key : map.keySet()) {
             if (OsUtil.isWindows() && "Path".equals(key)) {
                 for (String path : map.get(key).split(";")) {
-                    if (path.toLowerCase().contains("vim")) {
+                    String[] split = path.split("\\\\");
+                    if (split[split.length - 1].toLowerCase().contains("vim")) {
                         flag = true;
                         break;
                     }
                 }
             }
         }
-        HAVE_INSTALL_VIM = flag;
+        HAVE_INSTALLED_VIM = flag;
     }
 
     public static String BOOT_TYPE;

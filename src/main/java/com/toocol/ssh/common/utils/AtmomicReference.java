@@ -5,15 +5,15 @@ package com.toocol.ssh.common.utils;
  * @date: 2022/4/3 21:09
  * @version: 0.0.1
  */
-public class Single<V> {
+public class AtmomicReference<V> {
 
     private volatile V value;
 
-    public Single(V var1) {
+    public AtmomicReference(V var1) {
         this.value = var1;
     }
 
-    public Single() {
+    public AtmomicReference() {
     }
 
     public V getValue() {
