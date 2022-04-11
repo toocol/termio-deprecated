@@ -55,17 +55,19 @@ public class Printer {
         PRINT.println("<error> " + msg);
     }
 
+    public static void virtualBackspace() {
+        Printer.print("\b");
+        Printer.print(" ");
+        Printer.print("\b");
+    }
+
     public static void printTitleAndInfo() {
-        PRINT.println(
-                " _____ _____ _____ _____ ____ _____ _____ _____ ____ _____                   \n" +
-                "|_   _|   __| __  |     |    |   | |  _  |_   _|    |  _  |                  \n" +
-                "  | | |   __|    -| | | |-  -| | | |     | | | |-  -|  |  |                  \n" +
-                "  |_| |_____|__|__|_|_|_|____|_|___|__|__| |_| |____|_____|                  \n\n" +
-                "website\t\thttps://github.com/Joezeo/terminatio\n" +
-                "os\t\t" + System.getProperty("os.name") + "\n" +
-                "shell env\t" + BOOT_TYPE + "\n" +
-                "memory use\ttotal:" + totalMemory() + "MB, max:" + maxMemory() + "MB, free:" + freeMemory() + "MB, used:" + usedMemory() + "MB\n" +
-                "hang-up\t\t" + SessionCache.getHangUp() + "\n"
+        PRINT.println("Terminatio\tv" + PomUtil.getVersion() + "\n" +
+                "Website\t\thttps://github.com/Joezeo/terminatio\n" +
+                "OS\t\t" + System.getProperty("os.name") + "\n" +
+                "Shell env\t" + BOOT_TYPE + "\n" +
+                "Memory use\ttotal:" + totalMemory() + "MB, max:" + maxMemory() + "MB, free:" + freeMemory() + "MB, used:" + usedMemory() + "MB\n" +
+                "Hang-up\t\t" + SessionCache.getHangUp() + "\n"
         );
     }
 

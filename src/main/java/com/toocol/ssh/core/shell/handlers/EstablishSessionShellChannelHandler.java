@@ -82,15 +82,22 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
                 System.gc();
             }
         } else {
+            boolean reopenChannelShell = false;
             boolean regenerateShell = false;
             Session session = sessionCache.getSession(sessionId);
             if (!session.isConnected()) {
                 session.connect();
+                reopenChannelShell = true;
                 regenerateShell = true;
             }
 
             ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
-            if (channelShell.isClosed() || !channelShell.isConnected()) {
+            if (reopenChannelShell) {
+                sessionCache.stopChannelShell(sessionId);
+                channelShell = cast(session.openChannel("shell"));
+                channelShell.connect();
+                sessionCache.putChannelShell(sessionId, channelShell);
+            } else if (channelShell.isClosed() || !channelShell.isConnected()) {
                 channelShell.connect();
                 regenerateShell = true;
             }

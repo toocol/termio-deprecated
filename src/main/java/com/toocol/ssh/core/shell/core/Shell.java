@@ -46,10 +46,10 @@ public class Shell {
     private volatile boolean returnWrite = false;
     private volatile boolean promptNow = false;
 
-    public volatile AtomicReference<String> localLastCmd = new AtomicReference<>("");
-    protected volatile AtomicReference<String> remoteCmd = new AtomicReference<>("");
-    protected volatile AtomicReference<String> currentPrint = new AtomicReference<>("");
-    protected volatile String localLastInput = "";
+    public volatile AtomicReference<String> localLastCmd = new AtomicReference<>(StrUtil.EMPTY);
+    protected volatile AtomicReference<String> remoteCmd = new AtomicReference<>(StrUtil.EMPTY);
+    protected volatile AtomicReference<String> currentPrint = new AtomicReference<>(StrUtil.EMPTY);
+    protected volatile String localLastInput = StrUtil.EMPTY;
     private volatile Status status = Status.NORMAL;
 
     private final ShellPrinter shellPrinter = new ShellPrinter(this);
@@ -114,11 +114,11 @@ public class Shell {
                 outputStream.write(inChar);
                 outputStream.flush();
             } else {
-                if (inChar == '\u0003') {
+                if (inChar == CharUtil.CTRL_C) {
                     // Ctrl+C
-                    outputStream.write(3);
+                    outputStream.write(inChar);
                     outputStream.flush();
-                } else if (inChar == '\t') {
+                } else if (inChar == CharUtil.TAB) {
                     if (status.equals(Status.NORMAL)) {
                         localLastCmd.set(cmd.toString());
                         remoteCmd.set(cmd.toString());
@@ -127,11 +127,11 @@ public class Shell {
                     localLastInputBuffer = new StringBuilder();
                     cmd.append(inChar);
                     tabFeedbackRec.clear();
-                    outputStream.write(cmd.append("\t").toString().getBytes(StandardCharsets.UTF_8));
+                    outputStream.write(cmd.append(CharUtil.TAB).toString().getBytes(StandardCharsets.UTF_8));
                     outputStream.flush();
                     cmd.delete(0, cmd.length());
                     status = Status.TAB_ACCOMPLISH;
-                } else if (inChar == '\b') {
+                } else if (inChar == CharUtil.BACKSPACE) {
                     if (cmd.toString().trim().length() == 0 && status.equals(Status.NORMAL)) {
                         continue;
                     }
@@ -154,20 +154,18 @@ public class Shell {
                     if (localLastInputBuffer.length() > 0) {
                         localLastInputBuffer = new StringBuilder(localLastInputBuffer.substring(0, localLastInputBuffer.length() - 1));
                     }
-                    Printer.print("\b");
-                    Printer.print(" ");
-                    Printer.print("\b");
+                    Printer.virtualBackspace();
                 } else if (inChar == CharUtil.CR || inChar == CharUtil.LF) {
                     if (status.equals(Status.TAB_ACCOMPLISH)) {
                         localLastCmd.set(remoteCmd.get() + StrUtil.CRLF);
                     }
                     localLastInput = localLastInputBuffer.toString();
-                    currentPrint.set("");
-                    remoteCmd.set("");
+                    currentPrint.set(StrUtil.EMPTY);
+                    remoteCmd.set(StrUtil.EMPTY);
                     Printer.print(StrUtil.CRLF);
                     status = Status.NORMAL;
                     break;
-                } else {
+                } else if (CharUtil.isAsciiPrintable(inChar)){
                     if (status.equals(Status.TAB_ACCOMPLISH)) {
                         remoteCmd.getAndUpdate(prev -> prev + inChar);
                         localLastCmd.getAndUpdate(prev -> prev + inChar);
@@ -221,7 +219,7 @@ public class Shell {
                         }
                     } while (!promptNow);
 
-                    outputStream.write("\n".getBytes(StandardCharsets.UTF_8));
+                    outputStream.write(StrUtil.LF.getBytes(StandardCharsets.UTF_8));
                     outputStream.flush();
                 } catch (IOException e) {
                     e.printStackTrace();

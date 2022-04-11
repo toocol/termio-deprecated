@@ -51,9 +51,9 @@ public abstract class AbstractMessageHandler<R> implements ICastable {
      */
     public <T> void handle(Message<T> message) {
         executor.executeBlocking(
-                future -> {
+                promise -> {
                     try {
-                        handleWithinBlocking(cast(future), message);
+                        handleWithinBlocking(cast(promise), message);
                     } catch (Exception e) {
                         Printer.println("Caught handle exception, exit program. message=" + e.getMessage());
                         System.exit(-1);

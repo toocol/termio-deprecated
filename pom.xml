@@ -3,10 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.toocol</groupId>
     <artifactId>terminatio</artifactId>
-    <version>0.0.1</version>
+    <version>${project.version}</version>
     <name>terminatio</name>
 
     <properties>
+        <project.version>0.0.1</project.version>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.class>com.toocol.ssh.TerminatioApplication</main.class>
@@ -112,5 +113,12 @@
                 </executions>
             </plugin>
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
     </build>
 </project>

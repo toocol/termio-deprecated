@@ -2,6 +2,7 @@ package com.toocol.ssh.core.shell.handlers;
 
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.cache.Cache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
@@ -70,10 +71,10 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             }
 
             if (shell.getStatus().equals(Shell.Status.NORMAL)) {
-                shell.localLastCmd.set(cmd + "\r\n");
+                shell.localLastCmd.set(cmd + StrUtil.CRLF);
             }
 
-            String actualCmd = cmd.toString().trim() + "\n";
+            String actualCmd = cmd.toString().trim() + StrUtil.LF;
             outputStream.write(actualCmd.getBytes(StandardCharsets.UTF_8));
             outputStream.flush();
         }

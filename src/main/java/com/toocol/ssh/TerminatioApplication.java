@@ -85,7 +85,7 @@ public class TerminatioApplication extends Application {
         );
 
         /* Deploy the final verticle */
-        vertx.executeBlocking(future -> {
+        vertx.executeBlocking(promise -> {
             Set<Class<?>> finalClassList = new ClassScanner("com.toocol.ssh.core", clazz -> clazz.isAnnotationPresent(FinalDeployment.class)).scan();
             finalClassList.forEach(finalVerticle -> {
                 if (!finalVerticle.getSuperclass().equals(AbstractVerticle.class)) {
@@ -97,7 +97,7 @@ public class TerminatioApplication extends Application {
                     if (!ret) {
                         throw new RuntimeException();
                     }
-                    vertx.deployVerticle(finalVerticle.getName(), complete -> future.complete());
+                    vertx.deployVerticle(finalVerticle.getName(), complete -> promise.complete());
                 } catch (Exception e) {
                     vertx.close();
                     Printer.printErr("Terminatio start up failed.");
@@ -118,7 +118,7 @@ public class TerminatioApplication extends Application {
                 Printer.printErr("Terminatio start up error, failed to accept command.");
                 System.exit(-1);
             } finally {
-                /* launch the JavaFx */
+                /* launch the JavaFX */
                 launch();
             }
         });

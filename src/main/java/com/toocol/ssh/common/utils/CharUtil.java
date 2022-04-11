@@ -7,7 +7,14 @@ package com.toocol.ssh.common.utils;
  * @author Joezeo
  */
 public class CharUtil {
-
+    /**
+     * {@code Ctrl+C}
+     */
+    public static final char CTRL_C = '\u0003';
+    /**
+     * {@code backspace}
+     */
+    public static final char BACKSPACE = '\b';
     /**
      * {@code ' '}
      */
@@ -15,7 +22,7 @@ public class CharUtil {
     /**
      * {@code '\t'}
      */
-    public static final char TAB = '	';
+    public static final char TAB = '\t';
     /**
      * {@code '.'}
      */

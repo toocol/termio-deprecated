@@ -6,7 +6,6 @@ import com.toocol.ssh.core.shell.core.Shell;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -23,8 +22,8 @@ public class SessionCache {
     }
 
     public static int getHangUp() {
-        return INSTANCE.channelShellMap.entrySet().stream()
-                .filter(entry -> !entry.getValue().isClosed())
+        return INSTANCE.sessionMap.entrySet().stream()
+                .filter(entry -> entry.getValue().isConnected())
                 .toList()
                 .size();
     }
@@ -66,6 +65,13 @@ public class SessionCache {
 
     public Shell getShell(Long sessionId) {
         return shellMap.get(sessionId);
+    }
+
+    public void stopChannelShell(long sessionId) {
+        channelShellMap.computeIfPresent(sessionId, (k, v) -> {
+            v.disconnect();
+            return null;
+        });
     }
 
     public void stop(long sessionId) {
