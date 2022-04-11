@@ -5,6 +5,7 @@ import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.CastUtil;
 import com.toocol.ssh.common.utils.ClassScanner;
 import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.cache.Cache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.configuration.SystemConfiguration;
 import io.vertx.core.AbstractVerticle;
@@ -29,7 +30,7 @@ import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_
  * @email joezane.cn@gmail.com
  * @date 2021/2/19 15:00
  */
-public class TerminatioSystem extends Application {
+public class TerminatioApplication extends Application {
 
     private static final long BLOCKED_CHECK_INTERVAL = 30 * 24 * 60 * 60 * 1000L;
 
@@ -105,9 +106,13 @@ public class TerminatioSystem extends Application {
             });
         }, res -> {
             try {
-                Printer.loading();
-                vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), 0);
-                System.gc();
+                while (true) {
+                    if (Cache.LOADING_ACCOMPLISH) {
+                        vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), 0);
+                        System.gc();
+                        break;
+                    }
+                }
             } catch (Exception e) {
                 vertx.close();
                 Printer.printErr("Terminatio start up error, failed to accept command.");

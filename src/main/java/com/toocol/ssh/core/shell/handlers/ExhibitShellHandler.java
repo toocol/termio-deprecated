@@ -32,14 +32,15 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
     }
 
     @Override
-    protected <T> void handleWithin(Promise<Void> promise, Message<T> message) throws Exception {
+    protected <T> void handleWithinBlocking(Promise<Void> promise, Message<T> message) throws Exception {
         long sessionId = cast(message.body());
 
         ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
         Shell shell = sessionCache.getShell(sessionId);
 
-        if (shell.getWelcome() != null) {
+        if (shell.getWelcome() != null && Cache.SHOW_WELCOME) {
             Printer.print(shell.getWelcome());
+            Cache.SHOW_WELCOME = false;
         }
 
         Printer.print(shell.getPrompt());
@@ -82,7 +83,7 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Void> {
     }
 
     @Override
-    protected <T> void resultWithin(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultWithinBlocking(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
 
     }
 }

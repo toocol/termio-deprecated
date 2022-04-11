@@ -8,7 +8,6 @@ import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.shell.core.Shell;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
-import org.checkerframework.checker.units.qual.A;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +34,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
     }
 
     @Override
-    protected <T> void handleWithin(Promise<Long> promise, Message<T> message) throws Exception {
+    protected <T> void handleWithinBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         long sessionId = cast(message.body());
         Shell shell = sessionCache.getShell(sessionId);
         OutputStream outputStream = shell.getOutputStream();
@@ -81,7 +80,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
     }
 
     @Override
-    protected <T> void resultWithin(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         if (asyncResult.succeeded()) {
             long sessionId = asyncResult.result();
             sessionCache.stop(sessionId);

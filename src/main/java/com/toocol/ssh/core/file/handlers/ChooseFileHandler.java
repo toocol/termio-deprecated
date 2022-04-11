@@ -31,7 +31,7 @@ public class ChooseFileHandler extends AbstractMessageHandler<String> {
     }
 
     @Override
-    protected <T> void handleWithin(Promise<String> promise, Message<T> message) throws Exception {
+    protected <T> void handleWithinBlocking(Promise<String> promise, Message<T> message) throws Exception {
         Platform.runLater(() -> {
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(null);
@@ -40,7 +40,7 @@ public class ChooseFileHandler extends AbstractMessageHandler<String> {
     }
 
     @Override
-    protected <T> void resultWithin(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultWithinBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
         message.reply(asyncResult.result());
     }
 }

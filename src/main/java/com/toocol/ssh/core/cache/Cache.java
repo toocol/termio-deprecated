@@ -7,9 +7,14 @@ package com.toocol.ssh.core.cache;
  */
 public class Cache {
 
+    public volatile static boolean LOADING_ACCOMPLISH = false;
+
     public volatile static boolean HANGED_QUIT = false;
 
     public volatile static boolean HANGED_ENTER = false;
 
     public volatile static boolean JUST_CLOSE_EXHIBIT_SHELL = false;
+
+    public volatile static boolean SHOW_WELCOME = false;
+
 }

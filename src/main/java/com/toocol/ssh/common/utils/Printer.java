@@ -15,6 +15,8 @@ import static com.toocol.ssh.core.configuration.SystemConfiguration.*;
  * @date 2021/2/19 16:20
  */
 public class Printer {
+    private static final PrintStream PRINT = System.out;
+
     private static final Runtime RUNTIME = Runtime.getRuntime();
 
     private static long totalMemory() {
@@ -32,10 +34,6 @@ public class Printer {
     private static long usedMemory() {
         return totalMemory() - freeMemory();
     }
-
-    private static final PrintStream PRINT = System.out;
-
-    private static final int LOADING_COUNT = 3;
 
     public static void print(String msg) {
         PRINT.print(msg);
@@ -93,18 +91,6 @@ public class Printer {
     public static void printHelp() {
         OutsideCommand.printHelp();
         ShellCommand.printHelp();
-    }
-
-    public static void loading() {
-        try {
-            PRINT.print("loading");
-            for (int idx = 0; idx < LOADING_COUNT; idx++) {
-                Thread.sleep(400);
-                PRINT.print(".");
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     public static void clear() {

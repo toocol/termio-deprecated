@@ -26,7 +26,7 @@ public class ExecuteOutsideCommandHandler extends AbstractMessageHandler<Tuple2<
     }
 
     @Override
-    protected <T> void handleWithin(Promise<Tuple2<Boolean, String>> promise, Message<T> message) {
+    protected <T> void handleWithinBlocking(Promise<Tuple2<Boolean, String>> promise, Message<T> message) {
         String cmd = String.valueOf(message.body());
         Tuple2<Boolean, String> resultAndMessage = new Tuple2<>();
         OutsideCommand.cmdOf(cmd)
@@ -41,7 +41,7 @@ public class ExecuteOutsideCommandHandler extends AbstractMessageHandler<Tuple2<
     }
 
     @Override
-    protected <T> void resultWithin(AsyncResult<Tuple2<Boolean, String>> asyncResult, Message<T> message) {
+    protected <T> void resultWithinBlocking(AsyncResult<Tuple2<Boolean, String>> asyncResult, Message<T> message) {
         Tuple2<Boolean, String> resultAndMessage = asyncResult.result();
         if (resultAndMessage._1()) {
             message.reply(null);

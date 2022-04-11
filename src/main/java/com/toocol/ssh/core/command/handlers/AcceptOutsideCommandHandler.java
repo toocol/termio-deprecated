@@ -36,7 +36,7 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
     }
 
     @Override
-    protected <T> void handleWithin(Promise<Boolean> promise, Message<T> message) {
+    protected <T> void handleWithinBlocking(Promise<Boolean> promise, Message<T> message) {
         try {
             int signal = cast(message.body());
             if (signal == NORMAL_BACK || signal == FIRST_IN) {
@@ -94,7 +94,7 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
     }
 
     @Override
-    protected <T> void resultWithin(AsyncResult<Boolean> asyncResult, Message<T> message) {
+    protected <T> void resultWithinBlocking(AsyncResult<Boolean> asyncResult, Message<T> message) {
         if (asyncResult.result()) {
             eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 1);
         }

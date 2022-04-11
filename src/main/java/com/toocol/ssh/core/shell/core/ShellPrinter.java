@@ -7,15 +7,9 @@ import org.apache.commons.lang3.StringUtils;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/6 13:05
  */
-public class ShellPrinter {
+public record ShellPrinter(Shell shell) {
 
-    private final Shell shell;
-
-    public ShellPrinter(Shell shell) {
-        this.shell = shell;
-    }
-
-    protected void printInNormal(String msg) {
+    void printInNormal(String msg) {
         if (shell.localLastCmd.get().equals(msg)) {
             return;
         } else if (msg.startsWith("\b\u001B[K")) {
@@ -37,11 +31,11 @@ public class ShellPrinter {
         Printer.print(msg);
     }
 
-    protected void printInVim(String msg) {
+    void printInVim(String msg) {
         Printer.print(msg);
     }
 
-    protected void printInTabAccomplish(String msg) {
+    void printInTabAccomplish(String msg) {
         if (StringUtils.isEmpty(msg)) {
             return;
         }

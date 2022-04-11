@@ -26,7 +26,7 @@ public class DeleteCredentialHandler extends AbstractMessageHandler<Boolean> {
     }
 
     @Override
-    protected <T> void handleWithin(Promise<Boolean> promise, Message<T> message) throws Exception {
+    protected <T> void handleWithinBlocking(Promise<Boolean> promise, Message<T> message) throws Exception {
         int index = cast(message.body());
         CredentialCache.deleteCredential(index);
 
@@ -38,7 +38,7 @@ public class DeleteCredentialHandler extends AbstractMessageHandler<Boolean> {
     }
 
     @Override
-    protected <T> void resultWithin(AsyncResult<Boolean> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultWithinBlocking(AsyncResult<Boolean> asyncResult, Message<T> message) throws Exception {
         message.reply(null);
     }
 }

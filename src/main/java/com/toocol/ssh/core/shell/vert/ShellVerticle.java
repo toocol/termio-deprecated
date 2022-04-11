@@ -1,12 +1,9 @@
 package com.toocol.ssh.core.shell.vert;
 
-import com.jcraft.jsch.JSch;
 import com.toocol.ssh.common.annotation.FinalDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.common.utils.SnowflakeGuidGenerator;
-import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.handlers.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
@@ -31,7 +28,7 @@ public class ShellVerticle extends AbstractVerticle implements IHandlerMounter {
     public void start() throws Exception {
         WorkerExecutor executor = vertx.createSharedWorkerExecutor("ssh-shell-worker", 10);
 
-        mountHandler(vertx, executor, true, new JSch(), new SnowflakeGuidGenerator());
+        mountHandler(vertx, executor, true);
 
         Printer.printlnWithLogo("Success start ssh shell verticle.");
     }

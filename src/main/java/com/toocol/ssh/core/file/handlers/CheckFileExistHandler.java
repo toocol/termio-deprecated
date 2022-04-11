@@ -24,7 +24,7 @@ public class CheckFileExistHandler extends AbstractMessageHandler<Void> {
     }
 
     @Override
-    protected <T> void handleWithin(Promise<Void> promise, Message<T> message) throws Exception{
+    protected <T> void handleWithinBlocking(Promise<Void> promise, Message<T> message) throws Exception{
         String filePath = cast(message.body());
         boolean success = FileUtil.checkAndCreateFile(filePath);
         if (!success) {
@@ -34,7 +34,7 @@ public class CheckFileExistHandler extends AbstractMessageHandler<Void> {
     }
 
     @Override
-    protected <T> void resultWithin(AsyncResult<Void> asyncResult, Message<T> message) {
+    protected <T> void resultWithinBlocking(AsyncResult<Void> asyncResult, Message<T> message) {
         message.reply(null);
     }
 }

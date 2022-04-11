@@ -53,7 +53,7 @@ public abstract class AbstractMessageHandler<R> implements ICastable {
         executor.executeBlocking(
                 future -> {
                     try {
-                        handleWithin(cast(future), message);
+                        handleWithinBlocking(cast(future), message);
                     } catch (Exception e) {
                         Printer.println("Caught handle exception, exit program. message=" + e.getMessage());
                         System.exit(-1);
@@ -62,23 +62,13 @@ public abstract class AbstractMessageHandler<R> implements ICastable {
                 !parallel,
                 asyncResult -> {
                     try {
-                        resultWithin(cast(asyncResult), message);
+                        resultWithinBlocking(cast(asyncResult), message);
                     } catch (Exception e) {
                         Printer.println("Caught handle exception, exit program. message=" + e.getMessage());
                         System.exit(-1);
                     }
                 }
         );
-    }
-
-    /**
-     * To inject some extra obj inject,
-     * if needed, override this method.
-     *
-     * @param objs objs to inject
-     * @param <T>  generic type
-     */
-    public <T> void inject(T... objs) {
     }
 
     /**
@@ -89,7 +79,7 @@ public abstract class AbstractMessageHandler<R> implements ICastable {
      * @param <T>     generic type
      * @throws Exception exception
      */
-    protected abstract <T> void handleWithin(Promise<R> promise, Message<T> message) throws Exception;
+    protected abstract <T> void handleWithinBlocking(Promise<R> promise, Message<T> message) throws Exception;
 
     /**
      * response the blocked process result
@@ -99,5 +89,5 @@ public abstract class AbstractMessageHandler<R> implements ICastable {
      * @param <T>         generic type
      * @throws Exception exception
      */
-    protected abstract <T> void resultWithin(AsyncResult<R> asyncResult, Message<T> message) throws Exception;
+    protected abstract <T> void resultWithinBlocking(AsyncResult<R> asyncResult, Message<T> message) throws Exception;
 }

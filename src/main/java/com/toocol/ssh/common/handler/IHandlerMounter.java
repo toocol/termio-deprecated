@@ -24,7 +24,7 @@ public interface IHandlerMounter extends ICastable {
      * @param <T>  generic type
      */
     @SuppressWarnings("all")
-    default <T> void mountHandler(Vertx vertx, WorkerExecutor executor, boolean parallel, T... injects) {
+    default <T> void mountHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         Class<? extends IHandlerMounter> clazz = this.getClass();
         RegisterHandler registerHandler = clazz.getAnnotation(RegisterHandler.class);
         if (registerHandler == null) {
@@ -38,7 +38,6 @@ public interface IHandlerMounter extends ICastable {
                 declaredConstructor.setAccessible(true);
                 AbstractMessageHandler<?> commandHandler = declaredConstructor.newInstance(vertx, executor, parallel);
                 vertx.eventBus().consumer(commandHandler.consume().address(), commandHandler::handle);
-                commandHandler.inject(injects);
                 Printer.printlnWithLogo(clazz.getSimpleName() + " assemble handler " + handlerClass.getSimpleName() + " success.");
 
             } catch (Exception e) {

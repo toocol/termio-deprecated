@@ -26,7 +26,7 @@ public class ReadFileHandler extends AbstractMessageHandler<String> {
     }
 
     @Override
-    protected <T> void handleWithin(Promise<String> promise, Message<T> message) {
+    protected <T> void handleWithinBlocking(Promise<String> promise, Message<T> message) {
         String filePath = cast(message.body());
         Buffer resultBuffer = vertx.fileSystem().readFileBlocking(filePath);
         String fileData = resultBuffer.getString(0, resultBuffer.length());
@@ -35,7 +35,7 @@ public class ReadFileHandler extends AbstractMessageHandler<String> {
     }
 
     @Override
-    protected <T> void resultWithin(AsyncResult<String> asyncResult, Message<T> message) {
+    protected <T> void resultWithinBlocking(AsyncResult<String> asyncResult, Message<T> message) {
         String result = asyncResult.result();
         message.reply(StringUtils.isEmpty(result) ? new JsonArray() : new JsonArray(result));
     }

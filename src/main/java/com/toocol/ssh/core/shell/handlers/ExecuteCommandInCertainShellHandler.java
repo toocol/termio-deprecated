@@ -40,7 +40,7 @@ public class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<
     }
 
     @Override
-    protected <T> void handleWithin(Promise<String> promise, Message<T> message) throws Exception {
+    protected <T> void handleWithinBlocking(Promise<String> promise, Message<T> message) throws Exception {
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String cmd = request.getString("cmd");
@@ -95,7 +95,7 @@ public class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<
     }
 
     @Override
-    protected <T> void resultWithin(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultWithinBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
         if (asyncResult.succeeded()) {
             message.reply(asyncResult.result());
         } else {

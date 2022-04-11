@@ -32,8 +32,8 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
 
     private final SessionCache sessionCache = SessionCache.getInstance();
 
-    private JSch jSch;
-    private SnowflakeGuidGenerator guidGenerator;
+    private final JSch jSch = new JSch();
+    private final SnowflakeGuidGenerator guidGenerator = new SnowflakeGuidGenerator();
 
     public EstablishSessionShellChannelHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -45,7 +45,7 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
     }
 
     @Override
-    protected <T> void handleWithin(Promise<Long> promise, Message<T> message) throws Exception {
+    protected <T> void handleWithinBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         int index = cast(message.body());
         SshCredential credential = CredentialCache.getCredential(index);
         assert credential != null;
@@ -112,7 +112,7 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
     }
 
     @Override
-    protected <T> void resultWithin(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         Long sessionId = asyncResult.result();
         if (sessionId != null) {
 
@@ -124,6 +124,8 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
                 Printer.println("Session established.\n");
             }
 
+            Cache.SHOW_WELCOME = true;
+
             eventBus.send(EXHIBIT_SHELL.address(), sessionId);
             eventBus.send(ACCEPT_SHELL_CMD.address(), sessionId);
 
@@ -134,10 +136,4 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
         }
     }
 
-    @SafeVarargs
-    @Override
-    public final <T> void inject(T... objs) {
-        jSch = cast(objs[0]);
-        guidGenerator = cast(objs[1]);
-    }
 }
