@@ -9,6 +9,8 @@ public class Cache {
 
     public volatile static boolean LOADING_ACCOMPLISH = false;
 
+    public volatile static boolean STOP_ACCEPT_OUT_COMMAND = false;
+
     public volatile static boolean HANGED_QUIT = false;
 
     public volatile static boolean HANGED_ENTER = false;

@@ -1,5 +1,8 @@
 package com.toocol.ssh.core.configuration;
 
+import com.toocol.ssh.common.utils.OsUtil;
+
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -11,6 +14,23 @@ public class SystemConfiguration {
 
     public static final String BOOT_TYPE_CMD = "cmd";
     public static final String BOOT_TYPE_BASH = "bash";
+
+    public static final boolean HAVE_INSTALL_VIM;
+    static {
+        Map<String, String> map = System.getenv();
+        boolean flag = false;
+        for (String key : map.keySet()) {
+            if (OsUtil.isWindows() && "Path".equals(key)) {
+                for (String path : map.get(key).split(";")) {
+                    if (path.toLowerCase().contains("vim")) {
+                        flag = true;
+                        break;
+                    }
+                }
+            }
+        }
+        HAVE_INSTALL_VIM = flag;
+    }
 
     public static String BOOT_TYPE;
 
