@@ -4,7 +4,7 @@ import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.utils.StrUtil;
-import com.toocol.ssh.core.cache.Cache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.core.CmdFeedbackExtractor;
 import com.toocol.ssh.core.shell.core.Shell;
@@ -46,7 +46,7 @@ public class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<
         Long sessionId = request.getLong("sessionId");
         String cmd = request.getString("cmd");
 
-        Cache.JUST_CLOSE_EXHIBIT_SHELL = true;
+        StatusCache.JUST_CLOSE_EXHIBIT_SHELL = true;
         ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
         Shell shell = sessionCache.getShell(sessionId);
 

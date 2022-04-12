@@ -5,7 +5,7 @@ package com.toocol.ssh.core.cache;
  * @date: 2022/4/1 0:08
  * @version: 0.0.1
  */
-public class Cache {
+public class StatusCache {
 
     public volatile static boolean LOADING_ACCOMPLISH = false;
 
@@ -18,5 +18,7 @@ public class Cache {
     public volatile static boolean JUST_CLOSE_EXHIBIT_SHELL = false;
 
     public volatile static boolean SHOW_WELCOME = false;
+
+    public volatile static boolean ACCEPT_SHELL_CMD_IS_RUNNING = false;
 
 }

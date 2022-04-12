@@ -5,7 +5,7 @@ import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.CastUtil;
 import com.toocol.ssh.common.utils.ClassScanner;
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.core.cache.Cache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.configuration.SystemConfiguration;
 import io.vertx.core.AbstractVerticle;
@@ -112,7 +112,7 @@ public class TerminatioApplication extends Application {
         }, res -> {
             try {
                 while (true) {
-                    if (Cache.LOADING_ACCOMPLISH) {
+                    if (StatusCache.LOADING_ACCOMPLISH) {
                         vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), 0);
                         System.gc();
                         break;

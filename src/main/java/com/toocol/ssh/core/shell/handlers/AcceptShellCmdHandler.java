@@ -3,7 +3,7 @@ package com.toocol.ssh.core.shell.handlers;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.utils.StrUtil;
-import com.toocol.ssh.core.cache.Cache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.shell.core.Shell;
@@ -39,6 +39,8 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
 
     @Override
     protected <T> void handleWithinBlocking(Promise<Long> promise, Message<T> message) throws Exception {
+        StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = true;
+
         long sessionId = cast(message.body());
         Shell shell = sessionCache.getShell(sessionId);
         OutputStream outputStream = shell.getOutputStream();
@@ -94,7 +96,6 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                 latch.countDown();
             }
             latch.await();
-
         }
     }
 
@@ -105,8 +106,9 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             sessionCache.stop(sessionId);
         } else {
             // hang up the session
-            Cache.HANGED_QUIT = true;
+            StatusCache.HANGED_QUIT = true;
         }
+        StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = false;
         eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 3);
     }
 

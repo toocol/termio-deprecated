@@ -3,7 +3,7 @@ package com.toocol.ssh.core.command.handlers;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.core.cache.Cache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.command.commands.OutsideCommand;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
@@ -84,8 +84,8 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
                     promise.complete(false);
                     break;
                 }
-                if (Cache.STOP_ACCEPT_OUT_COMMAND) {
-                    Cache.STOP_ACCEPT_OUT_COMMAND = false;
+                if (StatusCache.STOP_ACCEPT_OUT_COMMAND) {
+                    StatusCache.STOP_ACCEPT_OUT_COMMAND = false;
                     promise.complete(false);
                     break;
                 }

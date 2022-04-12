@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.command.commands.processors;
 
 import com.toocol.ssh.common.utils.Tuple2;
-import com.toocol.ssh.core.cache.Cache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.command.commands.OutsideCommandProcessor;
 import com.toocol.ssh.core.configuration.SystemConfiguration;
 import io.vertx.core.eventbus.EventBus;
@@ -21,7 +21,7 @@ public class VimCmdTestProcessor extends OutsideCommandProcessor {
             return;
         }
 
-        Cache.STOP_ACCEPT_OUT_COMMAND = true;
+        StatusCache.STOP_ACCEPT_OUT_COMMAND = true;
         new Thread(() -> {
             try {
                 new ProcessBuilder(BOOT_TYPE, "/c", "vim vim_test.txt")

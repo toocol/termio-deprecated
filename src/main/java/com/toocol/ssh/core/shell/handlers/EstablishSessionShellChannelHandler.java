@@ -7,7 +7,7 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.SnowflakeGuidGenerator;
-import com.toocol.ssh.core.cache.Cache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
@@ -54,7 +54,7 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
         boolean success = true;
 
         if (sessionId == 0) {
-            Cache.HANGED_ENTER = false;
+            StatusCache.HANGED_ENTER = false;
             try {
                 Session session = jSch.getSession(credential.getUser(), credential.getHost(), credential.getPort());
                 session.setPassword(credential.getPassword());
@@ -107,9 +107,9 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
                 sessionCache.putShell(sessionId, shell);
             }
 
-            Cache.HANGED_ENTER = true;
+            StatusCache.HANGED_ENTER = true;
         }
-        Cache.HANGED_QUIT = false;
+        StatusCache.HANGED_QUIT = false;
 
         if (success) {
             promise.complete(sessionId);
@@ -125,13 +125,13 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
 
             Printer.clear();
 
-            if (Cache.HANGED_ENTER) {
+            if (StatusCache.HANGED_ENTER) {
                 Printer.println("Invoke hanged session.");
             } else {
                 Printer.println("Session established.\n");
             }
 
-            Cache.SHOW_WELCOME = true;
+            StatusCache.SHOW_WELCOME = true;
 
             eventBus.send(EXHIBIT_SHELL.address(), sessionId);
             eventBus.send(ACCEPT_SHELL_CMD.address(), sessionId);
