@@ -22,8 +22,7 @@ public enum OutsideCommand {
     CMD_EXIT("exit", new ExitCmdProcessor(), "Exit Terminatio."),
     CMD_ADD("add", new AddCmdProcessor(), "Add new ssh connection property. Pattern: 'add --host@user -c=password [-p=port]',\n\t\t\tdefault port is 22."),
     CMD_DELETE("delete", new DeleteCmdProcessor(), "Delete ssh connection property. Pattern: 'delete --index', for example: 'delete --1'."),
-    CMD_NUMBER("numbers", new NumberCmdProcessor(), "Select the connection properties."),
-    CMD_VIM("vim", new VimCmdTestProcessor(), "Vim test.")
+    CMD_NUMBER("numbers", new NumberCmdProcessor(), "Select the connection properties.")
     ;
 
     private final String cmd;
