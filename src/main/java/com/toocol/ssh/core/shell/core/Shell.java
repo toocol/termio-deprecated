@@ -4,7 +4,9 @@ import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.CmdUtil;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.core.term.vert.TermVerticle;
 import jline.ConsoleReader;
+import jline.Terminal;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,7 +32,7 @@ public class Shell {
 
     static {
         try {
-            reader = new ConsoleReader(System.in, null);
+            reader = new ConsoleReader(System.in, null, null, getTerminal());
         } catch (IOException e) {
             Printer.println("Register console reader failed.");
             System.exit(-1);
@@ -92,7 +94,7 @@ public class Shell {
         }
         Matcher matcher = PROMPT_PATTERN.matcher(msg);
         if (matcher.find()) {
-            prompt.set(matcher.group(0) + StrUtil.SPACE);
+            prompt.set(matcher.group(0).replaceAll("\\[?(\\d*n)h", "") + StrUtil.SPACE);
             extractUserFromPrompt();
             if (status.equals(Status.VIM_UNDER)) {
                 status = Status.NORMAL;
@@ -255,6 +257,10 @@ public class Shell {
         return lastRemoteCmd;
     }
 
+    public static Terminal getTerminal() {
+        return TermVerticle.TERMINAL;
+    }
+
     public void setPrompt(String prompt) {
         this.prompt.set(prompt);
     }
@@ -299,7 +305,7 @@ public class Shell {
 
                             Matcher matcher = PROMPT_PATTERN.matcher(inputStr);
                             if (matcher.find()) {
-                                prompt.set(matcher.group(0) + StrUtil.SPACE);
+                                prompt.set(matcher.group(0).replaceAll("\\[\\?1034h", "") + StrUtil.SPACE);
                                 returnWrite = true;
                                 break;
                             } else {

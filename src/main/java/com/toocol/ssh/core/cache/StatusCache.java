@@ -23,4 +23,6 @@ public class StatusCache {
 
     public volatile static boolean ACCESS_EXHIBIT_SHELL_WITH_PROMPT = true;
 
+    public volatile static boolean STOP_LISTEN_TERMINAL_SIZE_CHANGE = false;
+
 }

@@ -4,11 +4,14 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.utils.CmdUtil;
 import com.toocol.ssh.common.utils.StrUtil;
-import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.shell.core.Shell;
-import io.vertx.core.*;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
@@ -106,6 +109,8 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
     @Override
     protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = false;
+        StatusCache.STOP_LISTEN_TERMINAL_SIZE_CHANGE = true;
+
         if (asyncResult.succeeded()) {
             long sessionId = asyncResult.result();
             sessionCache.stop(sessionId);
@@ -113,6 +118,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             // hang up the session
             StatusCache.HANGED_QUIT = true;
         }
+
         eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 3);
     }
 
