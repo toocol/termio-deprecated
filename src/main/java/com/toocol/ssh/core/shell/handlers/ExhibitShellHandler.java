@@ -4,6 +4,7 @@ import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.sync.SharedCountdownLatch;
+import com.toocol.ssh.common.utils.CharsetUtil;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.cache.SessionCache;
@@ -12,6 +13,7 @@ import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import static com.toocol.ssh.core.shell.ShellAddress.EXHIBIT_SHELL;
 
@@ -67,7 +69,7 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
                 if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
                     cmdHasFeedbackWhenJustExit = true;
                 }
-                shell.print(new String(tmp, 0, i));
+                shell.print(new String(tmp, 0, i, StandardCharsets.UTF_8));
             }
 
             if (StatusCache.HANGED_QUIT) {

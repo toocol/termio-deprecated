@@ -1,5 +1,10 @@
 package com.toocol.ssh.common.utils;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 /**
  * Char util class<br>
  * some util comes from Apache Commons
@@ -214,6 +219,25 @@ public class CharUtil {
                 ((c >= 0x20) && (c <= 0xD7FF)) ||
                 ((c >= 0xE000) && (c <= 0xFFFD)) ||
                 ((c >= 0x100000) && (c <= 0x10FFFF)));
+    }
+
+    public static boolean isChinese(int c) {
+        Character.UnicodeBlock ub = Character.UnicodeBlock.of(c);
+        return ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS
+                || ub == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS
+                || ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A
+                || ub == Character.UnicodeBlock.GENERAL_PUNCTUATION
+                || ub == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION
+                || ub == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS;
+    }
+
+    public static byte[] charToBytes(char[] chars) {
+        Charset charset = StandardCharsets.UTF_8;
+        CharBuffer charBuffer = CharBuffer.allocate(chars.length);
+        charBuffer.put(chars);
+        charBuffer.flip();
+        ByteBuffer byteBuffer = charset.encode(charBuffer);
+        return byteBuffer.array();
     }
 
     public static boolean isFileSeparator(char c) {
