@@ -87,6 +87,7 @@ public class SessionCache {
     }
 
     public void stopAll() {
+        channelShellMap.forEach((k, v) -> v.disconnect());
         sessionMap.forEach((k, v) -> v.disconnect());
     }
 
