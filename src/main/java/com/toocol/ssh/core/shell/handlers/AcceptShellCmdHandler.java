@@ -88,7 +88,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             if (CmdUtil.isCdCmd(shell.getLastRemoteCmd()) || CmdUtil.isCdCmd(cmd.toString())) {
                 JsonObject request = new JsonObject();
                 request.put("sessionId", sessionId);
-                request.put("cmd", "pwd");
+                request.put("cmd", " pwd");
                 eventBus.request(EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL.address(), request, result -> {
                     shell.setFullPath(cast(result.result().body()));
                     latch.countDown();
@@ -102,6 +102,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
 
     @Override
     protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+        StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = false;
         if (asyncResult.succeeded()) {
             long sessionId = asyncResult.result();
             sessionCache.stop(sessionId);
@@ -109,7 +110,6 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             // hang up the session
             StatusCache.HANGED_QUIT = true;
         }
-        StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = false;
         eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 3);
     }
 

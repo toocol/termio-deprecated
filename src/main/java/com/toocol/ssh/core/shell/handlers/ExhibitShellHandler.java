@@ -102,7 +102,11 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
             return;
         }
         if (StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING) {
-            eventBus.send(EXHIBIT_SHELL.address(), asyncResult.result());
+            Long sessionId = asyncResult.result();
+            ChannelShell channelShell = SessionCache.getInstance().getChannelShell(sessionId);
+            if (channelShell != null && !channelShell.isClosed()) {
+                eventBus.send(EXHIBIT_SHELL.address(), sessionId);
+            }
         }
     }
 }

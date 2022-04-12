@@ -128,7 +128,7 @@ record ShellPrinter(Shell shell) {
     }
 
     void printSelectHistoryCommand(String msg) {
-        shell.selectHistoryCmd.set(msg.replaceAll("\b", ""));
+        shell.selectHistoryCmd.set(msg.replaceAll("\b", "").replaceAll("\u001B", "").replaceAll("\\[K", ""));
         Printer.print(msg);
     }
 }

@@ -18,6 +18,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonObject;
 
 import java.util.Properties;
 
@@ -132,6 +133,11 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
             }
 
             StatusCache.SHOW_WELCOME = true;
+
+            JsonObject request = new JsonObject();
+            request.put("sessionId", sessionId);
+            request.put("cmd", "export HISTCONTROL=ignoreboth");
+            eventBus.send(EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL.address(), request);
 
             eventBus.send(EXHIBIT_SHELL.address(), sessionId);
             eventBus.send(ACCEPT_SHELL_CMD.address(), sessionId);

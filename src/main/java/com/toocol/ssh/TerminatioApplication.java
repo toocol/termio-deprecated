@@ -59,8 +59,12 @@ public class TerminatioApplication extends Application {
 
         /* Add shutdown hook */
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            SessionCache.getInstance().stopAll();
-            vertx.close();
+            try {
+                SessionCache.getInstance().stopAll();
+                vertx.close();
+            } catch (Exception e) {
+                Printer.println("Failed to execute shutdown hook.");
+            }
         }));
 
         /* Get the preload verticle which need to deploy in main class by annotation */

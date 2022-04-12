@@ -75,6 +75,10 @@ public class SessionCache {
     }
 
     public void stop(long sessionId) {
+        channelShellMap.computeIfPresent(sessionId, (k, v) -> {
+            v.disconnect();
+            return null;
+        });
         sessionMap.computeIfPresent(sessionId, (k, v) -> {
             v.disconnect();
             return null;
