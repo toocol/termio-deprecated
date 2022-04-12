@@ -17,7 +17,6 @@ import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 import static com.toocol.ssh.core.file.FileVerticleAddress.CHOOSE_FILE;
-import static com.toocol.ssh.core.shell.ShellVerticleAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
 import static com.toocol.ssh.core.shell.ShellVerticleAddress.START_UF_COMMAND;
 
 /**
@@ -40,24 +39,12 @@ public class UfHandler extends AbstractMessageHandler<Void> {
 
     @Override
     protected <T> void handleWithinBlocking(Promise<Void> promise, Message<T> message) throws Exception {
-        Long sessionId = cast(message.body());
+        JsonObject request = cast(message.body());
+        Long sessionId = request.getLong("sessionId");
+        String remotePath = request.getString("remotePath");
 
-        CountDownLatch latch = new CountDownLatch(2);
+        CountDownLatch latch = new CountDownLatch(1);
         JsonObject execRequest = new JsonObject();
-
-        /*
-        * Although there is already a full path in Shell's object, we need send a 'pwd' command to get curren path no matter what.
-        * Because using the Shell's object full path, if user changed the directory before choosing the file, the upload path is changed too.
-        * We want the upload file path is the path where user input the 'uf' command.
-        **/
-        StringBuilder remotePathBuilder = new StringBuilder();
-        execRequest.put("sessionId", sessionId);
-        execRequest.put("cmd", "pwd");
-        eventBus.request(EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL.address(), execRequest, result -> {
-            remotePathBuilder.append(Objects.requireNonNullElse(result.result().body(), "-1"));
-            latch.countDown();
-        });
-
 
         StringBuilder localPathBuilder = new StringBuilder();
         eventBus.request(CHOOSE_FILE.address(), execRequest, result -> {
@@ -67,17 +54,13 @@ public class UfHandler extends AbstractMessageHandler<Void> {
 
         latch.await();
 
-        if ("-1".equals(remotePathBuilder.toString())) {
-            promise.fail("-1");
-            return;
-        }
         if ("-1".equals(localPathBuilder.toString())) {
             promise.fail("-1");
             return;
         }
 
         ChannelSftp channelSftp = sftpChannelProvider.getChannelSftp(sessionId);
-        channelSftp.cd(remotePathBuilder.toString());
+        channelSftp.cd(remotePath);
         channelSftp.put(new FileInputStream(localPathBuilder.toString()), FileNameUtil.getName(localPathBuilder.toString()));
     }
 

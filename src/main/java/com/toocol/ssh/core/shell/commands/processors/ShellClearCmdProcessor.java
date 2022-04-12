@@ -15,6 +15,6 @@ public class ShellClearCmdProcessor extends ShellCommandProcessor {
     @Override
     public String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak, String cmd) {
         Printer.clear();
-        return "";
+        return EMPTY;
     }
 }

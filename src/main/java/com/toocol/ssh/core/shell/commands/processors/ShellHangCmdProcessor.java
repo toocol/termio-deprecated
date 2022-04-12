@@ -15,6 +15,6 @@ public class ShellHangCmdProcessor extends ShellCommandProcessor {
     public String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak, String cmd) {
         isBreak.set(true);
         promise.fail("Hang up the session.");
-        return "";
+        return EMPTY;
     }
 }

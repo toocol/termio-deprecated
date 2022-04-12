@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
+import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
 import com.toocol.ssh.core.shell.core.Shell;
@@ -9,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.toocol.ssh.common.utils.FilePathUtil.*;
 import static com.toocol.ssh.core.shell.ShellVerticleAddress.START_DF_COMMAND;
 
 /**
@@ -17,11 +19,12 @@ import static com.toocol.ssh.core.shell.ShellVerticleAddress.START_DF_COMMAND;
  * @version: 0.0.1
  */
 public class ShellDfCmdProcessor extends ShellCommandProcessor {
+
     @Override
     public String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak, String cmd) {
-        String[] split = cmd.trim().replaceAll(" {2,}"," ").split(" ");
+        String[] split = cmd.trim().replaceAll(" {2,}", StrUtil.SPACE).split(StrUtil.SPACE);
         if (split.length != 2) {
-            return "";
+            return EMPTY;
         }
 
         String inputPath = split[1];
@@ -29,24 +32,33 @@ public class ShellDfCmdProcessor extends ShellCommandProcessor {
         String user = shell.getUser().get();
         String currentPath = shell.getFullPath().get();
 
-        String remotePath = null;
-        if (inputPath.startsWith("./")) {
-            if ("~".equals(currentPath)) {
-                remotePath = "/" + user + inputPath.substring(1);
+        StringBuilder remotePath = new StringBuilder();
+        if (inputPath.startsWith(CURRENT_FOLDER_PREFIX)) {
+            if (USER_FOLDER.equals(currentPath)) {
+                remotePath.append(ROOT_FOLDER_PREFIX).append(user).append(inputPath.substring(1));
             } else {
-                remotePath = currentPath + inputPath.substring(1);
+                remotePath.append(currentPath).append(inputPath.substring(1));
             }
-        } else if (inputPath.startsWith("../")) {
-            String[] singlePaths = currentPath.split("/");
-
-        } else if (inputPath.startsWith("/")) {
-
+        } else if (inputPath.startsWith(PARENT_FOLDER_PREFIX)) {
+            String[] singleCurrentPaths = currentPath.split("/");
+            if (singleCurrentPaths.length <= 1) {
+                remotePath.append(ROOT_FOLDER_PREFIX).append(inputPath.substring(1));
+            } else {
+                for (int idx = 0; idx <= singleCurrentPaths.length - 2; idx ++) {
+                    if (StringUtils.isEmpty(singleCurrentPaths[idx])) {
+                        continue;
+                    }
+                    remotePath.append("/").append(singleCurrentPaths[idx]);
+                }
+                remotePath.append(inputPath.substring(2));
+            }
         } else {
-
+            remotePath.append(currentPath).append("/").append(inputPath);
         }
 
-        eventBus.send(START_DF_COMMAND.address(), remotePath);
+        eventBus.send(START_DF_COMMAND.address(), remotePath.toString());
 
-        return "";
+        return EMPTY;
     }
+
 }

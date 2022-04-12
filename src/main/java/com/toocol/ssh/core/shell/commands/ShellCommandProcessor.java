@@ -11,6 +11,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class ShellCommandProcessor {
 
+    protected static final String EMPTY = "";
+
     /**
      * process the shell command
      *

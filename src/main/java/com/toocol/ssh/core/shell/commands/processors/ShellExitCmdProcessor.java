@@ -15,6 +15,6 @@ public class ShellExitCmdProcessor extends ShellCommandProcessor {
     public String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak, String cmd) {
         isBreak.set(true);
         promise.complete(sessionId);
-        return "";
+        return EMPTY;
     }
 }

@@ -52,7 +52,7 @@ public class TerminatioApplication extends Application {
         Signal.handle(new Signal("INT"), signal -> {
         });
 
-        /* Because need to establish SSH connections, increase the blocking check time */
+        /* Because this program involves a large number of IO operations, increasing the blocking check time, we don't need it */
         VertxOptions options = new VertxOptions();
         options.setBlockedThreadCheckInterval(BLOCKED_CHECK_INTERVAL);
         final Vertx vertx = Vertx.vertx(options);
@@ -63,7 +63,7 @@ public class TerminatioApplication extends Application {
             vertx.close();
         }));
 
-        /* Get the verticle which need deploy in main class by annotation */
+        /* Get the preload verticle which need to deploy in main class by annotation */
         Set<Class<?>> annotatedClassList = new ClassScanner("com.toocol.ssh.core", clazz -> clazz.isAnnotationPresent(PreloadDeployment.class)).scan();
         List<Class<? extends AbstractVerticle>> preloadVerticleClassList = new ArrayList<>();
         annotatedClassList.forEach(annotatedClass -> {
