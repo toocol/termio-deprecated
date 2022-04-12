@@ -61,7 +61,7 @@ public class TerminatioApplication extends Application {
         /* Add shutdown hook */
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                Printer.println("Terminatio shutdown.");
+                Printer.println("Terminatio: shutdown");
                 SessionCache.getInstance().stopAll();
                 vertx.close();
             } catch (Exception e) {

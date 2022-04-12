@@ -1,11 +1,9 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.CmdUtil;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.term.vert.TermVerticle;
-import jline.ConsoleReader;
 import jline.Terminal;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -26,18 +24,8 @@ import java.util.regex.Pattern;
  * @date: 2022/4/3 20:57
  */
 public class Shell {
+
     public static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(.*?)]#)");
-
-    private static ConsoleReader reader = null;
-
-    static {
-        try {
-            reader = new ConsoleReader(System.in, null, null, getTerminal());
-        } catch (IOException e) {
-            Printer.println("Register console reader failed.");
-            System.exit(-1);
-        }
-    }
 
     /**
      * the output/input Stream belong to JSch's channelShell;
@@ -48,22 +36,24 @@ public class Shell {
     private volatile boolean returnWrite = false;
     private volatile boolean promptNow = false;
 
+    protected final ShellPrinter shellPrinter;
+    protected final ShellReader shellReader;
+
     public volatile AtomicReference<String> localLastCmd = new AtomicReference<>(StrUtil.EMPTY);
     public volatile AtomicReference<String> remoteCmd = new AtomicReference<>(StrUtil.EMPTY);
     protected volatile AtomicReference<String> currentPrint = new AtomicReference<>(StrUtil.EMPTY);
     protected volatile AtomicReference<String> selectHistoryCmd = new AtomicReference<>(StrUtil.EMPTY);
     protected volatile String localLastInput = StrUtil.EMPTY;
     protected volatile String lastRemoteCmd = StrUtil.EMPTY;
-    private volatile Status status = Status.NORMAL;
+    protected volatile Status status = Status.NORMAL;
 
-    private final ShellPrinter shellPrinter = new ShellPrinter(this);
     protected final Set<String> tabFeedbackRec = new HashSet<>();
 
-    private final StringBuffer cmd = new StringBuffer();
-    private final AtomicReference<String> welcome = new AtomicReference<>();
-    private final AtomicReference<String> prompt = new AtomicReference<>();
-    private final AtomicReference<String> user = new AtomicReference<>();
-    private final AtomicReference<String> fullPath = new AtomicReference<>();
+    protected final StringBuilder cmd = new StringBuilder();
+    protected final AtomicReference<String> welcome = new AtomicReference<>();
+    protected final AtomicReference<String> prompt = new AtomicReference<>();
+    protected final AtomicReference<String> user = new AtomicReference<>();
+    protected final AtomicReference<String> fullPath = new AtomicReference<>();
 
     @AllArgsConstructor
     public enum Status {
@@ -85,16 +75,15 @@ public class Shell {
         assert outputStream != null && inputStream != null;
         this.outputStream = outputStream;
         this.inputStream = inputStream;
+        this.shellPrinter = new ShellPrinter(this);
+        this.shellReader = new ShellReader(this, this.outputStream);
         this.initialFirstCorrespondence();
     }
 
     public void print(String msg) {
-        if (msg.contains("export HISTCONTROL=ignoreboth")) {
-            return;
-        }
         Matcher matcher = PROMPT_PATTERN.matcher(msg);
         if (matcher.find()) {
-            prompt.set(matcher.group(0).replaceAll("\\[?(\\d*n)h", "") + StrUtil.SPACE);
+            prompt.set(matcher.group(0) + StrUtil.SPACE);
             extractUserFromPrompt();
             if (status.equals(Status.VIM_UNDER)) {
                 status = Status.NORMAL;
@@ -113,104 +102,7 @@ public class Shell {
     }
 
     public String readCmd() throws Exception {
-        cmd.delete(0, cmd.length());
-        StringBuilder localLastInputBuffer = new StringBuilder();
-        while (true) {
-            char inChar = (char) reader.readVirtualKey();
-            if (status.equals(Status.VIM_UNDER)) {
-                outputStream.write(inChar);
-                outputStream.flush();
-            } else {
-                if (inChar == CharUtil.CTRL_C) {
-
-                    outputStream.write(inChar);
-                    outputStream.flush();
-
-                } else if (inChar == CharUtil.UP_ARROW || inChar == CharUtil.DOWN_ARROW) {
-
-                    status = Status.HISTORY_COMMAND_SELECT;
-                    localLastCmd.set("");
-                    outputStream.write(inChar);
-                    outputStream.flush();
-
-                } else if (inChar == CharUtil.TAB) {
-
-                    if (status.equals(Status.NORMAL)) {
-                        localLastCmd.set(cmd.toString());
-                        remoteCmd.set(cmd.toString());
-                    }
-                    localLastInput = localLastInputBuffer.toString();
-                    localLastInputBuffer = new StringBuilder();
-                    cmd.append(inChar);
-                    tabFeedbackRec.clear();
-                    outputStream.write(cmd.append(CharUtil.TAB).toString().getBytes(StandardCharsets.UTF_8));
-                    outputStream.flush();
-                    cmd.delete(0, cmd.length());
-                    status = Status.TAB_ACCOMPLISH;
-
-                } else if (inChar == CharUtil.BACKSPACE) {
-
-                    if (cmd.toString().trim().length() == 0 && status.equals(Status.NORMAL)) {
-                        continue;
-                    }
-                    if (remoteCmd.get().length() == 0 && status.equals(Status.TAB_ACCOMPLISH)) {
-                        continue;
-                    }
-                    if (selectHistoryCmd.get().length() == 0 && status.equals(Status.HISTORY_COMMAND_SELECT)) {
-                        continue;
-                    }
-
-                    if (status.equals(Status.TAB_ACCOMPLISH)) {
-                        // This is ctrl+backspace
-                        cmd.append('\u007F');
-                        if (remoteCmd.get().length() > 0) {
-                            remoteCmd.getAndUpdate(prev -> prev.substring(0, prev.length() - 1));
-                        }
-                        if (localLastCmd.get().length() > 0) {
-                            localLastCmd.getAndUpdate(prev -> prev.substring(0, prev.length() - 1));
-                        }
-                    }
-                    if (status.equals(Status.NORMAL)) {
-                        cmd.deleteCharAt(cmd.length() - 1);
-                    }
-                    if (status.equals(Status.HISTORY_COMMAND_SELECT)) {
-                        cmd.append('\u007F');
-                        selectHistoryCmd.getAndUpdate(prev -> prev.substring(0, prev.length() - 1));
-                    }
-
-                    if (localLastInputBuffer.length() > 0) {
-                        localLastInputBuffer = new StringBuilder(localLastInputBuffer.substring(0, localLastInputBuffer.length() - 1));
-                    }
-                    Printer.virtualBackspace();
-
-                } else if (inChar == CharUtil.CR || inChar == CharUtil.LF) {
-
-                    if (status.equals(Status.TAB_ACCOMPLISH)) {
-                        localLastCmd.set(remoteCmd.get() + StrUtil.CRLF);
-                    }
-                    localLastInput = localLastInputBuffer.toString();
-                    currentPrint.set(StrUtil.EMPTY);
-                    lastRemoteCmd = remoteCmd.get();
-                    remoteCmd.set(StrUtil.EMPTY);
-                    selectHistoryCmd.set(StrUtil.EMPTY);
-                    Printer.print(StrUtil.CRLF);
-                    status = Status.NORMAL;
-
-                    break;
-                } else if (CharUtil.isAsciiPrintable(inChar)){
-
-                    if (status.equals(Status.TAB_ACCOMPLISH)) {
-                        remoteCmd.getAndUpdate(prev -> prev + inChar);
-                        localLastCmd.getAndUpdate(prev -> prev + inChar);
-                    }
-                    currentPrint.getAndUpdate(prev -> prev + inChar);
-                    cmd.append(inChar);
-                    localLastInputBuffer.append(inChar);
-                    Printer.print(String.valueOf(inChar));
-
-                }
-            }
-        }
+        shellReader.readCmd();
 
         String cmdStr = cmd.toString();
         boolean isVimCmd = (StringUtils.isEmpty(cmd) && CmdUtil.isViVimCmd(localLastCmd.get())) || CmdUtil.isViVimCmd(cmd.toString());
@@ -221,52 +113,12 @@ public class Shell {
         return cmdStr;
     }
 
-    public void printErr(String err) {
-        shellPrinter.printErr(err);
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public String getWelcome() {
-        return StringUtils.isEmpty(welcome.get()) ? null : welcome.get();
-    }
-
-    public String getPrompt() {
-        return prompt.get();
-    }
-
-    public AtomicReference<String> getUser() {
-        return user;
-    }
-
-    public AtomicReference<String> getFullPath() {
-        return fullPath;
-    }
-
-    public OutputStream getOutputStream() {
-        return outputStream;
-    }
-
-    public String getLastRemoteCmd() {
-        return lastRemoteCmd;
-    }
-
-    public static Terminal getTerminal() {
-        return TermVerticle.TERMINAL;
-    }
-
-    public void setPrompt(String prompt) {
-        this.prompt.set(prompt);
-    }
-
-    public void setFullPath(String fullPath) {
-        this.fullPath.set(fullPath);
+    public void extractUserFromPrompt() {
+        String preprocess = prompt.get().trim().replaceAll("\\[", "")
+                .replaceAll("]", "")
+                .replaceAll("#", "")
+                .trim();
+        user.set(preprocess.split("@")[0]);
     }
 
     @SuppressWarnings("all")
@@ -340,12 +192,52 @@ public class Shell {
         this.inputStream = null;
     }
 
-    public void extractUserFromPrompt() {
-        String preprocess = prompt.get().trim().replaceAll("\\[", "")
-                .replaceAll("]", "")
-                .replaceAll("#", "")
-                .trim();
-        user.set(preprocess.split("@")[0]);
+    public void printErr(String err) {
+        shellPrinter.printErr(err);
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public String getWelcome() {
+        return StringUtils.isEmpty(welcome.get()) ? null : welcome.get();
+    }
+
+    public String getPrompt() {
+        return prompt.get();
+    }
+
+    public AtomicReference<String> getUser() {
+        return user;
+    }
+
+    public AtomicReference<String> getFullPath() {
+        return fullPath;
+    }
+
+    public OutputStream getOutputStream() {
+        return outputStream;
+    }
+
+    public String getLastRemoteCmd() {
+        return lastRemoteCmd;
+    }
+
+    public static Terminal getTerminal() {
+        return TermVerticle.TERMINAL;
+    }
+
+    public void setPrompt(String prompt) {
+        this.prompt.set(prompt);
+    }
+
+    public void setFullPath(String fullPath) {
+        this.fullPath.set(fullPath);
     }
 
 }

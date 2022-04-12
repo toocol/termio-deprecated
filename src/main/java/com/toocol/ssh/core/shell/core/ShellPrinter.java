@@ -18,6 +18,9 @@ record ShellPrinter(Shell shell) {
     }
 
     void printInNormal(String msg) {
+        if (msg.contains("export HISTCONTROL=ignoreboth")) {
+            return;
+        }
         if (shell.localLastCmd.get().equals(msg)) {
             return;
         } else if (msg.startsWith("\b\u001B[K")) {
