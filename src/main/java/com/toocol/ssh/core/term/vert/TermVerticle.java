@@ -4,6 +4,8 @@ import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.term.handlers.AcceptOutsideCommandHandler;
+import com.toocol.ssh.core.term.handlers.ExecuteOutsideCommandHandler;
 import com.toocol.ssh.core.term.handlers.ListenTerminalSizeHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
@@ -15,7 +17,9 @@ import jline.Terminal;
  */
 @PreloadDeployment
 @RegisterHandler(handlers = {
-        ListenTerminalSizeHandler.class
+        ListenTerminalSizeHandler.class,
+        AcceptOutsideCommandHandler.class,
+        ExecuteOutsideCommandHandler.class
 })
 public class TermVerticle extends AbstractVerticle implements IHandlerMounter {
 
@@ -23,9 +27,9 @@ public class TermVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {
-        WorkerExecutor executor = vertx.createSharedWorkerExecutor("ssh-terminal-worker", 1);
+        WorkerExecutor executor = vertx.createSharedWorkerExecutor("ssh-terminal-worker", 3);
 
-        mountHandler(vertx, executor);
+        mountHandler(vertx, executor, true);
 
         Printer.printlnWithLogo("Success start terminal verticle.");
     }

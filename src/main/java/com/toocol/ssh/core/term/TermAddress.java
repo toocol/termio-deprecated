@@ -10,9 +10,17 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum TermAddress implements IAddress{
     /**
+     * execute outside command
+     */
+    ADDRESS_EXECUTE_OUTSIDE("ssh.command.execute.outside"),
+    /**
+     * to accept the user command input
+     */
+    ADDRESS_ACCEPT_COMMAND("ssh.command.accept"),
+    /**
      * listen the terminal's size change.
      */
-    LISTEN_TERMINAL_SIZE_CHANGE("ssh.term.listen.size.change"),
+    LISTEN_TERMINAL_SIZE_CHANGE("ssh.term.listen.size.change")
     ;
 
     /**

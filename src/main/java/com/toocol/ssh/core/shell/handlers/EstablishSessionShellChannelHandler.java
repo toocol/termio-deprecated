@@ -23,8 +23,8 @@ import jline.Terminal;
 
 import java.util.Properties;
 
-import static com.toocol.ssh.core.cmd.CmdAddress.ADDRESS_ACCEPT_COMMAND;
 import static com.toocol.ssh.core.shell.ShellAddress.*;
+import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
 import static com.toocol.ssh.core.term.TermAddress.LISTEN_TERMINAL_SIZE_CHANGE;
 
 /**
