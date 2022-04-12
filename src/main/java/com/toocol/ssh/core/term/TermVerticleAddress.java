@@ -12,7 +12,7 @@ public enum TermVerticleAddress implements IAddress{
     /**
      * listen the terminal's size change.
      */
-    LISTEN_TERMINAL_SIZE_CHANGE("ssh.exec.single.command.in.certain.shell"),
+    LISTEN_TERMINAL_SIZE_CHANGE("ssh.term.listen.size.change"),
     ;
 
     /**
