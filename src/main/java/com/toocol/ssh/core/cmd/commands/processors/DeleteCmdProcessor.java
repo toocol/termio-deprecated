@@ -1,13 +1,13 @@
-package com.toocol.ssh.core.command.commands.processors;
+package com.toocol.ssh.core.cmd.commands.processors;
 
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.core.command.commands.OutsideCommandProcessor;
+import com.toocol.ssh.core.cmd.commands.OutsideCommandProcessor;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.toocol.ssh.core.credentials.CredentialVerticleAddress.DELETE_CREDENTIAL;
+import static com.toocol.ssh.core.auth.AuthAddress.DELETE_CREDENTIAL;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

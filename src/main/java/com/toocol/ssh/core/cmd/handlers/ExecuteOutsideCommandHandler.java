@@ -1,14 +1,14 @@
-package com.toocol.ssh.core.command.handlers;
+package com.toocol.ssh.core.cmd.handlers;
 
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.Tuple2;
-import com.toocol.ssh.core.command.commands.OutsideCommand;
+import com.toocol.ssh.core.cmd.commands.OutsideCommand;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
-import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_EXECUTE_OUTSIDE;
+import static com.toocol.ssh.core.cmd.CmdAddress.ADDRESS_EXECUTE_OUTSIDE;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.credentials;
+package com.toocol.ssh.core.auth;
 
 import com.toocol.ssh.common.address.IAddress;
 import lombok.AllArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
  * @date 2022/3/31 11:43
  */
 @AllArgsConstructor
-public enum CredentialVerticleAddress implements IAddress{
+public enum AuthAddress implements IAddress{
     /**
      * add a ssh credential
      */

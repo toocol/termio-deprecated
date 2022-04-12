@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.cache;
 
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.core.credentials.vo.SshCredential;
+import com.toocol.ssh.core.auth.vo.SshCredential;
 import io.vertx.core.json.JsonArray;
 
 import java.util.*;

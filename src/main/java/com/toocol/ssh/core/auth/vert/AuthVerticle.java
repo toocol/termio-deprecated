@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.credentials.vert;
+package com.toocol.ssh.core.auth.vert;
 
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
@@ -7,9 +7,9 @@ import com.toocol.ssh.common.utils.FileUtil;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.cache.CredentialCache;
-import com.toocol.ssh.core.credentials.handlers.AddCredentialHandler;
-import com.toocol.ssh.core.credentials.handlers.DeleteCredentialHandler;
-import com.toocol.ssh.core.credentials.vo.SshCredential;
+import com.toocol.ssh.core.auth.handlers.AddCredentialHandler;
+import com.toocol.ssh.core.auth.handlers.DeleteCredentialHandler;
+import com.toocol.ssh.core.auth.vo.SshCredential;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.JsonArray;
@@ -27,7 +27,7 @@ import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_READ_FILE;
         AddCredentialHandler.class,
         DeleteCredentialHandler.class
 })
-public class CredentialVerticle extends AbstractVerticle implements IHandlerMounter {
+public class AuthVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {

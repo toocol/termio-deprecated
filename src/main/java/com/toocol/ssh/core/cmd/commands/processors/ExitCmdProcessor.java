@@ -1,6 +1,6 @@
-package com.toocol.ssh.core.command.commands.processors;
+package com.toocol.ssh.core.cmd.commands.processors;
 
-import com.toocol.ssh.core.command.commands.OutsideCommandProcessor;
+import com.toocol.ssh.core.cmd.commands.OutsideCommandProcessor;
 import com.toocol.ssh.common.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 

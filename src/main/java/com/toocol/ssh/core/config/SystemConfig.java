@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.configuration;
+package com.toocol.ssh.core.config;
 
 import java.util.Optional;
 
@@ -7,7 +7,7 @@ import java.util.Optional;
  * @email joezane.cn@gmail.com
  * @date 2021/2/20 17:46
  */
-public class SystemConfiguration {
+public class SystemConfig {
 
     public static final String BOOT_TYPE_CMD = "cmd";
     public static final String BOOT_TYPE_BASH = "bash";

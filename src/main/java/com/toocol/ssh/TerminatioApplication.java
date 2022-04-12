@@ -7,7 +7,7 @@ import com.toocol.ssh.common.utils.ClassScanner;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
-import com.toocol.ssh.core.configuration.SystemConfiguration;
+import com.toocol.ssh.core.config.SystemConfig;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
+import static com.toocol.ssh.core.cmd.CmdAddress.ADDRESS_ACCEPT_COMMAND;
 
 /**
  * @author ZhaoZhe
@@ -40,7 +40,7 @@ public class TerminatioApplication extends Application {
             System.exit(-1);
         }
 
-        SystemConfiguration.BOOT_TYPE = args[0];
+        SystemConfig.BOOT_TYPE = args[0];
         Printer.printlnWithLogo("TerminalApplication register the vertx service.");
 
         /* launch the JavaFX */

@@ -3,7 +3,6 @@ package com.toocol.ssh.core.shell.handlers;
 import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
-import com.toocol.ssh.TerminatioApplication;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.utils.Printer;
@@ -11,7 +10,7 @@ import com.toocol.ssh.common.utils.SnowflakeGuidGenerator;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
-import com.toocol.ssh.core.credentials.vo.SshCredential;
+import com.toocol.ssh.core.auth.vo.SshCredential;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;
 import com.toocol.ssh.core.term.vert.TermVerticle;
@@ -20,14 +19,11 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
-import io.vertx.core.json.JsonObject;
 import jline.Terminal;
 
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
+import static com.toocol.ssh.core.cmd.CmdAddress.ADDRESS_ACCEPT_COMMAND;
 import static com.toocol.ssh.core.shell.ShellVerticleAddress.*;
 import static com.toocol.ssh.core.term.TermVerticleAddress.LISTEN_TERMINAL_SIZE_CHANGE;
 

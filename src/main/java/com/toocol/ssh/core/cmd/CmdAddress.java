@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.command;
+package com.toocol.ssh.core.cmd;
 
 import com.toocol.ssh.common.address.IAddress;
 import lombok.AllArgsConstructor;
@@ -9,7 +9,7 @@ import lombok.AllArgsConstructor;
  * @date 2022/03/29 16:51:33
  */
 @AllArgsConstructor
-public enum CommandVerticleAddress implements IAddress {
+public enum CmdAddress implements IAddress {
     /**
      * execute outside command
      */

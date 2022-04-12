@@ -1,11 +1,11 @@
-package com.toocol.ssh.core.command.vert;
+package com.toocol.ssh.core.cmd.vert;
 
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.core.command.handlers.AcceptOutsideCommandHandler;
-import com.toocol.ssh.core.command.handlers.ExecuteOutsideCommandHandler;
+import com.toocol.ssh.core.cmd.handlers.AcceptOutsideCommandHandler;
+import com.toocol.ssh.core.cmd.handlers.ExecuteOutsideCommandHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 
@@ -21,7 +21,7 @@ import io.vertx.core.WorkerExecutor;
         AcceptOutsideCommandHandler.class,
         ExecuteOutsideCommandHandler.class
 })
-public class CommandVerticle extends AbstractVerticle implements IHandlerMounter {
+public class CmdVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {

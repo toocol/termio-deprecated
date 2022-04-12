@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.command.commands;
+package com.toocol.ssh.core.cmd.commands;
 
 import com.toocol.ssh.common.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;

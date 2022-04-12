@@ -1,8 +1,8 @@
-package com.toocol.ssh.core.command.commands;
+package com.toocol.ssh.core.cmd.commands;
 
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.Tuple2;
-import com.toocol.ssh.core.command.commands.processors.*;
+import com.toocol.ssh.core.cmd.commands.processors.*;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
 

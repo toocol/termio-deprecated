@@ -1,15 +1,15 @@
-package com.toocol.ssh.core.command.commands.processors;
+package com.toocol.ssh.core.cmd.commands.processors;
 
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.RegexUtils;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
-import com.toocol.ssh.core.command.commands.OutsideCommandProcessor;
-import com.toocol.ssh.core.credentials.vo.SshCredential;
+import com.toocol.ssh.core.cmd.commands.OutsideCommandProcessor;
+import com.toocol.ssh.core.auth.vo.SshCredential;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 
-import static com.toocol.ssh.core.credentials.CredentialVerticleAddress.ADD_CREDENTIAL;
+import static com.toocol.ssh.core.auth.AuthAddress.ADD_CREDENTIAL;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

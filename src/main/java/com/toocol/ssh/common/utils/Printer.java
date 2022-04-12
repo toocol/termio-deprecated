@@ -2,12 +2,12 @@ package com.toocol.ssh.common.utils;
 
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
-import com.toocol.ssh.core.command.commands.OutsideCommand;
+import com.toocol.ssh.core.cmd.commands.OutsideCommand;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 
 import java.io.PrintStream;
 
-import static com.toocol.ssh.core.configuration.SystemConfiguration.*;
+import static com.toocol.ssh.core.config.SystemConfig.*;
 
 /**
  * @author ZhaoZhe

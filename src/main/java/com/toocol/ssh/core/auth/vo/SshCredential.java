@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.credentials.vo;
+package com.toocol.ssh.core.auth.vo;
 
 import io.vertx.core.json.JsonObject;
 import lombok.*;
