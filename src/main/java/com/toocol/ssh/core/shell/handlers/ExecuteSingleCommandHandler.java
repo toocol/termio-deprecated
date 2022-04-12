@@ -16,7 +16,7 @@ import io.vertx.core.json.JsonObject;
 
 import java.io.InputStream;
 
-import static com.toocol.ssh.core.shell.ShellVerticleAddress.EXECUTE_SINGLE_COMMAND;
+import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)

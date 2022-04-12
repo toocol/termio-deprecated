@@ -24,8 +24,8 @@ import jline.Terminal;
 import java.util.Properties;
 
 import static com.toocol.ssh.core.cmd.CmdAddress.ADDRESS_ACCEPT_COMMAND;
-import static com.toocol.ssh.core.shell.ShellVerticleAddress.*;
-import static com.toocol.ssh.core.term.TermVerticleAddress.LISTEN_TERMINAL_SIZE_CHANGE;
+import static com.toocol.ssh.core.shell.ShellAddress.*;
+import static com.toocol.ssh.core.term.TermAddress.LISTEN_TERMINAL_SIZE_CHANGE;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

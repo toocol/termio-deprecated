@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
  * @date 2022/3/31 11:43
  */
 @AllArgsConstructor
-public enum TermVerticleAddress implements IAddress{
+public enum TermAddress implements IAddress{
     /**
      * listen the terminal's size change.
      */

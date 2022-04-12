@@ -13,7 +13,7 @@ import io.vertx.core.eventbus.Message;
 
 import java.io.InputStream;
 
-import static com.toocol.ssh.core.shell.ShellVerticleAddress.EXHIBIT_SHELL;
+import static com.toocol.ssh.core.shell.ShellAddress.EXHIBIT_SHELL;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

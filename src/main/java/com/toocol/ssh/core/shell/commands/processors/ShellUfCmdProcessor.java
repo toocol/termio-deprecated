@@ -9,7 +9,7 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.toocol.ssh.core.shell.ShellVerticleAddress.START_UF_COMMAND;
+import static com.toocol.ssh.core.shell.ShellAddress.START_UF_COMMAND;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)

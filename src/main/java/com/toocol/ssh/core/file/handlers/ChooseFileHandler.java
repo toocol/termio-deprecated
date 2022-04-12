@@ -12,7 +12,7 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 
-import static com.toocol.ssh.core.file.FileVerticleAddress.CHOOSE_FILE;
+import static com.toocol.ssh.core.file.FileAddress.CHOOSE_FILE;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)

@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
  * @date 2022/3/31 11:43
  */
 @AllArgsConstructor
-public enum ShellVerticleAddress implements IAddress{
+public enum ShellAddress implements IAddress{
     /**
      * establish the ssh session
      */

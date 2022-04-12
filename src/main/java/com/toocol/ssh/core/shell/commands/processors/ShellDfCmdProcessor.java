@@ -11,7 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.toocol.ssh.common.utils.FilePathUtil.*;
-import static com.toocol.ssh.core.shell.ShellVerticleAddress.START_DF_COMMAND;
+import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)

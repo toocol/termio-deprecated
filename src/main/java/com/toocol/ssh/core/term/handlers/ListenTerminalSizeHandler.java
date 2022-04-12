@@ -11,7 +11,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 
-import static com.toocol.ssh.core.term.TermVerticleAddress.LISTEN_TERMINAL_SIZE_CHANGE;
+import static com.toocol.ssh.core.term.TermAddress.LISTEN_TERMINAL_SIZE_CHANGE;
 import static com.toocol.ssh.core.term.vert.TermVerticle.TERMINAL;
 
 /**

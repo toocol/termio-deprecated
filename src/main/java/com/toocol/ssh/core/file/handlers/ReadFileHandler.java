@@ -8,7 +8,7 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_READ_FILE;
+import static com.toocol.ssh.core.file.FileAddress.ADDRESS_READ_FILE;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

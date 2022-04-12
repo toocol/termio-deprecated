@@ -6,7 +6,7 @@ import com.toocol.ssh.core.cache.CredentialCache;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.toocol.ssh.core.shell.ShellVerticleAddress.ESTABLISH_SESSION;
+import static com.toocol.ssh.core.shell.ShellAddress.ESTABLISH_SESSION;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

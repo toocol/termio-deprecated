@@ -15,8 +15,8 @@ import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_CHECK_FILE_EXIST;
-import static com.toocol.ssh.core.file.FileVerticleAddress.ADDRESS_READ_FILE;
+import static com.toocol.ssh.core.file.FileAddress.ADDRESS_CHECK_FILE_EXIST;
+import static com.toocol.ssh.core.file.FileAddress.ADDRESS_READ_FILE;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

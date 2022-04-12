@@ -8,7 +8,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 
-import static com.toocol.ssh.core.shell.ShellVerticleAddress.START_DF_COMMAND;
+import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)

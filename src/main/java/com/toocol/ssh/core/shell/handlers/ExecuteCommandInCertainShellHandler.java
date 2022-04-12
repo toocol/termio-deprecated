@@ -20,8 +20,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
-import static com.toocol.ssh.core.shell.ShellVerticleAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
-import static com.toocol.ssh.core.shell.ShellVerticleAddress.EXHIBIT_SHELL;
+import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
+import static com.toocol.ssh.core.shell.ShellAddress.EXHIBIT_SHELL;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)

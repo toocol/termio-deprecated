@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
  * @date 2022/03/29 16:51:33
  */
 @AllArgsConstructor
-public enum FileVerticleAddress implements IAddress {
+public enum FileAddress implements IAddress {
     /**
      * check the file is whether exist.
      * If not, create it.
