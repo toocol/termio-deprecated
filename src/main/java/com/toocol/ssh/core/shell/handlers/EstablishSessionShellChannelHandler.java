@@ -7,9 +7,9 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.SnowflakeGuidGenerator;
-import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;
@@ -20,6 +20,8 @@ import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 import static com.toocol.ssh.core.command.CommandVerticleAddress.ADDRESS_ACCEPT_COMMAND;
@@ -133,11 +135,6 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
             }
 
             StatusCache.SHOW_WELCOME = true;
-
-            JsonObject request = new JsonObject();
-            request.put("sessionId", sessionId);
-            request.put("cmd", "export HISTCONTROL=ignoreboth");
-            eventBus.send(EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL.address(), request);
 
             eventBus.send(EXHIBIT_SHELL.address(), sessionId);
             eventBus.send(ACCEPT_SHELL_CMD.address(), sessionId);

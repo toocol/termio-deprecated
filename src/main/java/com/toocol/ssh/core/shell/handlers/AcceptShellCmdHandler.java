@@ -46,6 +46,9 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
         Shell shell = sessionCache.getShell(sessionId);
         OutputStream outputStream = shell.getOutputStream();
 
+        outputStream.write("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
+        outputStream.flush();
+
         while (true) {
             StringBuilder cmd = new StringBuilder(shell.readCmd());
 

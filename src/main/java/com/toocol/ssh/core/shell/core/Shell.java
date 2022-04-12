@@ -87,6 +87,9 @@ public class Shell {
     }
 
     public void print(String msg) {
+        if (msg.contains("export HISTCONTROL=ignoreboth")) {
+            return;
+        }
         Matcher matcher = PROMPT_PATTERN.matcher(msg);
         if (matcher.find()) {
             prompt.set(matcher.group(0) + StrUtil.SPACE);
