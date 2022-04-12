@@ -3,11 +3,19 @@ package com.toocol.ssh.core.shell.core;
 import com.toocol.ssh.common.utils.Printer;
 import org.apache.commons.lang3.StringUtils;
 
+import static com.toocol.ssh.common.utils.StrUtil.CRLF;
+import static com.toocol.ssh.common.utils.StrUtil.SPACE;
+
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/6 13:05
  */
-public record ShellPrinter(Shell shell) {
+record ShellPrinter(Shell shell) {
+
+    void printErr(String msg) {
+        Printer.printErr(msg);
+        Printer.print(shell.getPrompt());
+    }
 
     void printInNormal(String msg) {
         if (shell.localLastCmd.get().equals(msg)) {
@@ -22,7 +30,7 @@ public record ShellPrinter(Shell shell) {
             // cd command's echo is like this: cd /\r\n[host@user address]
             msg = msg.substring(shell.localLastCmd.get().trim().length());
         }
-        if (msg.startsWith("\r\n")) {
+        if (msg.startsWith(CRLF)) {
             msg = msg.replaceFirst("\r\n", "");
         }
 
@@ -45,8 +53,8 @@ public record ShellPrinter(Shell shell) {
 
         msg = msg.replaceAll("\b", "");
         if (msg.trim().equals(shell.localLastCmd.get().replaceAll("\t", ""))) {
-            if (msg.endsWith(" ")) {
-                Printer.print(" ");
+            if (msg.endsWith(SPACE)) {
+                Printer.print(SPACE);
             }
             return;
         }
@@ -66,7 +74,7 @@ public record ShellPrinter(Shell shell) {
         if (StringUtils.isEmpty(msg)) {
             return;
         }
-        if (!msg.contains("\r\n")) {
+        if (!msg.contains(CRLF)) {
             Printer.print(msg);
             String tmp = msg;
             shell.remoteCmd.getAndUpdate(prev -> prev + tmp);
@@ -81,7 +89,6 @@ public record ShellPrinter(Shell shell) {
                     .replaceAll("\t", "")
                     .replaceAll("\b", "")
                     .replaceAll("\u001B", "")
-                    .replaceAll("\\[k", "")
                     .replaceAll("\\[K", "");
             if (!split[split.length - 1].equals(localLine)) {
                 // have already auto-accomplish address
@@ -104,19 +111,24 @@ public record ShellPrinter(Shell shell) {
                     if (shell.tabFeedbackRec.contains(input)) {
                         continue;
                     }
-                    Printer.print("\r\n" + input);
+                    Printer.print(CRLF + input);
                     shell.currentPrint.set(input);
                     shell.tabFeedbackRec.add(input);
                 }
                 return;
             }
         }
-        if (msg.startsWith("\r\n")) {
+        if (msg.startsWith(CRLF)) {
             msg = msg.replaceFirst("\r\n", "");
         }
 
         String tmp = msg;
         shell.currentPrint.getAndUpdate(prev -> prev + tmp);
+        Printer.print(msg);
+    }
+
+    void printSelectHistoryCommand(String msg) {
+        shell.selectHistoryCmd.set(msg.replaceAll("\b", ""));
         Printer.print(msg);
     }
 }

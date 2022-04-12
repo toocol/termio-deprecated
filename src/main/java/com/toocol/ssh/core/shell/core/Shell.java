@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.common.utils.CharUtil;
+import com.toocol.ssh.common.utils.CmdUtil;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.StrUtil;
 import jline.ConsoleReader;
@@ -48,6 +49,7 @@ public class Shell {
     public volatile AtomicReference<String> localLastCmd = new AtomicReference<>(StrUtil.EMPTY);
     public volatile AtomicReference<String> remoteCmd = new AtomicReference<>(StrUtil.EMPTY);
     protected volatile AtomicReference<String> currentPrint = new AtomicReference<>(StrUtil.EMPTY);
+    protected volatile AtomicReference<String> selectHistoryCmd = new AtomicReference<>(StrUtil.EMPTY);
     protected volatile String localLastInput = StrUtil.EMPTY;
     protected volatile String lastRemoteCmd = StrUtil.EMPTY;
     private volatile Status status = Status.NORMAL;
@@ -69,7 +71,9 @@ public class Shell {
         NORMAL(1, "Shell is under normal cmd input status."),
         TAB_ACCOMPLISH(2, "Shell is under tab key to auto-accomplish address status."),
         VIM_BEFORE(3, "Shell is before Vim/Vi edit status."),
-        VIM_UNDER(4, "Shell is under Vim/Vi edit status.");
+        VIM_UNDER(4, "Shell is under Vim/Vi edit status."),
+        HISTORY_COMMAND_SELECT(5, "Shell is under history command select status."),
+        ;
 
         public final int status;
         public final String comment;
@@ -94,17 +98,12 @@ public class Shell {
         }
 
         switch (status) {
-            case NORMAL:
-                shellPrinter.printInNormal(msg);
-                break;
-            case TAB_ACCOMPLISH:
-                shellPrinter.printInTabAccomplish(msg);
-                break;
-            case VIM_BEFORE:
-            case VIM_UNDER:
-                shellPrinter.printInVim(msg);
-            default:
-                break;
+            case NORMAL -> shellPrinter.printInNormal(msg);
+            case TAB_ACCOMPLISH -> shellPrinter.printInTabAccomplish(msg);
+            case VIM_BEFORE, VIM_UNDER -> shellPrinter.printInVim(msg);
+            case HISTORY_COMMAND_SELECT -> shellPrinter.printSelectHistoryCommand(msg);
+            default -> {
+            }
         }
     }
 
@@ -124,6 +123,7 @@ public class Shell {
 
                 } else if (inChar == CharUtil.UP_ARROW || inChar == CharUtil.DOWN_ARROW) {
 
+                    status = Status.HISTORY_COMMAND_SELECT;
                     localLastCmd.set("");
                     outputStream.write(inChar);
                     outputStream.flush();
@@ -151,19 +151,28 @@ public class Shell {
                     if (remoteCmd.get().length() == 0 && status.equals(Status.TAB_ACCOMPLISH)) {
                         continue;
                     }
+                    if (selectHistoryCmd.get().length() == 0 && status.equals(Status.HISTORY_COMMAND_SELECT)) {
+                        continue;
+                    }
+
                     if (status.equals(Status.TAB_ACCOMPLISH)) {
                         // This is ctrl+backspace
                         cmd.append('\u007F');
                         if (remoteCmd.get().length() > 0) {
-                            remoteCmd.getAndUpdate(prev -> remoteCmd.get().substring(0, remoteCmd.get().length() - 1));
+                            remoteCmd.getAndUpdate(prev -> prev.substring(0, prev.length() - 1));
                         }
                         if (localLastCmd.get().length() > 0) {
-                            localLastCmd.getAndUpdate(prev -> localLastCmd.get().substring(0, localLastCmd.get().length() - 1));
+                            localLastCmd.getAndUpdate(prev -> prev.substring(0, prev.length() - 1));
                         }
                     }
                     if (status.equals(Status.NORMAL)) {
                         cmd.deleteCharAt(cmd.length() - 1);
                     }
+                    if (status.equals(Status.HISTORY_COMMAND_SELECT)) {
+                        cmd.append('\u007F');
+                        selectHistoryCmd.getAndUpdate(prev -> prev.substring(0, prev.length() - 1));
+                    }
+
                     if (localLastInputBuffer.length() > 0) {
                         localLastInputBuffer = new StringBuilder(localLastInputBuffer.substring(0, localLastInputBuffer.length() - 1));
                     }
@@ -178,6 +187,7 @@ public class Shell {
                     currentPrint.set(StrUtil.EMPTY);
                     lastRemoteCmd = remoteCmd.get();
                     remoteCmd.set(StrUtil.EMPTY);
+                    selectHistoryCmd.set(StrUtil.EMPTY);
                     Printer.print(StrUtil.CRLF);
                     status = Status.NORMAL;
 
@@ -198,12 +208,16 @@ public class Shell {
         }
 
         String cmdStr = cmd.toString();
-        boolean isVimCmd = (StringUtils.isEmpty(cmd) && isViVimCmd(localLastCmd.get())) || isViVimCmd(cmd.toString());
+        boolean isVimCmd = (StringUtils.isEmpty(cmd) && CmdUtil.isViVimCmd(localLastCmd.get())) || CmdUtil.isViVimCmd(cmd.toString());
         if (isVimCmd) {
             status = Status.VIM_BEFORE;
         }
 
         return cmdStr;
+    }
+
+    public void printErr(String err) {
+        shellPrinter.printErr(err);
     }
 
     public Status getStatus() {
@@ -315,13 +329,6 @@ public class Shell {
         fullPath.set("/" + user.get());
         // this InputStream is already invalid.
         this.inputStream = null;
-    }
-
-    private boolean isViVimCmd(String cmd) {
-        cmd = cmd.trim();
-        return StringUtils.startsWith(cmd, "vi ") || StringUtils.startsWith(cmd, "vim ")
-                || StringUtils.startsWith(cmd, "sudo vi ") || StringUtils.startsWith(cmd, "sudo vim ")
-                || "vi".equals(cmd) || "vim".equals(cmd);
     }
 
     public void extractUserFromPrompt() {

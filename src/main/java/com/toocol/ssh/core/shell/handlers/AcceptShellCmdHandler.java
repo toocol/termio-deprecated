@@ -2,6 +2,7 @@ package com.toocol.ssh.core.shell.handlers;
 
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.utils.CmdUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.cache.SessionCache;
@@ -84,7 +85,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             outputStream.flush();
 
             CountDownLatch latch = new CountDownLatch(1);
-            if (isCdCmd(shell.getLastRemoteCmd()) || isCdCmd(cmd.toString())) {
+            if (CmdUtil.isCdCmd(shell.getLastRemoteCmd()) || CmdUtil.isCdCmd(cmd.toString())) {
                 JsonObject request = new JsonObject();
                 request.put("sessionId", sessionId);
                 request.put("cmd", "pwd");
@@ -112,13 +113,4 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
         eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 3);
     }
 
-    private boolean isCdCmd(String cmd) {
-        String clearLastCmd = cmd
-                .trim()
-                .replaceAll(" {2,}"," ")
-                .replaceAll(StrUtil.CR, StrUtil.EMPTY)
-                .replaceAll(StrUtil.LF, StrUtil.EMPTY);
-
-        return "cd".equals(clearLastCmd.replaceAll(StrUtil.SPACE, StrUtil.EMPTY)) || clearLastCmd.startsWith("cd ");
-    }
 }

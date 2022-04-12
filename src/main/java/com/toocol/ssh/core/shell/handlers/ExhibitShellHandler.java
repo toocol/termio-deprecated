@@ -3,6 +3,7 @@ package com.toocol.ssh.core.shell.handlers;
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.sync.SharedCountdownLatch;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.cache.SessionCache;
@@ -21,6 +22,8 @@ import static com.toocol.ssh.core.shell.ShellVerticleAddress.EXHIBIT_SHELL;
 public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
+
+    private volatile boolean cmdHasFeedbackWhenJustExit = false;
 
     public ExhibitShellHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -43,7 +46,11 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
             StatusCache.SHOW_WELCOME = false;
         }
 
-        Printer.print(shell.getPrompt());
+        if (StatusCache.ACCESS_EXHIBIT_SHELL_WITH_PROMPT) {
+            Printer.print(shell.getPrompt());
+        } else {
+            StatusCache.ACCESS_EXHIBIT_SHELL_WITH_PROMPT = true;
+        }
 
         /*
         * All the remote feedback data is getting from this InputStream.
@@ -56,6 +63,9 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
                 int i = in.read(tmp, 0, 1024);
                 if (i < 0) {
                     break;
+                }
+                if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
+                    cmdHasFeedbackWhenJustExit = true;
                 }
                 shell.print(new String(tmp, 0, i));
             }
@@ -73,7 +83,10 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
                 }
                 break;
             }
-            if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
+            if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL && cmdHasFeedbackWhenJustExit) {
+                if (in.available() > 0) {
+                    continue;
+                }
                 break;
             }
         }
@@ -84,6 +97,8 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
     protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
             StatusCache.JUST_CLOSE_EXHIBIT_SHELL = false;
+            cmdHasFeedbackWhenJustExit = false;
+            SharedCountdownLatch.countdown(ExecuteCommandInCertainShellHandler.class, this.getClass());
             return;
         }
         if (StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING) {

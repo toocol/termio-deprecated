@@ -21,4 +21,6 @@ public class StatusCache {
 
     public volatile static boolean ACCEPT_SHELL_CMD_IS_RUNNING = false;
 
+    public volatile static boolean ACCESS_EXHIBIT_SHELL_WITH_PROMPT = true;
+
 }

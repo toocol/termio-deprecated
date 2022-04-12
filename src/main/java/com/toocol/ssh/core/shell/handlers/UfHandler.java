@@ -4,6 +4,7 @@ import com.jcraft.jsch.ChannelSftp;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.utils.FileNameUtil;
+import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.core.SftpChannelProvider;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Promise;
@@ -44,14 +45,11 @@ public class UfHandler extends AbstractMessageHandler<Void> {
         String remotePath = request.getString("remotePath");
 
         CountDownLatch latch = new CountDownLatch(1);
-        JsonObject execRequest = new JsonObject();
-
         StringBuilder localPathBuilder = new StringBuilder();
-        eventBus.request(CHOOSE_FILE.address(), execRequest, result -> {
+        eventBus.request(CHOOSE_FILE.address(), null, result -> {
             localPathBuilder.append(Objects.requireNonNullElse(result.result().body(), "-1"));
             latch.countDown();
         });
-
         latch.await();
 
         if ("-1".equals(localPathBuilder.toString())) {
@@ -60,8 +58,15 @@ public class UfHandler extends AbstractMessageHandler<Void> {
         }
 
         ChannelSftp channelSftp = sftpChannelProvider.getChannelSftp(sessionId);
+        if (channelSftp == null) {
+            SessionCache.getInstance().getShell(sessionId).printErr("Create sftp channel failed.");
+            promise.complete();
+            return;
+        }
         channelSftp.cd(remotePath);
         channelSftp.put(new FileInputStream(localPathBuilder.toString()), FileNameUtil.getName(localPathBuilder.toString()));
+
+        promise.complete();
     }
 
     @Override

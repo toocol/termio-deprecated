@@ -3,6 +3,7 @@ package com.toocol.ssh.core.shell.handlers;
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.sync.SharedCountdownLatch;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.cache.SessionCache;
@@ -46,7 +47,12 @@ public class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<
         Long sessionId = request.getLong("sessionId");
         String cmd = request.getString("cmd");
 
-        StatusCache.JUST_CLOSE_EXHIBIT_SHELL = true;
+        SharedCountdownLatch.await(
+                () -> StatusCache.JUST_CLOSE_EXHIBIT_SHELL = true,
+                this.getClass(),
+                ExhibitShellHandler.class
+        );
+
         ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
         Shell shell = sessionCache.getShell(sessionId);
 
@@ -62,6 +68,7 @@ public class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<
 
         String feedback = new CmdFeedbackExtractor(inputStream, cmd, shell).extractFeedback();
 
+        StatusCache.ACCESS_EXHIBIT_SHELL_WITH_PROMPT = false;
         eventBus.send(EXHIBIT_SHELL.address(), sessionId);
 
         promise.complete(feedback);

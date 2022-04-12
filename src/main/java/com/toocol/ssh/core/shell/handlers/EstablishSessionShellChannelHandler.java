@@ -12,7 +12,7 @@ import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.credentials.vo.SshCredential;
 import com.toocol.ssh.core.shell.core.Shell;
-import com.toocol.ssh.core.shell.vo.SshUserInfo;
+import com.toocol.ssh.core.shell.core.SshUserInfo;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -126,7 +126,7 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
             Printer.clear();
 
             if (StatusCache.HANGED_ENTER) {
-                Printer.println("Invoke hanged session.");
+                Printer.println("Invoke hanged session.\n");
             } else {
                 Printer.println("Session established.\n");
             }
