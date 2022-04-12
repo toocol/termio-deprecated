@@ -1,9 +1,11 @@
 package com.toocol.ssh.core.configuration;
 
 import com.toocol.ssh.common.utils.OsUtil;
+import org.checkerframework.checker.units.qual.C;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author ZhaoZhe
@@ -23,6 +25,19 @@ public class SystemConfiguration {
             if (OsUtil.isWindows() && "Path".equals(key)) {
                 for (String path : map.get(key).split(";")) {
                     String[] split = path.split("\\\\");
+                    if (split[split.length - 1].toLowerCase().contains("vim")) {
+                        flag = true;
+                        break;
+                    }
+                }
+            } else if ("PATH".equals(key)){
+                for (String path : map.get(key).split(";")) {
+                    String[] split = path.split("\\\\");
+                    if (split[split.length - 1].toLowerCase().contains("vim")) {
+                        flag = true;
+                        break;
+                    }
+                    split = path.split("/");
                     if (split[split.length - 1].toLowerCase().contains("vim")) {
                         flag = true;
                         break;
