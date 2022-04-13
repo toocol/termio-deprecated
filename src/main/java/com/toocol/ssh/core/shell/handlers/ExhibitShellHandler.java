@@ -23,6 +23,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.EXHIBIT_SHELL;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 15:44
  */
+@SuppressWarnings("all")
 public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
@@ -30,8 +31,6 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
     private volatile boolean cmdHasFeedbackWhenJustExit = false;
 
     private volatile long firstIn = 0;
-
-    private volatile long lastPrintTime = 0;
 
     public ExhibitShellHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -61,11 +60,12 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
         }
 
         /*
-        * All the remote feedback data is getting from this InputStream.
-        * And don't know why, there should get a new InputStream from channelShell.
-        **/
+         * All the remote feedback data is getting from this InputStream.
+         * And don't know why, there should get a new InputStream from channelShell.
+         **/
         InputStream in = channelShell.getInputStream();
         byte[] tmp = new byte[1024];
+
         while (true) {
             while (in.available() > 0) {
                 if (StatusCache.EXHIBIT_WAITING_BEFORE_COMMAND_PREPARE) {
@@ -76,15 +76,10 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
                     break;
                 }
 
-                lastPrintTime = System.currentTimeMillis();
                 boolean hasPrint = shell.print(new String(tmp, 0, i, StandardCharsets.UTF_8));
                 if (hasPrint && StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
                     cmdHasFeedbackWhenJustExit = true;
                 }
-            }
-
-            if (lastPrintTime != 0 && System.currentTimeMillis() - lastPrintTime >= 10000) {
-                StatusCache.WAITER.waitFor();
             }
 
             if (StatusCache.HANGED_QUIT) {
@@ -121,7 +116,12 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
                     break;
                 }
             }
+            /*
+             * Reduce CPU utilization
+             */
+            Thread.sleep(1);
         }
+
         in.close();
         promise.complete(sessionId);
     }

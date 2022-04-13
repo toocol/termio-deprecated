@@ -3,7 +3,6 @@ package com.toocol.ssh.core.shell.core;
 import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.StrUtil;
-import com.toocol.ssh.core.cache.StatusCache;
 import jline.ConsoleReader;
 
 import java.io.IOException;
@@ -33,7 +32,6 @@ record ShellReader(Shell shell, OutputStream outputStream) {
         StringBuilder localLastInputBuffer = new StringBuilder();
         while (true) {
             char inChar = (char) reader.readVirtualKey();
-            StatusCache.WAITER.tryInvoke();
             if (inChar == '\uFFFF') {
                 throw new RuntimeException("Can't handle chinese character.");
             }

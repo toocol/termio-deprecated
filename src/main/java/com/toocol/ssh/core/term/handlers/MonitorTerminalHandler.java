@@ -19,6 +19,7 @@ import static com.toocol.ssh.core.term.vert.TermVerticle.TERMINAL;
  * @date: 2022/4/13 0:58
  * @version: 0.0.1
  */
+@SuppressWarnings("all")
 public class MonitorTerminalHandler extends AbstractMessageHandler<Void> {
 
     public MonitorTerminalHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
@@ -39,23 +40,24 @@ public class MonitorTerminalHandler extends AbstractMessageHandler<Void> {
         int currentHeight = TERMINAL.getTerminalHeight();
 
         while (true) {
-            int terminalWidth = TERMINAL.getTerminalWidth();
-            int terminalHeight = TERMINAL.getTerminalHeight();
-
-            if (currentWidth != terminalWidth || currentHeight != terminalHeight) {
-                channelShell.setPtySize(terminalWidth, terminalHeight, terminalWidth, terminalHeight);
-                currentHeight = terminalHeight;
-                currentWidth = terminalWidth;
-            }
-
-            if ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024 >= 200) {
-                System.gc();
-            }
+//            int terminalWidth = TERMINAL.getTerminalWidth();
+//            int terminalHeight = TERMINAL.getTerminalHeight();
+//
+//            if (currentWidth != terminalWidth || currentHeight != terminalHeight) {
+//                channelShell.setPtySize(terminalWidth, terminalHeight, terminalWidth, terminalHeight);
+//                currentHeight = terminalHeight;
+//                currentWidth = terminalWidth;
+//            }
 
             if (StatusCache.STOP_LISTEN_TERMINAL_SIZE_CHANGE) {
                 StatusCache.STOP_LISTEN_TERMINAL_SIZE_CHANGE = false;
                 break;
             }
+
+            /*
+             * Reduce CPU utilization
+             */
+            Thread.sleep(1);
         }
 
         promise.complete();
