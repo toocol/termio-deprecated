@@ -97,7 +97,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4.2</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -105,6 +105,15 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <minimizeJar>true</minimizeJar>
+                            <filters>
+                                <filter>
+                                    <artifact>com.jcraft:jsch</artifact>
+                                    <includes>
+                                        <include>com/jcraft/jsch/**</include>
+                                    </includes>
+                                </filter>
+                            </filters>
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
@@ -113,7 +122,6 @@
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
-                            <artifactSet/>
                             <outputFile>${project.build.directory}/${project.artifactId}.jar</outputFile>
                         </configuration>
                     </execution>
