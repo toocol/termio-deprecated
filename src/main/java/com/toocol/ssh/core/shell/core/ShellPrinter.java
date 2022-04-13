@@ -17,16 +17,16 @@ record ShellPrinter(Shell shell) {
         Printer.print(shell.getPrompt());
     }
 
-    void printInNormal(String msg) {
+    boolean printInNormal(String msg) {
         if (msg.contains("export HISTCONTROL=ignoreboth")) {
-            return;
+            return false;
         }
         if (shell.localLastCmd.get().equals(msg)) {
-            return;
+            return false;
         } else if (msg.startsWith("\b\u001B[K")) {
             String[] split = msg.split("\r\n");
             if (split.length == 1) {
-                return;
+                return false;
             }
             msg = split[1];
         } else if (msg.startsWith(shell.localLastCmd.get().trim())) {
@@ -40,6 +40,7 @@ record ShellPrinter(Shell shell) {
         String tmp = msg;
         shell.currentPrint.getAndUpdate(prev -> prev + tmp);
         Printer.print(msg);
+        return true;
     }
 
     void printInVim(String msg) {

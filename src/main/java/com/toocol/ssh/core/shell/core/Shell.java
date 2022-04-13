@@ -3,6 +3,7 @@ package com.toocol.ssh.core.shell.core;
 import com.toocol.ssh.common.utils.CmdUtil;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.vert.TermVerticle;
 import jline.Terminal;
 import lombok.AllArgsConstructor;
@@ -80,7 +81,7 @@ public class Shell {
         this.initialFirstCorrespondence();
     }
 
-    public void print(String msg) {
+    public boolean print(String msg) {
         Matcher matcher = PROMPT_PATTERN.matcher(msg);
         if (matcher.find()) {
             prompt.set(matcher.group(0) + StrUtil.SPACE);
@@ -91,25 +92,39 @@ public class Shell {
             }
         }
 
+        boolean hasPrint = false;
         switch (status) {
-            case NORMAL -> shellPrinter.printInNormal(msg);
+            case NORMAL -> hasPrint = shellPrinter.printInNormal(msg);
             case TAB_ACCOMPLISH -> shellPrinter.printInTabAccomplish(msg);
             case VIM_BEFORE, VIM_UNDER -> shellPrinter.printInVim(msg);
             case HISTORY_COMMAND_SELECT -> shellPrinter.printSelectHistoryCommand(msg);
             default -> {
             }
         }
+        return hasPrint;
     }
 
     public String readCmd() throws Exception {
         shellReader.readCmd();
 
         String cmdStr = cmd.toString();
-        boolean isVimCmd = (StringUtils.isEmpty(cmd) && CmdUtil.isViVimCmd(localLastCmd.get())) || CmdUtil.isViVimCmd(cmd.toString());
+        boolean isVimCmd = (StringUtils.isEmpty(cmd) && CmdUtil.isViVimCmd(localLastCmd.get()))
+                || CmdUtil.isViVimCmd(cmd.toString())
+                || CmdUtil.isViVimCmd(selectHistoryCmd.get());
         if (isVimCmd) {
             status = Status.VIM_BEFORE;
         }
 
+        if (CmdUtil.isCdCmd(lastRemoteCmd)
+                || CmdUtil.isCdCmd(cmd.toString())
+                || CmdUtil.isCdCmd(selectHistoryCmd.get())) {
+            StatusCache.EXECUTE_CD_CMD = true;
+        }
+
+        lastRemoteCmd = StrUtil.EMPTY;
+        selectHistoryCmd.set(StrUtil.EMPTY);
+        currentPrint.set(StrUtil.EMPTY);
+        remoteCmd.set(StrUtil.EMPTY);
         return cmdStr;
     }
 

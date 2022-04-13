@@ -55,7 +55,7 @@ public abstract class AbstractMessageHandler<R> implements ICastable {
                     try {
                         handleWithinBlocking(cast(promise), message);
                     } catch (Exception e) {
-                        Printer.println("Caught handle exception, exit program. message=" + e.getMessage());
+                        Printer.println("Caught exception, exit program. class=" + this.getClass().getName() + " ,message=" + e.getMessage());
                         System.exit(-1);
                     }
                 },
@@ -64,7 +64,7 @@ public abstract class AbstractMessageHandler<R> implements ICastable {
                     try {
                         resultWithinBlocking(cast(asyncResult), message);
                     } catch (Exception e) {
-                        Printer.println("Caught handle exception, exit program. message=" + e.getMessage());
+                        Printer.println("Caught exception, exit program. class=" + this.getClass().getName() + " ,message=" + e.getMessage());
                         System.exit(-1);
                     }
                 }

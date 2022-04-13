@@ -2,7 +2,6 @@ package com.toocol.ssh.core.shell.handlers;
 
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.common.utils.CmdUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
@@ -86,12 +85,9 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                 shell.localLastCmd.set(cmd + StrUtil.CRLF);
             }
 
-            String actualCmd = cmd.toString().trim() + StrUtil.LF;
-            outputStream.write(actualCmd.getBytes(StandardCharsets.UTF_8));
-            outputStream.flush();
-
             CountDownLatch latch = new CountDownLatch(1);
-            if (CmdUtil.isCdCmd(shell.getLastRemoteCmd()) || CmdUtil.isCdCmd(cmd.toString())) {
+            if (StatusCache.EXECUTE_CD_CMD) {
+                StatusCache.EXECUTE_CD_CMD = false;
                 JsonObject request = new JsonObject();
                 request.put("sessionId", sessionId);
                 request.put("cmd", " pwd");
@@ -102,6 +98,11 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             } else {
                 latch.countDown();
             }
+
+            String actualCmd = cmd.toString().trim() + StrUtil.LF;
+            outputStream.write(actualCmd.getBytes(StandardCharsets.UTF_8));
+            outputStream.flush();
+
             latch.await();
         }
     }

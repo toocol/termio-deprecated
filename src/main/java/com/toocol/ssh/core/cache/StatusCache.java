@@ -25,4 +25,6 @@ public class StatusCache {
 
     public volatile static boolean STOP_LISTEN_TERMINAL_SIZE_CHANGE = false;
 
+    public volatile static boolean EXECUTE_CD_CMD = false;
+
 }

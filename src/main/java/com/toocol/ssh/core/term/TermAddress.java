@@ -20,7 +20,11 @@ public enum TermAddress implements IAddress{
     /**
      * listen the terminal's size change.
      */
-    LISTEN_TERMINAL_SIZE_CHANGE("ssh.term.listen.size.change")
+    LISTEN_TERMINAL_SIZE_CHANGE("ssh.term.listen.size.change"),
+    /**
+     * check typewriting status.
+     */
+    CHECK_TYPEWRITING_STATUS("ssh.term.check.typewriting")
     ;
 
     /**

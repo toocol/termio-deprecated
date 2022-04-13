@@ -4,12 +4,14 @@ import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.sync.SharedCountdownLatch;
-import com.toocol.ssh.common.utils.CharsetUtil;
 import com.toocol.ssh.common.utils.Printer;
-import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
-import io.vertx.core.*;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 
 import java.io.InputStream;
@@ -26,6 +28,9 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
     private final SessionCache sessionCache = SessionCache.getInstance();
 
     private volatile boolean cmdHasFeedbackWhenJustExit = false;
+    private volatile boolean timeoutQuit = false;
+
+    private volatile long firstIn = 0;
 
     public ExhibitShellHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -54,6 +59,11 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
             StatusCache.ACCESS_EXHIBIT_SHELL_WITH_PROMPT = true;
         }
 
+        if (timeoutQuit) {
+            Printer.print(shell.getPrompt());
+            timeoutQuit = false;
+        }
+
         /*
         * All the remote feedback data is getting from this InputStream.
         * And don't know why, there should get a new InputStream from channelShell.
@@ -66,10 +76,11 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
                 if (i < 0) {
                     break;
                 }
-                if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
+
+                boolean hasPrint = shell.print(new String(tmp, 0, i, StandardCharsets.UTF_8));
+                if (hasPrint && StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
                     cmdHasFeedbackWhenJustExit = true;
                 }
-                shell.print(new String(tmp, 0, i, StandardCharsets.UTF_8));
             }
 
             if (StatusCache.HANGED_QUIT) {
@@ -85,11 +96,24 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
                 }
                 break;
             }
-            if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL && cmdHasFeedbackWhenJustExit) {
-                if (in.available() > 0) {
-                    continue;
+            if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
+                if (firstIn == 0) {
+                    firstIn = System.currentTimeMillis();
+                } else {
+                    if (System.currentTimeMillis() - firstIn >= 5000) {
+                        firstIn = 0;
+                        timeoutQuit = true;
+                        break;
+                    }
                 }
-                break;
+
+                if (cmdHasFeedbackWhenJustExit) {
+                    if (in.available() > 0) {
+                        continue;
+                    }
+
+                    break;
+                }
             }
         }
         promise.complete(sessionId);

@@ -65,6 +65,13 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.fxml.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.xvolks.jnative</groupId>
+            <artifactId>JNative</artifactId>
+            <version>1.4RC3</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/starter/libs/jnative/JNative.jar</systemPath>
+        </dependency>
     </dependencies>
 
     <build>

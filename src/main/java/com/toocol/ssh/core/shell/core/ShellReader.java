@@ -30,34 +30,17 @@ record ShellReader(Shell shell, OutputStream outputStream) {
     void readCmd() throws Exception {
         shell.cmd.delete(0, shell.cmd.length());
         StringBuilder localLastInputBuffer = new StringBuilder();
-        StringBuilder chineseBuilder = new StringBuilder();
-        char[] chineseCharBuf = new char[2];
         while (true) {
-
             char inChar = (char) reader.readVirtualKey();
-
             if (shell.status.equals(Shell.Status.VIM_UNDER)) {
-                if (CharUtil.isChinese(inChar)) {
-                    chineseCharBuf[chineseBuilder.length()] = inChar;
-                    chineseBuilder.append(inChar);
-                    if (chineseBuilder.length() == 2) {
-                        byte[] bytes = CharUtil.charToBytes(chineseCharBuf);
-
-                        outputStream.write(bytes);
-                        outputStream.flush();
-
-                        chineseBuilder.delete(0, chineseBuilder.length());
-                        chineseCharBuf = new char[2];
-                    }
-                } else {
-                    outputStream.write(inChar);
-                    outputStream.flush();
-                }
+                outputStream.write(inChar);
+                outputStream.flush();
             } else {
                 if (inChar == CharUtil.CTRL_C) {
 
                     outputStream.write(inChar);
                     outputStream.flush();
+                    shell.status = Shell.Status.NORMAL;
 
                 } else if (inChar == CharUtil.UP_ARROW || inChar == CharUtil.DOWN_ARROW) {
 
@@ -122,15 +105,11 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                         shell.localLastCmd.set(shell.remoteCmd.get() + StrUtil.CRLF);
                     }
                     shell.localLastInput = localLastInputBuffer.toString();
-                    shell.currentPrint.set(StrUtil.EMPTY);
                     shell.lastRemoteCmd = shell.remoteCmd.get();
-                    shell.remoteCmd.set(StrUtil.EMPTY);
-                    shell.selectHistoryCmd.set(StrUtil.EMPTY);
                     Printer.print(StrUtil.CRLF);
                     shell.status = Shell.Status.NORMAL;
-
                     break;
-                } else if (CharUtil.isAsciiPrintable(inChar)){
+                } else if (CharUtil.isAsciiPrintable(inChar)) {
 
                     if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
                         shell.remoteCmd.getAndUpdate(prev -> prev + inChar);

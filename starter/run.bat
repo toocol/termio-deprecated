@@ -1,4 +1,5 @@
 @echo off
+chcp 65001
 %JAVA_HOME%\\bin\\java ^
 -Djavafx.verbose=true ^
 -Dprism.verbose=true ^
