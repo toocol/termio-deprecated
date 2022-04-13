@@ -23,7 +23,13 @@ public class CheckTypewritingStatusHandler extends AbstractMessageHandler<Void> 
 
     public static void main(String[] args) {
         try {
-            HWND hwnd = User32.GetActiveWindow();
+            System.setProperty("jnative.debug", "true");
+            JNative GetActiveWindow = new JNative("User32.dll", "GetActiveWindow");
+            GetActiveWindow.setRetVal(Type.INT);
+            GetActiveWindow.invoke();
+            int ret = GetActiveWindow.getRetValAsInt();
+            GetActiveWindow.dispose();
+            HWND hwnd = new HWND(ret);
             System.out.println(hwnd.createPointer().toString());
         } catch (Exception e) {
             e.printStackTrace();

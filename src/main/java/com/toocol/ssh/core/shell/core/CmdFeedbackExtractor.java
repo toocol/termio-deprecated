@@ -27,12 +27,12 @@ public record CmdFeedbackExtractor(InputStream inputStream, String cmd, Shell sh
                 }
                 String msg = new String(tmp, 0, i);
                 Matcher matcher = Shell.PROMPT_PATTERN.matcher(msg);
-                String cleanedMsg = msg.replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY);
+                String cleanedMsg = msg.replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY);
                 if (!matcher.find()
                         && !msg.contains(StrUtil.CRLF)
-                        && !cleanedMsg.equals(cmd)
-                        && !cleanedMsg.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY))
-                        && !cleanedMsg.equals(shell.localLastCmd.get().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY))) {
+                        && !cleanedMsg.equals(cmd.replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
+                        && !cleanedMsg.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
+                        && !cleanedMsg.equals(shell.localLastCmd.get().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))) {
                     feedback = msg;
                 } else {
                     shell.setPrompt(matcher.group(0) + StrUtil.SPACE);
@@ -42,10 +42,11 @@ public record CmdFeedbackExtractor(InputStream inputStream, String cmd, Shell sh
                 if (msg.contains(StrUtil.CRLF)) {
                     for (String split : msg.split(StrUtil.CRLF)) {
                         Matcher insideMatcher = Shell.PROMPT_PATTERN.matcher(split);
+                        String cleanedSplit = split.replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY);
                         if (!insideMatcher.find()
-                                && !split.replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).equals(cmd)
-                                && !split.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY))
-                                && !split.equals(shell.localLastCmd.get().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY))) {
+                                && !cleanedSplit.equals(cmd.replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
+                                && !cleanedSplit.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
+                                && !cleanedSplit.equals(shell.localLastCmd.get().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))) {
                             feedback = split;
                         }
                     }

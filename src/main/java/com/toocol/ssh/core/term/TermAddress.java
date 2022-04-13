@@ -18,9 +18,10 @@ public enum TermAddress implements IAddress{
      */
     ADDRESS_ACCEPT_COMMAND("ssh.command.accept"),
     /**
-     * listen the terminal's size change.
+     * monitor the terminal program's status
+     * include terminal's size and memory use.
      */
-    LISTEN_TERMINAL_SIZE_CHANGE("ssh.term.listen.size.change"),
+    MONITOR_TERMINAL("ssh.term.listen.size.change"),
     /**
      * check typewriting status.
      */

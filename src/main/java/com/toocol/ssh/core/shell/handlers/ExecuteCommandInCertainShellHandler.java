@@ -48,7 +48,10 @@ public class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<
         String cmd = request.getString("cmd");
 
         SharedCountdownLatch.await(
-                () -> StatusCache.JUST_CLOSE_EXHIBIT_SHELL = true,
+                () -> {
+                    StatusCache.JUST_CLOSE_EXHIBIT_SHELL = true;
+                    StatusCache.EXHIBIT_WAITING_BEFORE_COMMAND_PREPARE = false;
+                },
                 this.getClass(),
                 ExhibitShellHandler.class
         );

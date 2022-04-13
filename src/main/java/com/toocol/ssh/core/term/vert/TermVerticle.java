@@ -6,7 +6,7 @@ import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.term.handlers.AcceptOutsideCommandHandler;
 import com.toocol.ssh.core.term.handlers.ExecuteOutsideCommandHandler;
-import com.toocol.ssh.core.term.handlers.ListenTerminalSizeHandler;
+import com.toocol.ssh.core.term.handlers.MonitorTerminalHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 import jline.Terminal;
@@ -17,7 +17,7 @@ import jline.Terminal;
  */
 @PreloadDeployment
 @RegisterHandler(handlers = {
-        ListenTerminalSizeHandler.class,
+        MonitorTerminalHandler.class,
         AcceptOutsideCommandHandler.class,
         ExecuteOutsideCommandHandler.class
 })

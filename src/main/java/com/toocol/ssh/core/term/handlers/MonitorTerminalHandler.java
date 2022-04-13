@@ -11,7 +11,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 
-import static com.toocol.ssh.core.term.TermAddress.LISTEN_TERMINAL_SIZE_CHANGE;
+import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
 import static com.toocol.ssh.core.term.vert.TermVerticle.TERMINAL;
 
 /**
@@ -19,15 +19,15 @@ import static com.toocol.ssh.core.term.vert.TermVerticle.TERMINAL;
  * @date: 2022/4/13 0:58
  * @version: 0.0.1
  */
-public class ListenTerminalSizeHandler extends AbstractMessageHandler<Void> {
+public class MonitorTerminalHandler extends AbstractMessageHandler<Void> {
 
-    public ListenTerminalSizeHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
+    public MonitorTerminalHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
     }
 
     @Override
     public IAddress consume() {
-        return LISTEN_TERMINAL_SIZE_CHANGE;
+        return MONITOR_TERMINAL;
     }
 
     @Override
@@ -46,6 +46,10 @@ public class ListenTerminalSizeHandler extends AbstractMessageHandler<Void> {
                 channelShell.setPtySize(terminalWidth, terminalHeight, terminalWidth, terminalHeight);
                 currentHeight = terminalHeight;
                 currentWidth = terminalWidth;
+            }
+
+            if ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024 >= 200) {
+                System.gc();
             }
 
             if (StatusCache.STOP_LISTEN_TERMINAL_SIZE_CHANGE) {

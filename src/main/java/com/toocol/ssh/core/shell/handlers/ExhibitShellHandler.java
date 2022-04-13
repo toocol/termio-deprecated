@@ -28,9 +28,10 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
     private final SessionCache sessionCache = SessionCache.getInstance();
 
     private volatile boolean cmdHasFeedbackWhenJustExit = false;
-    private volatile boolean timeoutQuit = false;
 
     private volatile long firstIn = 0;
+
+    private volatile long lastPrintTime = 0;
 
     public ExhibitShellHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -59,11 +60,6 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
             StatusCache.ACCESS_EXHIBIT_SHELL_WITH_PROMPT = true;
         }
 
-        if (timeoutQuit) {
-            Printer.print(shell.getPrompt());
-            timeoutQuit = false;
-        }
-
         /*
         * All the remote feedback data is getting from this InputStream.
         * And don't know why, there should get a new InputStream from channelShell.
@@ -72,15 +68,23 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
         byte[] tmp = new byte[1024];
         while (true) {
             while (in.available() > 0) {
+                if (StatusCache.EXHIBIT_WAITING_BEFORE_COMMAND_PREPARE) {
+                    continue;
+                }
                 int i = in.read(tmp, 0, 1024);
                 if (i < 0) {
                     break;
                 }
 
+                lastPrintTime = System.currentTimeMillis();
                 boolean hasPrint = shell.print(new String(tmp, 0, i, StandardCharsets.UTF_8));
                 if (hasPrint && StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
                     cmdHasFeedbackWhenJustExit = true;
                 }
+            }
+
+            if (lastPrintTime != 0 && System.currentTimeMillis() - lastPrintTime >= 10000) {
+                StatusCache.WAITER.waitFor();
             }
 
             if (StatusCache.HANGED_QUIT) {
@@ -100,9 +104,11 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
                 if (firstIn == 0) {
                     firstIn = System.currentTimeMillis();
                 } else {
-                    if (System.currentTimeMillis() - firstIn >= 5000) {
+                    if (System.currentTimeMillis() - firstIn >= 2000) {
+                        if (in.available() > 0) {
+                            continue;
+                        }
                         firstIn = 0;
-                        timeoutQuit = true;
                         break;
                     }
                 }
@@ -111,11 +117,12 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
                     if (in.available() > 0) {
                         continue;
                     }
-
+                    firstIn = 0;
                     break;
                 }
             }
         }
+        in.close();
         promise.complete(sessionId);
     }
 

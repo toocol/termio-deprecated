@@ -1,5 +1,7 @@
 package com.toocol.ssh.core.cache;
 
+import com.toocol.ssh.common.sync.Waiter;
+
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/1 0:08
@@ -26,5 +28,9 @@ public class StatusCache {
     public volatile static boolean STOP_LISTEN_TERMINAL_SIZE_CHANGE = false;
 
     public volatile static boolean EXECUTE_CD_CMD = false;
+
+    public volatile static boolean EXHIBIT_WAITING_BEFORE_COMMAND_PREPARE = false;
+
+    public final static Waiter WAITER = new Waiter();
 
 }

@@ -25,7 +25,7 @@ import java.util.Properties;
 
 import static com.toocol.ssh.core.shell.ShellAddress.*;
 import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
-import static com.toocol.ssh.core.term.TermAddress.LISTEN_TERMINAL_SIZE_CHANGE;
+import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -138,7 +138,7 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
 
             StatusCache.SHOW_WELCOME = true;
 
-            eventBus.send(LISTEN_TERMINAL_SIZE_CHANGE.address(), sessionId);
+            eventBus.send(MONITOR_TERMINAL.address(), sessionId);
             eventBus.send(EXHIBIT_SHELL.address(), sessionId);
             eventBus.send(ACCEPT_SHELL_CMD.address(), sessionId);
 

@@ -52,7 +52,11 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
         outputStream.flush();
 
         while (true) {
-            StringBuilder cmd = new StringBuilder(shell.readCmd());
+            String cmdRead = shell.readCmd();
+            if (cmdRead == null) {
+                continue;
+            }
+            StringBuilder cmd = new StringBuilder(cmdRead);
 
             AtomicBoolean isBreak = new AtomicBoolean();
             AtomicBoolean isContinue = new AtomicBoolean();
@@ -88,6 +92,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             CountDownLatch latch = new CountDownLatch(1);
             if (StatusCache.EXECUTE_CD_CMD) {
                 StatusCache.EXECUTE_CD_CMD = false;
+                StatusCache.EXHIBIT_WAITING_BEFORE_COMMAND_PREPARE = true;
                 JsonObject request = new JsonObject();
                 request.put("sessionId", sessionId);
                 request.put("cmd", " pwd");

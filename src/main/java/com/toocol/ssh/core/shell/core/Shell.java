@@ -105,7 +105,11 @@ public class Shell {
     }
 
     public String readCmd() throws Exception {
-        shellReader.readCmd();
+        try {
+            shellReader.readCmd();
+        } catch (RuntimeException e) {
+            return null;
+        }
 
         String cmdStr = cmd.toString();
         boolean isVimCmd = (StringUtils.isEmpty(cmd) && CmdUtil.isViVimCmd(localLastCmd.get()))
