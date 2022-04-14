@@ -14,16 +14,16 @@ import java.nio.charset.StandardCharsets;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/14 11:09
  */
-public class Termio {
+public class Term {
 
-    private Termio() {
+    private Term() {
     }
 
     public static final String PROMPT = "[terminatio] > ";
 
-    private static final Termio INSTANCE = new Termio();
+    private static final Term INSTANCE = new Term();
 
-    public static Termio getInstance() {
+    public static Term getInstance() {
         return INSTANCE;
     }
 

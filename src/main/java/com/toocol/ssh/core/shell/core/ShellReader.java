@@ -4,6 +4,7 @@ import com.toocol.ssh.common.console.ConsoleReader;
 import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.term.core.Printer;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -37,7 +38,7 @@ record ShellReader(Shell shell, OutputStream outputStream) {
 
                 } else if (inChar == CharUtil.UP_ARROW || inChar == CharUtil.DOWN_ARROW) {
 
-                    shell.status = Shell.Status.HISTORY_COMMAND_SELECT;
+                    shell.status = inChar == CharUtil.UP_ARROW ? Shell.Status.UP_HISTORY_CMD_SELECT : Shell.Status.DOWN_HISTORY_CMD_SELECT;
                     shell.localLastCmd.set("");
                     outputStream.write(inChar);
                     outputStream.flush();
@@ -65,7 +66,7 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     if (shell.remoteCmd.get().length() == 0 && shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
                         continue;
                     }
-                    if (shell.selectHistoryCmd.get().length() == 0 && shell.status.equals(Shell.Status.HISTORY_COMMAND_SELECT)) {
+                    if (shell.selectHistoryCmd.get().length() == 0 && shell.status.equals(Shell.Status.UP_HISTORY_CMD_SELECT)) {
                         continue;
                     }
 
@@ -82,7 +83,7 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     if (shell.status.equals(Shell.Status.NORMAL)) {
                         shell.cmd.deleteCharAt(shell.cmd.length() - 1);
                     }
-                    if (shell.status.equals(Shell.Status.HISTORY_COMMAND_SELECT)) {
+                    if (shell.status.equals(Shell.Status.UP_HISTORY_CMD_SELECT)) {
                         shell.cmd.append('\u007F');
                         shell.selectHistoryCmd.getAndUpdate(prev -> prev.substring(0, prev.length() - 1));
                     }
@@ -99,6 +100,7 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     }
                     shell.localLastInput = localLastInputBuffer.toString();
                     shell.lastRemoteCmd = shell.remoteCmd.get();
+                    shell.lastExecuteCmd = StringUtils.isEmpty(shell.remoteCmd.get()) ? shell.cmd.toString() : shell.remoteCmd.get().replaceAll("\b", "");
                     Printer.print(StrUtil.CRLF);
                     shell.status = Shell.Status.NORMAL;
                     break;

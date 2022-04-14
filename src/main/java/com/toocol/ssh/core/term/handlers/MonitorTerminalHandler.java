@@ -5,7 +5,7 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
-import com.toocol.ssh.core.term.core.Termio;
+import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -22,7 +22,7 @@ import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
 @SuppressWarnings("all")
 public class MonitorTerminalHandler extends AbstractMessageHandler<Void> {
 
-    private final Termio termio = Termio.getInstance();
+    private final Term term = Term.getInstance();
 
     public MonitorTerminalHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -38,12 +38,12 @@ public class MonitorTerminalHandler extends AbstractMessageHandler<Void> {
         Long sessionId = cast(message.body());
         ChannelShell channelShell = SessionCache.getInstance().getChannelShell(sessionId);
 
-        int currentWidth = termio.getWidth();
-        int currentHeight = termio.getHeight();
+        int currentWidth = term.getWidth();
+        int currentHeight = term.getHeight();
 
         while (true) {
-            int terminalWidth = termio.getWidth();
-            int terminalHeight = termio.getHeight();
+            int terminalWidth = term.getWidth();
+            int terminalHeight = term.getHeight();
 
             if (currentWidth != terminalWidth || currentHeight != terminalHeight) {
                 channelShell.setPtySize(terminalWidth, terminalHeight, terminalWidth, terminalHeight);

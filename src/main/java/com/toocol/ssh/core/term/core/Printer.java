@@ -17,7 +17,7 @@ import static com.toocol.ssh.core.config.SystemConfig.*;
  * @date 2021/2/19 16:20
  */
 public class Printer {
-    public static final PrintWriter PRINTER = Termio.getInstance().printer();
+    public static final PrintWriter PRINTER = Term.getInstance().printer();
 
     public static final PrintStream DIRECT_PRINTER = System.out;
 

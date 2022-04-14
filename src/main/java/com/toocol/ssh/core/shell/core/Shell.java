@@ -4,6 +4,7 @@ import com.toocol.ssh.common.utils.CmdUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.core.Printer;
+import io.vertx.core.eventbus.EventBus;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
@@ -18,6 +19,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
+
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/3 20:57
@@ -26,6 +29,10 @@ public class Shell {
 
     public static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)]#)");
 
+    /**
+     * the EventBus of vert.x system.
+     */
+    private final EventBus eventBus;
     /**
      * the output/input Stream belong to JSch's channelShell;
      */
@@ -37,6 +44,7 @@ public class Shell {
 
     protected final ShellPrinter shellPrinter;
     protected final ShellReader shellReader;
+    protected final HistoryCmdHelper historyCmdHelper;
 
     public volatile AtomicReference<String> localLastCmd = new AtomicReference<>(StrUtil.EMPTY);
     public volatile AtomicReference<String> remoteCmd = new AtomicReference<>(StrUtil.EMPTY);
@@ -44,6 +52,7 @@ public class Shell {
     protected volatile AtomicReference<String> selectHistoryCmd = new AtomicReference<>(StrUtil.EMPTY);
     protected volatile String localLastInput = StrUtil.EMPTY;
     protected volatile String lastRemoteCmd = StrUtil.EMPTY;
+    protected volatile String lastExecuteCmd =StrUtil.EMPTY;
     protected volatile Status status = Status.NORMAL;
 
     protected final Set<String> tabFeedbackRec = new HashSet<>();
@@ -64,19 +73,22 @@ public class Shell {
         VIM_BEFORE(3, "Shell is before Vim/Vi edit status."),
         VIM_UNDER(4, "Shell is under Vim/Vi edit status."),
         VIM_AFTER(5, "Shell is under Vim/Vi edit status."),
-        HISTORY_COMMAND_SELECT(6, "Shell is under history command select status."),
+        UP_HISTORY_CMD_SELECT(6, "Shell is under up arrow history command select status."),
+        DOWN_HISTORY_CMD_SELECT(6, "Shell is under up arrow history command select status."),
         ;
 
         public final int status;
         public final String comment;
     }
 
-    public Shell(OutputStream outputStream, InputStream inputStream) {
+    public Shell(EventBus eventBus, OutputStream outputStream, InputStream inputStream) {
+        this.eventBus = eventBus;
         assert outputStream != null && inputStream != null;
         this.outputStream = outputStream;
         this.inputStream = inputStream;
         this.shellPrinter = new ShellPrinter(this);
         this.shellReader = new ShellReader(this, this.outputStream);
+        this.historyCmdHelper = new HistoryCmdHelper();
         this.initialFirstCorrespondence();
     }
 
@@ -95,7 +107,7 @@ public class Shell {
             case NORMAL, VIM_AFTER -> hasPrint = shellPrinter.printInNormal(msg);
             case TAB_ACCOMPLISH -> shellPrinter.printInTabAccomplish(msg);
             case VIM_BEFORE, VIM_UNDER -> shellPrinter.printInVim(msg);
-            case HISTORY_COMMAND_SELECT -> shellPrinter.printSelectHistoryCommand(msg);
+            case UP_HISTORY_CMD_SELECT, DOWN_HISTORY_CMD_SELECT -> shellPrinter.printSelectHistoryCommand(msg);
             default -> {
             }
         }
@@ -148,6 +160,9 @@ public class Shell {
     private void initialFirstCorrespondence() {
         try {
             CountDownLatch mainLatch = new CountDownLatch(2);
+            eventBus.request(START_DF_COMMAND.address(), null, result -> {
+                // TODO: accomplish HistoryCmdHelper initialize logic
+            });
 
             new Thread(() -> {
                 try {

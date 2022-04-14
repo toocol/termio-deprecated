@@ -5,7 +5,7 @@ import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.commands.OutsideCommand;
 import com.toocol.ssh.core.term.core.Printer;
-import com.toocol.ssh.core.term.core.Termio;
+import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -48,7 +48,7 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
             }
 
             while (true) {
-                String cmd = Termio.getInstance().getReader().readLine(Termio.PROMPT);
+                String cmd = Term.getInstance().getReader().readLine(Term.PROMPT);
 
                 CountDownLatch latch = new CountDownLatch(1);
                 AtomicBoolean isBreak = new AtomicBoolean();

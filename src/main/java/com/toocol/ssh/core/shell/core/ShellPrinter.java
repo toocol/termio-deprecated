@@ -4,6 +4,8 @@ import com.toocol.ssh.core.term.core.Printer;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.PrintStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.toocol.ssh.common.utils.StrUtil.CRLF;
 import static com.toocol.ssh.common.utils.StrUtil.SPACE;
@@ -15,6 +17,7 @@ import static com.toocol.ssh.common.utils.StrUtil.SPACE;
 record ShellPrinter(Shell shell) {
     
     private final static PrintStream printer = Printer.DIRECT_PRINTER;
+    private static final Pattern HISTORY_COMMAND_PATTERN = Pattern.compile("([a-zA-Z /]+)");
 
     void printErr(String msg) {
         printer.print(msg);
@@ -116,7 +119,7 @@ record ShellPrinter(Shell shell) {
                         continue;
                     }
                     if (input.split("#").length == 2) {
-                        shell.remoteCmd.set(msg.split("#")[1].trim());
+                        shell.remoteCmd.set(input.split("#")[1].trim());
                     }
                     if (shell.tabFeedbackRec.contains(input)) {
                         continue;
@@ -138,13 +141,15 @@ record ShellPrinter(Shell shell) {
     }
 
     void printSelectHistoryCommand(String msg) {
-        String tmp = msg;
-        for (char ch : msg.toCharArray()) {
-            if (ch == '\b') {
-                tmp = tmp.substring(0, tmp.length() - 1);
+        Matcher matcher = HISTORY_COMMAND_PATTERN.matcher(msg);
+        if (matcher.find()) {
+            if (msg.contains("\u001B[3p")) {
+                String lastHistoryCmd = shell.selectHistoryCmd.get();
+            } else {
+                shell.selectHistoryCmd.set(matcher.group(0));
             }
         }
-        shell.selectHistoryCmd.set(tmp);
+        shell.remoteCmd.set(shell.selectHistoryCmd.get());
         printer.print(msg);
     }
 }

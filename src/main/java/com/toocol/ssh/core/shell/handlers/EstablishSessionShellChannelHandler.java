@@ -13,7 +13,7 @@ import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;
 import com.toocol.ssh.core.term.core.Printer;
-import com.toocol.ssh.core.term.core.Termio;
+import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -71,13 +71,13 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
                 sessionCache.putSession(sessionId, session);
 
                 ChannelShell channelShell = cast(session.openChannel("shell"));
-                int width = Termio.getInstance().getWidth();
-                int height = Termio.getInstance().getHeight();
+                int width = Term.getInstance().getWidth();
+                int height = Term.getInstance().getHeight();
                 channelShell.setPtyType("xterm", width, height, width, height);
                 channelShell.connect();
                 sessionCache.putChannelShell(sessionId, channelShell);
 
-                Shell shell = new Shell(channelShell.getOutputStream(), channelShell.getInputStream());
+                Shell shell = new Shell(eventBus, channelShell.getOutputStream(), channelShell.getInputStream());
                 sessionCache.putShell(sessionId, shell);
             } catch (Exception e) {
                 Printer.println("Connect failed, message = " + e.getMessage());
@@ -108,7 +108,7 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
             }
 
             if (regenerateShell) {
-                Shell shell = new Shell(channelShell.getOutputStream(), channelShell.getInputStream());
+                Shell shell = new Shell(eventBus, channelShell.getOutputStream(), channelShell.getInputStream());
                 sessionCache.putShell(sessionId, shell);
             }
 
