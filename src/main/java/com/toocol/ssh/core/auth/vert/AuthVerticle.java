@@ -4,7 +4,7 @@ import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.FileUtil;
-import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.auth.handlers.AddCredentialHandler;

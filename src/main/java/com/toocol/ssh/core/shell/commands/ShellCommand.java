@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.commands;
 
-import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.shell.commands.processors.*;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;

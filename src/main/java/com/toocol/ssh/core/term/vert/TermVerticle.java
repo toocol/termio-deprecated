@@ -3,13 +3,12 @@ package com.toocol.ssh.core.term.vert;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
-import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.handlers.AcceptOutsideCommandHandler;
 import com.toocol.ssh.core.term.handlers.ExecuteOutsideCommandHandler;
 import com.toocol.ssh.core.term.handlers.MonitorTerminalHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
-import jline.Terminal;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -22,8 +21,6 @@ import jline.Terminal;
         ExecuteOutsideCommandHandler.class
 })
 public class TermVerticle extends AbstractVerticle implements IHandlerMounter {
-
-    public static final Terminal TERMINAL = Terminal.getTerminal();
 
     @Override
     public void start() throws Exception {

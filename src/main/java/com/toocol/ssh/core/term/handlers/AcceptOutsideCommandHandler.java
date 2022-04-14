@@ -2,14 +2,17 @@ package com.toocol.ssh.core.term.handlers;
 
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.commands.OutsideCommand;
-import io.vertx.core.*;
+import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.term.core.Termio;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -52,8 +55,7 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
                     Printer.printCursorLine();
                 }
 
-                Scanner scanner = new Scanner(System.in);
-                String cmd = scanner.nextLine();
+                String cmd = Termio.getInstance().getReader().readLine();
 
                 CountDownLatch latch = new CountDownLatch(1);
                 AtomicBoolean isBreak = new AtomicBoolean();

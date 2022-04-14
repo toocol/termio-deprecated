@@ -5,21 +5,21 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.SnowflakeGuidGenerator;
+import com.toocol.ssh.core.auth.vo.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
-import com.toocol.ssh.core.auth.vo.SshCredential;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;
-import com.toocol.ssh.core.term.vert.TermVerticle;
+import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.term.core.Termio;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
-import jline.Terminal;
+import org.jline.terminal.Terminal;
 
 import java.util.Properties;
 
@@ -72,8 +72,8 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
                 sessionCache.putSession(sessionId, session);
 
                 ChannelShell channelShell = cast(session.openChannel("shell"));
-                Terminal terminal = TermVerticle.TERMINAL;
-                channelShell.setPtyType("xterm", terminal.getTerminalWidth(), terminal.getTerminalHeight(), terminal.getTerminalWidth(), terminal.getTerminalHeight());
+                Terminal terminal = Termio.getInstance().getTerminal();
+                channelShell.setPtyType("xterm", terminal.getWidth(), terminal.getHeight(), terminal.getWidth(), terminal.getHeight());
                 channelShell.connect();
                 sessionCache.putChannelShell(sessionId, channelShell);
 

@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.cache;
 
-import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.auth.vo.SshCredential;
 import io.vertx.core.json.JsonArray;
 

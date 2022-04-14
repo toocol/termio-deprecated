@@ -1,11 +1,12 @@
-package com.toocol.ssh.common.utils;
+package com.toocol.ssh.core.term.core;
 
+import com.toocol.ssh.common.utils.PomUtil;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
-import com.toocol.ssh.core.term.commands.OutsideCommand;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
+import com.toocol.ssh.core.term.commands.OutsideCommand;
 
-import java.io.PrintStream;
+import java.io.PrintWriter;
 
 import static com.toocol.ssh.core.config.SystemConfig.*;
 
@@ -15,7 +16,7 @@ import static com.toocol.ssh.core.config.SystemConfig.*;
  * @date 2021/2/19 16:20
  */
 public class Printer {
-    private static final PrintStream PRINT = System.out;
+    private static final PrintWriter PRINT = Termio.getInstance().printer();
 
     private static final Runtime RUNTIME = Runtime.getRuntime();
 
@@ -37,22 +38,25 @@ public class Printer {
 
     public static void print(String msg) {
         PRINT.print(msg);
+        PRINT.flush();
     }
 
     public static void println() {
         PRINT.println();
+        PRINT.flush();
     }
 
     public static void println(String msg) {
         PRINT.println(msg);
+        PRINT.flush();
     }
 
     public static void printlnWithLogo(String msg) {
-        PRINT.println("<terminatio> " + msg);
+        println("<terminatio> " + msg);
     }
 
     public static void printErr(String msg) {
-        PRINT.println("<error> " + msg);
+        println("<error> " + msg);
     }
 
     public static void virtualBackspace() {
@@ -62,7 +66,7 @@ public class Printer {
     }
 
     public static void printTitleAndInfo() {
-        PRINT.println("terminatio\tv" + PomUtil.getVersion() + "\n" +
+        println("terminatio\tv" + PomUtil.getVersion() + "\n" +
                 "website\t\thttps://github.com/Joezeo/terminatio\n" +
                 "os\t\t" + System.getProperty("os.name") + "\n" +
                 "shell env\t" + BOOT_TYPE + "\n" +
@@ -73,21 +77,21 @@ public class Printer {
 
     public static void printScene() {
         printTitleAndInfo();
-        PRINT.print("Properties:                                                                           \n");
+        print("Properties:                                                                           \n");
         if (CredentialCache.credentialsSize() == 0) {
-            PRINT.print("You have no connection properties, type 'help' to get more information.                         \n\n");
+            print("You have no connection properties, type 'help' to get more information.                         \n\n");
         } else {
             CredentialCache.showCredentials();
-            PRINT.println();
+            println();
         }
     }
 
     public static void printPrompt(String wrongCmd) {
-        PRINT.print("'" + wrongCmd + "' is not a command, enter 'help' to get more information.\n");
+        print("'" + wrongCmd + "' is not a command, enter 'help' to get more information.\n");
     }
 
     public static void printCursorLine() {
-        PRINT.print("[terminatio] > ");
+        print("[terminatio] > ");
     }
 
     public static void printHelp() {

@@ -1,11 +1,9 @@
 package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.common.utils.CmdUtil;
-import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.cache.StatusCache;
-import com.toocol.ssh.core.term.vert.TermVerticle;
-import jline.Terminal;
+import com.toocol.ssh.core.term.core.Printer;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
@@ -245,10 +243,6 @@ public class Shell {
 
     public String getLastRemoteCmd() {
         return lastRemoteCmd;
-    }
-
-    public static Terminal getTerminal() {
-        return TermVerticle.TERMINAL;
     }
 
     public void setPrompt(String prompt) {
