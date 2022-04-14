@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
+import com.toocol.ssh.common.jni.TerminatioJNI;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.terminal.Terminal;
@@ -19,8 +20,6 @@ public class Termio {
     }
 
     public static final String PROMPT = "[terminatio] > ";
-    public static final int WIDTH = 180;
-    public static final int HEIGHT = 50;
 
     private static final Termio INSTANCE = new Termio();
 
@@ -56,8 +55,12 @@ public class Termio {
     private LineReader reader;
     private PrintWriter printer;
 
-    public Terminal getTerminal() {
-        return terminal;
+    public int getWidth() {
+        return TerminatioJNI.getInstance().getWindowWidth();
+    }
+
+    public int getHeight() {
+        return TerminatioJNI.getInstance().getWindowHeight();
     }
 
     public PrintWriter printer() {

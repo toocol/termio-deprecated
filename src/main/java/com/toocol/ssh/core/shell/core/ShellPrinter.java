@@ -73,11 +73,13 @@ record ShellPrinter(Shell shell) {
         // remove system prompt voice
         if (msg.contains("\u0007")) {
             msg = msg.replaceAll("\u0007", "");
-            printer.print(msg);
-            String tmp = msg;
-            shell.remoteCmd.getAndUpdate(prev -> prev + tmp);
-            shell.localLastCmd.getAndUpdate(prev -> prev.replaceAll("\t", "") + tmp);
-            return;
+            if (!msg.contains(CRLF)) {
+                printer.print(msg);
+                String tmp = msg;
+                shell.remoteCmd.getAndUpdate(prev -> prev + tmp);
+                shell.localLastCmd.getAndUpdate(prev -> prev.replaceAll("\t", "") + tmp);
+                return;
+            }
         }
         if (StringUtils.isEmpty(msg)) {
             return;

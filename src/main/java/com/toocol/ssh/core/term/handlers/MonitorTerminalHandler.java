@@ -5,6 +5,7 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.core.term.core.Termio;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -21,6 +22,8 @@ import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
 @SuppressWarnings("all")
 public class MonitorTerminalHandler extends AbstractMessageHandler<Void> {
 
+    private final Termio termio = Termio.getInstance();
+
     public MonitorTerminalHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
     }
@@ -35,15 +38,18 @@ public class MonitorTerminalHandler extends AbstractMessageHandler<Void> {
         Long sessionId = cast(message.body());
         ChannelShell channelShell = SessionCache.getInstance().getChannelShell(sessionId);
 
+        int currentWidth = termio.getWidth();
+        int currentHeight = termio.getHeight();
+
         while (true) {
-//            int terminalWidth = TERMINAL.getTerminalWidth();
-//            int terminalHeight = TERMINAL.getTerminalHeight();
-//
-//            if (currentWidth != terminalWidth || currentHeight != terminalHeight) {
-//                channelShell.setPtySize(terminalWidth, terminalHeight, terminalWidth, terminalHeight);
-//                currentHeight = terminalHeight;
-//                currentWidth = terminalWidth;
-//            }
+            int terminalWidth = termio.getWidth();
+            int terminalHeight = termio.getHeight();
+
+            if (currentWidth != terminalWidth || currentHeight != terminalHeight) {
+                channelShell.setPtySize(terminalWidth, terminalHeight, terminalWidth, terminalHeight);
+                currentHeight = terminalHeight;
+                currentWidth = terminalWidth;
+            }
 
             if (StatusCache.STOP_LISTEN_TERMINAL_SIZE_CHANGE) {
                 StatusCache.STOP_LISTEN_TERMINAL_SIZE_CHANGE = false;

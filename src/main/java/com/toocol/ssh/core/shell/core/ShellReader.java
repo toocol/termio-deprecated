@@ -1,11 +1,10 @@
 package com.toocol.ssh.core.shell.core;
 
+import com.toocol.ssh.common.console.ConsoleReader;
 import com.toocol.ssh.common.utils.CharUtil;
-import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.common.utils.StrUtil;
-import jline.ConsoleReader;
+import com.toocol.ssh.core.term.core.Printer;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
@@ -16,16 +15,7 @@ import java.nio.charset.StandardCharsets;
  */
 record ShellReader(Shell shell, OutputStream outputStream) {
 
-    private static ConsoleReader reader = null;
-
-    static {
-        try {
-            reader = new ConsoleReader(System.in, null);
-        } catch (IOException e) {
-            Printer.println("Register console reader failed.");
-            System.exit(-1);
-        }
-    }
+    private final static ConsoleReader reader = ConsoleReader.get(System.in);
 
     void readCmd() throws Exception {
         shell.cmd.delete(0, shell.cmd.length());

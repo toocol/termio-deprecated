@@ -215,6 +215,12 @@ public class Shell {
         this.inputStream = null;
     }
 
+    public void cleanUp() {
+        remoteCmd.set(StrUtil.EMPTY);
+        currentPrint.set(StrUtil.EMPTY);
+        selectHistoryCmd.set(StrUtil.EMPTY);
+    }
+
     public void printErr(String err) {
         shellPrinter.printErr(err);
     }
