@@ -4,10 +4,11 @@ import com.toocol.ssh.common.annotation.FinalDeployment;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.utils.CastUtil;
 import com.toocol.ssh.common.utils.ClassScanner;
-import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.config.SystemConfig;
+import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.term.core.Termio;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -36,6 +37,7 @@ public class TerminatioApplication extends Application {
     private static final long BLOCKED_CHECK_INTERVAL = 30 * 24 * 60 * 60 * 1000L;
 
     public static void main(String[] args) {
+        Termio.getInstance().initialize();
         if (args.length != 1) {
             Printer.printErr("Wrong boot type.");
             System.exit(-1);

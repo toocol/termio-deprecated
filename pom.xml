@@ -19,6 +19,7 @@
         <guava.version>31.1-jre</guava.version>
         <jsch.version>0.1.55</jsch.version>
         <jline.version>0.9.94</jline.version>
+        <jline3.version>3.21.0</jline3.version>
         <javafx.controls.version>17.0.2</javafx.controls.version>
         <javafx.fxml.version>15.0.1</javafx.fxml.version>
     </properties>
@@ -54,6 +55,11 @@
             <groupId>jline</groupId>
             <artifactId>jline</artifactId>
             <version>${jline.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jline</groupId>
+            <artifactId>jline</artifactId>
+            <version>${jline3.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>

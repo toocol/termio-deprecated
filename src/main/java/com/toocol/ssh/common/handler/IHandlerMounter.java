@@ -2,7 +2,7 @@ package com.toocol.ssh.common.handler;
 
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.utils.ICastable;
-import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.term.core.Printer;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 

@@ -1,11 +1,9 @@
 package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.common.utils.CmdUtil;
-import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.cache.StatusCache;
-import com.toocol.ssh.core.term.vert.TermVerticle;
-import jline.Terminal;
+import com.toocol.ssh.core.term.core.Printer;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
@@ -26,7 +24,7 @@ import java.util.regex.Pattern;
  */
 public class Shell {
 
-    public static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(.*?)]#)");
+    public static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)]#)");
 
     /**
      * the output/input Stream belong to JSch's channelShell;
@@ -65,7 +63,8 @@ public class Shell {
         TAB_ACCOMPLISH(2, "Shell is under tab key to auto-accomplish address status."),
         VIM_BEFORE(3, "Shell is before Vim/Vi edit status."),
         VIM_UNDER(4, "Shell is under Vim/Vi edit status."),
-        HISTORY_COMMAND_SELECT(5, "Shell is under history command select status."),
+        VIM_AFTER(5, "Shell is under Vim/Vi edit status."),
+        HISTORY_COMMAND_SELECT(6, "Shell is under history command select status."),
         ;
 
         public final int status;
@@ -87,19 +86,24 @@ public class Shell {
             prompt.set(matcher.group(0) + StrUtil.SPACE);
             extractUserFromPrompt();
             if (status.equals(Status.VIM_UNDER)) {
-                status = Status.NORMAL;
-                Printer.clear();
+                status = Status.VIM_AFTER;
             }
         }
 
         boolean hasPrint = false;
         switch (status) {
-            case NORMAL -> hasPrint = shellPrinter.printInNormal(msg);
+            case NORMAL, VIM_AFTER -> hasPrint = shellPrinter.printInNormal(msg);
             case TAB_ACCOMPLISH -> shellPrinter.printInTabAccomplish(msg);
             case VIM_BEFORE, VIM_UNDER -> shellPrinter.printInVim(msg);
             case HISTORY_COMMAND_SELECT -> shellPrinter.printSelectHistoryCommand(msg);
             default -> {
             }
+        }
+
+        if (status.equals(Status.VIM_AFTER)) {
+            Printer.clear();
+            Printer.print(prompt.get());
+            status = Status.NORMAL;
         }
         return hasPrint;
     }
@@ -245,10 +249,6 @@ public class Shell {
 
     public String getLastRemoteCmd() {
         return lastRemoteCmd;
-    }
-
-    public static Terminal getTerminal() {
-        return TermVerticle.TERMINAL;
     }
 
     public void setPrompt(String prompt) {

@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.common.utils.CharUtil;
-import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.common.utils.StrUtil;
 import jline.ConsoleReader;
 
@@ -20,7 +20,7 @@ record ShellReader(Shell shell, OutputStream outputStream) {
 
     static {
         try {
-            reader = new ConsoleReader(System.in, null, null, Shell.getTerminal());
+            reader = new ConsoleReader(System.in, null);
         } catch (IOException e) {
             Printer.println("Register console reader failed.");
             System.exit(-1);

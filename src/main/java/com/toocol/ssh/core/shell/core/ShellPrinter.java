@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.term.core.Printer;
 import org.apache.commons.lang3.StringUtils;
 
 import static com.toocol.ssh.common.utils.StrUtil.CRLF;
@@ -132,7 +132,14 @@ record ShellPrinter(Shell shell) {
     }
 
     void printSelectHistoryCommand(String msg) {
-        shell.selectHistoryCmd.set(msg.replaceAll("\b", "").replaceAll("\u001B", "").replaceAll("\\[K", ""));
+        String tmp = msg;
+        for (char ch : msg.toCharArray()) {
+            if (ch == '\b') {
+                tmp = tmp.substring(0, tmp.length() - 1);
+            }
+        }
+        String s = "\u001B[K";
+        shell.selectHistoryCmd.set(tmp);
         Printer.print(msg);
     }
 }

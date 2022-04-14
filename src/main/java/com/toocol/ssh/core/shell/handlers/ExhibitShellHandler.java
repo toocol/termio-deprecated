@@ -4,7 +4,7 @@ import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.sync.SharedCountdownLatch;
-import com.toocol.ssh.common.utils.Printer;
+import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
@@ -86,7 +86,6 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
                 if (in.available() > 0) {
                     continue;
                 }
-                Printer.println("hang up connection.");
                 break;
             }
             if (channelShell.isClosed()) {

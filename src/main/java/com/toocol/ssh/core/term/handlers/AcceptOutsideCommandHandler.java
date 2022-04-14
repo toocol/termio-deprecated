@@ -2,14 +2,17 @@ package com.toocol.ssh.core.term.handlers;
 
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.common.utils.Printer;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.commands.OutsideCommand;
-import io.vertx.core.*;
+import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.term.core.Termio;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -24,9 +27,7 @@ import static com.toocol.ssh.core.term.TermAddress.ADDRESS_EXECUTE_OUTSIDE;
 public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean> {
 
     private static final int FIRST_IN = 0;
-    private static final int SELF_ERROR = 1;
-    private static final int ERROR_BACK = 2;
-    private static final int NORMAL_BACK = 3;
+    private static final int NORMAL_BACK = 1;
 
     public AcceptOutsideCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -45,15 +46,9 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
                 Printer.clear();
                 Printer.printScene();
             }
-            while (true) {
-                if (signal == SELF_ERROR) {
-                    signal = FIRST_IN;
-                } else {
-                    Printer.printCursorLine();
-                }
 
-                Scanner scanner = new Scanner(System.in);
-                String cmd = scanner.nextLine();
+            while (true) {
+                String cmd = Termio.getInstance().getReader().readLine(Termio.PROMPT);
 
                 CountDownLatch latch = new CountDownLatch(1);
                 AtomicBoolean isBreak = new AtomicBoolean();
@@ -103,7 +98,7 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
     @Override
     protected <T> void resultWithinBlocking(AsyncResult<Boolean> asyncResult, Message<T> message) {
         if (asyncResult.result()) {
-            eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 1);
+            eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 2);
         }
     }
 }

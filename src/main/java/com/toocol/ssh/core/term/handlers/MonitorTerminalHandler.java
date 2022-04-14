@@ -12,7 +12,6 @@ import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 
 import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
-import static com.toocol.ssh.core.term.vert.TermVerticle.TERMINAL;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -35,9 +34,6 @@ public class MonitorTerminalHandler extends AbstractMessageHandler<Void> {
     protected <T> void handleWithinBlocking(Promise<Void> promise, Message<T> message) throws Exception {
         Long sessionId = cast(message.body());
         ChannelShell channelShell = SessionCache.getInstance().getChannelShell(sessionId);
-
-        int currentWidth = TERMINAL.getTerminalWidth();
-        int currentHeight = TERMINAL.getTerminalHeight();
 
         while (true) {
 //            int terminalWidth = TERMINAL.getTerminalWidth();
