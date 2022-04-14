@@ -3,6 +3,8 @@ package com.toocol.ssh.core.shell.core;
 import com.toocol.ssh.core.term.core.Printer;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.PrintStream;
+
 import static com.toocol.ssh.common.utils.StrUtil.CRLF;
 import static com.toocol.ssh.common.utils.StrUtil.SPACE;
 
@@ -11,10 +13,12 @@ import static com.toocol.ssh.common.utils.StrUtil.SPACE;
  * @date 2022/4/6 13:05
  */
 record ShellPrinter(Shell shell) {
+    
+    private final static PrintStream printer = Printer.DIRECT_PRINTER;
 
     void printErr(String msg) {
-        Printer.printErr(msg);
-        Printer.print(shell.getPrompt());
+        printer.print(msg);
+        printer.print(shell.getPrompt());
     }
 
     boolean printInNormal(String msg) {
@@ -39,12 +43,12 @@ record ShellPrinter(Shell shell) {
 
         String tmp = msg;
         shell.currentPrint.getAndUpdate(prev -> prev + tmp);
-        Printer.print(msg);
+        printer.print(msg);
         return true;
     }
 
     void printInVim(String msg) {
-        Printer.print(msg);
+        printer.print(msg);
     }
 
     void printInTabAccomplish(String msg) {
@@ -58,7 +62,7 @@ record ShellPrinter(Shell shell) {
         msg = msg.replaceAll("\b", "");
         if (msg.trim().equals(shell.localLastCmd.get().replaceAll("\t", ""))) {
             if (msg.endsWith(SPACE)) {
-                Printer.print(SPACE);
+                printer.print(SPACE);
             }
             return;
         }
@@ -69,7 +73,7 @@ record ShellPrinter(Shell shell) {
         // remove system prompt voice
         if (msg.contains("\u0007")) {
             msg = msg.replaceAll("\u0007", "");
-            Printer.print(msg);
+            printer.print(msg);
             String tmp = msg;
             shell.remoteCmd.getAndUpdate(prev -> prev + tmp);
             shell.localLastCmd.getAndUpdate(prev -> prev.replaceAll("\t", "") + tmp);
@@ -79,7 +83,7 @@ record ShellPrinter(Shell shell) {
             return;
         }
         if (!msg.contains(CRLF)) {
-            Printer.print(msg);
+            printer.print(msg);
             String tmp = msg;
             shell.remoteCmd.getAndUpdate(prev -> prev + tmp);
             shell.localLastCmd.getAndUpdate(prev -> prev.replaceAll("\t", "") + tmp);
@@ -98,7 +102,7 @@ record ShellPrinter(Shell shell) {
                 // have already auto-accomplish address
                 int backspaceLen = (localLine + shell.currentPrint).length();
                 for (int idx = 0; idx < backspaceLen; idx++) {
-                    Printer.print("\b");
+                    printer.print("\b");
                 }
                 msg = split[split.length - 1];
                 if (msg.split("#").length == 2) {
@@ -115,7 +119,7 @@ record ShellPrinter(Shell shell) {
                     if (shell.tabFeedbackRec.contains(input)) {
                         continue;
                     }
-                    Printer.print(CRLF + input);
+                    printer.print(CRLF + input);
                     shell.currentPrint.set(input);
                     shell.tabFeedbackRec.add(input);
                 }
@@ -128,7 +132,7 @@ record ShellPrinter(Shell shell) {
 
         String tmp = msg;
         shell.currentPrint.getAndUpdate(prev -> prev + tmp);
-        Printer.print(msg);
+        printer.print(msg);
     }
 
     void printSelectHistoryCommand(String msg) {
@@ -138,8 +142,7 @@ record ShellPrinter(Shell shell) {
                 tmp = tmp.substring(0, tmp.length() - 1);
             }
         }
-        String s = "\u001B[K";
         shell.selectHistoryCmd.set(tmp);
-        Printer.print(msg);
+        printer.print(msg);
     }
 }

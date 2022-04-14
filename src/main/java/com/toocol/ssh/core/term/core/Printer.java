@@ -6,6 +6,7 @@ import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.term.commands.OutsideCommand;
 
+import java.io.PrintStream;
 import java.io.PrintWriter;
 
 import static com.toocol.ssh.core.config.SystemConfig.*;
@@ -16,7 +17,9 @@ import static com.toocol.ssh.core.config.SystemConfig.*;
  * @date 2021/2/19 16:20
  */
 public class Printer {
-    private static final PrintWriter PRINT = Termio.getInstance().printer();
+    public static final PrintWriter PRINTER = Termio.getInstance().printer();
+
+    public static final PrintStream DIRECT_PRINTER = System.out;
 
     private static final Runtime RUNTIME = Runtime.getRuntime();
 
@@ -37,18 +40,18 @@ public class Printer {
     }
 
     public static void print(String msg) {
-        PRINT.print(msg);
-        PRINT.flush();
+        PRINTER.print(msg);
+        PRINTER.flush();
     }
 
     public static void println() {
-        PRINT.println();
-        PRINT.flush();
+        PRINTER.println();
+        PRINTER.flush();
     }
 
     public static void println(String msg) {
-        PRINT.println(msg);
-        PRINT.flush();
+        PRINTER.println(msg);
+        PRINTER.flush();
     }
 
     public static void printlnWithLogo(String msg) {
