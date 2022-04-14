@@ -2,7 +2,6 @@ package com.toocol.ssh.core.term.core;
 
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
-import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
@@ -19,7 +18,11 @@ public class Termio {
     private Termio() {
     }
 
-    public static final Termio INSTANCE = new Termio();
+    public static final String PROMPT = "[terminatio] > ";
+    public static final int WIDTH = 180;
+    public static final int HEIGHT = 50;
+
+    private static final Termio INSTANCE = new Termio();
 
     public static Termio getInstance() {
         return INSTANCE;
@@ -37,13 +40,13 @@ public class Termio {
                     .streams(System.in, System.out)
                     .build();
             terminal.echo(false);
-            terminal.setSize(new Size(180, 50));
         } catch (IOException e) {
             System.exit(-1);
         }
 
         reader = LineReaderBuilder.builder()
                 .terminal(terminal)
+                .appName("terminatio")
                 .build();
 
         printer = terminal.writer();

@@ -125,7 +125,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             StatusCache.HANGED_QUIT = true;
         }
 
-        eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 3);
+        eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 1);
     }
 
 }

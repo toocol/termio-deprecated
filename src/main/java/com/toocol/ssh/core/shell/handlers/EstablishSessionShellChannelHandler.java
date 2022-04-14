@@ -13,19 +13,19 @@ import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;
 import com.toocol.ssh.core.term.core.Printer;
-import com.toocol.ssh.core.term.core.Termio;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
-import org.jline.terminal.Terminal;
 
 import java.util.Properties;
 
 import static com.toocol.ssh.core.shell.ShellAddress.*;
 import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
 import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
+import static com.toocol.ssh.core.term.core.Termio.HEIGHT;
+import static com.toocol.ssh.core.term.core.Termio.WIDTH;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -72,8 +72,7 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
                 sessionCache.putSession(sessionId, session);
 
                 ChannelShell channelShell = cast(session.openChannel("shell"));
-                Terminal terminal = Termio.getInstance().getTerminal();
-                channelShell.setPtyType("xterm", terminal.getWidth(), terminal.getHeight(), terminal.getWidth(), terminal.getHeight());
+                channelShell.setPtyType("xterm", WIDTH, HEIGHT, WIDTH, HEIGHT);
                 channelShell.connect();
                 sessionCache.putChannelShell(sessionId, channelShell);
 
