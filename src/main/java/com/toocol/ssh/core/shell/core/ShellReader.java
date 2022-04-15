@@ -60,13 +60,16 @@ record ShellReader(Shell shell, OutputStream outputStream) {
 
                 } else if (inChar == CharUtil.BACKSPACE) {
 
-                    if (shell.cmd.toString().trim().length() == 0 && shell.status.equals(Shell.Status.NORMAL)) {
+                    if (shell.cmd.toString().length() == 0 && shell.status.equals(Shell.Status.NORMAL)) {
+                        Printer.voice();
                         continue;
                     }
                     if (shell.remoteCmd.get().length() == 0 && shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
+                        Printer.voice();
                         continue;
                     }
                     if (shell.selectHistoryCmd.get().length() == 0 && shell.status.equals(Shell.Status.UP_HISTORY_CMD_SELECT)) {
+                        Printer.voice();
                         continue;
                     }
 

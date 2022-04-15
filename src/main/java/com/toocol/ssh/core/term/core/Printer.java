@@ -53,6 +53,10 @@ public class Printer {
         PRINTER.flush();
     }
 
+    public static void voice() {
+        DIRECT_PRINTER.print("\u0007");
+    }
+
     public static void printlnWithLogo(String msg) {
         println("<terminatio> " + msg);
     }
