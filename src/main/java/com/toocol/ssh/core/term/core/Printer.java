@@ -18,7 +18,6 @@ import static com.toocol.ssh.core.config.SystemConfig.*;
  */
 public class Printer {
     public static final PrintWriter PRINTER = Term.getInstance().printer();
-
     public static final PrintStream DIRECT_PRINTER = System.out;
 
     private static final Runtime RUNTIME = Runtime.getRuntime();
@@ -63,9 +62,9 @@ public class Printer {
     }
 
     public static void virtualBackspace() {
-        Printer.print("\b");
-        Printer.print(" ");
-        Printer.print("\b");
+        print("\b");
+        print(" ");
+        print("\b");
     }
 
     public static void printTitleAndInfo() {

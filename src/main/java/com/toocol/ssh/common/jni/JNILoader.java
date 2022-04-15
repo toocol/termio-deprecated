@@ -9,6 +9,6 @@ import com.toocol.ssh.common.utils.FileUtil;
  */
 public class JNILoader {
     public static void load() {
-        System.load(FileUtil.relativeToFixed("./starter/libs/native/libterminatio.dll"));
+        System.load(FileUtil.relativeToFixed("./starter/libs/libterminatio.dll"));
     }
 }

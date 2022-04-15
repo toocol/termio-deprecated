@@ -14,8 +14,6 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import javafx.application.Application;
-import javafx.stage.Stage;
 import sun.misc.Signal;
 
 import java.util.ArrayList;
@@ -33,7 +31,7 @@ import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
  * @email joezane.cn@gmail.com
  * @date 2021/2/19 15:00
  */
-public class TerminatioApplication extends Application {
+public class TerminatioApplication {
 
     private static final long BLOCKED_CHECK_INTERVAL = 30 * 24 * 60 * 60 * 1000L;
 
@@ -48,11 +46,6 @@ public class TerminatioApplication extends Application {
 
         SystemConfig.BOOT_TYPE = args[0];
         Printer.printlnWithLogo("TerminalApplication register the vertx service.");
-
-        /* launch the JavaFX */
-        Thread javaFxThread = new Thread(Application::launch);
-        javaFxThread.setName("java-fx-app-thread");
-        javaFxThread.start();
 
         /* Block the Ctrl+C */
         Signal.handle(new Signal("INT"), signal -> {
@@ -135,9 +128,5 @@ public class TerminatioApplication extends Application {
                 System.exit(-1);
             }
         });
-    }
-
-    @Override
-    public void start(Stage stage) throws Exception {
     }
 }

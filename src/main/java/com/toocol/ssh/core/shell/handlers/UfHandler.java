@@ -52,7 +52,8 @@ public class UfHandler extends AbstractMessageHandler<Void> {
         });
         latch.await();
 
-        if ("-1".equals(localPathBuilder.toString())) {
+        String fileNames = localPathBuilder.toString();
+        if ("-1".equals(fileNames)) {
             promise.fail("-1");
             return;
         }
@@ -64,7 +65,9 @@ public class UfHandler extends AbstractMessageHandler<Void> {
             return;
         }
         channelSftp.cd(remotePath);
-        channelSftp.put(new FileInputStream(localPathBuilder.toString()), FileNameUtil.getName(localPathBuilder.toString()));
+        for (String fileName : fileNames.split(",")) {
+            channelSftp.put(new FileInputStream(fileName), FileNameUtil.getName(fileName));
+        }
 
         promise.complete();
     }

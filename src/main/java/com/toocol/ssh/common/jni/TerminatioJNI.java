@@ -10,13 +10,15 @@ public class TerminatioJNI {
 
     public native String chooseFiles();
 
+    public native String chooseDirectory();
+
     public native int getWindowWidth();
 
     public native int getWindowHeight();
 
     private TerminatioJNI() {}
 
-    public static final TerminatioJNI INSTANCE;
+    private static final TerminatioJNI INSTANCE;
     static {
         INSTANCE = new TerminatioJNI();
     }

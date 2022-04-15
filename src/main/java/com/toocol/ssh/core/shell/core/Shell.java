@@ -113,8 +113,8 @@ public class Shell {
         }
 
         if (status.equals(Status.VIM_AFTER)) {
-            Printer.clear();
-            Printer.print(prompt.get());
+//            Printer.clear();
+//            Printer.print(prompt.get());
             status = Status.NORMAL;
         }
         return hasPrint;

@@ -53,7 +53,7 @@ public class CredentialCache {
         try {
             AtomicInteger idx = new AtomicInteger(1);
             CREDENTIAL_SET.forEach(credential -> {
-                Printer.println("[" + idx.getAndIncrement() + "]\t\t" + credential.getHost() + "@" + credential.getUser());
+                Printer.println("[" + idx.getAndIncrement() + "]\t\t" + credential.getUser() + "@" + credential.getHost());
             });
         } catch (Exception e) {
             Printer.println("System devastating error.");
