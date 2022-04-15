@@ -51,7 +51,7 @@ record ShellPrinter(Shell shell) {
     }
 
     void printInVim(String msg) {
-        if (shell.localLastInput.equals(msg.replaceAll("\r\n", ""))) {
+        if (shell.localLastInput.trim().equals(msg.replaceAll("\r\n", ""))) {
             return;
         }
         printer.print(msg);
