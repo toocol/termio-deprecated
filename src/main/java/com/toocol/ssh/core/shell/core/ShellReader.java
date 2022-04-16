@@ -33,6 +33,8 @@ record ShellReader(Shell shell, OutputStream outputStream) {
             } else {
                 if (inChar == CharUtil.CTRL_C) {
 
+                    shell.historyCmdHelper.reset();
+                    shell.cmd.delete(0, shell.cmd.length());
                     outputStream.write(inChar);
                     outputStream.flush();
                     shell.status = Shell.Status.NORMAL;
@@ -40,20 +42,21 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                 } else if (inChar == CharUtil.UP_ARROW || inChar == CharUtil.DOWN_ARROW) {
 
                     shell.status = Shell.Status.NORMAL;
-                    if (!shell.historyCmdHelper.isStart()) {
-                        if (shell.cmd.length() != 0 && StringUtils.isEmpty(shell.remoteCmd.get())) {
-                            shell.historyCmdHelper.pushToDown(shell.cmd.toString());
-                        } else if (StringUtils.isNotEmpty(shell.remoteCmd.get())) {
-                            byte[] wirte = "\u007F".repeat(shell.remoteCmd.get().length()).getBytes(StandardCharsets.UTF_8);
-                            if (wirte.length > 0) {
-                                outputStream.write(wirte);
-                                outputStream.flush();
-                                String cmdToPush = shell.remoteCmd.get().replaceAll("\u007F", "");
-                                shell.historyCmdHelper.pushToDown(cmdToPush);
+
+                    if (inChar == CharUtil.UP_ARROW) {
+                        if (!shell.historyCmdHelper.isStart()) {
+                            if (shell.cmd.length() != 0 && StringUtils.isEmpty(shell.remoteCmd.get())) {
+                                shell.historyCmdHelper.pushToDown(shell.cmd.toString());
+                            } else if (StringUtils.isNotEmpty(shell.remoteCmd.get())) {
+                                byte[] wirte = "\u007F".repeat(shell.remoteCmd.get().length()).getBytes(StandardCharsets.UTF_8);
+                                if (wirte.length > 0) {
+                                    outputStream.write(wirte);
+                                    outputStream.flush();
+                                    String cmdToPush = shell.remoteCmd.get().replaceAll("\u007F", "");
+                                    shell.historyCmdHelper.pushToDown(cmdToPush);
+                                }
                             }
                         }
-                    }
-                    if (inChar == CharUtil.UP_ARROW) {
                         shell.historyCmdHelper.up();
                     } else {
                         shell.historyCmdHelper.down();

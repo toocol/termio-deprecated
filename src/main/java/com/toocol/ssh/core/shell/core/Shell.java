@@ -31,7 +31,6 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
 public class Shell {
 
     public static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)]#)");
-    private final Term term = Term.getInstance();
 
     private final long sessionId;
     /**
@@ -50,6 +49,7 @@ public class Shell {
     protected final ShellPrinter shellPrinter;
     protected final ShellReader shellReader;
     protected final HistoryCmdHelper historyCmdHelper;
+    protected final Term term = Term.getInstance();
 
     public volatile AtomicReference<String> localLastCmd = new AtomicReference<>(StrUtil.EMPTY);
     public volatile AtomicReference<String> remoteCmd = new AtomicReference<>(StrUtil.EMPTY);
@@ -237,6 +237,20 @@ public class Shell {
         this.inputStream = null;
     }
 
+    public void clearShellLineWithPrompt() {
+        int promptLen = prompt.get().length();
+        Tuple2<Integer, Integer> position = term.getCursorPosition();
+        int cursorX = position._1();
+        int cursorY = position._2();
+        term.hideCursor();
+        term.setCursorPosition(promptLen, cursorY);
+        for (int idx = 0; idx < cursorX - promptLen; idx++) {
+            Printer.print(" ");
+        }
+        term.setCursorPosition(promptLen, cursorY);
+        term.showCursor();
+    }
+
     public void cleanUp() {
         remoteCmd.set(StrUtil.EMPTY);
         currentPrint.set(StrUtil.EMPTY);
@@ -283,10 +297,6 @@ public class Shell {
         return lastRemoteCmd;
     }
 
-    public Term getTerm() {
-        return term;
-    }
-
     public void setPrompt(String prompt) {
         this.prompt.set(prompt);
     }
@@ -295,17 +305,4 @@ public class Shell {
         this.fullPath.set(fullPath);
     }
 
-    public void clearShellLineWithPrompt() {
-        int promptLen = prompt.get().length();
-        Tuple2<Integer, Integer> position = term.getCursorPosition();
-        int cursorX = position._1();
-        int cursorY = position._2();
-        term.hideCursor();
-        term.setCursorPosition(promptLen, cursorY);
-        for (int idx = 0; idx < cursorX - promptLen; idx++) {
-            Printer.print(" ");
-        }
-        term.setCursorPosition(promptLen, cursorY);
-        term.showCursor();
-    }
 }

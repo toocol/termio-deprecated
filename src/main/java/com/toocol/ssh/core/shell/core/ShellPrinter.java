@@ -140,37 +140,21 @@ record ShellPrinter(Shell shell) {
 
             String[] split = msg.split("\r\n");
             if (split.length != 0) {
-                String localLine = shell.getPrompt()
-                        + shell.localLastCmd.get()
-                        .replaceAll("\t", "")
-                        .replaceAll("\b", "")
-                        .replaceAll("\u001B", "")
-                        .replaceAll("\\[K", "");
-                if (!split[split.length - 1].equals(localLine)) {
-                    // have already auto-accomplish address
-                    shell.clearShellLineWithPrompt();
-                    msg = split[split.length - 1];
-                    if (msg.split("#").length == 2) {
-                        shell.remoteCmd.set(msg.split("#")[1].trim());
+                for (String input : split) {
+                    if (StringUtils.isEmpty(input)) {
+                        continue;
+                    }
+                    if (input.split("#").length == 2) {
+                        shell.remoteCmd.set(input.split("#")[1].trim());
                         shell.localLastCmd.set(msg.split("#")[1].trim());
                     }
-                } else {
-                    for (String input : split) {
-                        if (StringUtils.isEmpty(input)) {
-                            continue;
-                        }
-                        if (input.split("#").length == 2) {
-                            shell.remoteCmd.set(input.split("#")[1].trim());
-                            shell.localLastCmd.set(msg.split("#")[1].trim());
-                        }
-                        if (shell.tabFeedbackRec.contains(input)) {
-                            continue;
-                        }
-                        printer.print(CRLF + input);
-                        shell.tabFeedbackRec.add(input);
+                    if (shell.tabFeedbackRec.contains(input)) {
+                        continue;
                     }
-                    return;
+                    printer.print(CRLF + input);
+                    shell.tabFeedbackRec.add(input);
                 }
+                return;
             }
             if (msg.startsWith(CRLF)) {
                 msg = msg.replaceFirst("\r\n", "");

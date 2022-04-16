@@ -2,7 +2,6 @@ package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.term.core.Printer;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Stack;
 import java.util.UUID;
@@ -77,7 +76,6 @@ public class HistoryCmdHelper {
         if (upBuffer != null) {
             downArrowStack.push(upBuffer);
         }
-        shell.clearShellLineWithPrompt();
         shell.currentPrint.set(cmd);
         shell.selectHistoryCmd.set(cmd);
         shell.cmd.delete(0, shell.cmd.length());
@@ -87,6 +85,8 @@ public class HistoryCmdHelper {
         } else {
             upBuffer = cmd;
         }
+
+        shell.clearShellLineWithPrompt();
         Printer.print(cmd);
     }
 
@@ -116,7 +116,6 @@ public class HistoryCmdHelper {
             cmd = cmd.replaceAll("--" + flag, "");
             resetFlag = true;
         }
-        shell.clearShellLineWithPrompt();
         shell.currentPrint.set(cmd);
         shell.selectHistoryCmd.set(cmd);
         shell.cmd.delete(0, shell.cmd.length());
@@ -129,19 +128,17 @@ public class HistoryCmdHelper {
         if (resetFlag) {
             reset();
         }
+
+        shell.clearShellLineWithPrompt();
         Printer.print(cmd);
     }
 
-    public void pushToDown(String cmd) {
+    public synchronized void pushToDown(String cmd) {
         puToDown = true;
         downArrowStack.push(cmd + "--" + flag);
     }
 
-    public boolean isStart() {
-        return start;
-    }
-
-    private void reset() {
+    public synchronized void reset() {
         upArrowStack.clear();
         downArrowStack.clear();
         upBuffer = null;
@@ -149,4 +146,9 @@ public class HistoryCmdHelper {
         start = false;
         puToDown = false;
     }
+
+    public boolean isStart() {
+        return start;
+    }
+
 }
