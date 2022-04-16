@@ -7,7 +7,6 @@ import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.term.commands.OutsideCommand;
 
 import java.io.PrintStream;
-import java.io.PrintWriter;
 
 import static com.toocol.ssh.core.config.SystemConfig.*;
 
@@ -17,8 +16,7 @@ import static com.toocol.ssh.core.config.SystemConfig.*;
  * @date 2021/2/19 16:20
  */
 public class Printer {
-    public static final PrintWriter PRINTER = Term.getInstance().printer();
-    public static final PrintStream DIRECT_PRINTER = System.out;
+    public static final PrintStream PRINTER = System.out;
 
     private static final Runtime RUNTIME = Runtime.getRuntime();
 
@@ -40,21 +38,18 @@ public class Printer {
 
     public static void print(String msg) {
         PRINTER.print(msg);
-        PRINTER.flush();
     }
 
     public static void println() {
         PRINTER.println();
-        PRINTER.flush();
     }
 
     public static void println(String msg) {
         PRINTER.println(msg);
-        PRINTER.flush();
     }
 
     public static void voice() {
-        DIRECT_PRINTER.print("\u0007");
+        PRINTER.print("\u0007");
     }
 
     public static void printlnWithLogo(String msg) {
@@ -106,17 +101,15 @@ public class Printer {
     }
 
     public static void clear() {
-        getExecuteMode().ifPresent(executeMode -> {
-            getClearCmd().ifPresent(clearCmd -> {
-                try {
-                    new ProcessBuilder(BOOT_TYPE, executeMode, clearCmd)
-                            .inheritIO()
-                            .start()
-                            .waitFor();
-                } catch (Exception e) {
-                    // do nothing
-                }
-            });
-        });
+        getExecuteMode().ifPresent(executeMode -> getClearCmd().ifPresent(clearCmd -> {
+            try {
+                new ProcessBuilder(BOOT_TYPE, executeMode, clearCmd)
+                        .inheritIO()
+                        .start()
+                        .waitFor();
+            } catch (Exception e) {
+                // do nothing
+            }
+        }));
     }
 }

@@ -16,7 +16,7 @@ import static com.toocol.ssh.common.utils.StrUtil.SPACE;
  */
 record ShellPrinter(Shell shell) {
     
-    private final static PrintStream printer = Printer.DIRECT_PRINTER;
+    private final static PrintStream printer = Printer.PRINTER;
     private static final Pattern HISTORY_COMMAND_PATTERN = Pattern.compile("([a-zA-Z /]+)");
 
     void printErr(String msg) {
