@@ -4,8 +4,6 @@ import com.toocol.ssh.core.term.core.Printer;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.PrintStream;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.toocol.ssh.common.utils.StrUtil.CRLF;
 import static com.toocol.ssh.common.utils.StrUtil.SPACE;
@@ -16,8 +14,7 @@ import static com.toocol.ssh.common.utils.StrUtil.SPACE;
  */
 record ShellPrinter(Shell shell) {
     
-    private final static PrintStream printer = Printer.PRINTER;
-    private static final Pattern HISTORY_COMMAND_PATTERN = Pattern.compile("([a-zA-Z /]+)");
+    private static final PrintStream printer = Printer.PRINTER;
 
     void printErr(String msg) {
         printer.print(msg);
@@ -140,19 +137,6 @@ record ShellPrinter(Shell shell) {
 
         String tmp = msg;
         shell.currentPrint.getAndUpdate(prev -> prev + tmp);
-        printer.print(msg);
-    }
-
-    void printSelectHistoryCommand(String msg) {
-        Matcher matcher = HISTORY_COMMAND_PATTERN.matcher(msg);
-        if (matcher.find()) {
-            if (msg.contains("\u001B[3p")) {
-                String lastHistoryCmd = shell.selectHistoryCmd.get();
-            } else {
-                shell.selectHistoryCmd.set(matcher.group(0));
-            }
-        }
-        shell.remoteCmd.set(shell.selectHistoryCmd.get());
         printer.print(msg);
     }
 }

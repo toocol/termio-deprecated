@@ -50,6 +50,14 @@ public class UfHandler extends AbstractMessageHandler<Void> {
             localPathBuilder.append(Objects.requireNonNullElse(result.result().body(), "-1"));
             latch.countDown();
         });
+
+        ChannelSftp channelSftp = sftpChannelProvider.getChannelSftp(sessionId);
+        if (channelSftp == null) {
+            SessionCache.getInstance().getShell(sessionId).printErr("Create sftp channel failed.");
+            promise.complete();
+            return;
+        }
+
         latch.await();
 
         String fileNames = localPathBuilder.toString();
@@ -58,12 +66,6 @@ public class UfHandler extends AbstractMessageHandler<Void> {
             return;
         }
 
-        ChannelSftp channelSftp = sftpChannelProvider.getChannelSftp(sessionId);
-        if (channelSftp == null) {
-            SessionCache.getInstance().getShell(sessionId).printErr("Create sftp channel failed.");
-            promise.complete();
-            return;
-        }
         channelSftp.cd(remotePath);
         for (String fileName : fileNames.split(",")) {
             channelSftp.put(new FileInputStream(fileName), FileNameUtil.getName(fileName));

@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.common.utils.StrUtil;
-import org.apache.commons.lang3.StringUtils;
+import com.toocol.ssh.core.term.core.Printer;
 
 import java.util.Stack;
 
@@ -12,10 +12,7 @@ import java.util.Stack;
  */
 public class HistoryCmdHelper {
 
-    /**
-     * TODO: need accomplish download function first.
-     */
-    private final Stack<String> historyCmdStack = new Stack<>();
+    private final Shell shell;
     /**
      * The stack storage all the executed cmd.
      */
@@ -31,40 +28,88 @@ public class HistoryCmdHelper {
      */
     private final Stack<String> downArrowStack = new Stack<>();
 
-    public synchronized void initialize(String bashHistoryFileData) {
-        historyCmdStack.push(bashHistoryFileData);
-        historyCmdStack.forEach(baseCmdStack::push);
+    private String upBuffer = null;
+    private String downBuffer = null;
+
+    public HistoryCmdHelper(Shell shell) {
+        this.shell = shell;
+    }
+
+    public synchronized void initialize(String[] historyCmds) {
+        for (String historyCmd : historyCmds) {
+            baseCmdStack.push(historyCmd);
+        }
     }
 
     public synchronized void push(String cmd) {
-        baseCmdStack.push(cmd);
+        baseCmdStack.push(cmd.trim());
         upArrowStack.clear();
         downArrowStack.clear();
+        upBuffer = null;
+        downBuffer = null;
     }
 
     /*
      * when user press the up arrow.
      **/
-    public synchronized String up() {
-        baseCmdStack.forEach(upArrowStack::push);
-        String cmd = upArrowStack.pop();
-        if (StringUtils.isEmpty(cmd)) {
-            return StrUtil.EMPTY;
+    public synchronized void up() {
+        if (downBuffer != null) {
+            downArrowStack.push(downBuffer);
+            downBuffer = null;
         }
-        downArrowStack.push(cmd);
-        return cmd;
+        if (upArrowStack.isEmpty() && downArrowStack.isEmpty()) {
+            baseCmdStack.forEach(upArrowStack::push);
+        }
+        String cmd;
+        if (upArrowStack.isEmpty()) {
+            cmd = StrUtil.EMPTY;
+        } else {
+            cmd = upArrowStack.pop();
+        }
+        if (upBuffer != null) {
+            downArrowStack.push(upBuffer);
+        }
+        shell.clearShellLineWithPrompt();
+        shell.currentPrint.set(shell.prompt.get() + cmd);
+        shell.selectHistoryCmd.set(cmd);
+        shell.cmd.delete(0, shell.cmd.length());
+        shell.cmd.append(cmd);
+        if (StrUtil.EMPTY.equals(cmd)) {
+            upBuffer = null;
+        } else {
+            upBuffer = cmd;
+        }
+        Printer.print(cmd);
     }
 
     /*
      * when user press the down arrow
      **/
-    public synchronized String down() {
-        String cmd = downArrowStack.pop();
-        if (StringUtils.isEmpty(cmd)) {
-            return StrUtil.EMPTY;
+    public synchronized void down() {
+        if (upBuffer != null) {
+            upArrowStack.push(upBuffer);
+            upBuffer = null;
         }
-        upArrowStack.push(cmd);
-        return cmd;
+        String cmd;
+        if (downArrowStack.isEmpty()) {
+            cmd = StrUtil.EMPTY;
+        } else {
+            cmd = downArrowStack.pop();
+        }
+        if (downBuffer != null) {
+            upArrowStack.push(downBuffer);
+        }
+        shell.clearShellLineWithPrompt();
+        shell.currentPrint.set(shell.prompt.get() + cmd);
+        shell.selectHistoryCmd.set(cmd);
+        shell.cmd.delete(0, shell.cmd.length());
+        shell.cmd.append(cmd);
+        if (StrUtil.EMPTY.equals(cmd)) {
+            downBuffer = null;
+        } else {
+            downBuffer = cmd;
+        }
+        Printer.print(cmd);
     }
 
 }

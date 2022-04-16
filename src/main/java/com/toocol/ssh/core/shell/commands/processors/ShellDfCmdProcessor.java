@@ -4,8 +4,10 @@ import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
 import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.shell.handlers.DfHandler;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -56,7 +58,12 @@ public class ShellDfCmdProcessor extends ShellCommandProcessor {
             remotePath.append(currentPath).append("/").append(inputPath);
         }
 
-        eventBus.send(START_DF_COMMAND.address(), remotePath.toString());
+        JsonObject request = new JsonObject();
+        request.put("sessionId", sessionId);
+        request.put("remotePath", remotePath.toString());
+        request.put("type", DfHandler.DF_TYPE_FILE);
+
+        eventBus.send(START_DF_COMMAND.address(), request);
 
         return EMPTY;
     }

@@ -21,7 +21,11 @@ public enum FileAddress implements IAddress {
     /**
      * choose the local file.
      */
-    CHOOSE_FILE("terminal.file.choose")
+    CHOOSE_FILE("terminal.file.choose"),
+    /**
+     * choose the local directory path.
+     */
+    CHOOSE_DIRECTORY("terminal.file.choose")
     ;
 
     /**

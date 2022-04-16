@@ -18,6 +18,8 @@ public class TerminatioJNI {
 
     public native String getCursorPosition();
 
+    public native void setCursorPosition(int x, int y);
+
     public native void cursorBackLine(int lines);
 
     private TerminatioJNI() {}

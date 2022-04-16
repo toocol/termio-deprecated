@@ -4,6 +4,7 @@ import com.toocol.ssh.common.console.ConsoleReader;
 import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.term.core.Term;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.OutputStream;
@@ -38,10 +39,12 @@ record ShellReader(Shell shell, OutputStream outputStream) {
 
                 } else if (inChar == CharUtil.UP_ARROW || inChar == CharUtil.DOWN_ARROW) {
 
-                    shell.status = inChar == CharUtil.UP_ARROW ? Shell.Status.UP_HISTORY_CMD_SELECT : Shell.Status.DOWN_HISTORY_CMD_SELECT;
+                    if (inChar == CharUtil.UP_ARROW) {
+                        shell.historyCmdHelper.up();
+                    } else {
+                        shell.historyCmdHelper.down();
+                    }
                     shell.localLastCmd.set("");
-                    outputStream.write(inChar);
-                    outputStream.flush();
 
                 } else if (inChar == CharUtil.TAB) {
 
@@ -59,17 +62,13 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     shell.status = Shell.Status.TAB_ACCOMPLISH;
 
                 } else if (inChar == CharUtil.BACKSPACE) {
-
-                    if (shell.cmd.toString().length() == 0 && shell.status.equals(Shell.Status.NORMAL)) {
+                    int cursorX = Term.getInstance().getCursorPosition()._1();
+                    if (cursorX <= shell.prompt.get().length()) {
                         Printer.voice();
-                        continue;
-                    }
-                    if (shell.remoteCmd.get().length() == 0 && shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                        Printer.voice();
-                        continue;
-                    }
-                    if (shell.selectHistoryCmd.get().length() == 0 && shell.status.equals(Shell.Status.UP_HISTORY_CMD_SELECT)) {
-                        Printer.voice();
+                        shell.remoteCmd.set(StrUtil.EMPTY);
+                        shell.localLastCmd.set(StrUtil.EMPTY);
+                        shell.selectHistoryCmd.set(StrUtil.EMPTY);
+                        shell.cmd.delete(0, shell.cmd.length());
                         continue;
                     }
 
@@ -86,10 +85,6 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     if (shell.status.equals(Shell.Status.NORMAL)) {
                         shell.cmd.deleteCharAt(shell.cmd.length() - 1);
                     }
-                    if (shell.status.equals(Shell.Status.UP_HISTORY_CMD_SELECT)) {
-                        shell.cmd.append('\u007F');
-                        shell.selectHistoryCmd.getAndUpdate(prev -> prev.substring(0, prev.length() - 1));
-                    }
 
                     if (localLastInputBuffer.length() > 0) {
                         localLastInputBuffer = new StringBuilder(localLastInputBuffer.substring(0, localLastInputBuffer.length() - 1));
@@ -104,6 +99,9 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     shell.localLastInput = localLastInputBuffer.toString();
                     shell.lastRemoteCmd = shell.remoteCmd.get();
                     shell.lastExecuteCmd = StringUtils.isEmpty(shell.remoteCmd.get()) ? shell.cmd.toString() : shell.remoteCmd.get().replaceAll("\b", "");
+                    if (!StrUtil.EMPTY.equals(shell.lastExecuteCmd)) {
+                        shell.historyCmdHelper.push(shell.lastExecuteCmd);
+                    }
                     Printer.print(StrUtil.CRLF);
                     shell.status = Shell.Status.NORMAL;
                     break;

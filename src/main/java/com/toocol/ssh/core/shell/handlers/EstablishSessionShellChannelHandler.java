@@ -77,7 +77,9 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
                 channelShell.connect();
                 sessionCache.putChannelShell(sessionId, channelShell);
 
-                Shell shell = new Shell(eventBus, channelShell.getOutputStream(), channelShell.getInputStream());
+                Shell shell = new Shell(sessionId, eventBus, channelShell.getOutputStream(), channelShell.getInputStream());
+                shell.setUser(credential.getUser());
+                shell.initialFirstCorrespondence();
                 sessionCache.putShell(sessionId, shell);
             } catch (Exception e) {
                 Printer.println("Connect failed, message = " + e.getMessage());
@@ -108,7 +110,9 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
             }
 
             if (regenerateShell) {
-                Shell shell = new Shell(eventBus, channelShell.getOutputStream(), channelShell.getInputStream());
+                Shell shell = new Shell(sessionId, eventBus, channelShell.getOutputStream(), channelShell.getInputStream());
+                shell.setUser(credential.getUser());
+                shell.initialFirstCorrespondence();
                 sessionCache.putShell(sessionId, shell);
             }
 

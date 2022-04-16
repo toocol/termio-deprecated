@@ -2,9 +2,13 @@ package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.common.utils.CmdUtil;
 import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.core.shell.handlers.DfHandler;
 import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonObject;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,7 +32,9 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
 public class Shell {
 
     public static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)]#)");
+    private static final Term term = Term.getInstance();
 
+    private final long sessionId;
     /**
      * the EventBus of vert.x system.
      */
@@ -72,24 +78,21 @@ public class Shell {
         TAB_ACCOMPLISH(2, "Shell is under tab key to auto-accomplish address status."),
         VIM_BEFORE(3, "Shell is before Vim/Vi edit status."),
         VIM_UNDER(4, "Shell is under Vim/Vi edit status."),
-        VIM_AFTER(5, "Shell is under Vim/Vi edit status."),
-        UP_HISTORY_CMD_SELECT(6, "Shell is under up arrow history command select status."),
-        DOWN_HISTORY_CMD_SELECT(6, "Shell is under up arrow history command select status."),
         ;
 
         public final int status;
         public final String comment;
     }
 
-    public Shell(EventBus eventBus, OutputStream outputStream, InputStream inputStream) {
+    public Shell(long sessionId, EventBus eventBus, OutputStream outputStream, InputStream inputStream) {
+        this.sessionId = sessionId;
         this.eventBus = eventBus;
         assert outputStream != null && inputStream != null;
         this.outputStream = outputStream;
         this.inputStream = inputStream;
         this.shellPrinter = new ShellPrinter(this);
         this.shellReader = new ShellReader(this, this.outputStream);
-        this.historyCmdHelper = new HistoryCmdHelper();
-        this.initialFirstCorrespondence();
+        this.historyCmdHelper = new HistoryCmdHelper(this);
     }
 
     public boolean print(String msg) {
@@ -98,25 +101,19 @@ public class Shell {
             prompt.set(matcher.group(0) + StrUtil.SPACE);
             extractUserFromPrompt();
             if (status.equals(Status.VIM_UNDER)) {
-                status = Status.VIM_AFTER;
+                status = Status.NORMAL;
             }
         }
 
         boolean hasPrint = false;
         switch (status) {
-            case NORMAL, VIM_AFTER -> hasPrint = shellPrinter.printInNormal(msg);
+            case NORMAL -> hasPrint = shellPrinter.printInNormal(msg);
             case TAB_ACCOMPLISH -> shellPrinter.printInTabAccomplish(msg);
             case VIM_BEFORE, VIM_UNDER -> shellPrinter.printInVim(msg);
-            case UP_HISTORY_CMD_SELECT, DOWN_HISTORY_CMD_SELECT -> shellPrinter.printSelectHistoryCommand(msg);
             default -> {
             }
         }
 
-        if (status.equals(Status.VIM_AFTER)) {
-//            Printer.clear();
-//            Printer.print(prompt.get());
-            status = Status.NORMAL;
-        }
         return hasPrint;
     }
 
@@ -157,11 +154,18 @@ public class Shell {
     }
 
     @SuppressWarnings("all")
-    private void initialFirstCorrespondence() {
+    public void initialFirstCorrespondence() {
         try {
             CountDownLatch mainLatch = new CountDownLatch(2);
-            eventBus.request(START_DF_COMMAND.address(), null, result -> {
-                // TODO: accomplish HistoryCmdHelper initialize logic
+
+            JsonObject request = new JsonObject();
+            request.put("sessionId", sessionId);
+            request.put("remotePath", "/" + user + "/.bash_history");
+            request.put("type", DfHandler.DF_TYPE_BYTE);
+            eventBus.request(START_DF_COMMAND.address(), request, result -> {
+                byte[] bytes = (byte[]) result.result().body();
+                String data = new String(bytes, StandardCharsets.UTF_8);
+                historyCmdHelper.initialize(data.split(StrUtil.LF));
             });
 
             new Thread(() -> {
@@ -260,6 +264,10 @@ public class Shell {
         return user;
     }
 
+    public void setUser(String user) {
+        this.user.set(user);
+    }
+
     public AtomicReference<String> getFullPath() {
         return fullPath;
     }
@@ -280,4 +288,15 @@ public class Shell {
         this.fullPath.set(fullPath);
     }
 
+    public void clearShellLineWithPrompt() {
+        int promptLen = prompt.get().length();
+        Tuple2<Integer, Integer> position = term.getCursorPosition();
+        int cursorX = position._1();
+        int cursorY = position._2();
+        term.setCursorPosition(promptLen, cursorY);
+        for (int idx = 0; idx < cursorX - promptLen; idx++) {
+            Printer.print(" ");
+        }
+        term.setCursorPosition(promptLen, cursorY);
+    }
 }
