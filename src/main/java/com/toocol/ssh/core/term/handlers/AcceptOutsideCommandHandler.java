@@ -19,7 +19,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
 import static com.toocol.ssh.core.term.TermAddress.ADDRESS_EXECUTE_OUTSIDE;
 
-
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:11

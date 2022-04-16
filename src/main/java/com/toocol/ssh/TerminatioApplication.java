@@ -9,7 +9,6 @@ import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.config.SystemConfig;
 import com.toocol.ssh.core.term.core.Printer;
-import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -37,7 +36,6 @@ public class TerminatioApplication {
 
     public static void main(String[] args) {
         JNILoader.load();
-        Term.getInstance().initialize();
 
         if (args.length != 1) {
             Printer.printErr("Wrong boot type.");

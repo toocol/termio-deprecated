@@ -14,4 +14,8 @@ public class OsUtil {
         return (isWindows() ? ".dll" : ".so");
     }
 
+    public static String fileSeparator() {
+        return isWindows() ? "\\" : "/";
+    }
+
 }

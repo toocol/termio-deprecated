@@ -16,6 +16,10 @@ public class TerminatioJNI {
 
     public native int getWindowHeight();
 
+    public native String getCursorPosition();
+
+    public native void cursorBackLine(int lines);
+
     private TerminatioJNI() {}
 
     private static final TerminatioJNI INSTANCE;
