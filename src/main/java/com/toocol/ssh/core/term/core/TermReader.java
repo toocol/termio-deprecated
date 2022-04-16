@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.common.jni.TerminatioJNI;
+import com.toocol.ssh.common.console.ConsoleReader;
 import com.toocol.ssh.common.utils.CharUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class TermReader {
 
-    private static final TerminatioJNI JNI = TerminatioJNI.getInstance();
+    private static final ConsoleReader CONSOLE_READER = ConsoleReader.get(System.in);
 
     public String readLine() {
         return readLine(null);
@@ -23,7 +23,7 @@ public class TermReader {
 
         StringBuilder lineBuilder = new StringBuilder();
         while (true) {
-            char ch = (char) JNI.getCh();
+            char ch = (char) CONSOLE_READER.readVirtualKey();
             if (CharUtil.isAsciiPrintable(ch)) {
                 Printer.print(String.valueOf(ch));
                 lineBuilder.append(ch);

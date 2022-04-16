@@ -15,14 +15,10 @@
 
         <!--third part dependency-->
         <vertx.version>4.2.6</vertx.version>
-        <lombok.version>1.18.22</lombok.version>
+        <jsch.version>0.1.55</jsch.version>
         <commons.lang3.version>3.12.0</commons.lang3.version>
         <commons.io.version>2.11.0</commons.io.version>
         <guava.version>31.1-jre</guava.version>
-        <jsch.version>0.1.55</jsch.version>
-        <jline3.version>3.21.0</jline3.version>
-        <javafx.controls.version>17.0.2</javafx.controls.version>
-        <javafx.fxml.version>15.0.1</javafx.fxml.version>
     </properties>
 
     <dependencies>
@@ -32,10 +28,9 @@
             <version>${vertx.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-            <version>${lombok.version}</version>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>${jsch.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -51,11 +46,6 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.jcraft</groupId>
-            <artifactId>jsch</artifactId>
-            <version>${jsch.version}</version>
         </dependency>
     </dependencies>
 

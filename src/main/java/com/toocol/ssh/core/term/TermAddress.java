@@ -1,13 +1,11 @@
 package com.toocol.ssh.core.term;
 
 import com.toocol.ssh.common.address.IAddress;
-import lombok.AllArgsConstructor;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-@AllArgsConstructor
 public enum TermAddress implements IAddress{
     /**
      * execute outside command
@@ -32,6 +30,10 @@ public enum TermAddress implements IAddress{
      * the address string of message
      */
     private final String address;
+
+    TermAddress(String address) {
+        this.address = address;
+    }
 
     @Override
     public String address() {

@@ -9,7 +9,6 @@ import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
-import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -69,7 +68,6 @@ public class Shell {
     protected final AtomicReference<String> user = new AtomicReference<>();
     protected final AtomicReference<String> fullPath = new AtomicReference<>();
 
-    @AllArgsConstructor
     public enum Status {
         /**
          * The status of Shell.
@@ -79,6 +77,11 @@ public class Shell {
         VIM_BEFORE(3, "Shell is before Vim/Vi edit status."),
         VIM_UNDER(4, "Shell is under Vim/Vi edit status."),
         ;
+
+        Status(int status, String comment) {
+            this.status = status;
+            this.comment = comment;
+        }
 
         public final int status;
         public final String comment;

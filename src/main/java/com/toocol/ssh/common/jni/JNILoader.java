@@ -4,7 +4,10 @@ import com.toocol.ssh.common.utils.OsUtil;
 import com.toocol.ssh.core.term.core.Printer;
 import org.apache.commons.io.IOUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -14,11 +17,7 @@ import java.io.*;
 public class JNILoader {
 
     public static void load() {
-        if (OsUtil.isWindows()) {
-            loadLib("libterminatio.dll");
-        } else {
-            loadLib("libterminatio.so");
-        }
+        loadLib("libterminatio" + OsUtil.libSuffix());
     }
 
     private static void loadLib(String name) {
