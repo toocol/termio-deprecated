@@ -2,8 +2,10 @@ package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.term.core.Printer;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Stack;
+import java.util.UUID;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -27,9 +29,15 @@ public class HistoryCmdHelper {
      * clear out when user execute new cmd, which means invoke the method {HistoryCmdHelper.push(String cmd)}
      */
     private final Stack<String> downArrowStack = new Stack<>();
+    /**
+     * the flag to record user input command;
+     */
+    private final String flag = UUID.randomUUID().toString();
 
     private String upBuffer = null;
     private String downBuffer = null;
+    private boolean puToDown = false;
+    private boolean start = false;
 
     public HistoryCmdHelper(Shell shell) {
         this.shell = shell;
@@ -43,22 +51,22 @@ public class HistoryCmdHelper {
 
     public synchronized void push(String cmd) {
         baseCmdStack.push(cmd.trim());
-        upArrowStack.clear();
-        downArrowStack.clear();
-        upBuffer = null;
-        downBuffer = null;
+        reset();
     }
 
     /*
      * when user press the up arrow.
      **/
     public synchronized void up() {
+        start = true;
         if (downBuffer != null) {
             downArrowStack.push(downBuffer);
             downBuffer = null;
         }
-        if (upArrowStack.isEmpty() && downArrowStack.isEmpty()) {
+        if ((upArrowStack.isEmpty() && downArrowStack.isEmpty())
+                || (!downArrowStack.isEmpty() && puToDown)) {
             baseCmdStack.forEach(upArrowStack::push);
+            puToDown = false;
         }
         String cmd;
         if (upArrowStack.isEmpty()) {
@@ -70,7 +78,7 @@ public class HistoryCmdHelper {
             downArrowStack.push(upBuffer);
         }
         shell.clearShellLineWithPrompt();
-        shell.currentPrint.set(shell.prompt.get() + cmd);
+        shell.currentPrint.set(cmd);
         shell.selectHistoryCmd.set(cmd);
         shell.cmd.delete(0, shell.cmd.length());
         shell.cmd.append(cmd);
@@ -86,12 +94,16 @@ public class HistoryCmdHelper {
      * when user press the down arrow
      **/
     public synchronized void down() {
+        if (upArrowStack.isEmpty()) {
+            return;
+        }
         if (upBuffer != null) {
             upArrowStack.push(upBuffer);
             upBuffer = null;
         }
         String cmd;
         if (downArrowStack.isEmpty()) {
+            start = false;
             cmd = StrUtil.EMPTY;
         } else {
             cmd = downArrowStack.pop();
@@ -99,8 +111,13 @@ public class HistoryCmdHelper {
         if (downBuffer != null) {
             upArrowStack.push(downBuffer);
         }
+        boolean resetFlag = false;
+        if (cmd.contains("--" + flag)) {
+            cmd = cmd.replaceAll("--" + flag, "");
+            resetFlag = true;
+        }
         shell.clearShellLineWithPrompt();
-        shell.currentPrint.set(shell.prompt.get() + cmd);
+        shell.currentPrint.set(cmd);
         shell.selectHistoryCmd.set(cmd);
         shell.cmd.delete(0, shell.cmd.length());
         shell.cmd.append(cmd);
@@ -109,7 +126,27 @@ public class HistoryCmdHelper {
         } else {
             downBuffer = cmd;
         }
+        if (resetFlag) {
+            reset();
+        }
         Printer.print(cmd);
     }
 
+    public void pushToDown(String cmd) {
+        puToDown = true;
+        downArrowStack.push(cmd + "--" + flag);
+    }
+
+    public boolean isStart() {
+        return start;
+    }
+
+    private void reset() {
+        upArrowStack.clear();
+        downArrowStack.clear();
+        upBuffer = null;
+        downBuffer = null;
+        start = false;
+        puToDown = false;
+    }
 }

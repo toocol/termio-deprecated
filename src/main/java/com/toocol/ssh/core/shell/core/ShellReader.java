@@ -39,6 +39,20 @@ record ShellReader(Shell shell, OutputStream outputStream) {
 
                 } else if (inChar == CharUtil.UP_ARROW || inChar == CharUtil.DOWN_ARROW) {
 
+                    shell.status = Shell.Status.NORMAL;
+                    if (!shell.historyCmdHelper.isStart()) {
+                        if (shell.cmd.length() != 0 && StringUtils.isEmpty(shell.remoteCmd.get())) {
+                            shell.historyCmdHelper.pushToDown(shell.cmd.toString());
+                        } else if (StringUtils.isNotEmpty(shell.remoteCmd.get())) {
+                            byte[] wirte = "\u007F".repeat(shell.remoteCmd.get().length()).getBytes(StandardCharsets.UTF_8);
+                            if (wirte.length > 0) {
+                                outputStream.write(wirte);
+                                outputStream.flush();
+                                String cmdToPush = shell.remoteCmd.get().replaceAll("\u007F", "");
+                                shell.historyCmdHelper.pushToDown(cmdToPush);
+                            }
+                        }
+                    }
                     if (inChar == CharUtil.UP_ARROW) {
                         shell.historyCmdHelper.up();
                     } else {
@@ -54,7 +68,6 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     }
                     shell.localLastInput = localLastInputBuffer.toString();
                     localLastInputBuffer = new StringBuilder();
-                    shell.cmd.append(inChar);
                     shell.tabFeedbackRec.clear();
                     outputStream.write(shell.cmd.append(CharUtil.TAB).toString().getBytes(StandardCharsets.UTF_8));
                     outputStream.flush();
@@ -85,11 +98,15 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     if (shell.status.equals(Shell.Status.NORMAL)) {
                         shell.cmd.deleteCharAt(shell.cmd.length() - 1);
                     }
+                    if (shell.currentPrint.get().length() > 0) {
+                        shell.currentPrint.getAndUpdate(prev -> prev.substring(0, prev.length() - 1));
+                    }
 
                     if (localLastInputBuffer.length() > 0) {
                         localLastInputBuffer = new StringBuilder(localLastInputBuffer.substring(0, localLastInputBuffer.length() - 1));
                     }
                     Printer.virtualBackspace();
+
 
                 } else if (inChar == CharUtil.CR || inChar == CharUtil.LF) {
 
@@ -115,7 +132,6 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     shell.cmd.append(inChar);
                     localLastInputBuffer.append(inChar);
                     Printer.print(String.valueOf(inChar));
-
                 }
             }
         }
