@@ -83,7 +83,6 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                         shell.selectHistoryCmd.set(StrUtil.EMPTY);
                         shell.cmd.delete(0, shell.cmd.length());
                         if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                            shell.clearShellLineWithPrompt();
                             outputStream.write(3);
                             outputStream.flush();
                         }
