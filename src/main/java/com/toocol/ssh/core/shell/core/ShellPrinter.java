@@ -85,6 +85,13 @@ record ShellPrinter(Shell shell) {
             shell.clearShellLineWithPrompt();
             Printer.print(msg);
             return;
+        } else if (msg.contains(shell.localLastInput) && !msg.equals(shell.localLastInput)) {
+            String tmp = msg.substring(shell.localLastInput.length());
+            shell.remoteCmd.getAndUpdate(prev -> prev + tmp);
+            shell.localLastCmd.getAndUpdate(prev -> prev + tmp);
+            shell.currentPrint.getAndUpdate(prev -> prev + tmp);
+            Printer.print(tmp);
+            return;
         } else {
             msg = msg.replaceAll("\b", "");
             if (msg.trim().equals(shell.localLastCmd.get().replaceAll("\t", ""))) {

@@ -48,4 +48,13 @@ public class Term {
     public void setCursorPosition(int x, int y) {
         JNI.setCursorPosition(x, y);
     }
+
+    public void showCursor() {
+        JNI.showCursor();
+    }
+
+    public void hideCursor() {
+        JNI.hideCursor();
+    }
+
 }

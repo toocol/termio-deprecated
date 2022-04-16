@@ -32,7 +32,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
 public class Shell {
 
     public static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)]#)");
-    private static final Term term = Term.getInstance();
+    private final Term term = Term.getInstance();
 
     private final long sessionId;
     /**
@@ -280,6 +280,10 @@ public class Shell {
         return lastRemoteCmd;
     }
 
+    public Term getTerm() {
+        return term;
+    }
+
     public void setPrompt(String prompt) {
         this.prompt.set(prompt);
     }
@@ -293,10 +297,12 @@ public class Shell {
         Tuple2<Integer, Integer> position = term.getCursorPosition();
         int cursorX = position._1();
         int cursorY = position._2();
+        term.hideCursor();
         term.setCursorPosition(promptLen, cursorY);
         for (int idx = 0; idx < cursorX - promptLen; idx++) {
             Printer.print(" ");
         }
         term.setCursorPosition(promptLen, cursorY);
+        term.showCursor();
     }
 }

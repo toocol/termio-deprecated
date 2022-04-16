@@ -22,6 +22,10 @@ public class TerminatioJNI {
 
     public native void cursorBackLine(int lines);
 
+    public native void showCursor();
+
+    public native void hideCursor();
+
     private TerminatioJNI() {}
 
     private static final TerminatioJNI INSTANCE;
