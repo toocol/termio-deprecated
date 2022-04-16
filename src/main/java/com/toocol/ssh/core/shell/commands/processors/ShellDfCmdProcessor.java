@@ -1,7 +1,6 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
 import com.toocol.ssh.common.utils.StrUtil;
-import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.handlers.DfHandler;
@@ -23,14 +22,13 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
 public class ShellDfCmdProcessor extends ShellCommandProcessor {
 
     @Override
-    public String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak, String cmd) {
+    public String process(EventBus eventBus, Promise<Long> promise, Shell shell, AtomicBoolean isBreak, String cmd) {
         String[] split = cmd.trim().replaceAll(" {2,}", StrUtil.SPACE).split(StrUtil.SPACE);
         if (split.length != 2) {
             return EMPTY;
         }
 
         String inputPath = split[1];
-        Shell shell = SessionCache.getInstance().getShell(sessionId);
         String user = shell.getUser().get();
         String currentPath = shell.getFullPath().get();
 
@@ -59,13 +57,13 @@ public class ShellDfCmdProcessor extends ShellCommandProcessor {
         }
 
         JsonObject request = new JsonObject();
-        request.put("sessionId", sessionId);
+        request.put("sessionId", shell.getSessionId());
         request.put("remotePath", remotePath.toString());
         request.put("type", DfHandler.DF_TYPE_FILE);
 
         eventBus.send(START_DF_COMMAND.address(), request);
 
-        return EMPTY;
+        return null;
     }
 
 }

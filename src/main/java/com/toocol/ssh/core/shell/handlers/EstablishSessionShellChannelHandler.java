@@ -100,13 +100,25 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
 
             ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
             if (reopenChannelShell) {
+
                 sessionCache.stopChannelShell(sessionId);
                 channelShell = cast(session.openChannel("shell"));
+                int width = Term.getInstance().getWidth();
+                int height = Term.getInstance().getHeight();
+                channelShell.setPtyType("xterm", width, height, width, height);
                 channelShell.connect();
                 sessionCache.putChannelShell(sessionId, channelShell);
+
             } else if (channelShell.isClosed() || !channelShell.isConnected()) {
+
+                channelShell = cast(session.openChannel("shell"));
+                int width = Term.getInstance().getWidth();
+                int height = Term.getInstance().getHeight();
+                channelShell.setPtyType("xterm", width, height, width, height);
                 channelShell.connect();
+                sessionCache.putChannelShell(sessionId, channelShell);
                 regenerateShell = true;
+
             }
 
             if (regenerateShell) {

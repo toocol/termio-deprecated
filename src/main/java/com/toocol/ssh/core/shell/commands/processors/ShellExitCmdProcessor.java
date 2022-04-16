@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
+import com.toocol.ssh.core.shell.core.Shell;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 
@@ -12,9 +13,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ShellExitCmdProcessor extends ShellCommandProcessor {
     @Override
-    public String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak, String cmd) {
+    public String process(EventBus eventBus, Promise<Long> promise, Shell shell, AtomicBoolean isBreak, String cmd) {
         isBreak.set(true);
-        promise.complete(sessionId);
-        return EMPTY;
+        promise.complete(shell.getSessionId());
+        return "exit";
     }
 }

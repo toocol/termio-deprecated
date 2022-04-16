@@ -82,7 +82,9 @@ record ShellPrinter(Shell shell) {
             shell.remoteCmd.set(msg);
             shell.localLastCmd.set(msg);
             shell.currentPrint.set(msg);
-            shell.clearShellLineWithPrompt();
+            if (!msg.contains("]# ")) {
+                shell.clearShellLineWithPrompt();
+            }
             Printer.print(msg);
             return;
         } else if (msg.contains(shell.localLastInput) && !msg.equals(shell.localLastInput) && !msg.contains(CRLF)) {

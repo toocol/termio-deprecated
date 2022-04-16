@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.shell.commands;
 
+import com.toocol.ssh.core.shell.core.Shell;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 
@@ -18,10 +19,10 @@ public abstract class ShellCommandProcessor {
      *
      * @param eventBus event bus
      * @param promise promise
-     * @param sessionId session's id
+     * @param shell shell
      * @param isBreak break the shell accept cycle
      * @return final cmd should be executed
      */
-    public abstract String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak, String cmd);
+    public abstract String process(EventBus eventBus, Promise<Long> promise, Shell shell, AtomicBoolean isBreak, String cmd);
 
 }

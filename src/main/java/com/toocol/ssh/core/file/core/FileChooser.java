@@ -18,7 +18,7 @@ public class FileChooser {
      */
     public String showOpenDialog() {
         String files = terminatioJNI.chooseFiles();
-        return files.substring(0, files.length() - 1);
+        return files == null ? null : files.substring(0, files.length() - 1);
     }
 
 }

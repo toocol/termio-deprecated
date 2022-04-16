@@ -99,7 +99,7 @@ public class Shell {
     }
 
     public boolean print(String msg) {
-        Matcher matcher = PROMPT_PATTERN.matcher(msg);
+        Matcher matcher = PROMPT_PATTERN.matcher(msg.trim());
         if (matcher.find()) {
             prompt.set(matcher.group(0) + StrUtil.SPACE);
             extractUserFromPrompt();
@@ -144,7 +144,6 @@ public class Shell {
         lastRemoteCmd = StrUtil.EMPTY;
         selectHistoryCmd.set(StrUtil.EMPTY);
         currentPrint.set(StrUtil.EMPTY);
-        remoteCmd.set(StrUtil.EMPTY);
         return cmdStr;
     }
 
@@ -295,6 +294,10 @@ public class Shell {
 
     public String getLastRemoteCmd() {
         return lastRemoteCmd;
+    }
+
+    public long getSessionId() {
+        return sessionId;
     }
 
     public void setPrompt(String prompt) {

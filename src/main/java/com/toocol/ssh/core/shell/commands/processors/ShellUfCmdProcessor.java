@@ -1,6 +1,5 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
-import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
 import com.toocol.ssh.core.shell.core.Shell;
 import io.vertx.core.Promise;
@@ -18,15 +17,14 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_UF_COMMAND;
  */
 public class ShellUfCmdProcessor extends ShellCommandProcessor {
     @Override
-    public String process(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak, String cmd) {
-        Shell shell = SessionCache.getInstance().getShell(sessionId);
+    public String process(EventBus eventBus, Promise<Long> promise, Shell shell, AtomicBoolean isBreak, String cmd) {
         String remotePath = shell.getFullPath().get();
 
         JsonObject request = new JsonObject();
-        request.put("sessionId", sessionId);
+        request.put("sessionId", shell.getSessionId());
         request.put("remotePath", remotePath);
 
         eventBus.send(START_UF_COMMAND.address(), request);
-        return EMPTY;
+        return null;
     }
 }

@@ -62,7 +62,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             AtomicBoolean isContinue = new AtomicBoolean();
             ShellCommand.cmdOf(cmd.toString()).ifPresent(shellCommand -> {
                 try {
-                    String finalCmd = shellCommand.processCmd(eventBus, promise, sessionId, isBreak, cmd.toString());
+                    String finalCmd = shellCommand.processCmd(eventBus, promise, shell, isBreak, cmd.toString());
                     cmd.delete(0, cmd.length());
                     if (finalCmd != null) {
                         cmd.append(finalCmd);
@@ -73,8 +73,26 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                     // do noting
                 }
             });
+            ShellCommand.cmdOf(shell.remoteCmd.get()).ifPresent(shellCommand -> {
+                try {
+                    String finalCmd = shellCommand.processCmd(eventBus, promise, shell, isBreak, cmd.toString());
+                    cmd.delete(0, cmd.length());
+                    if (finalCmd != null) {
+                        cmd.append(finalCmd);
+                    } else {
+                        isContinue.set(true);
+                    }
+                } catch (Exception e) {
+                    // do noting
+                }
+            });
+            shell.remoteCmd.set(StrUtil.EMPTY);
 
             if (isBreak.get()) {
+                if (cmd.length() != 0) {
+                    outputStream.write(cmd.append("\t").toString().getBytes(StandardCharsets.UTF_8));
+                    outputStream.flush();
+                }
                 break;
             }
             if (isContinue.get()) {
@@ -117,12 +135,12 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = false;
         StatusCache.STOP_LISTEN_TERMINAL_SIZE_CHANGE = true;
 
-        if (asyncResult.succeeded()) {
-            long sessionId = asyncResult.result();
-            sessionCache.stop(sessionId);
-        } else {
+        long sessionId = asyncResult.result();
+        if (sessionId == -1) {
             // hang up the session
             StatusCache.HANGED_QUIT = true;
+        } else {
+            sessionCache.stop(sessionId);
         }
 
         eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 1);

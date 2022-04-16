@@ -1,10 +1,13 @@
 package com.toocol.ssh.core.shell.commands;
 
+import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.shell.commands.processors.*;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -44,11 +47,23 @@ public enum ShellCommand {
         return Optional.ofNullable(shellCommand);
     }
 
-    public final String processCmd(EventBus eventBus, Promise<Long> promise, long sessionId, AtomicBoolean isBreak, String msg) throws Exception {
+    public final String processCmd(EventBus eventBus, Promise<Long> promise, Shell shell, AtomicBoolean isBreak, String msg) {
         if (this.commandProcessor == null) {
             return "";
         }
-        return this.commandProcessor.process(eventBus, promise, sessionId, isBreak, msg);
+        String result;
+        try {
+            for (int idx = 0; idx < shell.remoteCmd.get().length(); idx ++) {
+                shell.getOutputStream().write('\u007F');
+            }
+            shell.getOutputStream().flush();
+            result = this.commandProcessor.process(eventBus, promise, shell, isBreak, msg);
+            shell.getOutputStream().write("\n".getBytes(StandardCharsets.UTF_8));
+            shell.getOutputStream().flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return result;
     }
 
     public String cmd() {
