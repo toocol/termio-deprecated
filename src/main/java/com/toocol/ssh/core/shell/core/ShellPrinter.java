@@ -85,7 +85,8 @@ record ShellPrinter(Shell shell) {
             shell.clearShellLineWithPrompt();
             Printer.print(msg);
             return;
-        } else if (msg.contains(shell.localLastInput) && !msg.equals(shell.localLastInput)) {
+        } else if (msg.contains(shell.localLastInput) && !msg.equals(shell.localLastInput) && !msg.contains(CRLF)) {
+            msg = msg.replaceAll("\u0007", "").trim();
             String tmp = msg.substring(shell.localLastInput.length());
             shell.remoteCmd.getAndUpdate(prev -> prev + tmp);
             shell.localLastCmd.getAndUpdate(prev -> prev + tmp);
