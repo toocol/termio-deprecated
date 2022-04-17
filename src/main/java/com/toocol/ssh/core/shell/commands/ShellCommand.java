@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.shell.commands;
 
+import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.shell.commands.processors.*;
@@ -24,7 +25,8 @@ public enum ShellCommand {
     CMD_HANG("hang", new ShellHangCmdProcessor(), "Will not close the connection, exit shell with connection running in the background."),
     CMD_UF("uf", new ShellUfCmdProcessor(), "Batch upload local files to remote connection."),
     CMD_DF("df", new ShellDfCmdProcessor(), "Batch download remote files to local."),
-    CMD_CLEAR("clear", new ShellClearCmdProcessor(), null);
+    CMD_CLEAR("clear", new ShellClearCmdProcessor(), null),
+    ;
 
     private final String cmd;
     private final ShellCommandProcessor commandProcessor;
@@ -49,7 +51,7 @@ public enum ShellCommand {
 
     public final String processCmd(EventBus eventBus, Promise<Long> promise, Shell shell, AtomicBoolean isBreak, String msg) {
         if (this.commandProcessor == null) {
-            return "";
+            return StrUtil.EMPTY;
         }
         String result;
         try {
@@ -57,8 +59,10 @@ public enum ShellCommand {
                 shell.getOutputStream().write('\u007F');
             }
             shell.getOutputStream().flush();
+
             result = this.commandProcessor.process(eventBus, promise, shell, isBreak, msg);
-            shell.getOutputStream().write("\n".getBytes(StandardCharsets.UTF_8));
+
+            shell.getOutputStream().write(StrUtil.LF.getBytes(StandardCharsets.UTF_8));
             shell.getOutputStream().flush();
         } catch (IOException e) {
             throw new RuntimeException(e);

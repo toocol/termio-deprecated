@@ -87,7 +87,7 @@ record ShellPrinter(Shell shell) {
             }
             Printer.print(msg);
             return;
-        } else if (msg.contains(shell.localLastInput) && !msg.equals(shell.localLastInput) && !msg.contains(CRLF)) {
+        } else if (msg.startsWith(shell.localLastInput) && !msg.equals(shell.localLastInput) && !msg.contains(CRLF)) {
             msg = msg.replaceAll("\u0007", "").trim();
             String tmp = msg.substring(shell.localLastInput.length());
             shell.remoteCmd.getAndUpdate(prev -> prev + tmp);
@@ -166,6 +166,10 @@ record ShellPrinter(Shell shell) {
 
         String tmp = msg;
         shell.currentPrint.getAndUpdate(prev -> prev + tmp);
+        printer.print(msg);
+    }
+
+    void printInMore(String msg) {
         printer.print(msg);
     }
 }

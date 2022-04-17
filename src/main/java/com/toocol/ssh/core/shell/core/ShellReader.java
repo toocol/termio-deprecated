@@ -30,6 +30,20 @@ record ShellReader(Shell shell, OutputStream outputStream) {
             if (shell.status.equals(Shell.Status.VIM_UNDER)) {
                 outputStream.write(inChar);
                 outputStream.flush();
+            } else if (shell.status.equals(Shell.Status.MORE_PROC)
+                    || shell.status.equals(Shell.Status.MORE_EDIT)
+                    || shell.status.equals(Shell.Status.MORE_SUB)) {
+                boolean support;
+                switch (shell.status) {
+                    case MORE_PROC -> support = shell.moreHelper.support(inChar);
+                    case MORE_SUB -> support = shell.moreHelper.supportSub(inChar);
+                    case MORE_EDIT -> support = shell.moreHelper.supportEdit(inChar);
+                    default -> support = false;
+                }
+                if (support) {
+                    outputStream.write(inChar);
+                    outputStream.flush();
+                }
             } else {
                 if (inChar == CharUtil.CTRL_C) {
 
@@ -48,9 +62,9 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                             if (shell.cmd.length() != 0 && StringUtils.isEmpty(shell.remoteCmd.get())) {
                                 shell.historyCmdHelper.pushToDown(shell.cmd.toString());
                             } else if (StringUtils.isNotEmpty(shell.remoteCmd.get())) {
-                                byte[] wirte = "\u007F".repeat(shell.remoteCmd.get().length()).getBytes(StandardCharsets.UTF_8);
-                                if (wirte.length > 0) {
-                                    outputStream.write(wirte);
+                                byte[] write = "\u007F".repeat(shell.remoteCmd.get().length()).getBytes(StandardCharsets.UTF_8);
+                                if (write.length > 0) {
+                                    outputStream.write(write);
                                     outputStream.flush();
                                     String cmdToPush = shell.remoteCmd.get().replaceAll("\u007F", "");
                                     shell.historyCmdHelper.pushToDown(cmdToPush);

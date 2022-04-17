@@ -24,4 +24,13 @@ public class CmdUtil {
                 || "vi".equals(cmd) || "vim".equals(cmd);
     }
 
+    public static boolean isMoreCmd(String cmd) {
+        String clearLastCmd = cmd
+                .trim()
+                .replaceAll(" {2,}"," ")
+                .replaceAll(StrUtil.CR, StrUtil.EMPTY)
+                .replaceAll(StrUtil.LF, StrUtil.EMPTY);
+
+        return "more".equals(clearLastCmd.replaceAll(StrUtil.SPACE, StrUtil.EMPTY)) || clearLastCmd.startsWith("more ");
+    }
 }

@@ -75,8 +75,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             });
             ShellCommand.cmdOf(shell.remoteCmd.get()).ifPresent(shellCommand -> {
                 try {
-                    String finalCmd = shellCommand.processCmd(eventBus, promise, shell, isBreak, cmd.toString());
-                    cmd.delete(0, cmd.length());
+                    String finalCmd = shellCommand.processCmd(eventBus, promise, shell, isBreak, shell.remoteCmd.toString());
                     if (finalCmd != null) {
                         cmd.append(finalCmd);
                     } else {

@@ -46,10 +46,11 @@ public class Shell {
     private volatile boolean returnWrite = false;
     private volatile boolean promptNow = false;
 
+    protected final Term term = Term.getInstance();
     protected final ShellPrinter shellPrinter;
     protected final ShellReader shellReader;
     protected final HistoryCmdHelper historyCmdHelper;
-    protected final Term term = Term.getInstance();
+    protected final MoreHelper moreHelper;
 
     public volatile AtomicReference<String> localLastCmd = new AtomicReference<>(StrUtil.EMPTY);
     public volatile AtomicReference<String> remoteCmd = new AtomicReference<>(StrUtil.EMPTY);
@@ -76,6 +77,10 @@ public class Shell {
         TAB_ACCOMPLISH(2, "Shell is under tab key to auto-accomplish address status."),
         VIM_BEFORE(3, "Shell is before Vim/Vi edit status."),
         VIM_UNDER(4, "Shell is under Vim/Vi edit status."),
+        MORE_BEFORE(5, "Shell is before more cmd process status."),
+        MORE_PROC(6, "Shell is under more cmd process status."),
+        MORE_EDIT(7, "Shell is under more regular expression or cmd edit status."),
+        MORE_SUB(8, "Shell is under more :sub cmd status."),
         ;
 
         Status(int status, String comment) {
@@ -96,6 +101,7 @@ public class Shell {
         this.shellPrinter = new ShellPrinter(this);
         this.shellReader = new ShellReader(this, this.outputStream);
         this.historyCmdHelper = new HistoryCmdHelper(this);
+        this.moreHelper = new MoreHelper();
     }
 
     public boolean print(String msg) {
@@ -105,7 +111,12 @@ public class Shell {
             extractUserFromPrompt();
             if (status.equals(Status.VIM_UNDER)) {
                 status = Status.NORMAL;
+            } else if (status.equals(Status.MORE_PROC) || status.equals(Status.MORE_EDIT) || status.equals(Status.MORE_SUB)) {
+                status = Status.NORMAL;
             }
+        }
+        if (status.equals(Status.MORE_BEFORE)) {
+            status = Status.MORE_PROC;
         }
 
         boolean hasPrint = false;
@@ -113,6 +124,7 @@ public class Shell {
             case NORMAL -> hasPrint = shellPrinter.printInNormal(msg);
             case TAB_ACCOMPLISH -> shellPrinter.printInTabAccomplish(msg);
             case VIM_BEFORE, VIM_UNDER -> shellPrinter.printInVim(msg);
+            case MORE_BEFORE, MORE_PROC, MORE_EDIT, MORE_SUB -> shellPrinter.printInMore(msg);
             default -> {
             }
         }
@@ -139,6 +151,13 @@ public class Shell {
                 || CmdUtil.isCdCmd(cmd.toString())
                 || CmdUtil.isCdCmd(selectHistoryCmd.get())) {
             StatusCache.EXECUTE_CD_CMD = true;
+        }
+
+        boolean isMoreCmd = (StringUtils.isEmpty(cmd) && CmdUtil.isMoreCmd(localLastCmd.get()))
+                || CmdUtil.isMoreCmd(cmd.toString())
+                || CmdUtil.isMoreCmd(selectHistoryCmd.get());
+        if (isMoreCmd) {
+            status = Shell.Status.MORE_BEFORE;
         }
 
         lastRemoteCmd = StrUtil.EMPTY;

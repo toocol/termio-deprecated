@@ -13,17 +13,37 @@ import java.nio.charset.StandardCharsets;
  */
 public class CharUtil {
     /**
-     * {@code up-arrow}
+     * {@code up-arrow} translated
      */
-    public static final char UP_ARROW = '\u0010';
+    public static final int UP_ARROW = '\u0010';
     /**
-     * {@code down-arrow}
+     * {@code down-arrow} translated
      */
-    public static final char DOWN_ARROW = '\u000E';
+    public static final int DOWN_ARROW = '\u000E';
+    /**
+     * {@code up-arrow} translated
+     */
+    public static final int LEFT_ARROW = '\u0002';
+    /**
+     * {@code down-arrow} translated
+     */
+    public static final int RIGHT_ARROW = '\u0006';
+    /**
+     * {@code Ctrl+B}
+     */
+    public static final char CTRL_B = '\u0002';
     /**
      * {@code Ctrl+C}
      */
     public static final char CTRL_C = '\u0003';
+    /**
+     * {@code Ctrl+D}
+     */
+    public static final char CTRL_D = '\u0004';
+    /**
+     * {@code Ctrl+L}
+     */
+    public static final char CTRL_L = '\f';
     /**
      * {@code backspace}
      */

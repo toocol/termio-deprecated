@@ -84,16 +84,26 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
             } catch (Exception e) {
                 Printer.println("Connect failed, message = " + e.getMessage());
                 success = false;
-            } finally {
-                // invoke gc() to clean up already un-use object during initial processing. (it's very efficacious :))
-                System.gc();
             }
         } else {
             boolean reopenChannelShell = false;
             boolean regenerateShell = false;
             Session session = sessionCache.getSession(sessionId);
             if (!session.isConnected()) {
-                session.connect();
+                try {
+                    session.connect();
+                } catch (Exception e) {
+                    session = jSch.getSession(credential.getUser(), credential.getHost(), credential.getPort());
+                    session.setPassword(credential.getPassword());
+                    session.setUserInfo(new SshUserInfo());
+                    Properties config = new Properties();
+                    config.put("StrictHostKeyChecking", "no");
+                    session.setConfig(config);
+                    session.setTimeout(30000);
+                    session.connect();
+
+                    sessionCache.putSession(sessionId, session);
+                }
                 reopenChannelShell = true;
                 regenerateShell = true;
             }
@@ -132,6 +142,8 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
         }
         StatusCache.HANGED_QUIT = false;
 
+        // invoke gc() to clean up already un-use object during initial processing. (it's very efficacious :))
+        System.gc();
         if (success) {
             promise.complete(sessionId);
         } else {
