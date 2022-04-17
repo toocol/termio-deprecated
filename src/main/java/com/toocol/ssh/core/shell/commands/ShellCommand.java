@@ -1,9 +1,9 @@
 package com.toocol.ssh.core.shell.commands;
 
 import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.core.shell.commands.processors.*;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;
-import com.toocol.ssh.core.shell.commands.processors.*;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 
@@ -55,10 +55,12 @@ public enum ShellCommand {
         }
         String result;
         try {
-            for (int idx = 0; idx < shell.remoteCmd.get().length(); idx ++) {
-                shell.getOutputStream().write('\u007F');
+            if (shell.remoteCmd.get().length() > 0) {
+                for (int idx = 0; idx < shell.remoteCmd.get().length(); idx ++) {
+                    shell.getOutputStream().write('\u007F');
+                }
+                shell.getOutputStream().flush();
             }
-            shell.getOutputStream().flush();
 
             result = this.commandProcessor.process(eventBus, promise, shell, isBreak, msg);
 

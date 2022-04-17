@@ -40,9 +40,8 @@ public class Term {
         return new Tuple2<>(Integer.parseInt(coord[0]), Integer.parseInt(coord[1]));
     }
 
-    public void cursorBackLineHead() {
-        int cursorY = getCursorPosition()._2();
-        setCursorPosition(0, cursorY);
+    public void cursorBackLines(int lines) {
+        JNI.cursorBackLine(lines);
     }
 
     public void setCursorPosition(int x, int y) {

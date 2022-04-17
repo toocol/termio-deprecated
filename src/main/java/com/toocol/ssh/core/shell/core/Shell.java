@@ -129,6 +129,7 @@ public class Shell {
             }
         }
 
+        localLastCmd.set(StrUtil.EMPTY);
         return hasPrint;
     }
 
