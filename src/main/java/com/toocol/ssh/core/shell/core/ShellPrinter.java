@@ -76,8 +76,11 @@ record ShellPrinter(Shell shell) {
         if (msg.contains("\u001B")) {
             return;
         }
-        if (msg.contains(shell.currentPrint.get()) && !msg.contains(CRLF)) {
-            String tmp = msg.replaceAll("\u0007", "").trim();
+        if (StringUtils.isNotEmpty(shell.currentPrint.get())
+                && msg.contains(shell.currentPrint.get())
+                && !msg.replaceAll("\u0007", "").equals(shell.currentPrint.get().toString())
+                && !msg.contains(CRLF)) {
+            String tmp = msg.replaceAll("\u0007", "");
             shell.remoteCmd.getAndUpdate(prev -> prev.append(tmp));
             shell.localLastCmd.getAndUpdate(prev -> prev.append(tmp));
             shell.currentPrint.getAndUpdate(prev -> prev.append(tmp));
@@ -86,8 +89,11 @@ record ShellPrinter(Shell shell) {
             }
             Printer.print(msg);
             return;
-        } else if (msg.startsWith(shell.localLastInput.toString()) && !msg.equals(shell.localLastInput.toString()) && !msg.contains(CRLF)) {
-            msg = msg.replaceAll("\u0007", "").trim();
+        } else if (StringUtils.isNotEmpty(shell.localLastInput.toString())
+                && msg.startsWith(shell.localLastInput.toString())
+                && !msg.replaceAll("\u0007", "").equals(shell.localLastInput.toString())
+                && !msg.contains(CRLF)) {
+            msg = msg.replaceAll("\u0007", "");
             String tmp = msg.substring(shell.localLastInput.length());
             shell.remoteCmd.getAndUpdate(prev -> prev.append(tmp));
             shell.localLastCmd.getAndUpdate(prev -> prev.append(tmp));
