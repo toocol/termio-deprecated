@@ -56,9 +56,9 @@ public class Shell {
     public volatile AtomicReference<StringBuffer> remoteCmd = new AtomicReference<>(new StringBuffer());
     protected volatile AtomicReference<StringBuffer> currentPrint = new AtomicReference<>(new StringBuffer());
     protected volatile AtomicReference<StringBuffer> selectHistoryCmd = new AtomicReference<>(new StringBuffer());
-    protected volatile String localLastInput = StrUtil.EMPTY;
-    protected volatile String lastRemoteCmd = StrUtil.EMPTY;
-    protected volatile String lastExecuteCmd =StrUtil.EMPTY;
+    protected volatile StringBuffer localLastInput = new StringBuffer();
+    protected volatile StringBuffer lastRemoteCmd = new StringBuffer();
+    protected volatile StringBuffer lastExecuteCmd = new StringBuffer();
     protected volatile Status status = Status.NORMAL;
 
     protected final Set<String> tabFeedbackRec = new HashSet<>();
@@ -129,7 +129,7 @@ public class Shell {
             }
         }
 
-        localLastCmd.set(new StringBuffer());
+        localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
         return hasPrint;
     }
 
@@ -148,7 +148,7 @@ public class Shell {
             status = Status.VIM_BEFORE;
         }
 
-        if (CmdUtil.isCdCmd(lastRemoteCmd)
+        if (CmdUtil.isCdCmd(lastRemoteCmd.toString())
                 || CmdUtil.isCdCmd(cmd.toString())
                 || CmdUtil.isCdCmd(selectHistoryCmd.get().toString())) {
             StatusCache.EXECUTE_CD_CMD = true;
@@ -161,9 +161,9 @@ public class Shell {
             status = Shell.Status.MORE_BEFORE;
         }
 
-        lastRemoteCmd = StrUtil.EMPTY;
-        selectHistoryCmd.set(new StringBuffer());
-        currentPrint.set(new StringBuffer());
+        lastRemoteCmd.delete(0, lastRemoteCmd.length());
+        selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
+        currentPrint.getAndUpdate(prev -> prev.delete(0, prev.length()));
         return cmdStr;
     }
 
@@ -314,7 +314,7 @@ public class Shell {
     }
 
     public String getLastRemoteCmd() {
-        return lastRemoteCmd;
+        return lastRemoteCmd.toString();
     }
 
     public long getSessionId() {

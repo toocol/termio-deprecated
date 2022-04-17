@@ -1,6 +1,5 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.term.core.Printer;
 import org.apache.commons.lang3.StringUtils;
 
@@ -64,7 +63,7 @@ record ShellPrinter(Shell shell) {
     }
 
     void printInVim(String msg) {
-        if (shell.localLastInput.trim().equals(msg.replaceAll("\r\n", ""))) {
+        if (shell.localLastInput.toString().trim().equals(msg.replaceAll("\r\n", ""))) {
             return;
         }
         printer.print(msg);
@@ -78,16 +77,16 @@ record ShellPrinter(Shell shell) {
             return;
         }
         if (msg.contains(shell.currentPrint.get()) && !msg.contains(CRLF)) {
-            msg = msg.replaceAll("\u0007", "").trim();
-            shell.remoteCmd.set(new StringBuffer(msg));
-            shell.localLastCmd.set(new StringBuffer(msg));
-            shell.currentPrint.set(new StringBuffer(msg));
+            String tmp = msg.replaceAll("\u0007", "").trim();
+            shell.remoteCmd.getAndUpdate(prev -> prev.append(tmp));
+            shell.localLastCmd.getAndUpdate(prev -> prev.append(tmp));
+            shell.currentPrint.getAndUpdate(prev -> prev.append(tmp));
             if (!msg.contains("]# ")) {
                 shell.clearShellLineWithPrompt();
             }
             Printer.print(msg);
             return;
-        } else if (msg.startsWith(shell.localLastInput) && !msg.equals(shell.localLastInput) && !msg.contains(CRLF)) {
+        } else if (msg.startsWith(shell.localLastInput.toString()) && !msg.equals(shell.localLastInput.toString()) && !msg.contains(CRLF)) {
             msg = msg.replaceAll("\u0007", "").trim();
             String tmp = msg.substring(shell.localLastInput.length());
             shell.remoteCmd.getAndUpdate(prev -> prev.append(tmp));
@@ -103,7 +102,7 @@ record ShellPrinter(Shell shell) {
                 }
                 return;
             }
-            if (msg.equals(shell.localLastInput)) {
+            if (msg.equals(shell.localLastInput.toString())) {
                 return;
             }
 
@@ -111,7 +110,7 @@ record ShellPrinter(Shell shell) {
             if (msg.contains("\u0007")) {
                 String[] split = msg.split("\u0007");
                 if (split.length == 1) {
-                    if (split[0].equals(shell.localLastInput)) {
+                    if (split[0].equals(shell.localLastInput.toString())) {
                         return;
                     }
                 } else if (split.length == 2) {
@@ -147,8 +146,9 @@ record ShellPrinter(Shell shell) {
                         continue;
                     }
                     if (input.split("#").length == 2) {
-                        shell.remoteCmd.set(new StringBuffer(input.split("#")[1].trim()));
-                        shell.localLastCmd.set(new StringBuffer(msg.split("#")[1].trim()));
+                        String tmp = msg;
+                        shell.remoteCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(input.split("#")[1].trim()));
+                        shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(tmp.split("#")[1].trim()));
                     }
                     if (shell.tabFeedbackRec.contains(input)) {
                         continue;

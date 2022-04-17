@@ -5,7 +5,6 @@ import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
-import io.netty.util.internal.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.OutputStream;
@@ -98,10 +97,10 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                 } else if (inChar == CharUtil.TAB) {
 
                     if (shell.status.equals(Shell.Status.NORMAL)) {
-                        shell.localLastCmd.set(new StringBuffer(shell.cmd.toString()));
-                        shell.remoteCmd.set(new StringBuffer(shell.cmd.toString()));
+                        shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.cmd));
+                        shell.remoteCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.cmd));
                     }
-                    shell.localLastInput = localLastInputBuffer.toString();
+                    shell.localLastInput.delete(0, shell.localLastInput.length()).append(localLastInputBuffer);
                     localLastInputBuffer = new StringBuilder();
                     shell.tabFeedbackRec.clear();
                     outputStream.write(shell.cmd.append(CharUtil.TAB).toString().getBytes(StandardCharsets.UTF_8));
@@ -113,9 +112,9 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     int cursorX = Term.getInstance().getCursorPosition()._1();
                     if (cursorX <= shell.prompt.get().length()) {
                         Printer.voice();
-                        shell.remoteCmd.set(new StringBuffer());
-                        shell.localLastCmd.set(new StringBuffer());
-                        shell.selectHistoryCmd.set(new StringBuffer());
+                        shell.remoteCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
+                        shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
+                        shell.selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
                         shell.cmd.delete(0, shell.cmd.length());
                         if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
                             outputStream.write(3);
@@ -150,13 +149,14 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                 } else if (inChar == CharUtil.CR || inChar == CharUtil.LF) {
 
                     if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                        shell.localLastCmd.set(new StringBuffer(shell.remoteCmd.get().toString() + StrUtil.CRLF));
+                        shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.remoteCmd.get().toString()).append(StrUtil.CRLF));
                     }
-                    shell.localLastInput = localLastInputBuffer.toString();
-                    shell.lastRemoteCmd = shell.remoteCmd.get().toString();
-                    shell.lastExecuteCmd = StringUtils.isEmpty(shell.remoteCmd.get()) ? shell.cmd.toString() : shell.remoteCmd.get().toString().replaceAll("\b", "");
-                    if (!StrUtil.EMPTY.equals(shell.lastExecuteCmd)) {
-                        shell.historyCmdHelper.push(shell.lastExecuteCmd);
+                    shell.localLastInput.delete(0, shell.localLastInput.length()).append(localLastInputBuffer);
+                    shell.lastRemoteCmd.delete(0, shell.lastRemoteCmd.length()).append(shell.remoteCmd.get().toString());
+                    shell.lastExecuteCmd.delete(0, shell.lastExecuteCmd.length())
+                            .append(StringUtils.isEmpty(shell.remoteCmd.get()) ? shell.cmd.toString() : shell.remoteCmd.get().toString().replaceAll("\b", ""));
+                    if (!StrUtil.EMPTY.equals(shell.lastExecuteCmd.toString())) {
+                        shell.historyCmdHelper.push(shell.lastExecuteCmd.toString());
                     }
                     Printer.print(StrUtil.CRLF);
                     shell.status = Shell.Status.NORMAL;
