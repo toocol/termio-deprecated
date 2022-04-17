@@ -73,7 +73,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                     // do noting
                 }
             });
-            ShellCommand.cmdOf(shell.remoteCmd.get()).ifPresent(shellCommand -> {
+            ShellCommand.cmdOf(shell.remoteCmd.get().toString()).ifPresent(shellCommand -> {
                 try {
                     String finalCmd = shellCommand.processCmd(eventBus, promise, shell, isBreak, shell.remoteCmd.toString());
                     if (finalCmd != null) {
@@ -85,7 +85,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                     // do noting
                 }
             });
-            shell.remoteCmd.set(StrUtil.EMPTY);
+            shell.remoteCmd.set(new StringBuffer());
 
             if (isBreak.get()) {
                 if (cmd.length() != 0) {
@@ -103,7 +103,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             }
 
             if (shell.getStatus().equals(Shell.Status.NORMAL)) {
-                shell.localLastCmd.set(cmd + StrUtil.CRLF);
+                shell.localLastCmd.set(new StringBuffer(cmd + StrUtil.CRLF));
             }
 
             CountDownLatch latch = new CountDownLatch(1);

@@ -76,8 +76,8 @@ public class HistoryCmdHelper {
         if (upBuffer != null) {
             downArrowStack.push(upBuffer);
         }
-        shell.currentPrint.set(cmd);
-        shell.selectHistoryCmd.set(cmd);
+        shell.currentPrint.set(new StringBuffer(cmd));
+        shell.selectHistoryCmd.set(new StringBuffer(cmd));
         shell.cmd.delete(0, shell.cmd.length());
         shell.cmd.append(cmd);
         if (StrUtil.EMPTY.equals(cmd)) {
@@ -116,8 +116,8 @@ public class HistoryCmdHelper {
             cmd = cmd.replaceAll("--" + flag, "");
             resetFlag = true;
         }
-        shell.currentPrint.set(cmd);
-        shell.selectHistoryCmd.set(cmd);
+        shell.currentPrint.set(new StringBuffer(cmd));
+        shell.selectHistoryCmd.set(new StringBuffer(cmd));
         shell.cmd.delete(0, shell.cmd.length());
         shell.cmd.append(cmd);
         if (StrUtil.EMPTY.equals(cmd)) {

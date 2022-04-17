@@ -5,6 +5,7 @@ import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
+import io.netty.util.internal.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.OutputStream;
@@ -66,7 +67,7 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                                 if (write.length > 0) {
                                     outputStream.write(write);
                                     outputStream.flush();
-                                    String cmdToPush = shell.remoteCmd.get().replaceAll("\u007F", "");
+                                    String cmdToPush = shell.remoteCmd.get().toString().replaceAll("\u007F", "");
                                     shell.historyCmdHelper.pushToDown(cmdToPush);
                                 }
                             }
@@ -75,13 +76,30 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     } else {
                         shell.historyCmdHelper.down();
                     }
-                    shell.localLastCmd.set("");
+                    shell.localLastCmd.set(new StringBuffer());
+
+                } else if (inChar == CharUtil.LEFT_ARROW || inChar == CharUtil.RIGHT_ARROW) {
+
+                    int cursorX = shell.term.getCursorPosition()._1();
+                    if (inChar == CharUtil.LEFT_ARROW) {
+                        if (cursorX > shell.prompt.get().length()) {
+                            shell.term.cursorLeft();
+                        }
+                    } else {
+                        if (cursorX < (shell.currentPrint.get().length() + shell.prompt.get().length())) {
+                            shell.term.cursorRight();
+                        }
+                    }
+                    if (shell.remoteCmd.get().length() > 0) {
+                        outputStream.write(inChar);
+                        outputStream.flush();
+                    }
 
                 } else if (inChar == CharUtil.TAB) {
 
                     if (shell.status.equals(Shell.Status.NORMAL)) {
-                        shell.localLastCmd.set(shell.cmd.toString());
-                        shell.remoteCmd.set(shell.cmd.toString());
+                        shell.localLastCmd.set(new StringBuffer(shell.cmd.toString()));
+                        shell.remoteCmd.set(new StringBuffer(shell.cmd.toString()));
                     }
                     shell.localLastInput = localLastInputBuffer.toString();
                     localLastInputBuffer = new StringBuilder();
@@ -95,9 +113,9 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     int cursorX = Term.getInstance().getCursorPosition()._1();
                     if (cursorX <= shell.prompt.get().length()) {
                         Printer.voice();
-                        shell.remoteCmd.set(StrUtil.EMPTY);
-                        shell.localLastCmd.set(StrUtil.EMPTY);
-                        shell.selectHistoryCmd.set(StrUtil.EMPTY);
+                        shell.remoteCmd.set(new StringBuffer());
+                        shell.localLastCmd.set(new StringBuffer());
+                        shell.selectHistoryCmd.set(new StringBuffer());
                         shell.cmd.delete(0, shell.cmd.length());
                         if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
                             outputStream.write(3);
@@ -110,17 +128,17 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                         // This is ctrl+backspace
                         shell.cmd.append('\u007F');
                         if (shell.remoteCmd.get().length() > 0) {
-                            shell.remoteCmd.getAndUpdate(prev -> prev.substring(0, prev.length() - 1));
+                            shell.remoteCmd.getAndUpdate(prev -> new StringBuffer(prev.toString().substring(0, prev.length() - 1)));
                         }
                         if (shell.localLastCmd.get().length() > 0) {
-                            shell.localLastCmd.getAndUpdate(prev -> prev.substring(0, prev.length() - 1));
+                            shell.localLastCmd.getAndUpdate(prev -> new StringBuffer(prev.substring(0, prev.length() - 1)));
                         }
                     }
                     if (shell.status.equals(Shell.Status.NORMAL)) {
                         shell.cmd.deleteCharAt(shell.cmd.length() - 1);
                     }
                     if (shell.currentPrint.get().length() > 0) {
-                        shell.currentPrint.getAndUpdate(prev -> prev.substring(0, prev.length() - 1));
+                        shell.currentPrint.getAndUpdate(prev -> new StringBuffer(prev.substring(0, prev.length() - 1)));
                     }
 
                     if (localLastInputBuffer.length() > 0) {
@@ -132,11 +150,11 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                 } else if (inChar == CharUtil.CR || inChar == CharUtil.LF) {
 
                     if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                        shell.localLastCmd.set(shell.remoteCmd.get() + StrUtil.CRLF);
+                        shell.localLastCmd.set(new StringBuffer(shell.remoteCmd.get().toString() + StrUtil.CRLF));
                     }
                     shell.localLastInput = localLastInputBuffer.toString();
-                    shell.lastRemoteCmd = shell.remoteCmd.get();
-                    shell.lastExecuteCmd = StringUtils.isEmpty(shell.remoteCmd.get()) ? shell.cmd.toString() : shell.remoteCmd.get().replaceAll("\b", "");
+                    shell.lastRemoteCmd = shell.remoteCmd.get().toString();
+                    shell.lastExecuteCmd = StringUtils.isEmpty(shell.remoteCmd.get()) ? shell.cmd.toString() : shell.remoteCmd.get().toString().replaceAll("\b", "");
                     if (!StrUtil.EMPTY.equals(shell.lastExecuteCmd)) {
                         shell.historyCmdHelper.push(shell.lastExecuteCmd);
                     }
@@ -146,10 +164,10 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                 } else if (CharUtil.isAsciiPrintable(inChar)) {
 
                     if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                        shell.remoteCmd.getAndUpdate(prev -> prev + inChar);
-                        shell.localLastCmd.getAndUpdate(prev -> prev + inChar);
+                        shell.remoteCmd.getAndUpdate(prev -> prev.append(inChar));
+                        shell.localLastCmd.getAndUpdate(prev -> prev.append(inChar));
                     }
-                    shell.currentPrint.getAndUpdate(prev -> prev + inChar);
+                    shell.currentPrint.getAndUpdate(prev -> prev.append(inChar));
                     shell.cmd.append(inChar);
                     localLastInputBuffer.append(inChar);
                     Printer.print(String.valueOf(inChar));

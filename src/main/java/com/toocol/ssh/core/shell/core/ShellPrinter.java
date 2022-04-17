@@ -29,7 +29,7 @@ record ShellPrinter(Shell shell) {
         if (msg.contains("export HISTCONTROL=ignoreboth")) {
             return false;
         }
-        if (shell.localLastCmd.get().equals(msg)) {
+        if (shell.localLastCmd.get().toString().equals(msg)) {
             return false;
         } else if (msg.startsWith("\b\u001B[K")) {
             String[] split = msg.split("\r\n");
@@ -37,9 +37,9 @@ record ShellPrinter(Shell shell) {
                 return false;
             }
             msg = split[1];
-        } else if (msg.startsWith(shell.localLastCmd.get().trim())) {
+        } else if (msg.startsWith(shell.localLastCmd.get().toString().trim())) {
             // cd command's echo is like this: cd /\r\n[host@user address]
-            msg = msg.substring(shell.localLastCmd.get().trim().length());
+            msg = msg.substring(shell.localLastCmd.get().toString().trim().length());
         }
         if (msg.startsWith(CRLF)) {
             msg = msg.replaceFirst("\r\n", "");
@@ -53,9 +53,9 @@ record ShellPrinter(Shell shell) {
                 String promptAndEcho = matcher.group(0);
                 String[] split = promptAndEcho.split("# ");
                 if (split.length == 1) {
-                    shell.currentPrint.set(StrUtil.EMPTY);
+                    shell.currentPrint.set(new StringBuffer());
                 } else if (split.length > 1) {
-                    shell.currentPrint.set(split[1]);
+                    shell.currentPrint.set(new StringBuffer(split[1]));
                 }
             }
         }
@@ -79,9 +79,9 @@ record ShellPrinter(Shell shell) {
         }
         if (msg.contains(shell.currentPrint.get()) && !msg.contains(CRLF)) {
             msg = msg.replaceAll("\u0007", "").trim();
-            shell.remoteCmd.set(msg);
-            shell.localLastCmd.set(msg);
-            shell.currentPrint.set(msg);
+            shell.remoteCmd.set(new StringBuffer(msg));
+            shell.localLastCmd.set(new StringBuffer(msg));
+            shell.currentPrint.set(new StringBuffer(msg));
             if (!msg.contains("]# ")) {
                 shell.clearShellLineWithPrompt();
             }
@@ -90,14 +90,14 @@ record ShellPrinter(Shell shell) {
         } else if (msg.startsWith(shell.localLastInput) && !msg.equals(shell.localLastInput) && !msg.contains(CRLF)) {
             msg = msg.replaceAll("\u0007", "").trim();
             String tmp = msg.substring(shell.localLastInput.length());
-            shell.remoteCmd.getAndUpdate(prev -> prev + tmp);
-            shell.localLastCmd.getAndUpdate(prev -> prev + tmp);
-            shell.currentPrint.getAndUpdate(prev -> prev + tmp);
+            shell.remoteCmd.getAndUpdate(prev -> prev.append(tmp));
+            shell.localLastCmd.getAndUpdate(prev -> prev.append(tmp));
+            shell.currentPrint.getAndUpdate(prev -> prev.append(tmp));
             Printer.print(tmp);
             return;
         } else {
             msg = msg.replaceAll("\b", "");
-            if (msg.trim().equals(shell.localLastCmd.get().replaceAll("\t", ""))) {
+            if (msg.trim().equals(shell.localLastCmd.get().toString().replaceAll("\t", ""))) {
                 if (msg.endsWith(SPACE)) {
                     printer.print(SPACE);
                 }
@@ -119,9 +119,9 @@ record ShellPrinter(Shell shell) {
                     if (!msg.contains(CRLF)) {
                         printer.print(msg);
                         String tmp = msg;
-                        shell.remoteCmd.getAndUpdate(prev -> prev + tmp);
-                        shell.localLastCmd.getAndUpdate(prev -> prev.replaceAll("\t", "") + tmp);
-                        shell.currentPrint.getAndUpdate(prev -> prev + tmp);
+                        shell.remoteCmd.getAndUpdate(prev -> prev.append(tmp));
+                        shell.localLastCmd.getAndUpdate(prev -> new StringBuffer(prev.toString().replaceAll("\t", "") + tmp));
+                        shell.currentPrint.getAndUpdate(prev -> prev.append(tmp));
                         return;
                     }
                 } else {
@@ -134,9 +134,9 @@ record ShellPrinter(Shell shell) {
             if (!msg.contains(CRLF)) {
                 printer.print(msg);
                 String tmp = msg;
-                shell.remoteCmd.getAndUpdate(prev -> prev + tmp);
-                shell.localLastCmd.getAndUpdate(prev -> prev.replaceAll("\t", "") + tmp);
-                shell.currentPrint.getAndUpdate(prev -> prev + tmp);
+                shell.remoteCmd.getAndUpdate(prev -> prev.append(tmp));
+                shell.localLastCmd.getAndUpdate(prev -> new StringBuffer(prev.toString().replaceAll("\t", "") + tmp));
+                shell.currentPrint.getAndUpdate(prev -> prev.append(tmp));
                 return;
             }
 
@@ -147,8 +147,8 @@ record ShellPrinter(Shell shell) {
                         continue;
                     }
                     if (input.split("#").length == 2) {
-                        shell.remoteCmd.set(input.split("#")[1].trim());
-                        shell.localLastCmd.set(msg.split("#")[1].trim());
+                        shell.remoteCmd.set(new StringBuffer(input.split("#")[1].trim()));
+                        shell.localLastCmd.set(new StringBuffer(msg.split("#")[1].trim()));
                     }
                     if (shell.tabFeedbackRec.contains(input)) {
                         continue;
@@ -165,7 +165,7 @@ record ShellPrinter(Shell shell) {
 
 
         String tmp = msg;
-        shell.currentPrint.getAndUpdate(prev -> prev + tmp);
+        shell.currentPrint.getAndUpdate(prev -> prev.append(tmp));
         printer.print(msg);
     }
 

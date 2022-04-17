@@ -56,4 +56,12 @@ public class Term {
         JNI.hideCursor();
     }
 
+    public void cursorLeft() {
+        JNI.cursorLeft();
+    }
+
+    public void cursorRight() {
+        JNI.cursorRight();
+    }
+
 }

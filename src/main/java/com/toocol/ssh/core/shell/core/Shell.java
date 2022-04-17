@@ -52,10 +52,10 @@ public class Shell {
     protected final HistoryCmdHelper historyCmdHelper;
     protected final MoreHelper moreHelper;
 
-    public volatile AtomicReference<String> localLastCmd = new AtomicReference<>(StrUtil.EMPTY);
-    public volatile AtomicReference<String> remoteCmd = new AtomicReference<>(StrUtil.EMPTY);
-    protected volatile AtomicReference<String> currentPrint = new AtomicReference<>(StrUtil.EMPTY);
-    protected volatile AtomicReference<String> selectHistoryCmd = new AtomicReference<>(StrUtil.EMPTY);
+    public volatile AtomicReference<StringBuffer> localLastCmd = new AtomicReference<>(new StringBuffer());
+    public volatile AtomicReference<StringBuffer> remoteCmd = new AtomicReference<>(new StringBuffer());
+    protected volatile AtomicReference<StringBuffer> currentPrint = new AtomicReference<>(new StringBuffer());
+    protected volatile AtomicReference<StringBuffer> selectHistoryCmd = new AtomicReference<>(new StringBuffer());
     protected volatile String localLastInput = StrUtil.EMPTY;
     protected volatile String lastRemoteCmd = StrUtil.EMPTY;
     protected volatile String lastExecuteCmd =StrUtil.EMPTY;
@@ -129,7 +129,7 @@ public class Shell {
             }
         }
 
-        localLastCmd.set(StrUtil.EMPTY);
+        localLastCmd.set(new StringBuffer());
         return hasPrint;
     }
 
@@ -141,29 +141,29 @@ public class Shell {
         }
 
         String cmdStr = cmd.toString();
-        boolean isVimCmd = (StringUtils.isEmpty(cmd) && CmdUtil.isViVimCmd(localLastCmd.get()))
+        boolean isVimCmd = (StringUtils.isEmpty(cmd) && CmdUtil.isViVimCmd(localLastCmd.get().toString()))
                 || CmdUtil.isViVimCmd(cmd.toString())
-                || CmdUtil.isViVimCmd(selectHistoryCmd.get());
+                || CmdUtil.isViVimCmd(selectHistoryCmd.get().toString());
         if (isVimCmd) {
             status = Status.VIM_BEFORE;
         }
 
         if (CmdUtil.isCdCmd(lastRemoteCmd)
                 || CmdUtil.isCdCmd(cmd.toString())
-                || CmdUtil.isCdCmd(selectHistoryCmd.get())) {
+                || CmdUtil.isCdCmd(selectHistoryCmd.get().toString())) {
             StatusCache.EXECUTE_CD_CMD = true;
         }
 
-        boolean isMoreCmd = (StringUtils.isEmpty(cmd) && CmdUtil.isMoreCmd(localLastCmd.get()))
+        boolean isMoreCmd = (StringUtils.isEmpty(cmd) && CmdUtil.isMoreCmd(localLastCmd.get().toString()))
                 || CmdUtil.isMoreCmd(cmd.toString())
-                || CmdUtil.isMoreCmd(selectHistoryCmd.get());
+                || CmdUtil.isMoreCmd(selectHistoryCmd.get().toString());
         if (isMoreCmd) {
             status = Shell.Status.MORE_BEFORE;
         }
 
         lastRemoteCmd = StrUtil.EMPTY;
-        selectHistoryCmd.set(StrUtil.EMPTY);
-        currentPrint.set(StrUtil.EMPTY);
+        selectHistoryCmd.set(new StringBuffer());
+        currentPrint.set(new StringBuffer());
         return cmdStr;
     }
 
@@ -271,9 +271,10 @@ public class Shell {
     }
 
     public void cleanUp() {
-        remoteCmd.set(StrUtil.EMPTY);
-        currentPrint.set(StrUtil.EMPTY);
-        selectHistoryCmd.set(StrUtil.EMPTY);
+        remoteCmd.set(new StringBuffer());
+        currentPrint.set(new StringBuffer());
+        selectHistoryCmd.set(new StringBuffer());
+        localLastCmd.set(new StringBuffer());
     }
 
     public void printErr(String err) {

@@ -26,6 +26,10 @@ public class TerminatioJNI {
 
     public native void hideCursor();
 
+    public native void cursorLeft();
+
+    public native void cursorRight();
+
     private TerminatioJNI() {}
 
     private static final TerminatioJNI INSTANCE;
