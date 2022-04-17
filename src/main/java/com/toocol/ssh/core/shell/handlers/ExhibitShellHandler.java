@@ -80,6 +80,7 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
                 if (hasPrint && StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
                     cmdHasFeedbackWhenJustExit = true;
                 }
+                SharedCountdownLatch.countdown(AcceptShellCmdHandler.class, this.getClass());
             }
 
             if (StatusCache.HANGED_QUIT) {
@@ -121,7 +122,6 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
             Thread.sleep(1);
         }
 
-        in.close();
         promise.complete(sessionId);
     }
 

@@ -66,6 +66,9 @@ record ShellPrinter(Shell shell) {
         if (shell.localLastInput.toString().trim().equals(msg.replaceAll("\r\n", ""))) {
             return;
         }
+        if (shell.selectHistoryCmd.toString().trim().equals(msg.replaceAll("\r\n", ""))) {
+            return;
+        }
         printer.print(msg);
     }
 
@@ -81,9 +84,9 @@ record ShellPrinter(Shell shell) {
                 && !msg.replaceAll("\u0007", "").equals(shell.currentPrint.get().toString())
                 && !msg.contains(CRLF)) {
             String tmp = msg.replaceAll("\u0007", "");
-            shell.remoteCmd.getAndUpdate(prev -> prev.append(tmp));
-            shell.localLastCmd.getAndUpdate(prev -> prev.append(tmp));
-            shell.currentPrint.getAndUpdate(prev -> prev.append(tmp));
+            shell.remoteCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(tmp));
+            shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(tmp));
+            shell.currentPrint.getAndUpdate(prev -> prev.delete(0, prev.length()).append(tmp));
             if (!msg.contains("]# ")) {
                 shell.clearShellLineWithPrompt();
             }
@@ -176,6 +179,12 @@ record ShellPrinter(Shell shell) {
     }
 
     void printInMore(String msg) {
+        if (shell.localLastInput.toString().trim().equals(msg.replaceAll("\r\n", ""))) {
+            return;
+        }
+        if (shell.selectHistoryCmd.toString().trim().equals(msg.replaceAll("\r\n", ""))) {
+            return;
+        }
         printer.print(msg);
     }
 }

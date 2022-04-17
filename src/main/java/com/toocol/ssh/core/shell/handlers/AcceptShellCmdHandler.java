@@ -2,6 +2,7 @@ package com.toocol.ssh.core.shell.handlers;
 
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.sync.SharedCountdownLatch;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
@@ -62,6 +63,9 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             AtomicBoolean isContinue = new AtomicBoolean();
             ShellCommand.cmdOf(cmd.toString()).ifPresent(shellCommand -> {
                 try {
+                    if (shell.remoteCmd.get().length() != 0) {
+                        return;
+                    }
                     String finalCmd = shellCommand.processCmd(eventBus, promise, shell, isBreak, cmd.toString());
                     cmd.delete(0, cmd.length());
                     if (finalCmd != null) {
@@ -122,10 +126,18 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
             }
 
             String actualCmd = cmd.toString().trim() + StrUtil.LF;
-            outputStream.write(actualCmd.getBytes(StandardCharsets.UTF_8));
-            outputStream.flush();
+
+            SharedCountdownLatch.await(() -> {
+                try {
+                    outputStream.write(actualCmd.getBytes(StandardCharsets.UTF_8));
+                    outputStream.flush();
+                } catch (Exception e) {
+                    // do nothing
+                }
+            }, this.getClass(), ExhibitShellHandler.class);
 
             latch.await();
+
         }
     }
 

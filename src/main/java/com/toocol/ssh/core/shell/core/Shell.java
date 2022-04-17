@@ -129,6 +129,7 @@ public class Shell {
             }
         }
 
+        selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
         localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
         return hasPrint;
     }
@@ -141,7 +142,7 @@ public class Shell {
         }
 
         String cmdStr = cmd.toString();
-        boolean isVimCmd = (StringUtils.isEmpty(cmd) && CmdUtil.isViVimCmd(localLastCmd.get().toString()))
+        boolean isVimCmd = CmdUtil.isViVimCmd(localLastCmd.get().toString())
                 || CmdUtil.isViVimCmd(cmd.toString())
                 || CmdUtil.isViVimCmd(selectHistoryCmd.get().toString());
         if (isVimCmd) {
@@ -154,7 +155,7 @@ public class Shell {
             StatusCache.EXECUTE_CD_CMD = true;
         }
 
-        boolean isMoreCmd = (StringUtils.isEmpty(cmd) && CmdUtil.isMoreCmd(localLastCmd.get().toString()))
+        boolean isMoreCmd = CmdUtil.isMoreCmd(localLastCmd.get().toString())
                 || CmdUtil.isMoreCmd(cmd.toString())
                 || CmdUtil.isMoreCmd(selectHistoryCmd.get().toString());
         if (isMoreCmd) {
@@ -162,7 +163,6 @@ public class Shell {
         }
 
         lastRemoteCmd.delete(0, lastRemoteCmd.length());
-        selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
         currentPrint.getAndUpdate(prev -> prev.delete(0, prev.length()));
         return cmdStr;
     }
