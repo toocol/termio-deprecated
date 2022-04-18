@@ -4,7 +4,7 @@ package com.toocol.ssh.common.jni;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/14 16:23
  */
-public class TerminatioJNI {
+public class TermioJNI {
 
     public native int getCh();
 
@@ -30,14 +30,14 @@ public class TerminatioJNI {
 
     public native void cursorRight();
 
-    private TerminatioJNI() {}
+    private TermioJNI() {}
 
-    private static final TerminatioJNI INSTANCE;
+    private static final TermioJNI INSTANCE;
     static {
-        INSTANCE = new TerminatioJNI();
+        INSTANCE = new TermioJNI();
     }
 
-    public static TerminatioJNI getInstance() {
+    public static TermioJNI getInstance() {
         return INSTANCE;
     }
 }

@@ -53,7 +53,7 @@ public class Printer {
     }
 
     public static void printlnWithLogo(String msg) {
-        println("<terminatio> " + msg);
+        println("<termio> " + msg);
     }
 
     public static void printErr(String msg) {
@@ -67,10 +67,8 @@ public class Printer {
     }
 
     public static void printTitleAndInfo() {
-        println("terminatio\tv" + PomUtil.getVersion() + "\n" +
-                "website\t\thttps://github.com/Joezeo/terminatio\n" +
-                "os\t\t" + System.getProperty("os.name") + "\n" +
-                "shell env\t" + BOOT_TYPE + "\n" +
+        println("termio\t\tv" + PomUtil.getVersion() + "\n" +
+                "website\t\thttps://github.com/Joezeo/termio\n" +
                 "memory use\ttotal:" + totalMemory() + "MB, max:" + maxMemory() + "MB, free:" + freeMemory() + "MB, used:" + usedMemory() + "MB\n" +
                 "hang-up\t\t" + SessionCache.getHangUp() + "\n"
         );
@@ -92,7 +90,7 @@ public class Printer {
     }
 
     public static void printCursorLine() {
-        print("[terminatio] > ");
+        print("[termio] > ");
     }
 
     public static void printHelp() {

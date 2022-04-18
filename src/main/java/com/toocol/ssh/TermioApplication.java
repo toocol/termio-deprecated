@@ -30,7 +30,7 @@ import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
  * @email joezane.cn@gmail.com
  * @date 2021/2/19 15:00
  */
-public class TerminatioApplication {
+public class TermioApplication {
 
     private static final long BLOCKED_CHECK_INTERVAL = 30 * 24 * 60 * 60 * 1000L;
 
@@ -57,7 +57,7 @@ public class TerminatioApplication {
         /* Add shutdown hook */
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                Printer.println("Terminatio: shutdown");
+                Printer.println("Termio: shutdown");
                 SessionCache.getInstance().stopAll();
                 vertx.close();
             } catch (Exception e) {
@@ -107,7 +107,7 @@ public class TerminatioApplication {
                     vertx.deployVerticle(finalVerticle.getName(), complete -> promise.complete());
                 } catch (Exception e) {
                     vertx.close();
-                    Printer.printErr("Terminatio start up failed.");
+                    Printer.printErr("Termio start up failed.");
                     System.exit(-1);
                 }
             });
@@ -122,7 +122,7 @@ public class TerminatioApplication {
                 }
             } catch (Exception e) {
                 vertx.close();
-                Printer.printErr("Terminatio start up error, failed to accept command.");
+                Printer.printErr("Termio start up error, failed to accept command.");
                 System.exit(-1);
             }
         });

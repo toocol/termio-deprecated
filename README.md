@@ -3,7 +3,7 @@
     <img src="https://raw.githubusercontent.com/Joezeo/terminatio/8a94449d3ee343151a397fe7b7db4fad212fa00b/github.svg">
 </div>
 
-<h1 align="center"> Terminatio </h1>
+<h1 align="center"> Termio </h1>
 
 <div align="center">
 

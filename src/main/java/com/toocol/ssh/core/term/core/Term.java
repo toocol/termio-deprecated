@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.common.jni.TerminatioJNI;
+import com.toocol.ssh.common.jni.TermioJNI;
 import com.toocol.ssh.common.utils.Tuple2;
 
 /**
@@ -12,10 +12,10 @@ public class Term {
     private Term() {
     }
 
-    public static final String PROMPT = "[terminatio] > ";
+    public static final String PROMPT = "[termio] > ";
 
     private static final Term INSTANCE = new Term();
-    private static final TerminatioJNI JNI = TerminatioJNI.getInstance();
+    private static final TermioJNI JNI = TermioJNI.getInstance();
 
     public static Term getInstance() {
         return INSTANCE;
@@ -24,11 +24,11 @@ public class Term {
     private final TermReader termReader = new TermReader();
 
     public int getWidth() {
-        return TerminatioJNI.getInstance().getWindowWidth();
+        return TermioJNI.getInstance().getWindowWidth();
     }
 
     public int getHeight() {
-        return TerminatioJNI.getInstance().getWindowHeight();
+        return TermioJNI.getInstance().getWindowHeight();
     }
 
     public TermReader getReader() {

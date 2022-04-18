@@ -1,6 +1,6 @@
 package com.toocol.ssh.common.console;
 
-import com.toocol.ssh.common.jni.TerminatioJNI;
+import com.toocol.ssh.common.jni.TermioJNI;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -115,7 +115,7 @@ public class WindowsConsoleReader extends ConsoleReader{
 
     @Override
     public int readVirtualKey() {
-        TerminatioJNI jni = TerminatioJNI.getInstance();
+        TermioJNI jni = TermioJNI.getInstance();
         int indicator = jni.getCh();
 
         // in Windows terminals, arrow keys are represented by

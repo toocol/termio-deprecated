@@ -17,7 +17,7 @@ import java.io.OutputStream;
 public class JNILoader {
 
     public static void load() {
-        loadLib("libterminatio" + OsUtil.libSuffix());
+        loadLib("libtermio" + OsUtil.libSuffix());
     }
 
     private static void loadLib(String name) {
