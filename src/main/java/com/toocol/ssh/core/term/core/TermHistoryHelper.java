@@ -1,19 +1,20 @@
-package com.toocol.ssh.core.shell.core;
+package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.common.utils.StrUtil;
-import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.shell.core.Shell;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Stack;
 import java.util.UUID;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
- * @date: 2022/4/15 0:26
+ * @date: 2022/4/18 23:16
  * @version: 0.0.1
  */
-public class HistoryCmdHelper {
+public class TermHistoryHelper {
 
-    private final Shell shell;
+    private final Term term;
     /**
      * The stack storage all the executed cmd.
      */
@@ -38,8 +39,8 @@ public class HistoryCmdHelper {
     private boolean puToDown = false;
     private boolean start = false;
 
-    public HistoryCmdHelper(Shell shell) {
-        this.shell = shell;
+    public TermHistoryHelper(Term term) {
+        this.term = term;
     }
 
     public synchronized void initialize(String[] historyCmds) {
@@ -49,6 +50,9 @@ public class HistoryCmdHelper {
     }
 
     public synchronized void push(String cmd) {
+        if (StringUtils.isEmpty(cmd.trim())) {
+            return;
+        }
         if (baseCmdStack.isEmpty()) {
             baseCmdStack.push(cmd.trim());
         } else if (!baseCmdStack.peek().equals(cmd.trim())) {
@@ -60,7 +64,7 @@ public class HistoryCmdHelper {
     /*
      * when user press the up arrow.
      **/
-    public synchronized void up() {
+    public synchronized String up() {
         start = true;
         if (downBuffer != null) {
             downArrowStack.push(downBuffer);
@@ -71,45 +75,41 @@ public class HistoryCmdHelper {
             baseCmdStack.forEach(upArrowStack::push);
             puToDown = false;
         }
+        if (upArrowStack.isEmpty()) {
+            return null;
+        }
         String cmd = upArrowStack.pop();
         if (upArrowStack.isEmpty()) {
             upArrowStack.push(cmd);
+            term.clearShellLineWithPrompt();
+            Printer.print(cmd);
             if (upBuffer != null) {
                 downArrowStack.push(upBuffer);
             }
             upBuffer = null;
-
-            shell.currentPrint.getAndUpdate(prev -> prev.delete(0, prev.length()).append(cmd));
-            shell.selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(cmd));
-            shell.cmd.delete(0, shell.cmd.length()).append(cmd);
-
-            shell.clearShellLineWithPrompt();
-            Printer.print(cmd);
-            return;
+            return cmd;
         }
 
         if (upBuffer != null) {
             downArrowStack.push(upBuffer);
         }
-        shell.currentPrint.getAndUpdate(prev -> prev.delete(0, prev.length()).append(cmd));
-        shell.selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(cmd));
-        shell.cmd.delete(0, shell.cmd.length()).append(cmd);
         if (StrUtil.EMPTY.equals(cmd)) {
             upBuffer = null;
         } else {
             upBuffer = cmd;
         }
 
-        shell.clearShellLineWithPrompt();
+        term.clearShellLineWithPrompt();
         Printer.print(cmd);
+        return cmd;
     }
 
     /*
      * when user press the down arrow
      **/
-    public synchronized void down() {
+    public synchronized String down() {
         if (upArrowStack.isEmpty()) {
-            return;
+            return null;
         }
         if (upBuffer != null) {
             upArrowStack.push(upBuffer);
@@ -130,10 +130,6 @@ public class HistoryCmdHelper {
             cmd = cmd.replaceAll("--" + flag, "");
             resetFlag = true;
         }
-        String tmp = cmd;
-        shell.currentPrint.getAndUpdate(prev -> prev.delete(0, prev.length()).append(tmp));
-        shell.selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(tmp));
-        shell.cmd.delete(0, shell.cmd.length()).append(cmd);
         if (StrUtil.EMPTY.equals(cmd)) {
             downBuffer = null;
         } else {
@@ -143,8 +139,9 @@ public class HistoryCmdHelper {
             reset();
         }
 
-        shell.clearShellLineWithPrompt();
+        term.clearShellLineWithPrompt();
         Printer.print(cmd);
+        return cmd;
     }
 
     public synchronized void pushToDown(String cmd) {

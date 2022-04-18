@@ -13,9 +13,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class TermReader {
 
-    private final ArrowHelper arrowHelper = new ArrowHelper();
+    private final ArrowHelper arrowHelper;
+    private final TermHistoryHelper historyHelper ;
 
     private ConsoleReader reader;
+
+    public TermReader(Term term) {
+        arrowHelper = new ArrowHelper();
+        historyHelper = new TermHistoryHelper(term);
+    }
 
     {
         try {
@@ -49,10 +55,25 @@ public class TermReader {
                     Printer.print(String.valueOf(finalChar));
                     lineBuilder.append(finalChar);
 
+                } else if (finalChar == CharUtil.UP_ARROW || finalChar == CharUtil.DOWN_ARROW) {
+                    if (finalChar == CharUtil.UP_ARROW) {
+                        if (!historyHelper.isStart()) {
+                            if (lineBuilder.toString().length() != 0) {
+                                historyHelper.pushToDown(lineBuilder.toString());
+                            }
+                        }
+                        String up = historyHelper.up();
+                        if (up != null) {
+                            lineBuilder.delete(0, lineBuilder.length()).append(up);
+                        }
+                    } else {
+                        String down = historyHelper.down();
+                        if (down != null) {
+                            lineBuilder.delete(0, lineBuilder.length()).append(down);
+                        }
+                    }
                 } else if (finalChar == CharUtil.TAB) {
-
-                    System.out.print("tab");
-
+                    // To fulfill command.
                 } else if (finalChar == CharUtil.BACKSPACE) {
 
                     if (lineBuilder.isEmpty()) {
@@ -65,6 +86,7 @@ public class TermReader {
                 } else if (finalChar == CharUtil.CR || finalChar == CharUtil.LF) {
 
                     Printer.println();
+                    historyHelper.push(lineBuilder.toString());
                     break;
 
                 }

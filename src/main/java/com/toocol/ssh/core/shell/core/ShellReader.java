@@ -62,18 +62,18 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
             }
 
             if (shell.status.equals(Shell.Status.VIM_UNDER)) {
-                /*
-                * Deal with the chinese character.
-                * */
-                if (finalChar >= '\u4e00' && finalChar <= '\u9fff') {
+
+                if (CharUtil.isChinese(finalChar)) {
                     outputStream.write(String.valueOf(finalChar).getBytes(StandardCharsets.UTF_8));
                 } else {
                     outputStream.write(finalChar);
                 }
                 outputStream.flush();
+
             } else if (shell.status.equals(Shell.Status.MORE_PROC)
                     || shell.status.equals(Shell.Status.MORE_EDIT)
                     || shell.status.equals(Shell.Status.MORE_SUB)) {
+
                 boolean support;
                 switch (shell.status) {
                     case MORE_PROC -> support = shell.moreHelper.support(finalChar);
@@ -85,6 +85,7 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
                     outputStream.write(finalChar);
                     outputStream.flush();
                 }
+
             } else {
                 if (finalChar == CharUtil.UP_ARROW || finalChar == CharUtil.DOWN_ARROW) {
 

@@ -10,24 +10,23 @@ import jline.Terminal;
  */
 public class Term {
 
-    private Term() {
-    }
-
     public static final String PROMPT = "[termio] > ";
 
     private static final Term INSTANCE = new Term();
     private static final TermioJNI JNI = TermioJNI.getInstance();
 
-    public static Term getInstance() {
-        return INSTANCE;
-    }
-
     private final Terminal terminal;
 
     private final TermReader termReader;
-    {
-        termReader  = new TermReader();
+
+    private Term() {
+        termReader  = new TermReader(this);
         terminal = termReader.getReader().getTerminal();
+    }
+
+
+    public static Term getInstance() {
+        return INSTANCE;
     }
 
     public int getWidth() {
@@ -67,4 +66,17 @@ public class Term {
         JNI.cursorRight();
     }
 
+    public void clearShellLineWithPrompt() {
+        int promptLen = PROMPT.length();
+        Tuple2<Integer, Integer> position = getCursorPosition();
+        int cursorX = position._1();
+        int cursorY = position._2();
+        hideCursor();
+        setCursorPosition(promptLen, cursorY);
+        for (int idx = 0; idx < cursorX - promptLen; idx++) {
+            Printer.print(" ");
+        }
+        setCursorPosition(promptLen, cursorY);
+        showCursor();
+    }
 }
