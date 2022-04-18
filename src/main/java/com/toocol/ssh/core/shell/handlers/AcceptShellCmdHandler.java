@@ -102,10 +102,6 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                 continue;
             }
 
-            if (shell.getStatus().equals(Shell.Status.VIM_BEFORE)) {
-                shell.setStatus(Shell.Status.VIM_UNDER);
-            }
-
             if (shell.getStatus().equals(Shell.Status.NORMAL)) {
                 shell.localLastCmd.set(new StringBuffer(cmd + StrUtil.CRLF));
             }

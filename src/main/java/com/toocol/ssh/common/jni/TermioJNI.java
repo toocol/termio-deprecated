@@ -10,10 +10,6 @@ public class TermioJNI {
 
     public native String chooseDirectory();
 
-    public native int getWindowWidth();
-
-    public native int getWindowHeight();
-
     public native String getCursorPosition();
 
     public native void setCursorPosition(int x, int y);

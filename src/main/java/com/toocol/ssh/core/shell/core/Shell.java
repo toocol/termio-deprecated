@@ -9,6 +9,7 @@ import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
+import jline.console.ConsoleReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -31,6 +32,16 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
 public class Shell {
 
     public static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)]#)");
+
+    private ConsoleReader reader;
+    {
+        try {
+            reader = new ConsoleReader(System.in, null, null);
+        } catch (Exception e) {
+            Printer.println("\nCreate console reader failed.");
+            System.exit(-1);
+        }
+    }
 
     private final long sessionId;
     /**
@@ -99,9 +110,11 @@ public class Shell {
         this.outputStream = outputStream;
         this.inputStream = inputStream;
         this.shellPrinter = new ShellPrinter(this);
-        this.shellReader = new ShellReader(this, this.outputStream);
+        this.shellReader = new ShellReader(this, this.outputStream, reader);
         this.historyCmdHelper = new HistoryCmdHelper(this);
         this.moreHelper = new MoreHelper();
+
+        this.shellReader.addTrigger();
     }
 
     public boolean print(String msg) {
@@ -127,6 +140,10 @@ public class Shell {
             case MORE_BEFORE, MORE_PROC, MORE_EDIT, MORE_SUB -> shellPrinter.printInMore(msg);
             default -> {
             }
+        }
+
+        if (status.equals(Shell.Status.VIM_BEFORE)) {
+            status = Shell.Status.VIM_UNDER;
         }
 
         selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));

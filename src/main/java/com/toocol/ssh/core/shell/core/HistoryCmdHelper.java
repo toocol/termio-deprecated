@@ -49,7 +49,9 @@ public class HistoryCmdHelper {
     }
 
     public synchronized void push(String cmd) {
-        baseCmdStack.push(cmd.trim());
+        if (!baseCmdStack.peek().equals(cmd.trim())) {
+            baseCmdStack.push(cmd.trim());
+        }
         reset();
     }
 

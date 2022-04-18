@@ -14,21 +14,13 @@ public class TermReader {
 
     {
         try {
-            reader = new jline.console.ConsoleReader();
+            reader = new ConsoleReader();
+            reader.addTriggeredAction('\t', (event) -> {
+            });
         } catch (Exception e) {
             Printer.println("\nCreate console reader failed.");
             System.exit(-1);
         }
-    }
-
-    public char readCharacter() {
-        try {
-            return (char) reader.readCharacter();
-        } catch (IOException e) {
-            Printer.println("\nIO error.");
-            System.exit(-1);
-        }
-        return 0;
     }
 
     public String readLine(String prompt) {
@@ -39,5 +31,9 @@ public class TermReader {
             System.exit(-1);
         }
         return null;
+    }
+
+    public ConsoleReader getReader() {
+        return reader;
     }
 }

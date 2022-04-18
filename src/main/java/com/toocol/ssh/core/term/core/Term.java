@@ -2,6 +2,7 @@ package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.common.jni.TermioJNI;
 import com.toocol.ssh.common.utils.Tuple2;
+import jline.Terminal;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -21,14 +22,20 @@ public class Term {
         return INSTANCE;
     }
 
-    private final TermReader termReader = new TermReader();
+    private final Terminal terminal;
+
+    private final TermReader termReader;
+    {
+        termReader  = new TermReader();
+        terminal = termReader.getReader().getTerminal();
+    }
 
     public int getWidth() {
-        return TermioJNI.getInstance().getWindowWidth();
+        return terminal.getWidth();
     }
 
     public int getHeight() {
-        return TermioJNI.getInstance().getWindowHeight();
+        return terminal.getHeight();
     }
 
     public TermReader getReader() {
@@ -38,10 +45,6 @@ public class Term {
     public Tuple2<Integer, Integer> getCursorPosition() {
         String[] coord = JNI.getCursorPosition().split(",");
         return new Tuple2<>(Integer.parseInt(coord[0]), Integer.parseInt(coord[1]));
-    }
-
-    public void cursorBackLines(int lines) {
-        JNI.cursorBackLine(lines);
     }
 
     public void setCursorPosition(int x, int y) {

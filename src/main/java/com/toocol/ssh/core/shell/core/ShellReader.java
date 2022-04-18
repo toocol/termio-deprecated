@@ -4,9 +4,11 @@ import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
-import com.toocol.ssh.core.term.core.TermReader;
+import jline.console.ConsoleReader;
 import org.apache.commons.lang3.StringUtils;
+import sun.misc.Signal;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
@@ -15,15 +17,37 @@ import java.nio.charset.StandardCharsets;
  * @date: 2022/4/13 2:07
  * @version: 0.0.1
  */
-record ShellReader(Shell shell, OutputStream outputStream) {
+record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader) {
 
-    private final static TermReader reader = Term.getInstance().getReader();
+    void addTrigger() {
+        reader.setHistoryEnabled(false);
+        /*
+         * custom handle CTRL+C
+         */
+        Signal.handle(new Signal("INT"), signal -> {
+            try {
+                shell.historyCmdHelper.reset();
+                shell.cmd.delete(0, shell.cmd.length());
+                outputStream.write(CharUtil.CTRL_C);
+                outputStream.flush();
+                shell.status = Shell.Status.NORMAL;
+            } catch (Exception e) {
+                // do nothing
+            }
+        });
+    }
 
     void readCmd() throws Exception {
+        boolean acceptEscape = false;
+        boolean acceptBracketsAfterEscape = true;
+
         shell.cmd.delete(0, shell.cmd.length());
         StringBuilder localLastInputBuffer = new StringBuilder();
         while (true) {
-            char inChar = reader.readCharacter();
+            char inChar = (char) reader.readCharacter();
+            if (inChar == '\u001B') {
+                acceptEscape = true;
+            }
             if (shell.status.equals(Shell.Status.VIM_UNDER)) {
                 outputStream.write(inChar);
                 outputStream.flush();
@@ -42,15 +66,7 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     outputStream.flush();
                 }
             } else {
-                if (inChar == CharUtil.CTRL_C) {
-
-                    shell.historyCmdHelper.reset();
-                    shell.cmd.delete(0, shell.cmd.length());
-                    outputStream.write(inChar);
-                    outputStream.flush();
-                    shell.status = Shell.Status.NORMAL;
-
-                } else if (inChar == CharUtil.UP_ARROW || inChar == CharUtil.DOWN_ARROW) {
+                if (inChar == CharUtil.UP_ARROW || inChar == CharUtil.DOWN_ARROW) {
 
                     shell.status = Shell.Status.NORMAL;
 
@@ -152,7 +168,7 @@ record ShellReader(Shell shell, OutputStream outputStream) {
                     shell.lastRemoteCmd.delete(0, shell.lastRemoteCmd.length()).append(shell.remoteCmd.get().toString());
                     shell.lastExecuteCmd.delete(0, shell.lastExecuteCmd.length())
                             .append(StringUtils.isEmpty(shell.remoteCmd.get()) ? shell.cmd.toString() : shell.remoteCmd.get().toString().replaceAll("\b", ""));
-                    if (!StrUtil.EMPTY.equals(shell.lastExecuteCmd.toString())) {
+                    if (!StrUtil.EMPTY.equals(shell.lastExecuteCmd.toString()) && shell.status == Shell.Status.NORMAL) {
                         shell.historyCmdHelper.push(shell.lastExecuteCmd.toString());
                     }
                     Printer.print(StrUtil.CRLF);
@@ -172,5 +188,16 @@ record ShellReader(Shell shell, OutputStream outputStream) {
             }
         }
 
+    }
+
+    private void transferCombo() throws IOException {
+//        String escape = String.valueOf((char) reader.readCharacter());
+//        return switch (escape) {
+//            case "A" -> CharUtil.UP_ARROW;
+//            case "B" -> CharUtil.DOWN_ARROW;
+//            case "C" -> CharUtil.RIGHT_ARROW;
+//            case "D" -> CharUtil.LEFT_ARROW;
+//            default -> '\0';
+//        };
     }
 }
