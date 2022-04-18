@@ -36,12 +36,12 @@ public class AddCmdProcessor extends OutsideCommandProcessor {
             resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add --host@user -c=password [-p=port]'.");
             return;
         }
-        String host = hostUser[0];
+        String user = hostUser[0];
+        String host = hostUser[1];
         if (!RegexUtils.matchIp(host)) {
             resultAndMsg.first(false).second("Wrong host format, just supporting Ip address.");
             return;
         }
-        String user = hostUser[1];
 
         String[] passwordParam = params[1].split("=");
         if (passwordParam.length != 2) {

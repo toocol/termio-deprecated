@@ -6,8 +6,6 @@ package com.toocol.ssh.common.jni;
  */
 public class TermioJNI {
 
-    public native int getCh();
-
     public native String chooseFiles();
 
     public native String chooseDirectory();

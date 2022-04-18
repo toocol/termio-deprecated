@@ -1,8 +1,8 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.common.console.ConsoleReader;
-import com.toocol.ssh.common.utils.CharUtil;
-import org.apache.commons.lang3.StringUtils;
+import jline.console.ConsoleReader;
+
+import java.io.IOException;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -10,37 +10,34 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class TermReader {
 
-    private static final ConsoleReader CONSOLE_READER = ConsoleReader.get(System.in);
+    private ConsoleReader reader;
 
-    public String readLine() {
-        return readLine(null);
+    {
+        try {
+            reader = new jline.console.ConsoleReader();
+        } catch (Exception e) {
+            Printer.println("\nCreate console reader failed.");
+            System.exit(-1);
+        }
+    }
+
+    public char readCharacter() {
+        try {
+            return (char) reader.readCharacter();
+        } catch (IOException e) {
+            Printer.println("\nIO error.");
+            System.exit(-1);
+        }
+        return 0;
     }
 
     public String readLine(String prompt) {
-        if (StringUtils.isNotEmpty(prompt)) {
-            Printer.print(prompt);
+        try {
+            return reader.readLine(prompt);
+        } catch (IOException e) {
+            Printer.println("\nIO error.");
+            System.exit(-1);
         }
-
-        StringBuilder lineBuilder = new StringBuilder();
-        while (true) {
-            char ch = (char) CONSOLE_READER.readVirtualKey();
-            if (CharUtil.isAsciiPrintable(ch)) {
-                Printer.print(String.valueOf(ch));
-                lineBuilder.append(ch);
-            } else if (ch == CharUtil.TAB) {
-                // TODO:
-            } else if (ch == CharUtil.BACKSPACE) {
-                if (lineBuilder.isEmpty()) {
-                    Printer.voice();
-                    continue;
-                }
-                lineBuilder.deleteCharAt(lineBuilder.length() - 1);
-                Printer.virtualBackspace();
-            } else if (ch == CharUtil.CR || ch == CharUtil.LF) {
-                Printer.println();
-                break;
-            }
-        }
-        return lineBuilder.toString();
+        return null;
     }
 }

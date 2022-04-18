@@ -1,10 +1,10 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.console.ConsoleReader;
 import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.core.term.core.TermReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.OutputStream;
@@ -17,16 +17,13 @@ import java.nio.charset.StandardCharsets;
  */
 record ShellReader(Shell shell, OutputStream outputStream) {
 
-    private final static ConsoleReader reader = ConsoleReader.get(System.in);
+    private final static TermReader reader = Term.getInstance().getReader();
 
     void readCmd() throws Exception {
         shell.cmd.delete(0, shell.cmd.length());
         StringBuilder localLastInputBuffer = new StringBuilder();
         while (true) {
-            char inChar = (char) reader.readVirtualKey();
-            if (inChar == '\uFFFF') {
-                throw new RuntimeException("Can't handle chinese character.");
-            }
+            char inChar = reader.readCharacter();
             if (shell.status.equals(Shell.Status.VIM_UNDER)) {
                 outputStream.write(inChar);
                 outputStream.flush();
