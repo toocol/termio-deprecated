@@ -10,20 +10,25 @@ import java.util.regex.Pattern;
  */
 public class RegexUtils {
     public static final int MATCH_IP = 1;
+    public static final int MATCH_EMAIL = 2;
 
     private static final Pattern IP_PATTERN = Pattern.compile("^([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$");
 
     public static boolean match(String text, int matchType) {
-        switch (matchType) {
-            case MATCH_IP:
-                return matchIp(text);
-            default:
-                return false;
-        }
+        return switch (matchType) {
+            case MATCH_IP -> matchIp(text);
+            case MATCH_EMAIL -> matchEmail(text);
+            default -> false;
+        };
     }
 
     public static boolean matchIp(String text) {
         return match(text, IP_PATTERN);
+    }
+
+    public static boolean matchEmail(String text) {
+        return match(text, EMAIL_PATTERN);
     }
 
     public static boolean match(String text, Pattern pattern) {
