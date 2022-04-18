@@ -6,6 +6,7 @@ import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.handlers.DfHandler;
 import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.term.core.ArrowHelper;
 import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
@@ -62,6 +63,7 @@ public class Shell {
     protected final ShellReader shellReader;
     protected final HistoryCmdHelper historyCmdHelper;
     protected final MoreHelper moreHelper;
+    protected final ArrowHelper arrowHelper;
 
     public volatile AtomicReference<StringBuffer> localLastCmd = new AtomicReference<>(new StringBuffer());
     public volatile AtomicReference<StringBuffer> remoteCmd = new AtomicReference<>(new StringBuffer());
@@ -113,8 +115,9 @@ public class Shell {
         this.shellReader = new ShellReader(this, this.outputStream, reader);
         this.historyCmdHelper = new HistoryCmdHelper(this);
         this.moreHelper = new MoreHelper();
+        this.arrowHelper = new ArrowHelper();
 
-        this.shellReader.addTrigger();
+        this.shellReader.initReader();
     }
 
     public boolean print(String msg) {

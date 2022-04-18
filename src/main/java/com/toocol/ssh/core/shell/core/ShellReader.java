@@ -8,9 +8,9 @@ import jline.console.ConsoleReader;
 import org.apache.commons.lang3.StringUtils;
 import sun.misc.Signal;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -19,7 +19,8 @@ import java.nio.charset.StandardCharsets;
  */
 record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader) {
 
-    void addTrigger() {
+
+    void initReader() {
         reader.setHistoryEnabled(false);
         /*
          * custom handle CTRL+C
@@ -38,39 +39,58 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
     }
 
     void readCmd() throws Exception {
-        boolean acceptEscape = false;
-        boolean acceptBracketsAfterEscape = true;
+        AtomicBoolean acceptEscape = new AtomicBoolean();
+        AtomicBoolean acceptBracketsAfterEscape = new AtomicBoolean();
 
         shell.cmd.delete(0, shell.cmd.length());
         StringBuilder localLastInputBuffer = new StringBuilder();
         while (true) {
             char inChar = (char) reader.readCharacter();
-            if (inChar == '\u001B') {
-                acceptEscape = true;
+
+            /*
+             * Start to deal with arrow key.
+             */
+            char finalChar = shell.arrowHelper.processArrow(inChar, acceptEscape, acceptBracketsAfterEscape);
+            if (finalChar != inChar) {
+                if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
+                    shell.remoteCmd.getAndUpdate(prev -> prev.deleteCharAt(prev.length() - 1));
+                    shell.localLastCmd.getAndUpdate(prev -> prev.deleteCharAt(prev.length() - 1));
+                }
+                shell.currentPrint.getAndUpdate(prev -> prev.deleteCharAt(prev.length() - 1));
+                shell.cmd.deleteCharAt(shell.cmd.length() - 1);
+                localLastInputBuffer.deleteCharAt(localLastInputBuffer.length() - 1);
             }
+
             if (shell.status.equals(Shell.Status.VIM_UNDER)) {
-                outputStream.write(inChar);
+                /*
+                * Deal with the chinese character.
+                * */
+                if (finalChar >= '\u4e00' && finalChar <= '\u9fff') {
+                    outputStream.write(String.valueOf(finalChar).getBytes(StandardCharsets.UTF_8));
+                } else {
+                    outputStream.write(finalChar);
+                }
                 outputStream.flush();
             } else if (shell.status.equals(Shell.Status.MORE_PROC)
                     || shell.status.equals(Shell.Status.MORE_EDIT)
                     || shell.status.equals(Shell.Status.MORE_SUB)) {
                 boolean support;
                 switch (shell.status) {
-                    case MORE_PROC -> support = shell.moreHelper.support(inChar);
-                    case MORE_SUB -> support = shell.moreHelper.supportSub(inChar);
-                    case MORE_EDIT -> support = shell.moreHelper.supportEdit(inChar);
+                    case MORE_PROC -> support = shell.moreHelper.support(finalChar);
+                    case MORE_SUB -> support = shell.moreHelper.supportSub(finalChar);
+                    case MORE_EDIT -> support = shell.moreHelper.supportEdit(finalChar);
                     default -> support = false;
                 }
                 if (support) {
-                    outputStream.write(inChar);
+                    outputStream.write(finalChar);
                     outputStream.flush();
                 }
             } else {
-                if (inChar == CharUtil.UP_ARROW || inChar == CharUtil.DOWN_ARROW) {
+                if (finalChar == CharUtil.UP_ARROW || finalChar == CharUtil.DOWN_ARROW) {
 
                     shell.status = Shell.Status.NORMAL;
 
-                    if (inChar == CharUtil.UP_ARROW) {
+                    if (finalChar == CharUtil.UP_ARROW) {
                         if (!shell.historyCmdHelper.isStart()) {
                             if (shell.cmd.length() != 0 && StringUtils.isEmpty(shell.remoteCmd.get())) {
                                 shell.historyCmdHelper.pushToDown(shell.cmd.toString());
@@ -90,10 +110,10 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
                     }
                     shell.localLastCmd.set(new StringBuffer());
 
-                } else if (inChar == CharUtil.LEFT_ARROW || inChar == CharUtil.RIGHT_ARROW) {
+                } else if (finalChar == CharUtil.LEFT_ARROW || finalChar == CharUtil.RIGHT_ARROW) {
 
                     int cursorX = shell.term.getCursorPosition()._1();
-                    if (inChar == CharUtil.LEFT_ARROW) {
+                    if (finalChar == CharUtil.LEFT_ARROW) {
                         if (cursorX > shell.prompt.get().length()) {
                             shell.term.cursorLeft();
                         }
@@ -103,11 +123,11 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
                         }
                     }
                     if (shell.remoteCmd.get().length() > 0) {
-                        outputStream.write(inChar);
+                        outputStream.write(finalChar);
                         outputStream.flush();
                     }
 
-                } else if (inChar == CharUtil.TAB) {
+                } else if (finalChar == CharUtil.TAB) {
 
                     if (shell.status.equals(Shell.Status.NORMAL)) {
                         shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.cmd));
@@ -121,7 +141,7 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
                     shell.cmd.delete(0, shell.cmd.length());
                     shell.status = Shell.Status.TAB_ACCOMPLISH;
 
-                } else if (inChar == CharUtil.BACKSPACE) {
+                } else if (finalChar == CharUtil.BACKSPACE) {
                     int cursorX = Term.getInstance().getCursorPosition()._1();
                     if (cursorX <= shell.prompt.get().length()) {
                         Printer.voice();
@@ -159,7 +179,7 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
                     Printer.virtualBackspace();
 
 
-                } else if (inChar == CharUtil.CR || inChar == CharUtil.LF) {
+                } else if (finalChar == CharUtil.CR || finalChar == CharUtil.LF) {
 
                     if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
                         shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.remoteCmd.get().toString()).append(StrUtil.CRLF));
@@ -174,30 +194,22 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
                     Printer.print(StrUtil.CRLF);
                     shell.status = Shell.Status.NORMAL;
                     break;
-                } else if (CharUtil.isAsciiPrintable(inChar)) {
+                } else if (CharUtil.isAsciiPrintable(finalChar)) {
 
                     if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                        shell.remoteCmd.getAndUpdate(prev -> prev.append(inChar));
-                        shell.localLastCmd.getAndUpdate(prev -> prev.append(inChar));
+                        shell.remoteCmd.getAndUpdate(prev -> prev.append(finalChar));
+                        shell.localLastCmd.getAndUpdate(prev -> prev.append(finalChar));
                     }
-                    shell.currentPrint.getAndUpdate(prev -> prev.append(inChar));
-                    shell.cmd.append(inChar);
-                    localLastInputBuffer.append(inChar);
-                    Printer.print(String.valueOf(inChar));
+                    shell.currentPrint.getAndUpdate(prev -> prev.append(finalChar));
+                    shell.cmd.append(finalChar);
+                    localLastInputBuffer.append(finalChar);
+                    if (acceptBracketsAfterEscape.get()) {
+                        continue;
+                    }
+                    Printer.print(String.valueOf(finalChar));
                 }
             }
         }
 
-    }
-
-    private void transferCombo() throws IOException {
-//        String escape = String.valueOf((char) reader.readCharacter());
-//        return switch (escape) {
-//            case "A" -> CharUtil.UP_ARROW;
-//            case "B" -> CharUtil.DOWN_ARROW;
-//            case "C" -> CharUtil.RIGHT_ARROW;
-//            case "D" -> CharUtil.LEFT_ARROW;
-//            default -> '\0';
-//        };
     }
 }
