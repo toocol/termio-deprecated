@@ -166,7 +166,7 @@ record ShellReader(Shell shell, ConsoleReader reader) {
                     shell.lastRemoteCmd.delete(0, shell.lastRemoteCmd.length()).append(shell.remoteCmd.get().toString());
                     shell.lastExecuteCmd.delete(0, shell.lastExecuteCmd.length())
                             .append(StringUtils.isEmpty(shell.remoteCmd.get()) ? shell.cmd.toString() : shell.remoteCmd.get().toString().replaceAll("\b", ""));
-                    if (!StrUtil.EMPTY.equals(shell.lastExecuteCmd.toString()) && shell.status == Shell.Status.NORMAL) {
+                    if (!StrUtil.EMPTY.equals(shell.lastExecuteCmd.toString()) && shell.status == Shell.Status.NORMAL && shell.status == Shell.Status.TAB_ACCOMPLISH) {
                         shell.historyCmdHelper.push(shell.lastExecuteCmd.toString());
                     }
                     if (remoteCursorOffset) {
