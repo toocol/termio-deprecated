@@ -105,6 +105,9 @@ record ShellReader(Shell shell, ConsoleReader reader) {
                     }
 
                 } else if (finalChar == CharUtil.TAB) {
+                    // set cursor to normal position
+                    Tuple2<Integer, Integer> position = shell.term.getCursorPosition();
+                    shell.term.setCursorPosition(shell.prompt.get().length() + shell.currentPrint.get().length(), position._2());
 
                     if (shell.status.equals(Shell.Status.NORMAL)) {
                         shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.cmd));
