@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/11 15:14
  */
-public record CmdFeedbackExtractor(InputStream inputStream, String cmd, Shell shell) {
+public record CmdFeedbackHelper(InputStream inputStream, String cmd, Shell shell) {
 
     public String extractFeedback() throws Exception {
         String feedback = null;

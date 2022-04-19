@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.shell.commands;
 
+import com.toocol.ssh.common.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.shell.commands.processors.*;
 import com.toocol.ssh.core.shell.core.Shell;
@@ -7,7 +8,6 @@ import com.toocol.ssh.core.term.core.Printer;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,21 +53,21 @@ public enum ShellCommand {
         if (this.commandProcessor == null) {
             return StrUtil.EMPTY;
         }
-        String result;
+        String result = null;
         try {
-            if (shell.remoteCmd.get().length() > 0) {
-                for (int idx = 0; idx < shell.remoteCmd.get().length(); idx ++) {
-                    shell.getOutputStream().write('\u007F');
+            if (shell.getRemoteCmd().length() > 0) {
+                for (int idx = 0; idx < shell.getRemoteCmd().length(); idx ++) {
+                    shell.write('\u007F');
                 }
-                shell.getOutputStream().flush();
+                shell.flush();
             }
 
             result = this.commandProcessor.process(eventBus, promise, shell, isBreak, msg);
 
-            shell.getOutputStream().write(StrUtil.LF.getBytes(StandardCharsets.UTF_8));
-            shell.getOutputStream().flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            shell.writeAndFlush(StrUtil.LF.getBytes(StandardCharsets.UTF_8));
+        } catch (RemoteDisconnectException e) {
+            isBreak.set(true);
+            promise.complete(shell.getSessionId());
         }
         return result;
     }

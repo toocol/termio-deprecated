@@ -9,7 +9,7 @@ import com.toocol.ssh.common.utils.CharUtil;
  * @date: 2022/4/17 15:51
  * @version:
  */
-public class MoreHelper {
+public record MoreHelper() {
 
     public enum SupportChar {
         h('h', "more help", false),

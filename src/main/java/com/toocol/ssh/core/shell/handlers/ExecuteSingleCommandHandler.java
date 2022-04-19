@@ -4,7 +4,7 @@ import com.jcraft.jsch.ChannelExec;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.core.cache.SessionCache;
-import com.toocol.ssh.core.shell.core.CmdFeedbackExtractor;
+import com.toocol.ssh.core.shell.core.CmdFeedbackHelper;
 import com.toocol.ssh.core.shell.core.ExecChannelProvider;
 import com.toocol.ssh.core.shell.core.Shell;
 import io.vertx.core.AsyncResult;
@@ -55,7 +55,7 @@ public class ExecuteSingleCommandHandler extends AbstractMessageHandler<String> 
         channelExec.setCommand(cmd);
         channelExec.connect();
 
-        String feedback = new CmdFeedbackExtractor(inputStream, cmd, shell).extractFeedback();
+        String feedback = new CmdFeedbackHelper(inputStream, cmd, shell).extractFeedback();
 
         channelExec.disconnect();
 

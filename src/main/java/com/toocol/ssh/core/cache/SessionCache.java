@@ -98,4 +98,8 @@ public class SessionCache {
                 .findAny()
                 .orElse(0L);
     }
+
+    public boolean isDisconnect(long sessionId) {
+        return !sessionMap.get(sessionId).isConnected() || !channelShellMap.get(sessionId).isConnected();
+    }
 }

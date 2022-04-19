@@ -9,7 +9,7 @@ import static com.toocol.ssh.common.utils.CharUtil.*;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/19 14:29
  */
-public class VimHelper {
+public record VimHelper() {
 
     public byte[] transferVimInput(char inChar) {
         return switch (inChar) {

@@ -1,8 +1,10 @@
 package com.toocol.ssh.core.shell.core;
 
+import com.toocol.ssh.common.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.common.utils.CmdUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.common.utils.Tuple2;
+import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.handlers.DfHandler;
 import com.toocol.ssh.core.term.core.Printer;
@@ -32,7 +34,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
  */
 public class Shell {
 
-    public static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)]#)");
+    protected static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)]#)");
 
     private ConsoleReader reader;
     {
@@ -44,6 +46,9 @@ public class Shell {
         }
     }
 
+    /**
+     * the session's id that shell belongs to.
+     */
     private final long sessionId;
     /**
      * the EventBus of vert.x system.
@@ -57,6 +62,7 @@ public class Shell {
 
     private volatile boolean returnWrite = false;
     private volatile boolean promptNow = false;
+    private volatile boolean initOnce = false;
 
     protected final Term term = Term.getInstance();
     protected final ShellPrinter shellPrinter;
@@ -66,8 +72,8 @@ public class Shell {
     protected final ArrowHelper arrowHelper;
     protected final VimHelper vimHelper;
 
-    public volatile AtomicReference<StringBuffer> localLastCmd = new AtomicReference<>(new StringBuffer());
-    public volatile AtomicReference<StringBuffer> remoteCmd = new AtomicReference<>(new StringBuffer());
+    protected volatile AtomicReference<StringBuffer> localLastCmd = new AtomicReference<>(new StringBuffer());
+    protected volatile AtomicReference<StringBuffer> remoteCmd = new AtomicReference<>(new StringBuffer());
     protected volatile AtomicReference<StringBuffer> currentPrint = new AtomicReference<>(new StringBuffer());
     protected volatile AtomicReference<StringBuffer> selectHistoryCmd = new AtomicReference<>(new StringBuffer());
     protected volatile StringBuffer localLastInput = new StringBuffer();
@@ -113,7 +119,7 @@ public class Shell {
         this.outputStream = outputStream;
         this.inputStream = inputStream;
         this.shellPrinter = new ShellPrinter(this);
-        this.shellReader = new ShellReader(this, this.outputStream, reader);
+        this.shellReader = new ShellReader(this, reader);
         this.historyCmdHelper = new HistoryCmdHelper(this);
         this.moreHelper = new MoreHelper();
         this.arrowHelper = new ArrowHelper();
@@ -199,6 +205,9 @@ public class Shell {
 
     @SuppressWarnings("all")
     public void initialFirstCorrespondence() {
+        if (initOnce) {
+            return;
+        }
         try {
             CountDownLatch mainLatch = new CountDownLatch(2);
 
@@ -276,6 +285,64 @@ public class Shell {
         fullPath.set("/" + user.get());
         // this InputStream is already invalid.
         this.inputStream = null;
+        this.initOnce = true;
+    }
+
+    public void flush() {
+        if (SessionCache.getInstance().isDisconnect(sessionId)) {
+            throw new RemoteDisconnectException("Session disconnect.");
+        }
+        try {
+            outputStream.flush();
+        } catch (IOException e) {
+            throw new RemoteDisconnectException(e.getMessage());
+        }
+    }
+
+    public void write(byte[] bytes) {
+        if (SessionCache.getInstance().isDisconnect(sessionId)) {
+            throw new RemoteDisconnectException("Session disconnect.");
+        }
+        try {
+            outputStream.write(bytes);
+        } catch (IOException e) {
+            throw new RemoteDisconnectException(e.getMessage());
+        }
+    }
+
+    public void write(char bytes) {
+        if (SessionCache.getInstance().isDisconnect(sessionId)) {
+            throw new RemoteDisconnectException("Session disconnect.");
+        }
+        try {
+            outputStream.write(bytes);
+        } catch (IOException e) {
+            throw new RemoteDisconnectException(e.getMessage());
+        }
+    }
+
+    public void writeAndFlush(byte[] bytes) {
+        if (SessionCache.getInstance().isDisconnect(sessionId)) {
+            throw new RemoteDisconnectException("Session disconnect.");
+        }
+        try {
+            outputStream.write(bytes);
+            outputStream.flush();
+        } catch (IOException e) {
+            throw new RemoteDisconnectException(e.getMessage());
+        }
+    }
+
+    public void writeAndFlush(char inChar) {
+        if (SessionCache.getInstance().isDisconnect(sessionId)) {
+            throw new RemoteDisconnectException("Session disconnect.");
+        }
+        try {
+            outputStream.write(inChar);
+            outputStream.flush();
+        } catch (IOException e) {
+            throw new RemoteDisconnectException(e.getMessage());
+        }
     }
 
     public void clearShellLineWithPrompt() {
@@ -303,12 +370,16 @@ public class Shell {
         shellPrinter.printErr(err);
     }
 
-    public Status getStatus() {
-        return status;
+    public void clearRemoteCmd() {
+        this.remoteCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
     }
 
-    public void setStatus(Status status) {
-        this.status = status;
+    public void setLocalLastCmd(String cmd) {
+        this.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(cmd));
+    }
+
+    public Status getStatus() {
+        return status;
     }
 
     public String getWelcome() {
@@ -319,28 +390,28 @@ public class Shell {
         return prompt.get();
     }
 
-    public AtomicReference<String> getUser() {
-        return user;
+    public String getLastRemoteCmd() {
+        return lastRemoteCmd.toString();
     }
 
-    public void setUser(String user) {
-        this.user.set(user);
+    public String getRemoteCmd() {
+        return remoteCmd.toString();
+    }
+
+    public AtomicReference<String> getUser() {
+        return user;
     }
 
     public AtomicReference<String> getFullPath() {
         return fullPath;
     }
 
-    public OutputStream getOutputStream() {
-        return outputStream;
-    }
-
-    public String getLastRemoteCmd() {
-        return lastRemoteCmd.toString();
-    }
-
     public long getSessionId() {
         return sessionId;
+    }
+
+    public void setUser(String user) {
+        this.user.set(user);
     }
 
     public void setPrompt(String prompt) {

@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.shell.handlers;
 
 import com.toocol.ssh.common.address.IAddress;
+import com.toocol.ssh.common.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.sync.SharedCountdownLatch;
 import com.toocol.ssh.common.utils.StrUtil;
@@ -15,7 +16,6 @@ import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,6 +32,8 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
 
+    private CountDownLatch disconnectLatch;
+
     public AcceptShellCmdHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
     }
@@ -44,101 +46,109 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
     @Override
     protected <T> void handleWithinBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = true;
+        disconnectLatch = new CountDownLatch(1);
 
         long sessionId = cast(message.body());
         Shell shell = sessionCache.getShell(sessionId);
-        OutputStream outputStream = shell.getOutputStream();
 
-        outputStream.write("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
-        outputStream.flush();
+        shell.writeAndFlush("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
 
         while (true) {
-            String cmdRead = shell.readCmd();
-            if (cmdRead == null) {
-                continue;
-            }
-            StringBuilder cmd = new StringBuilder(cmdRead);
-
-            AtomicBoolean isBreak = new AtomicBoolean();
-            AtomicBoolean isContinue = new AtomicBoolean();
-            ShellCommand.cmdOf(cmd.toString()).ifPresent(shellCommand -> {
-                try {
-                    if (shell.remoteCmd.get().length() != 0) {
-                        return;
-                    }
-                    String finalCmd = shellCommand.processCmd(eventBus, promise, shell, isBreak, cmd.toString());
-                    cmd.delete(0, cmd.length());
-                    if (finalCmd != null) {
-                        cmd.append(finalCmd);
-                    } else {
-                        isContinue.set(true);
-                    }
-                } catch (Exception e) {
-                    // do noting
+            try {
+                String cmdRead = shell.readCmd();
+                if (cmdRead == null) {
+                    continue;
                 }
-            });
-            ShellCommand.cmdOf(shell.remoteCmd.get().toString()).ifPresent(shellCommand -> {
-                try {
-                    String finalCmd = shellCommand.processCmd(eventBus, promise, shell, isBreak, shell.remoteCmd.toString());
-                    if (finalCmd != null) {
-                        cmd.append(finalCmd);
-                    } else {
-                        isContinue.set(true);
+                StringBuilder cmd = new StringBuilder(cmdRead);
+
+                AtomicBoolean isBreak = new AtomicBoolean();
+                AtomicBoolean isContinue = new AtomicBoolean();
+                ShellCommand.cmdOf(cmd.toString()).ifPresent(shellCommand -> {
+                    try {
+                        if (shell.getRemoteCmd().length() != 0) {
+                            return;
+                        }
+                        String finalCmd = shellCommand.processCmd(eventBus, promise, shell, isBreak, cmd.toString());
+                        cmd.delete(0, cmd.length());
+                        if (finalCmd != null) {
+                            cmd.append(finalCmd);
+                        } else {
+                            isContinue.set(true);
+                        }
+                    } catch (Exception e) {
+                        // do noting
                     }
-                } catch (Exception e) {
-                    // do noting
-                }
-            });
-            shell.remoteCmd.set(new StringBuffer());
-
-            if (isBreak.get()) {
-                if (cmd.length() != 0) {
-                    outputStream.write(cmd.append("\t").toString().getBytes(StandardCharsets.UTF_8));
-                    outputStream.flush();
-                }
-                break;
-            }
-            if (isContinue.get()) {
-                continue;
-            }
-
-            if (shell.getStatus().equals(Shell.Status.NORMAL)) {
-                shell.localLastCmd.set(new StringBuffer(cmd + StrUtil.CRLF));
-            }
-
-            CountDownLatch latch = new CountDownLatch(1);
-            if (StatusCache.EXECUTE_CD_CMD) {
-                StatusCache.EXECUTE_CD_CMD = false;
-                StatusCache.EXHIBIT_WAITING_BEFORE_COMMAND_PREPARE = true;
-                JsonObject request = new JsonObject();
-                request.put("sessionId", sessionId);
-                request.put("cmd", " pwd");
-                eventBus.request(EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL.address(), request, result -> {
-                    shell.setFullPath(cast(result.result().body()));
-                    latch.countDown();
                 });
-            } else {
-                latch.countDown();
-            }
+                ShellCommand.cmdOf(shell.getRemoteCmd()).ifPresent(shellCommand -> {
+                    try {
+                        String finalCmd = shellCommand.processCmd(eventBus, promise, shell, isBreak, shell.getRemoteCmd());
+                        if (finalCmd != null) {
+                            cmd.append(finalCmd);
+                        } else {
+                            isContinue.set(true);
+                        }
+                    } catch (Exception e) {
+                        // do noting
+                    }
+                });
+                shell.clearRemoteCmd();
 
-            String actualCmd = cmd.toString().trim() + StrUtil.LF;
-
-            SharedCountdownLatch.await(() -> {
-                try {
-                    outputStream.write(actualCmd.getBytes(StandardCharsets.UTF_8));
-                    outputStream.flush();
-                } catch (Exception e) {
-                    // do nothing
+                if (isBreak.get()) {
+                    if (cmd.length() != 0) {
+                        shell.writeAndFlush(cmd.append("\t").toString().getBytes(StandardCharsets.UTF_8));
+                    }
+                    break;
                 }
-            }, this.getClass(), ExhibitShellHandler.class);
+                if (isContinue.get()) {
+                    continue;
+                }
 
-            latch.await();
+                if (shell.getStatus().equals(Shell.Status.NORMAL)) {
+                    shell.setLocalLastCmd(cmd + StrUtil.CRLF);
+                }
+
+                CountDownLatch latch = new CountDownLatch(1);
+                if (StatusCache.EXECUTE_CD_CMD) {
+                    StatusCache.EXECUTE_CD_CMD = false;
+                    StatusCache.EXHIBIT_WAITING_BEFORE_COMMAND_PREPARE = true;
+                    JsonObject request = new JsonObject();
+                    request.put("sessionId", sessionId);
+                    request.put("cmd", " pwd");
+                    eventBus.request(EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL.address(), request, result -> {
+                        shell.setFullPath(cast(result.result().body()));
+                        latch.countDown();
+                    });
+                } else {
+                    latch.countDown();
+                }
+
+                String actualCmd = cmd.toString().trim() + StrUtil.LF;
+
+                AtomicBoolean remoteDisconnect = new AtomicBoolean();
+                SharedCountdownLatch.await(() -> {
+                    try {
+                        shell.writeAndFlush(actualCmd.getBytes(StandardCharsets.UTF_8));
+                    } catch (RemoteDisconnectException e) {
+                        // do nothing
+                        remoteDisconnect.set(true);
+                    }
+                }, this.getClass(), ExhibitShellHandler.class);
+                if (remoteDisconnect.get()) {
+                    promise.complete(sessionId);
+                }
+
+                latch.await();
+            } catch (RemoteDisconnectException e) {
+               promise.complete(sessionId);
+            }
 
         }
+        disconnectLatch.countDown();
     }
 
     @Override
     protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+        disconnectLatch.await();
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = false;
         StatusCache.STOP_LISTEN_TERMINAL_SIZE_CHANGE = true;
 

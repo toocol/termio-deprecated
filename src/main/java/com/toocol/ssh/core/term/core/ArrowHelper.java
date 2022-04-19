@@ -1,10 +1,9 @@
 package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.common.utils.CharUtil;
+import com.toocol.ssh.core.shell.core.Shell;
 import jline.console.ConsoleReader;
 import jline.internal.NonBlockingInputStream;
-
-import java.io.OutputStream;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -44,7 +43,7 @@ public class ArrowHelper {
     /**
      * To see <a href="https://github.com/jline/jline2/issues/152">jline2/issues/152</a>
      */
-    public char processArrowBundle(char inChar, ConsoleReader reader, OutputStream outputStream) {
+    public char processArrowBundle(char inChar, Shell shell, ConsoleReader reader) {
         if (inChar != CharUtil.ESCAPE) {
             return inChar;
         }
@@ -70,8 +69,8 @@ public class ArrowHelper {
                 case 'D':
                     return CharUtil.LEFT_ARROW;
                 default:
-                    outputStream.write(CharUtil.ESCAPE);
-                    outputStream.write(CharUtil.BRACKET_START);
+                    shell.write(CharUtil.ESCAPE);
+                    shell.write(CharUtil.BRACKET_START);
                     return inner;
             }
 

@@ -8,7 +8,6 @@ import jline.console.ConsoleReader;
 import org.apache.commons.lang3.StringUtils;
 import sun.misc.Signal;
 
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -16,10 +15,9 @@ import java.nio.charset.StandardCharsets;
  * @date: 2022/4/13 2:07
  * @version: 0.0.1
  */
-record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader) {
+record ShellReader(Shell shell, ConsoleReader reader) {
 
     void initReader() {
-        reader.setHistoryEnabled(false);
         /*
          * custom handle CTRL+C
          */
@@ -27,8 +25,7 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
             try {
                 shell.historyCmdHelper.reset();
                 shell.cmd.delete(0, shell.cmd.length());
-                outputStream.write(CharUtil.CTRL_C);
-                outputStream.flush();
+                shell.writeAndFlush(CharUtil.CTRL_C);
                 shell.status = Shell.Status.NORMAL;
             } catch (Exception e) {
                 // do nothing
@@ -59,10 +56,9 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
 
             if (shell.status.equals(Shell.Status.VIM_UNDER)) {
 
-                char vimChar = shell.arrowHelper.processArrowBundle(finalChar, shell.shellReader.reader, outputStream);
+                char vimChar = shell.arrowHelper.processArrowBundle(finalChar, shell, reader);
 
-                outputStream.write(shell.vimHelper.transferVimInput(vimChar));
-                outputStream.flush();
+                shell.writeAndFlush(shell.vimHelper.transferVimInput(vimChar));
 
             } else if (shell.status.equals(Shell.Status.MORE_PROC)
                     || shell.status.equals(Shell.Status.MORE_EDIT)
@@ -76,8 +72,7 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
                     default -> support = false;
                 }
                 if (support) {
-                    outputStream.write(finalChar);
-                    outputStream.flush();
+                    shell.writeAndFlush(finalChar);
                 }
 
             } else {
@@ -92,8 +87,7 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
                             } else if (StringUtils.isNotEmpty(shell.remoteCmd.get())) {
                                 byte[] write = "\u007F".repeat(shell.remoteCmd.get().length()).getBytes(StandardCharsets.UTF_8);
                                 if (write.length > 0) {
-                                    outputStream.write(write);
-                                    outputStream.flush();
+                                    shell.writeAndFlush(write);
                                     String cmdToPush = shell.remoteCmd.get().toString().replaceAll("\u007F", "");
                                     shell.historyCmdHelper.pushToDown(cmdToPush);
                                 }
@@ -127,8 +121,7 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
                     shell.localLastInput.delete(0, shell.localLastInput.length()).append(localLastInputBuffer);
                     localLastInputBuffer = new StringBuilder();
                     shell.tabFeedbackRec.clear();
-                    outputStream.write(shell.cmd.append(CharUtil.TAB).toString().getBytes(StandardCharsets.UTF_8));
-                    outputStream.flush();
+                    shell.writeAndFlush(shell.cmd.append(CharUtil.TAB).toString().getBytes(StandardCharsets.UTF_8));
                     shell.cmd.delete(0, shell.cmd.length());
                     shell.status = Shell.Status.TAB_ACCOMPLISH;
 
@@ -141,8 +134,7 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
                         shell.selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
                         shell.cmd.delete(0, shell.cmd.length());
                         if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                            outputStream.write(3);
-                            outputStream.flush();
+                            shell.writeAndFlush(CharUtil.CTRL_C);
                         }
                         continue;
                     }
@@ -201,6 +193,6 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
                 }
             }
         }
-
     }
+
 }
