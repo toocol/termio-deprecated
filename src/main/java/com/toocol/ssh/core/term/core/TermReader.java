@@ -5,7 +5,6 @@ import jline.console.ConsoleReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -37,19 +36,16 @@ public class TermReader {
             Printer.print(prompt);
         }
 
-        AtomicBoolean acceptEscape = new AtomicBoolean();
-        AtomicBoolean acceptBracketsAfterEscape = new AtomicBoolean();
-
         StringBuilder lineBuilder = new StringBuilder();
         try {
             while (true) {
                 char inChar = (char) reader.readCharacter();
 
-                char finalChar = arrowHelper.processArrow(inChar, acceptEscape, acceptBracketsAfterEscape);
+                char finalChar = arrowHelper.processArrowStream(inChar);
 
                 if (CharUtil.isAsciiPrintable(finalChar)) {
 
-                    if (acceptBracketsAfterEscape.get()) {
+                    if (arrowHelper.isAcceptBracketAfterEscape()) {
                         continue;
                     }
                     Printer.print(String.valueOf(finalChar));
@@ -72,6 +68,8 @@ public class TermReader {
                             lineBuilder.delete(0, lineBuilder.length()).append(down);
                         }
                     }
+                } else if(finalChar == CharUtil.LEFT_ARROW || finalChar == CharUtil.RIGHT_ARROW) {
+
                 } else if (finalChar == CharUtil.TAB) {
                     // To fulfill command.
                 } else if (finalChar == CharUtil.BACKSPACE) {

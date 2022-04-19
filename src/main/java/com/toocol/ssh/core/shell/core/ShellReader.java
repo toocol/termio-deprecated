@@ -10,7 +10,6 @@ import sun.misc.Signal;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -18,7 +17,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @version: 0.0.1
  */
 record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader) {
-
 
     void initReader() {
         reader.setHistoryEnabled(false);
@@ -39,9 +37,6 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
     }
 
     void readCmd() throws Exception {
-        AtomicBoolean acceptEscape = new AtomicBoolean();
-        AtomicBoolean acceptBracketsAfterEscape = new AtomicBoolean();
-
         shell.cmd.delete(0, shell.cmd.length());
         StringBuilder localLastInputBuffer = new StringBuilder();
         while (true) {
@@ -50,7 +45,8 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
             /*
              * Start to deal with arrow key.
              */
-            char finalChar = shell.arrowHelper.processArrow(inChar, acceptEscape, acceptBracketsAfterEscape);
+            char finalChar = shell.arrowHelper.processArrowStream(inChar);
+
             if (finalChar != inChar) {
                 if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
                     shell.remoteCmd.getAndUpdate(prev -> prev.deleteCharAt(prev.length() - 1));
@@ -63,11 +59,9 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
 
             if (shell.status.equals(Shell.Status.VIM_UNDER)) {
 
-                if (CharUtil.isChinese(finalChar)) {
-                    outputStream.write(String.valueOf(finalChar).getBytes(StandardCharsets.UTF_8));
-                } else {
-                    outputStream.write(finalChar);
-                }
+                char vimChar = shell.arrowHelper.processArrowBundle(finalChar, shell.shellReader.reader, outputStream);
+
+                outputStream.write(shell.vimHelper.transferVimInput(vimChar));
                 outputStream.flush();
 
             } else if (shell.status.equals(Shell.Status.MORE_PROC)
@@ -122,10 +116,6 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
                         if (cursorX < (shell.currentPrint.get().length() + shell.prompt.get().length())) {
                             shell.term.cursorRight();
                         }
-                    }
-                    if (shell.remoteCmd.get().length() > 0) {
-                        outputStream.write(finalChar);
-                        outputStream.flush();
                     }
 
                 } else if (finalChar == CharUtil.TAB) {
@@ -204,7 +194,7 @@ record ShellReader(Shell shell, OutputStream outputStream, ConsoleReader reader)
                     shell.currentPrint.getAndUpdate(prev -> prev.append(finalChar));
                     shell.cmd.append(finalChar);
                     localLastInputBuffer.append(finalChar);
-                    if (acceptBracketsAfterEscape.get()) {
+                    if (shell.arrowHelper.isAcceptBracketAfterEscape()) {
                         continue;
                     }
                     Printer.print(String.valueOf(finalChar));

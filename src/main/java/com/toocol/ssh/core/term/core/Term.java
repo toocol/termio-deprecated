@@ -16,7 +16,6 @@ public class Term {
     private static final TermioJNI JNI = TermioJNI.getInstance();
 
     private final Terminal terminal;
-
     private final TermReader termReader;
 
     private Term() {

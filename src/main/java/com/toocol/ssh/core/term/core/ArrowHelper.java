@@ -1,8 +1,10 @@
 package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.common.utils.CharUtil;
+import jline.console.ConsoleReader;
+import jline.internal.NonBlockingInputStream;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.io.OutputStream;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -11,20 +13,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ArrowHelper {
 
-    public char processArrow(char inChar, AtomicBoolean acceptEscape, AtomicBoolean acceptBracketsAfterEscape) {
-        if (inChar == '\u001B') {
-            acceptEscape.set(true);
+    private boolean acceptEscape = false;
+    private boolean acceptBracketAfterEscape = false;
+
+    public char processArrowStream(char inChar) {
+        if (inChar == CharUtil.ESCAPE) {
+            acceptEscape = true;
         }
-        if (acceptEscape.get()) {
-            if (inChar == '[') {
-                acceptBracketsAfterEscape.set(true);
-            } else if (inChar != '\u001B') {
-                acceptEscape.set(false);
+        if (acceptEscape) {
+            if (inChar == CharUtil.BRACKET_START) {
+                acceptBracketAfterEscape = true;
+            } else if (inChar != CharUtil.ESCAPE) {
+                acceptEscape = false;
             }
         }
-        if (acceptBracketsAfterEscape.get() && inChar != '[') {
-            acceptEscape.set(false);
-            acceptBracketsAfterEscape.set(false);
+        if (acceptBracketAfterEscape && inChar != CharUtil.BRACKET_START) {
+            acceptEscape = false;
+            acceptBracketAfterEscape = false;
             inChar = switch (inChar) {
                 case 'A' -> CharUtil.UP_ARROW;
                 case 'B' -> CharUtil.DOWN_ARROW;
@@ -34,6 +39,49 @@ public class ArrowHelper {
             };
         }
         return inChar;
+    }
+
+    /**
+     * To see <a href="https://github.com/jline/jline2/issues/152">jline2/issues/152</a>
+     */
+    public char processArrowBundle(char inChar, ConsoleReader reader, OutputStream outputStream) {
+        if (inChar != CharUtil.ESCAPE) {
+            return inChar;
+        }
+        try {
+            NonBlockingInputStream stream = (NonBlockingInputStream) reader.getInput();
+            // Value -2 is the special code meaning that stream reached its end
+            if (stream.peek(100) <= -2) {
+                return CharUtil.ESCAPE;
+            }
+
+            char inner;
+            do {
+                inner = (char) reader.readCharacter();
+            } while (inner == CharUtil.BRACKET_START);
+
+            switch (inner) {
+                case 'A':
+                    return CharUtil.UP_ARROW;
+                case 'B':
+                    return CharUtil.DOWN_ARROW;
+                case 'C':
+                   return CharUtil.RIGHT_ARROW;
+                case 'D':
+                    return CharUtil.LEFT_ARROW;
+                default:
+                    outputStream.write(CharUtil.ESCAPE);
+                    outputStream.write(CharUtil.BRACKET_START);
+                    return inner;
+            }
+
+        } catch (Exception e) {
+            return inChar;
+        }
+    }
+
+    public boolean isAcceptBracketAfterEscape() {
+        return acceptBracketAfterEscape;
     }
 
 }

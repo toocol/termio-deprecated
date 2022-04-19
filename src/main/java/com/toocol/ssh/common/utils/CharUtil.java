@@ -19,15 +19,15 @@ public class CharUtil {
     /**
      * {@code down-arrow} translated
      */
-    public static final int DOWN_ARROW = '\u000E';
+    public static final int DOWN_ARROW = '\u0011';
     /**
      * {@code up-arrow} translated
      */
-    public static final int LEFT_ARROW = '\u0002';
+    public static final int LEFT_ARROW = '\u0012';
     /**
      * {@code down-arrow} translated
      */
-    public static final int RIGHT_ARROW = '\u0006';
+    public static final int RIGHT_ARROW = '\u0013';
     /**
      * {@code Ctrl+B}
      */
@@ -96,6 +96,10 @@ public class CharUtil {
      * <code>'}'</code>
      */
     public static final char DELIM_END = '}';
+    /**
+     * <code>Esc</code>
+     */
+    public static final char ESCAPE = '\u001B';
     /**
      * {@code '['}
      */

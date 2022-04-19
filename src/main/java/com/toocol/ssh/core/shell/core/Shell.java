@@ -64,6 +64,7 @@ public class Shell {
     protected final HistoryCmdHelper historyCmdHelper;
     protected final MoreHelper moreHelper;
     protected final ArrowHelper arrowHelper;
+    protected final VimHelper vimHelper;
 
     public volatile AtomicReference<StringBuffer> localLastCmd = new AtomicReference<>(new StringBuffer());
     public volatile AtomicReference<StringBuffer> remoteCmd = new AtomicReference<>(new StringBuffer());
@@ -116,6 +117,7 @@ public class Shell {
         this.historyCmdHelper = new HistoryCmdHelper(this);
         this.moreHelper = new MoreHelper();
         this.arrowHelper = new ArrowHelper();
+        this.vimHelper = new VimHelper();
 
         this.shellReader.initReader();
     }
