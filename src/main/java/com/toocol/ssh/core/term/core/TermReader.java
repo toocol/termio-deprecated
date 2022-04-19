@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.common.utils.CharUtil;
+import com.toocol.ssh.common.utils.Tuple2;
 import jline.console.ConsoleReader;
 import org.apache.commons.lang3.StringUtils;
 
@@ -12,14 +13,16 @@ import java.io.IOException;
  */
 public class TermReader {
 
+    private final Term term;
     private final ArrowHelper arrowHelper;
-    private final TermHistoryHelper historyHelper ;
+    private final TermHistoryHelper historyHelper;
 
     private ConsoleReader reader;
 
     public TermReader(Term term) {
         arrowHelper = new ArrowHelper();
         historyHelper = new TermHistoryHelper(term);
+        this.term = term;
     }
 
     {
@@ -48,8 +51,18 @@ public class TermReader {
                     if (arrowHelper.isAcceptBracketAfterEscape()) {
                         continue;
                     }
-                    Printer.print(String.valueOf(finalChar));
-                    lineBuilder.append(finalChar);
+                    Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
+                    if (cursorPosition._1() < lineBuilder.length() + Term.PROMPT.length()) {
+                        int index = cursorPosition._1() - Term.PROMPT.length();
+                        lineBuilder.insert(index, finalChar);
+                        term.hideCursor();
+                        Printer.print(lineBuilder.substring(index, lineBuilder.length()));
+                        term.setCursorPosition(cursorPosition._1() + 1, cursorPosition._2());
+                        term.showCursor();
+                    } else {
+                        lineBuilder.append(finalChar);
+                        Printer.print(String.valueOf(finalChar));
+                    }
 
                 } else if (finalChar == CharUtil.UP_ARROW || finalChar == CharUtil.DOWN_ARROW) {
                     if (finalChar == CharUtil.UP_ARROW) {
@@ -68,8 +81,17 @@ public class TermReader {
                             lineBuilder.delete(0, lineBuilder.length()).append(down);
                         }
                     }
-                } else if(finalChar == CharUtil.LEFT_ARROW || finalChar == CharUtil.RIGHT_ARROW) {
-
+                } else if (finalChar == CharUtil.LEFT_ARROW || finalChar == CharUtil.RIGHT_ARROW) {
+                    int cursorX = term.getCursorPosition()._1();
+                    if (finalChar == CharUtil.LEFT_ARROW) {
+                        if (cursorX > Term.PROMPT.length()) {
+                            term.cursorLeft();
+                        }
+                    } else {
+                        if (cursorX < (lineBuilder.length() + Term.PROMPT.length())) {
+                            term.cursorRight();
+                        }
+                    }
                 } else if (finalChar == CharUtil.TAB) {
                     // To fulfill command.
                 } else if (finalChar == CharUtil.BACKSPACE) {

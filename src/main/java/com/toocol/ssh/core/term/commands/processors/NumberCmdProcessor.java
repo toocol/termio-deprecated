@@ -19,7 +19,13 @@ public class NumberCmdProcessor extends OutsideCommandProcessor {
             resultAndMsg.first(false).second("There can't be any spaces or other character between numbers.");
             return;
         }
-        int idx = Integer.parseInt(cmd);
+        int idx;
+        try {
+            idx = Integer.parseInt(cmd);
+        } catch (Exception e) {
+            resultAndMsg.first(false).second("Number is too long.");
+            return;
+        }
         if (idx <= 0) {
             resultAndMsg.first(false).second("The input number must > 0.");
             return;

@@ -2,6 +2,7 @@ package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import jline.console.ConsoleReader;
@@ -36,6 +37,7 @@ record ShellReader(Shell shell, ConsoleReader reader) {
     void readCmd() throws Exception {
         shell.cmd.delete(0, shell.cmd.length());
         StringBuilder localLastInputBuffer = new StringBuilder();
+        boolean remoteCursorOffset = false;
         while (true) {
             char inChar = (char) reader.readCharacter();
 
@@ -43,16 +45,6 @@ record ShellReader(Shell shell, ConsoleReader reader) {
              * Start to deal with arrow key.
              */
             char finalChar = shell.arrowHelper.processArrowStream(inChar);
-
-            if (finalChar != inChar) {
-                if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                    shell.remoteCmd.getAndUpdate(prev -> prev.deleteCharAt(prev.length() - 1));
-                    shell.localLastCmd.getAndUpdate(prev -> prev.deleteCharAt(prev.length() - 1));
-                }
-                shell.currentPrint.getAndUpdate(prev -> prev.deleteCharAt(prev.length() - 1));
-                shell.cmd.deleteCharAt(shell.cmd.length() - 1);
-                localLastInputBuffer.deleteCharAt(localLastInputBuffer.length() - 1);
-            }
 
             if (shell.status.equals(Shell.Status.VIM_UNDER)) {
 
@@ -174,22 +166,49 @@ record ShellReader(Shell shell, ConsoleReader reader) {
                     if (!StrUtil.EMPTY.equals(shell.lastExecuteCmd.toString()) && shell.status == Shell.Status.NORMAL) {
                         shell.historyCmdHelper.push(shell.lastExecuteCmd.toString());
                     }
+                    if (remoteCursorOffset) {
+                        shell.cmd.delete(0, shell.cmd.length());
+                    }
                     Printer.print(StrUtil.CRLF);
                     shell.status = Shell.Status.NORMAL;
                     break;
-                } else if (CharUtil.isAsciiPrintable(finalChar)) {
 
-                    if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                        shell.remoteCmd.getAndUpdate(prev -> prev.append(finalChar));
-                        shell.localLastCmd.getAndUpdate(prev -> prev.append(finalChar));
-                    }
-                    shell.currentPrint.getAndUpdate(prev -> prev.append(finalChar));
-                    shell.cmd.append(finalChar);
-                    localLastInputBuffer.append(finalChar);
+                } else if (CharUtil.isAsciiPrintable(finalChar)) {
                     if (shell.arrowHelper.isAcceptBracketAfterEscape()) {
                         continue;
                     }
-                    Printer.print(String.valueOf(finalChar));
+                    Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
+                    if (cursorPosition._1() < shell.currentPrint.get().length() + shell.prompt.get().length()) {
+                        // move cursor to insert char.
+                        int index = cursorPosition._1() - shell.prompt.get().length();
+                        if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
+                            String removal = "\u007F".repeat(shell.remoteCmd.get().length());
+                            shell.remoteCmd.getAndUpdate(prev -> prev.insert(index, finalChar));
+                            shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.remoteCmd.get()));
+                            removal += shell.remoteCmd.get().toString();
+                            shell.writeAndFlush(removal.getBytes(StandardCharsets.UTF_8));
+                            remoteCursorOffset = true;
+                        } else {
+                            shell.cmd.insert(index, finalChar);
+                            localLastInputBuffer.insert(index, finalChar);
+                        }
+                        shell.currentPrint.getAndUpdate(prev -> prev.insert(index, finalChar));
+                        shell.term.hideCursor();
+                        Printer.print(shell.currentPrint.get().substring(index, shell.currentPrint.get().length()));
+                        shell.term.setCursorPosition(cursorPosition._1() + 1, cursorPosition._2());
+                        shell.term.showCursor();
+                    } else {
+                        // normal print
+                        if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
+                            shell.remoteCmd.getAndUpdate(prev -> prev.append(finalChar));
+                            shell.localLastCmd.getAndUpdate(prev -> prev.append(finalChar));
+                        }
+                        shell.currentPrint.getAndUpdate(prev -> prev.append(finalChar));
+                        shell.cmd.append(finalChar);
+                        localLastInputBuffer.append(finalChar);
+                        Printer.print(String.valueOf(finalChar));
+                    }
+
                 }
             }
         }
