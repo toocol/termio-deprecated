@@ -8,10 +8,7 @@ import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
 import java.io.InputStream;
@@ -32,8 +29,8 @@ public class ShellDisplayHandler extends AbstractMessageHandler<Long> {
 
     private volatile long firstIn = 0;
 
-    public ShellDisplayHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
-        super(vertx, executor, parallel);
+    public ShellDisplayHandler(Vertx vertx, Context context, boolean parallel) {
+        super(vertx, context, parallel);
     }
 
     @Override

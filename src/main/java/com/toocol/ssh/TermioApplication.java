@@ -1,7 +1,6 @@
 package com.toocol.ssh;
 
-import com.toocol.ssh.common.annotation.FinalDeployment;
-import com.toocol.ssh.common.annotation.PreloadDeployment;
+import com.toocol.ssh.common.annotation.VerticleDeployment;
 import com.toocol.ssh.common.jni.JNILoader;
 import com.toocol.ssh.common.utils.CastUtil;
 import com.toocol.ssh.common.utils.ClassScanner;
@@ -51,8 +50,10 @@ public class TermioApplication {
         });
 
         /* Because this program involves a large number of IO operations, increasing the blocking check time, we don't need it */
-        VertxOptions options = new VertxOptions();
-        options.setBlockedThreadCheckInterval(BLOCKED_CHECK_INTERVAL);
+        VertxOptions options = new VertxOptions()
+                .setBlockedThreadCheckInterval(BLOCKED_CHECK_INTERVAL)
+                .setWorkerPoolSize(5)
+                .setEventLoopPoolSize(5);
         final Vertx vertx = Vertx.vertx(options);
 
         /* Add shutdown hook */
@@ -66,8 +67,8 @@ public class TermioApplication {
             }
         }));
 
-        /* Get the preload verticle which need to deploy in main class by annotation */
-        Set<Class<?>> annotatedClassList = new ClassScanner("com.toocol.ssh.core", clazz -> clazz.isAnnotationPresent(PreloadDeployment.class)).scan();
+        /* Get the verticle which need to deploy in main class by annotation */
+        Set<Class<?>> annotatedClassList = new ClassScanner("com.toocol.ssh.core", clazz -> clazz.isAnnotationPresent(VerticleDeployment.class)).scan();
         List<Class<? extends AbstractVerticle>> preloadVerticleClassList = new ArrayList<>();
         annotatedClassList.forEach(annotatedClass -> {
             if (annotatedClass.getSuperclass().equals(AbstractVerticle.class)) {
@@ -78,54 +79,43 @@ public class TermioApplication {
         });
         final CountDownLatch initialLatch = new CountDownLatch(preloadVerticleClassList.size());
 
-        /* Deploy the preload verticle */
-        preloadVerticleClassList.sort(Comparator.comparingInt(clazz -> -1 * clazz.getAnnotation(PreloadDeployment.class).weight()));
-        preloadVerticleClassList.forEach(verticleClass ->
-                vertx.deployVerticle(verticleClass.getName(), new DeploymentOptions(), result -> {
-                    if (result.succeeded()) {
-                        initialLatch.countDown();
-                    } else {
-                        Printer.printErr("Terminal start up failed, verticle = " + verticleClass.getSimpleName());
-                        vertx.close();
-                        System.exit(-1);
+        /* Deploy the verticle */
+        preloadVerticleClassList.sort(Comparator.comparingInt(clazz -> -1 * clazz.getAnnotation(VerticleDeployment.class).weight()));
+        preloadVerticleClassList.forEach(verticleClass -> {
+                    VerticleDeployment deploy = verticleClass.getAnnotation(VerticleDeployment.class);
+                    DeploymentOptions deploymentOptions = new DeploymentOptions();
+                    if (deploy.worker()) {
+                        deploymentOptions.setWorker(true).setWorkerPoolSize(deploy.workerPoolSize()).setWorkerPoolName(deploy.workerPoolName());
                     }
-                })
+                    vertx.deployVerticle(verticleClass.getName(), deploymentOptions, result -> {
+                        if (result.succeeded()) {
+                            initialLatch.countDown();
+                        } else {
+                            Printer.printErr("Terminal start up failed, verticle = " + verticleClass.getSimpleName());
+                            vertx.close();
+                            System.exit(-1);
+                        }
+                    });
+                }
         );
 
-        /* Deploy the final verticle */
-        vertx.executeBlocking(promise -> {
-            Set<Class<?>> finalClassList = new ClassScanner("com.toocol.ssh.core", clazz -> clazz.isAnnotationPresent(FinalDeployment.class)).scan();
-            finalClassList.forEach(finalVerticle -> {
-                if (!finalVerticle.getSuperclass().equals(AbstractVerticle.class)) {
-                    return;
-                }
-                try {
-                    boolean ret = initialLatch.await(30, TimeUnit.SECONDS);
-                    if (!ret) {
-                        throw new RuntimeException();
-                    }
-                    vertx.deployVerticle(finalVerticle.getName(), complete -> promise.complete());
-                } catch (Exception e) {
-                    vertx.close();
-                    Printer.printErr("Termio start up failed.");
-                    System.exit(-1);
-                }
-            });
-        }, res -> {
-            try {
-                while (true) {
-                    if (StatusCache.LOADING_ACCOMPLISH) {
-                        loadingLatch.await();
-                        vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), AcceptCommandHandler.FIRST_IN);
-                        System.gc();
-                        break;
-                    }
-                }
-            } catch (Exception e) {
-                vertx.close();
-                Printer.printErr("Termio start up error, failed to accept command.");
-                System.exit(-1);
+        try {
+            boolean ret = initialLatch.await(30, TimeUnit.SECONDS);
+            if (!ret) {
+                throw new RuntimeException("Waiting timeout.");
             }
-        });
+            while (true) {
+                if (StatusCache.LOADING_ACCOMPLISH) {
+                    loadingLatch.await();
+                    vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), AcceptCommandHandler.FIRST_IN);
+                    System.gc();
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            vertx.close();
+            Printer.printErr("Termio start up error, failed to accept command.");
+            System.exit(-1);
+        }
     }
 }

@@ -6,10 +6,7 @@ import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.core.Term;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
 import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
@@ -24,8 +21,8 @@ public class MonitorTerminalHandler extends AbstractMessageHandler<Void> {
 
     private final Term term = Term.getInstance();
 
-    public MonitorTerminalHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
-        super(vertx, executor, parallel);
+    public MonitorTerminalHandler(Vertx vertx, Context context, boolean parallel) {
+        super(vertx, context, parallel);
     }
 
     @Override

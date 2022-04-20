@@ -5,10 +5,7 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.core.SftpChannelProvider;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.io.IOUtils;
@@ -33,8 +30,8 @@ public class DfHandler extends AbstractMessageHandler<byte[]> {
     public static final int DF_TYPE_FILE = 1;
     public static final int DF_TYPE_BYTE = 2;
 
-    public DfHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
-        super(vertx, executor, parallel);
+    public DfHandler(Vertx vertx, Context context, boolean parallel) {
+        super(vertx, context, parallel);
     }
 
     @Override

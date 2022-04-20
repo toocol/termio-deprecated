@@ -7,9 +7,9 @@ import com.toocol.ssh.core.term.commands.TermioCommand;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
 import io.vertx.core.eventbus.Message;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,8 +30,8 @@ public class AcceptCommandHandler extends AbstractMessageHandler<Boolean> {
     public static final int ACCEPT_ERROR = 2;
     public static final int CONNECT_FAILED = 3;
 
-    public AcceptCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
-        super(vertx, executor, parallel);
+    public AcceptCommandHandler(Vertx vertx, Context context, boolean parallel) {
+        super(vertx, context, parallel);
     }
 
     @Override

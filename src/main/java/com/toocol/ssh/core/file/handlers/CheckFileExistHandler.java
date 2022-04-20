@@ -14,8 +14,8 @@ import static com.toocol.ssh.core.file.FileAddress.ADDRESS_CHECK_FILE_EXIST;
  */
 public class CheckFileExistHandler extends AbstractMessageHandler<Void> {
 
-    public CheckFileExistHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
-        super(vertx, executor, parallel);
+    public CheckFileExistHandler(Vertx vertx, Context context, boolean parallel) {
+        super(vertx, context, parallel);
     }
 
     @Override

@@ -17,8 +17,8 @@ import static com.toocol.ssh.core.auth.AuthAddress.ADD_CREDENTIAL;
  */
 public class AddCredentialHandler extends AbstractMessageHandler<Boolean> {
 
-    public AddCredentialHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
-        super(vertx, executor, parallel);
+    public AddCredentialHandler(Vertx vertx, Context context, boolean parallel) {
+        super(vertx, context, parallel);
     }
 
     @Override

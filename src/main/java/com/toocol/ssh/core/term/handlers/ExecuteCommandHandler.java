@@ -17,8 +17,8 @@ import static com.toocol.ssh.core.term.TermAddress.ADDRESS_EXECUTE_OUTSIDE;
  */
 public class ExecuteCommandHandler extends AbstractMessageHandler<Tuple2<Boolean, String>> {
 
-    public ExecuteCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
-        super(vertx, executor, parallel);
+    public ExecuteCommandHandler(Vertx vertx, Context context, boolean parallel) {
+        super(vertx, context, parallel);
     }
 
     @Override

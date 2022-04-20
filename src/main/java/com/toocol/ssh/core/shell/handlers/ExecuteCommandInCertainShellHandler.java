@@ -9,10 +9,7 @@ import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.CmdFeedbackHelper;
 import com.toocol.ssh.core.shell.core.Shell;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
@@ -31,8 +28,8 @@ public class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<
 
     private final SessionCache sessionCache = SessionCache.getInstance();
 
-    public ExecuteCommandInCertainShellHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
-        super(vertx, executor, parallel);
+    public ExecuteCommandInCertainShellHandler(Vertx vertx, Context context, boolean parallel) {
+        super(vertx, context, parallel);
     }
 
     @Override

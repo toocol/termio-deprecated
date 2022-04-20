@@ -17,22 +17,22 @@ public abstract class AbstractMessageHandler<R> implements ICastable {
      */
     protected final Vertx vertx;
     /**
+     * the context of verticle.
+     */
+    protected final Context context;
+    /**
      * the event bus of Vert.x
      */
     protected final EventBus eventBus;
-    /**
-     * the handler's Executor
-     */
-    protected final WorkerExecutor executor;
     /**
      * whether the handler is handle parallel
      */
     private final boolean parallel;
 
-    public AbstractMessageHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
+    public AbstractMessageHandler(Vertx vertx, Context context, boolean parallel) {
         this.vertx = vertx;
+        this.context = context;
         this.eventBus = vertx.eventBus();
-        this.executor = executor;
         this.parallel = parallel;
     }
 
@@ -50,7 +50,7 @@ public abstract class AbstractMessageHandler<R> implements ICastable {
      * @param <T>     generic type
      */
     public <T> void handle(Message<T> message) {
-        executor.executeBlocking(
+        context.executeBlocking(
                 promise -> {
                     try {
                         handleWithinBlocking(cast(promise), message);

@@ -16,8 +16,8 @@ import static com.toocol.ssh.core.auth.AuthAddress.DELETE_CREDENTIAL;
  */
 public class DeleteCredentialHandler extends AbstractMessageHandler<Boolean> {
 
-    public DeleteCredentialHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
-        super(vertx, executor, parallel);
+    public DeleteCredentialHandler(Vertx vertx, Context context, boolean parallel) {
+        super(vertx, context, parallel);
     }
 
     @Override

@@ -1,8 +1,8 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
+import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
 import com.toocol.ssh.core.shell.core.Shell;
-import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 
@@ -17,7 +17,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_UF_COMMAND;
  */
 public class ShellUfCmdProcessor extends ShellCommandProcessor {
     @Override
-    public String process(EventBus eventBus, Promise<Long> promise, Shell shell, AtomicBoolean isBreak, String cmd) {
+    public Tuple2<String, Long> process(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String cmd) {
         String remotePath = shell.getFullPath().get();
 
         JsonObject request = new JsonObject();
@@ -25,6 +25,6 @@ public class ShellUfCmdProcessor extends ShellCommandProcessor {
         request.put("remotePath", remotePath);
 
         eventBus.send(START_UF_COMMAND.address(), request);
-        return null;
+        return new Tuple2<>(null, null);
     }
 }

@@ -2,6 +2,7 @@ package com.toocol.ssh.core.shell.commands;
 
 import com.toocol.ssh.common.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.shell.commands.processors.*;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;
@@ -51,11 +52,11 @@ public enum ShellCommand {
         return Optional.ofNullable(shellCommand);
     }
 
-    public final String processCmd(EventBus eventBus, Promise<Long> promise, Shell shell, AtomicBoolean isBreak, String msg) {
+    public final Tuple2<String, Long> processCmd(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String msg) {
         if (this.commandProcessor == null) {
-            return StrUtil.EMPTY;
+            return new Tuple2<>(StrUtil.EMPTY, null);
         }
-        String result = null;
+        Tuple2<String, Long> result = new Tuple2<>();
         try {
             if (shell.getRemoteCmd().length() > 0) {
                 for (int idx = 0; idx < shell.getRemoteCmd().length(); idx++) {
@@ -64,12 +65,12 @@ public enum ShellCommand {
                 shell.flush();
             }
 
-            result = this.commandProcessor.process(eventBus, promise, shell, isBreak, msg);
+            result = this.commandProcessor.process(eventBus, shell, isBreak, msg);
 
             shell.writeAndFlush(StrUtil.LF.getBytes(StandardCharsets.UTF_8));
         } catch (RemoteDisconnectException e) {
             isBreak.set(true);
-            promise.complete(shell.getSessionId());
+            result.second(shell.getSessionId());
         }
         return result;
     }

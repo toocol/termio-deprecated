@@ -15,10 +15,7 @@ import com.toocol.ssh.core.shell.core.SshUserInfo;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.handlers.AcceptCommandHandler;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
 import java.util.Properties;
@@ -38,8 +35,8 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
     private final JSch jSch = new JSch();
     private final SnowflakeGuidGenerator guidGenerator = new SnowflakeGuidGenerator();
 
-    public EstablishSessionShellChannelHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
-        super(vertx, executor, parallel);
+    public EstablishSessionShellChannelHandler(Vertx vertx, Context context, boolean parallel) {
+        super(vertx, context, parallel);
     }
 
     @Override

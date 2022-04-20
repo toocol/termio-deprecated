@@ -5,21 +5,20 @@ import com.toocol.ssh.common.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.sync.SharedCountdownLatch;
 import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.handlers.AcceptCommandHandler;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.toocol.ssh.core.shell.ShellAddress.RECEIVE_SHELL;
 import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
@@ -33,10 +32,8 @@ public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
 
-    private CountDownLatch disconnectLatch;
-
-    public ShellReceiveHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
-        super(vertx, executor, parallel);
+    public ShellReceiveHandler(Vertx vertx, Context context, boolean parallel) {
+        super(vertx, context, parallel);
     }
 
     @Override
@@ -47,7 +44,6 @@ public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
     @Override
     protected <T> void handleWithinBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = true;
-        disconnectLatch = new CountDownLatch(1);
 
         long sessionId = cast(message.body());
         Shell shell = sessionCache.getShell(sessionId);
@@ -64,12 +60,16 @@ public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
 
                 AtomicBoolean isBreak = new AtomicBoolean();
                 AtomicBoolean isContinue = new AtomicBoolean();
+                AtomicReference<Long> completeSessionId = new AtomicReference<>();
                 ShellCommand.cmdOf(cmd.toString()).ifPresent(shellCommand -> {
                     try {
                         if (shell.getRemoteCmd().length() != 0) {
                             return;
                         }
-                        String finalCmd = shellCommand.processCmd(eventBus, promise, shell, isBreak, cmd.toString());
+                        String finalCmd;
+                        Tuple2<String, Long> result = shellCommand.processCmd(eventBus, shell, isBreak, cmd.toString());
+                        finalCmd = result._1();
+                        completeSessionId.set(result._2());
                         cmd.delete(0, cmd.length());
                         if (finalCmd != null) {
                             cmd.append(finalCmd);
@@ -82,7 +82,10 @@ public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
                 });
                 ShellCommand.cmdOf(shell.getRemoteCmd()).ifPresent(shellCommand -> {
                     try {
-                        String finalCmd = shellCommand.processCmd(eventBus, promise, shell, isBreak, shell.getRemoteCmd());
+                        String finalCmd;
+                        Tuple2<String, Long> result = shellCommand.processCmd(eventBus, shell, isBreak, cmd.toString());
+                        finalCmd = result._1();
+                        completeSessionId.set(result._2());
                         if (finalCmd != null) {
                             cmd.append(finalCmd);
                         } else {
@@ -98,6 +101,7 @@ public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
                     if (cmd.length() != 0) {
                         shell.writeAndFlush(cmd.append("\t").toString().getBytes(StandardCharsets.UTF_8));
                     }
+                    promise.complete(completeSessionId.get());
                     break;
                 }
                 if (isContinue.get()) {
@@ -153,12 +157,10 @@ public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
             }
 
         }
-        disconnectLatch.countDown();
     }
 
     @Override
     protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
-        disconnectLatch.await();
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = false;
         StatusCache.STOP_LISTEN_TERMINAL_SIZE_CHANGE = true;
 

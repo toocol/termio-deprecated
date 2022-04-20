@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PreloadDeployment {
+public @interface VerticleDeployment {
     /**
      * The executive weight of verticle, the bigger that number is, the more prior the verticle deployed.
      * If two verticle's weight is the same, the executive sequence is random.
@@ -31,9 +31,18 @@ public @interface PreloadDeployment {
     boolean worker() default false;
 
     /**
-     * the pool size of worker verticle
+     * the pool size of worker verticle.
+     * take effect only the worker is true.
      *
      * @return pool size
      */
-    int poolSize() default 20;
+    int workerPoolSize() default 20;
+
+    /**
+     * the executor pool name
+     * take effect only the worker is true.
+     *
+     * @return poll name
+     */
+    String workerPoolName() default "";
 }

@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
+import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;
@@ -14,8 +15,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ShellClearCmdProcessor extends ShellCommandProcessor {
     @Override
-    public String process(EventBus eventBus, Promise<Long> promise, Shell shell, AtomicBoolean isBreak, String cmd) {
+    public Tuple2<String, Long> process(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String cmd) {
         Printer.clear();
-        return null;
+        return new Tuple2<>(null, null);
     }
 }
