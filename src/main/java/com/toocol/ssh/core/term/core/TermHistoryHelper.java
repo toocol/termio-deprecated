@@ -1,7 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.common.utils.StrUtil;
-import com.toocol.ssh.core.shell.core.Shell;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Stack;
@@ -41,12 +40,6 @@ public class TermHistoryHelper {
 
     public TermHistoryHelper(Term term) {
         this.term = term;
-    }
-
-    public synchronized void initialize(String[] historyCmds) {
-        for (String historyCmd : historyCmds) {
-            baseCmdStack.push(historyCmd);
-        }
     }
 
     public synchronized void push(String cmd) {
