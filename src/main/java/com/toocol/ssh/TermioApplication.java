@@ -51,9 +51,7 @@ public class TermioApplication {
 
         /* Because this program involves a large number of IO operations, increasing the blocking check time, we don't need it */
         VertxOptions options = new VertxOptions()
-                .setBlockedThreadCheckInterval(BLOCKED_CHECK_INTERVAL)
-                .setWorkerPoolSize(5)
-                .setEventLoopPoolSize(5);
+                .setBlockedThreadCheckInterval(BLOCKED_CHECK_INTERVAL);
         final Vertx vertx = Vertx.vertx(options);
 
         /* Add shutdown hook */
