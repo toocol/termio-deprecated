@@ -3,7 +3,6 @@ package com.toocol.ssh.core.term.vert;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
-import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.handlers.AcceptOutsideCommandHandler;
 import com.toocol.ssh.core.term.handlers.ExecuteOutsideCommandHandler;
 import com.toocol.ssh.core.term.handlers.MonitorTerminalHandler;
@@ -27,8 +26,6 @@ public class TermVerticle extends AbstractVerticle implements IHandlerMounter {
         WorkerExecutor executor = vertx.createSharedWorkerExecutor("ssh-terminal-worker", 3);
 
         mountHandler(vertx, executor, true);
-
-        Printer.printlnWithLogo("Success start terminal verticle.");
     }
 
 }

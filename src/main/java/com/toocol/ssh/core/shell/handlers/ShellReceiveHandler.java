@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.toocol.ssh.core.shell.ShellAddress.ACCEPT_SHELL_CMD;
+import static com.toocol.ssh.core.shell.ShellAddress.RECEIVE_SHELL;
 import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
 import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
 
@@ -28,19 +28,19 @@ import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 15:25
  */
-public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
+public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
 
     private CountDownLatch disconnectLatch;
 
-    public AcceptShellCmdHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
+    public ShellReceiveHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
     }
 
     @Override
     public IAddress consume() {
-        return ACCEPT_SHELL_CMD;
+        return RECEIVE_SHELL;
     }
 
     @Override
@@ -132,7 +132,7 @@ public class AcceptShellCmdHandler extends AbstractMessageHandler<Long> {
                         // do nothing
                         remoteDisconnect.set(true);
                     }
-                }, this.getClass(), ExhibitShellHandler.class);
+                }, this.getClass(), ShellDisplayHandler.class);
                 if (remoteDisconnect.get()) {
                     promise.complete(sessionId);
                 }

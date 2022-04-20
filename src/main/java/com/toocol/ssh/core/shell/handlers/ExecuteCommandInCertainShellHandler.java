@@ -20,7 +20,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
-import static com.toocol.ssh.core.shell.ShellAddress.EXHIBIT_SHELL;
+import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -52,7 +52,7 @@ public class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<
                     StatusCache.EXHIBIT_WAITING_BEFORE_COMMAND_PREPARE = false;
                 },
                 this.getClass(),
-                ExhibitShellHandler.class
+                ShellDisplayHandler.class
         );
 
         ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
@@ -69,7 +69,7 @@ public class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<
         String feedback = new CmdFeedbackHelper(inputStream, cmd, shell).extractFeedback();
 
         StatusCache.ACCESS_EXHIBIT_SHELL_WITH_PROMPT = false;
-        eventBus.send(EXHIBIT_SHELL.address(), sessionId);
+        eventBus.send(DISPLAY_SHELL.address(), sessionId);
 
         promise.complete(feedback);
     }

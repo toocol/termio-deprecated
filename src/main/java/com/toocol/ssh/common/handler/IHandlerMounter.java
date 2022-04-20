@@ -38,13 +38,11 @@ public interface IHandlerMounter extends ICastable {
                 declaredConstructor.setAccessible(true);
                 AbstractMessageHandler<?> commandHandler = declaredConstructor.newInstance(vertx, executor, parallel);
                 vertx.eventBus().consumer(commandHandler.consume().address(), commandHandler::handle);
-                Printer.printlnWithLogo(clazz.getSimpleName() + " assemble handler " + handlerClass.getSimpleName() + " success.");
 
             } catch (Exception e) {
                 e.printStackTrace();
                 Printer.printErr("Assemble handler failed, message = " + e.getMessage());
                 System.exit(-1);
-
             }
         });
     }

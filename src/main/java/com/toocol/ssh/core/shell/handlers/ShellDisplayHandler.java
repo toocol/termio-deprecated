@@ -17,14 +17,14 @@ import io.vertx.core.eventbus.Message;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import static com.toocol.ssh.core.shell.ShellAddress.EXHIBIT_SHELL;
+import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 15:44
  */
 @SuppressWarnings("all")
-public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
+public class ShellDisplayHandler extends AbstractMessageHandler<Long> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
 
@@ -32,13 +32,13 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
 
     private volatile long firstIn = 0;
 
-    public ExhibitShellHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
+    public ShellDisplayHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
     }
 
     @Override
     public IAddress consume() {
-        return EXHIBIT_SHELL;
+        return DISPLAY_SHELL;
     }
 
     @Override
@@ -80,7 +80,7 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
                 if (hasPrint && StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
                     cmdHasFeedbackWhenJustExit = true;
                 }
-                SharedCountdownLatch.countdown(AcceptShellCmdHandler.class, this.getClass());
+                SharedCountdownLatch.countdown(ShellReceiveHandler.class, this.getClass());
             }
 
             if (StatusCache.HANGED_QUIT) {
@@ -137,7 +137,7 @@ public class ExhibitShellHandler extends AbstractMessageHandler<Long> {
             Long sessionId = asyncResult.result();
             ChannelShell channelShell = SessionCache.getInstance().getChannelShell(sessionId);
             if (channelShell != null && !channelShell.isClosed()) {
-                eventBus.send(EXHIBIT_SHELL.address(), sessionId);
+                eventBus.send(DISPLAY_SHELL.address(), sessionId);
             }
         }
     }

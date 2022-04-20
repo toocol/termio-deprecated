@@ -14,11 +14,11 @@ public enum ShellAddress implements IAddress{
     /**
      * accept the shell cmd
      */
-    ACCEPT_SHELL_CMD("ssh.accept.shell.cmd"),
+    RECEIVE_SHELL("ssh.accept.shell.cmd"),
     /**
      * exhibit the shell feedback
      */
-    EXHIBIT_SHELL("ssh.exhibit.shell"),
+    DISPLAY_SHELL("ssh.exhibit.shell"),
     /**
      * start uf command: chose file to upload
      */

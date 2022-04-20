@@ -167,8 +167,8 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
             StatusCache.SHOW_WELCOME = true;
 
             eventBus.send(MONITOR_TERMINAL.address(), sessionId);
-            eventBus.send(EXHIBIT_SHELL.address(), sessionId);
-            eventBus.send(ACCEPT_SHELL_CMD.address(), sessionId);
+            eventBus.send(DISPLAY_SHELL.address(), sessionId);
+            eventBus.send(RECEIVE_SHELL.address(), sessionId);
 
         } else {
 

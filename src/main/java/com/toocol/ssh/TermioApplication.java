@@ -36,14 +36,14 @@ public class TermioApplication {
 
     public static void main(String[] args) {
         JNILoader.load();
-
         if (args.length != 1) {
             Printer.printErr("Wrong boot type.");
             System.exit(-1);
         }
-
         SystemConfig.BOOT_TYPE = args[0];
-        Printer.printlnWithLogo("TerminalApplication register the vertx service.");
+
+        CountDownLatch loadingLatch = new CountDownLatch(1);
+        Printer.printLoading(loadingLatch);
 
         /* Block the Ctrl+C */
         Signal.handle(new Signal("INT"), signal -> {
@@ -96,7 +96,6 @@ public class TermioApplication {
             Set<Class<?>> finalClassList = new ClassScanner("com.toocol.ssh.core", clazz -> clazz.isAnnotationPresent(FinalDeployment.class)).scan();
             finalClassList.forEach(finalVerticle -> {
                 if (!finalVerticle.getSuperclass().equals(AbstractVerticle.class)) {
-                    Printer.printErr("Skip deploy verticle " + finalVerticle.getName() + ", please extends AbstractVerticle");
                     return;
                 }
                 try {
@@ -115,6 +114,7 @@ public class TermioApplication {
             try {
                 while (true) {
                     if (StatusCache.LOADING_ACCOMPLISH) {
+                        loadingLatch.await();
                         vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), 0);
                         System.gc();
                         break;

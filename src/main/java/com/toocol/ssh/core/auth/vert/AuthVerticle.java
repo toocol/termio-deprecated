@@ -4,12 +4,11 @@ import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.FileUtil;
-import com.toocol.ssh.core.term.core.Printer;
-import com.toocol.ssh.core.cache.StatusCache;
-import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.auth.handlers.AddCredentialHandler;
 import com.toocol.ssh.core.auth.handlers.DeleteCredentialHandler;
 import com.toocol.ssh.core.auth.vo.SshCredential;
+import com.toocol.ssh.core.cache.CredentialCache;
+import com.toocol.ssh.core.cache.StatusCache;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.core.json.JsonArray;
@@ -51,7 +50,5 @@ public class AuthVerticle extends AbstractVerticle implements IHandlerMounter {
                 StatusCache.LOADING_ACCOMPLISH = true;
             });
         });
-
-        Printer.printlnWithLogo("Success start the credential verticle.");
     }
 }

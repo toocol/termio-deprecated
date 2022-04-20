@@ -1,12 +1,15 @@
 package com.toocol.ssh.core.term.core;
 
+import com.toocol.ssh.common.jni.TermioJNI;
 import com.toocol.ssh.common.utils.PomUtil;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.term.commands.OutsideCommand;
 
 import java.io.PrintStream;
+import java.util.concurrent.CountDownLatch;
 
 import static com.toocol.ssh.core.config.SystemConfig.*;
 
@@ -19,6 +22,14 @@ public class Printer {
     public static final PrintStream PRINTER = System.out;
 
     private static final Runtime RUNTIME = Runtime.getRuntime();
+
+    private static final TermioJNI JNI = TermioJNI.getInstance();
+
+    private static final String[] patterns = new String[]{"-",
+            "\\",
+            "|",
+            "/",
+            "-"};
 
     private static long totalMemory() {
         return RUNTIME.totalMemory() / 1024 / 1024;
@@ -83,6 +94,35 @@ public class Printer {
             CredentialCache.showCredentials();
             println();
         }
+    }
+
+    @SuppressWarnings("all")
+    public static void printLoading(CountDownLatch latch) {
+        JNI.hideCursor();
+        clear();
+        new Thread(() -> {
+            int idx = 0;
+            print(patterns[idx++] + " starting termio.");
+            while (true) {
+                if (StatusCache.LOADING_ACCOMPLISH) {
+                    break;
+                }
+                JNI.setCursorPosition(0, 0);
+                ;
+                print(patterns[idx++]);
+                if (idx >= patterns.length) {
+                    idx = 1;
+                }
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    print("Start up failed.");
+                    System.exit(-1);
+                }
+            }
+            JNI.showCursor();
+            latch.countDown();
+        }).start();
     }
 
     public static void printPrompt(String wrongCmd) {

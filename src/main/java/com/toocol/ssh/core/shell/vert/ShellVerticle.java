@@ -3,7 +3,6 @@ package com.toocol.ssh.core.shell.vert;
 import com.toocol.ssh.common.annotation.FinalDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
-import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.shell.handlers.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
@@ -15,8 +14,8 @@ import io.vertx.core.WorkerExecutor;
 @FinalDeployment
 @RegisterHandler(handlers = {
         EstablishSessionShellChannelHandler.class,
-        ExhibitShellHandler.class,
-        AcceptShellCmdHandler.class,
+        ShellDisplayHandler.class,
+        ShellReceiveHandler.class,
         ExecuteSingleCommandHandler.class,
         ExecuteCommandInCertainShellHandler.class,
         DfHandler.class,
@@ -29,8 +28,6 @@ public class ShellVerticle extends AbstractVerticle implements IHandlerMounter {
         WorkerExecutor executor = vertx.createSharedWorkerExecutor("ssh-shell-worker", 10);
 
         mountHandler(vertx, executor, true);
-
-        Printer.printlnWithLogo("Success start ssh shell verticle.");
     }
 
 }
