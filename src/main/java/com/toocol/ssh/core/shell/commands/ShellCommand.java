@@ -28,6 +28,8 @@ public enum ShellCommand {
     CMD_CLEAR("clear", new ShellClearCmdProcessor(), null),
     ;
 
+    private static final String[] tabBuffer = new String[]{"\t\t\t", "\t\t", "\t"};
+
     private final String cmd;
     private final ShellCommandProcessor commandProcessor;
     private final String comment;
@@ -39,7 +41,7 @@ public enum ShellCommand {
     }
 
     public static Optional<ShellCommand> cmdOf(String cmd) {
-        String originCmd = cmd.trim().replaceAll(" {2,}"," ").split(" ")[0];
+        String originCmd = cmd.trim().replaceAll(" {2,}", " ").split(" ")[0];
         ShellCommand shellCommand = null;
         for (ShellCommand command : values()) {
             if (command.cmd.equals(originCmd)) {
@@ -56,7 +58,7 @@ public enum ShellCommand {
         String result = null;
         try {
             if (shell.getRemoteCmd().length() > 0) {
-                for (int idx = 0; idx < shell.getRemoteCmd().length(); idx ++) {
+                for (int idx = 0; idx < shell.getRemoteCmd().length(); idx++) {
                     shell.write('\u007F');
                 }
                 shell.flush();
@@ -77,14 +79,13 @@ public enum ShellCommand {
     }
 
     public static void printHelp() {
-        Printer.println();
-        Printer.println("Shell commands:        [param] means optional param");
+        Printer.println("Shell commands:\t\t[param] means optional param");
         for (ShellCommand command : values()) {
             if (command.comment == null) {
                 continue;
             }
-            Printer.println("\t" + command.cmd + "\t\t-- " + command.comment);
+            Printer.printColor(command.cmd, 78);
+            Printer.println(tabBuffer[command.cmd.length() / 8] + command.comment);
         }
-        Printer.println();
     }
 }

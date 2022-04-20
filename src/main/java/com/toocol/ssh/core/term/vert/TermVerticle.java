@@ -3,8 +3,8 @@ package com.toocol.ssh.core.term.vert;
 import com.toocol.ssh.common.annotation.PreloadDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
 import com.toocol.ssh.common.handler.IHandlerMounter;
-import com.toocol.ssh.core.term.handlers.AcceptOutsideCommandHandler;
-import com.toocol.ssh.core.term.handlers.ExecuteOutsideCommandHandler;
+import com.toocol.ssh.core.term.handlers.AcceptCommandHandler;
+import com.toocol.ssh.core.term.handlers.ExecuteCommandHandler;
 import com.toocol.ssh.core.term.handlers.MonitorTerminalHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.WorkerExecutor;
@@ -16,8 +16,8 @@ import io.vertx.core.WorkerExecutor;
 @PreloadDeployment
 @RegisterHandler(handlers = {
         MonitorTerminalHandler.class,
-        AcceptOutsideCommandHandler.class,
-        ExecuteOutsideCommandHandler.class
+        AcceptCommandHandler.class,
+        ExecuteCommandHandler.class
 })
 public class TermVerticle extends AbstractVerticle implements IHandlerMounter {
 

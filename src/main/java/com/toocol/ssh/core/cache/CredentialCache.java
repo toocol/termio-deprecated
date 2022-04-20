@@ -53,7 +53,15 @@ public class CredentialCache {
         try {
             AtomicInteger idx = new AtomicInteger(1);
             CREDENTIAL_SET.forEach(credential -> {
-                Printer.println("[" + idx.getAndIncrement() + "]\t\t" + credential.getUser() + "@" + credential.getHost());
+                Printer.print("[" + idx.getAndIncrement() + "]\t\t");
+                Printer.print(credential.getUser());
+                Printer.print("@");
+                Printer.printColor(credential.getHost(), 228);
+                if (SessionCache.getInstance().containSession(credential.getHost()) > 0) {
+                    Printer.print("\t\t");
+                    Printer.printColor("[active]", 78);
+                }
+                Printer.println();
             });
         } catch (Exception e) {
             Printer.println("System devastating error.");

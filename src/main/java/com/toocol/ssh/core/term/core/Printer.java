@@ -6,7 +6,7 @@ import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
-import com.toocol.ssh.core.term.commands.OutsideCommand;
+import com.toocol.ssh.core.term.commands.TermioCommand;
 
 import java.io.PrintStream;
 import java.util.concurrent.CountDownLatch;
@@ -71,6 +71,18 @@ public class Printer {
         println("<error> " + msg);
     }
 
+    public static void printColor(String msg, int color) {
+        print("\u001b[38;5;" + color + "m" + msg + "\u001b[0m");
+    }
+
+    public static void printlnColor(String msg, int color) {
+        println("\u001b[38;5;" + color + "m" + msg + "\u001b[0m");
+    }
+
+    public static void printColorBackground(String msg, int color) {
+        print("\u001b[48;5;" + color + "m" + msg + "\u001b[0m");
+    }
+
     public static void virtualBackspace() {
         print("\b");
         print(" ");
@@ -81,7 +93,7 @@ public class Printer {
         println("termio\t\tv" + PomUtil.getVersion() + "\n" +
                 "website\t\thttps://github.com/Joezeo/termio\n" +
                 "memory use\ttotal:" + totalMemory() + "MB, max:" + maxMemory() + "MB, free:" + freeMemory() + "MB, used:" + usedMemory() + "MB\n" +
-                "hang-up\t\t" + SessionCache.getHangUp() + "\n"
+                "active\t\t" + SessionCache.getHangUp() + "\n"
         );
     }
 
@@ -126,7 +138,7 @@ public class Printer {
     }
 
     public static void printPrompt(String wrongCmd) {
-        print("'" + wrongCmd + "' is not a command, enter 'help' to get more information.\n");
+        println("" + wrongCmd + ": command not found.");
     }
 
     public static void printCursorLine() {
@@ -134,7 +146,7 @@ public class Printer {
     }
 
     public static void printHelp() {
-        OutsideCommand.printHelp();
+        TermioCommand.printHelp();
         ShellCommand.printHelp();
     }
 

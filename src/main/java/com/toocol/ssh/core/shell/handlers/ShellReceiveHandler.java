@@ -107,6 +107,10 @@ public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
                     shell.setLocalLastCmd(cmd + StrUtil.CRLF);
                 }
 
+                if (SessionCache.getInstance().isDisconnect(sessionId)) {
+                    throw new RemoteDisconnectException("Session disconnect.");
+                }
+
                 CountDownLatch latch = new CountDownLatch(1);
                 if (StatusCache.EXECUTE_CD_CMD) {
                     StatusCache.EXECUTE_CD_CMD = false;
@@ -132,7 +136,7 @@ public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
                         // do nothing
                         remoteDisconnect.set(true);
                     }
-                }, this.getClass(), ShellDisplayHandler.class);
+                }, 1000, this.getClass(), ShellDisplayHandler.class);
                 if (remoteDisconnect.get()) {
                     promise.complete(sessionId);
                 }

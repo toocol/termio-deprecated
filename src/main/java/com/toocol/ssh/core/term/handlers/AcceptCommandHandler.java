@@ -3,7 +3,7 @@ package com.toocol.ssh.core.term.handlers;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.core.cache.StatusCache;
-import com.toocol.ssh.core.term.commands.OutsideCommand;
+import com.toocol.ssh.core.term.commands.TermioCommand;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.AsyncResult;
@@ -23,12 +23,12 @@ import static com.toocol.ssh.core.term.TermAddress.ADDRESS_EXECUTE_OUTSIDE;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:11
  */
-public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean> {
+public class AcceptCommandHandler extends AbstractMessageHandler<Boolean> {
 
     private static final int FIRST_IN = 0;
     private static final int NORMAL_BACK = 1;
 
-    public AcceptOutsideCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
+    public AcceptCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
     }
 
@@ -52,14 +52,14 @@ public class AcceptOutsideCommandHandler extends AbstractMessageHandler<Boolean>
                 CountDownLatch latch = new CountDownLatch(1);
                 AtomicBoolean isBreak = new AtomicBoolean();
 
-                boolean isCommand = OutsideCommand.cmdOf(cmd).map(cmdCommand -> {
+                boolean isCommand = TermioCommand.cmdOf(cmd).map(cmdCommand -> {
                     eventBus.request(ADDRESS_EXECUTE_OUTSIDE.address(), cmd, result -> {
                         String failedMsg = cast(result.result().body());
                         if (StringUtils.isNotEmpty(failedMsg)) {
                             Printer.println(failedMsg);
                         }
 
-                        if (OutsideCommand.CMD_NUMBER.equals(cmdCommand) && StringUtils.isEmpty(failedMsg)) {
+                        if (TermioCommand.CMD_NUMBER.equals(cmdCommand) && StringUtils.isEmpty(failedMsg)) {
                             isBreak.set(true);
                         }
 

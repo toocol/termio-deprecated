@@ -13,40 +13,42 @@ import java.util.Optional;
  * @email joezane.cn@gmail.com
  * @date 2021/2/22 13:21
  */
-public enum OutsideCommand {
+public enum TermioCommand {
     /**
      * outside command enums
      */
     CMD_HELP("help", new HelpCmdProcessor(), "Show holistic executive command."),
     CMD_CLEAR("clear", new ClearCmdProcessor(), "Clear the screen."),
     CMD_EXIT("exit", new ExitCmdProcessor(), "Exit Termio."),
-    CMD_ADD("add", new AddCmdProcessor(), "Add new ssh connection property. Pattern: 'add --user@host -c=password [-p=port]',\n\t\t\tdefault port is 22."),
+    CMD_ADD("add", new AddCmdProcessor(), "Add new ssh connection property. Pattern: 'add --user@host -c=password [-p=port]',default port is 22."),
     CMD_DELETE("delete", new DeleteCmdProcessor(), "Delete ssh connection property. Pattern: 'delete --index', for example: 'delete --1'."),
-    CMD_NUMBER("numbers", new NumberCmdProcessor(), "Select the connection properties.")
+    CMD_NUMBER("numbers", new NumberCmdProcessor(), "Select the connection properties."),
     ;
+
+    private static final String[] tabBuffer = new String[]{"\t\t\t", "\t\t", "\t"};
 
     private final String cmd;
     private final OutsideCommandProcessor commandProcessor;
     private final String comment;
 
-    OutsideCommand(String cmd, OutsideCommandProcessor commandProcessor, String comment) {
+    TermioCommand(String cmd, OutsideCommandProcessor commandProcessor, String comment) {
         this.cmd = cmd;
         this.commandProcessor = commandProcessor;
         this.comment = comment;
     }
 
-    public static Optional<OutsideCommand> cmdOf(String cmd) {
+    public static Optional<TermioCommand> cmdOf(String cmd) {
         String originCmd = cmd.trim().replaceAll(" {2,}"," ").split(" ")[0];
-        OutsideCommand outsideCommand = null;
-        for (OutsideCommand command : values()) {
+        TermioCommand termioCommand = null;
+        for (TermioCommand command : values()) {
             if (command.cmd.equals(originCmd)) {
-                outsideCommand = command;
+                termioCommand = command;
             }
         }
         if (StringUtils.isNumeric(originCmd)) {
-            outsideCommand = CMD_NUMBER;
+            termioCommand = CMD_NUMBER;
         }
-        return Optional.ofNullable(outsideCommand);
+        return Optional.ofNullable(termioCommand);
     }
 
     public final <T> void processCmd(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
@@ -61,10 +63,10 @@ public enum OutsideCommand {
     }
 
     public static void printHelp() {
-        Printer.println();
-        Printer.println("Terminal commands:     [param] means optional param");
-        for (OutsideCommand command : values()) {
-            Printer.println("\t" + command.cmd + "\t\t-- " + command.comment);
+        Printer.println("Termio commands:\t[param] means optional param");
+        for (TermioCommand command : values()) {
+            Printer.printColor(command.cmd, 78);
+            Printer.println(tabBuffer[command.cmd.length() / 8] + command.comment);
         }
         Printer.println();
     }

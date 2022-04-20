@@ -26,7 +26,7 @@ public class FileVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {
-        final WorkerExecutor executor = vertx.createSharedWorkerExecutor("file-worker");
+        final WorkerExecutor executor = vertx.createSharedWorkerExecutor("file-worker", 2);
 
         mountHandler(vertx, executor);
     }

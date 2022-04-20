@@ -139,9 +139,6 @@ public class Shell {
                 status = Status.NORMAL;
             }
         }
-        if (status.equals(Status.MORE_BEFORE)) {
-            status = Status.MORE_PROC;
-        }
 
         boolean hasPrint = false;
         switch (status) {
@@ -153,6 +150,9 @@ public class Shell {
             }
         }
 
+        if (status.equals(Status.MORE_BEFORE)) {
+            status = Status.MORE_PROC;
+        }
         if (status.equals(Shell.Status.VIM_BEFORE)) {
             status = Shell.Status.VIM_UNDER;
         }
