@@ -21,7 +21,7 @@ import static com.toocol.ssh.core.file.FileAddress.ADDRESS_READ_FILE;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 15:03
  */
-@PreloadDeployment(weight = 1)
+@PreloadDeployment(weight = 1, worker = true, poolSize = 1)
 @RegisterHandler(handlers = {
         AddCredentialHandler.class,
         DeleteCredentialHandler.class

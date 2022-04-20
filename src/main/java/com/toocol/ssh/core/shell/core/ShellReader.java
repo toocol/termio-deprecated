@@ -125,12 +125,6 @@ record ShellReader(Shell shell, ConsoleReader reader) {
                     Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
                     if (cursorPosition._1() <= shell.prompt.get().length()) {
                         Printer.voice();
-                        shell.remoteCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
-                        shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
-                        shell.selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
-                        String replace = shell.cmd.toString().replaceAll("\u007F", "");
-                        String remain = shell.cmd.toString().replaceAll(replace, "");
-                        shell.cmd.delete(0, shell.cmd.length()).append(remain);
                         shell.status = Shell.Status.NORMAL;
                         continue;
                     }

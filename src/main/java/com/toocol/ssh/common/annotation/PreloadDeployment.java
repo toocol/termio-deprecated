@@ -22,4 +22,18 @@ public @interface PreloadDeployment {
      * @return weight
      */
     int weight() default 0;
+
+    /**
+     * whether the verticle is worker verticle.
+     *
+     * @return is worker
+     */
+    boolean worker() default false;
+
+    /**
+     * the pool size of worker verticle
+     *
+     * @return pool size
+     */
+    int poolSize() default 20;
 }

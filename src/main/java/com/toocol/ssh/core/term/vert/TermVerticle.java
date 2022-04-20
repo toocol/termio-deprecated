@@ -13,7 +13,7 @@ import io.vertx.core.WorkerExecutor;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:30
  */
-@PreloadDeployment
+@PreloadDeployment(worker = true, poolSize = 3)
 @RegisterHandler(handlers = {
         MonitorTerminalHandler.class,
         AcceptCommandHandler.class,

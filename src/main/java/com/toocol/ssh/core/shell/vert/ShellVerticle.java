@@ -11,7 +11,7 @@ import io.vertx.core.WorkerExecutor;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:30
  */
-@FinalDeployment
+@FinalDeployment(worker = true, poolSize = 10)
 @RegisterHandler(handlers = {
         EstablishSessionShellChannelHandler.class,
         ShellDisplayHandler.class,

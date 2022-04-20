@@ -13,4 +13,18 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface FinalDeployment {
+
+    /**
+     * whether the verticle is worker verticle.
+     *
+     * @return is worker
+     */
+    boolean worker() default false;
+
+    /**
+     * the pool size of worker verticle
+     *
+     * @return pool size
+     */
+    int poolSize() default 20;
 }

@@ -16,7 +16,7 @@ import io.vertx.core.WorkerExecutor;
  * @email joezane.cn@gmail.com
  * @date 2021/2/19 16:27
  */
-@PreloadDeployment(weight = 10)
+@PreloadDeployment(weight = 10, worker = true, poolSize = 2)
 @RegisterHandler(handlers = {
         CheckFileExistHandler.class,
         ReadFileHandler.class,
