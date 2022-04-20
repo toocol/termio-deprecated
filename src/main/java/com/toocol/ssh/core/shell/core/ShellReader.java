@@ -4,7 +4,6 @@ import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.term.core.Printer;
-import com.toocol.ssh.core.term.core.Term;
 import jline.console.ConsoleReader;
 import org.apache.commons.lang3.StringUtils;
 import sun.misc.Signal;
@@ -89,6 +88,7 @@ record ShellReader(Shell shell, ConsoleReader reader) {
                     } else {
                         shell.historyCmdHelper.down();
                     }
+                    localLastInputBuffer.delete(0, localLastInputBuffer.length()).append(shell.cmd);
                     shell.localLastCmd.set(new StringBuffer());
 
                 } else if (finalChar == CharUtil.LEFT_ARROW || finalChar == CharUtil.RIGHT_ARROW) {
@@ -105,9 +105,10 @@ record ShellReader(Shell shell, ConsoleReader reader) {
                     }
 
                 } else if (finalChar == CharUtil.TAB) {
-                    // set cursor to normal position
-                    Tuple2<Integer, Integer> position = shell.term.getCursorPosition();
-                    shell.term.setCursorPosition(shell.prompt.get().length() + shell.currentPrint.get().length(), position._2());
+                    if (shell.bottomLinePrint.get().contains(shell.prompt.get())) {
+                        Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
+                        shell.term.setCursorPosition(shell.currentPrint.get().length() + shell.prompt.get().length(), cursorPosition._2());
+                    }
 
                     if (shell.status.equals(Shell.Status.NORMAL)) {
                         shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.cmd));
@@ -121,41 +122,62 @@ record ShellReader(Shell shell, ConsoleReader reader) {
                     shell.status = Shell.Status.TAB_ACCOMPLISH;
 
                 } else if (finalChar == CharUtil.BACKSPACE) {
-                    int cursorX = Term.getInstance().getCursorPosition()._1();
-                    if (cursorX <= shell.prompt.get().length()) {
+                    Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
+                    if (cursorPosition._1() <= shell.prompt.get().length()) {
                         Printer.voice();
                         shell.remoteCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
                         shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
                         shell.selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
-                        shell.cmd.delete(0, shell.cmd.length());
-                        if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                            shell.writeAndFlush(CharUtil.CTRL_C);
-                        }
+                        String replace = shell.cmd.toString().replaceAll("\u007F", "");
+                        String remain = shell.cmd.toString().replaceAll(replace, "");
+                        shell.cmd.delete(0, shell.cmd.length()).append(remain);
+                        shell.status = Shell.Status.NORMAL;
                         continue;
                     }
-
-                    if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                        // This is ctrl+backspace
-                        shell.cmd.append('\u007F');
-                        if (shell.remoteCmd.get().length() > 0) {
-                            shell.remoteCmd.getAndUpdate(prev -> new StringBuffer(prev.toString().substring(0, prev.length() - 1)));
+                    if (cursorPosition._1() < shell.currentPrint.get().length() + shell.prompt.get().length()) {
+                        // cursor has moved
+                        int index = cursorPosition._1() - shell.prompt.get().length() - 1;
+                        if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
+                            String removal = "\u007F".repeat(shell.remoteCmd.get().length());
+                            shell.remoteCmd.get().deleteCharAt(index);
+                            shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.remoteCmd.get()));
+                            removal += shell.remoteCmd.get().toString();
+                            shell.writeAndFlush(removal.getBytes(StandardCharsets.UTF_8));
+                            remoteCursorOffset = true;
                         }
-                        if (shell.localLastCmd.get().length() > 0) {
-                            shell.localLastCmd.getAndUpdate(prev -> new StringBuffer(prev.substring(0, prev.length() - 1)));
+                        if (shell.status.equals(Shell.Status.NORMAL)) {
+                            shell.cmd.deleteCharAt(index);
                         }
-                    }
-                    if (shell.status.equals(Shell.Status.NORMAL)) {
-                        shell.cmd.deleteCharAt(shell.cmd.length() - 1);
-                    }
-                    if (shell.currentPrint.get().length() > 0) {
-                        shell.currentPrint.getAndUpdate(prev -> new StringBuffer(prev.substring(0, prev.length() - 1)));
-                    }
+                        shell.currentPrint.get().deleteCharAt(index);
+                        shell.term.hideCursor();
+                        Printer.virtualBackspace();
+                        Printer.print(shell.currentPrint.get().substring(index, shell.currentPrint.get().length()) + CharUtil.SPACE);
+                        shell.term.setCursorPosition(cursorPosition._1() - 1, cursorPosition._2());
+                        shell.term.showCursor();
+                    } else {
+                        if (localLastInputBuffer.length() > 0) {
+                            localLastInputBuffer.deleteCharAt(localLastInputBuffer.length() - 1);
+                        }
+                        if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
+                            // This is ctrl+backspace
+//                            shell.cmd.append('\u007F');
+                            shell.writeAndFlush('\u007F');
+                            if (shell.remoteCmd.get().length() > 0) {
+                                shell.remoteCmd.getAndUpdate(prev -> new StringBuffer(prev.toString().substring(0, prev.length() - 1)));
+                            }
+                            if (shell.localLastCmd.get().length() > 0) {
+                                shell.localLastCmd.getAndUpdate(prev -> new StringBuffer(prev.substring(0, prev.length() - 1)));
+                            }
+                        }
+                        if (shell.status.equals(Shell.Status.NORMAL)) {
+                            shell.cmd.deleteCharAt(shell.cmd.length() - 1);
+                        }
+                        if (shell.currentPrint.get().length() > 0) {
+                            shell.currentPrint.getAndUpdate(prev -> new StringBuffer(prev.substring(0, prev.length() - 1)));
+                        }
 
-                    if (localLastInputBuffer.length() > 0) {
-                        localLastInputBuffer = new StringBuilder(localLastInputBuffer.substring(0, localLastInputBuffer.length() - 1));
+                        Printer.virtualBackspace();
                     }
-                    Printer.virtualBackspace();
-
 
                 } else if (finalChar == CharUtil.CR || finalChar == CharUtil.LF) {
 
@@ -166,7 +188,7 @@ record ShellReader(Shell shell, ConsoleReader reader) {
                     shell.lastRemoteCmd.delete(0, shell.lastRemoteCmd.length()).append(shell.remoteCmd.get().toString());
                     shell.lastExecuteCmd.delete(0, shell.lastExecuteCmd.length())
                             .append(StringUtils.isEmpty(shell.remoteCmd.get()) ? shell.cmd.toString() : shell.remoteCmd.get().toString().replaceAll("\b", ""));
-                    if (!StrUtil.EMPTY.equals(shell.lastExecuteCmd.toString()) && shell.status == Shell.Status.NORMAL && shell.status == Shell.Status.TAB_ACCOMPLISH) {
+                    if (!StrUtil.EMPTY.equals(shell.lastExecuteCmd.toString()) && (shell.status == Shell.Status.NORMAL || shell.status == Shell.Status.TAB_ACCOMPLISH)) {
                         shell.historyCmdHelper.push(shell.lastExecuteCmd.toString());
                     }
                     if (remoteCursorOffset) {
@@ -182,7 +204,7 @@ record ShellReader(Shell shell, ConsoleReader reader) {
                     }
                     Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
                     if (cursorPosition._1() < shell.currentPrint.get().length() + shell.prompt.get().length()) {
-                        // move cursor to insert char.
+                        // cursor has moved
                         int index = cursorPosition._1() - shell.prompt.get().length();
                         if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
                             String removal = "\u007F".repeat(shell.remoteCmd.get().length());
@@ -205,16 +227,16 @@ record ShellReader(Shell shell, ConsoleReader reader) {
                         if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
                             shell.remoteCmd.getAndUpdate(prev -> prev.append(finalChar));
                             shell.localLastCmd.getAndUpdate(prev -> prev.append(finalChar));
+                            shell.writeAndFlush(finalChar);
+                        } else {
+                            shell.cmd.append(finalChar);
                         }
                         shell.currentPrint.getAndUpdate(prev -> prev.append(finalChar));
-                        shell.cmd.append(finalChar);
                         localLastInputBuffer.append(finalChar);
                         Printer.print(String.valueOf(finalChar));
                     }
-
                 }
             }
         }
     }
-
 }

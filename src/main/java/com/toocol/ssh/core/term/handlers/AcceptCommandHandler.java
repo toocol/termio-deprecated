@@ -25,8 +25,10 @@ import static com.toocol.ssh.core.term.TermAddress.ADDRESS_EXECUTE_OUTSIDE;
  */
 public class AcceptCommandHandler extends AbstractMessageHandler<Boolean> {
 
-    private static final int FIRST_IN = 0;
-    private static final int NORMAL_BACK = 1;
+    public static final int FIRST_IN = 0;
+    public static final int NORMAL_BACK = 1;
+    public static final int ACCEPT_ERROR = 2;
+    public static final int CONNECT_FAILED = 3;
 
     public AcceptCommandHandler(Vertx vertx, WorkerExecutor executor, boolean parallel) {
         super(vertx, executor, parallel);
@@ -41,9 +43,12 @@ public class AcceptCommandHandler extends AbstractMessageHandler<Boolean> {
     protected <T> void handleWithinBlocking(Promise<Boolean> promise, Message<T> message) {
         try {
             int signal = cast(message.body());
-            if (signal == NORMAL_BACK || signal == FIRST_IN) {
+            if (signal == NORMAL_BACK || signal == FIRST_IN || signal == CONNECT_FAILED) {
                 Printer.clear();
                 Printer.printScene();
+            }
+            if (signal == CONNECT_FAILED) {
+                Printer.println("lost connection.");
             }
 
             while (true) {
@@ -97,7 +102,7 @@ public class AcceptCommandHandler extends AbstractMessageHandler<Boolean> {
     @Override
     protected <T> void resultWithinBlocking(AsyncResult<Boolean> asyncResult, Message<T> message) {
         if (asyncResult.result()) {
-            eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 2);
+            eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), ACCEPT_ERROR);
         }
     }
 }

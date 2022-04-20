@@ -14,6 +14,7 @@ import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.core.term.handlers.AcceptCommandHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -55,45 +56,11 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
         long sessionId = sessionCache.containSession(credential.getHost());
         boolean success = true;
 
-        if (sessionId == 0) {
-            StatusCache.HANGED_ENTER = false;
-            try {
-                Session session = jSch.getSession(credential.getUser(), credential.getHost(), credential.getPort());
-                session.setPassword(credential.getPassword());
-                session.setUserInfo(new SshUserInfo());
-                Properties config = new Properties();
-                config.put("StrictHostKeyChecking", "no");
-                session.setConfig(config);
-                session.setTimeout(30000);
-                session.connect();
-
-                sessionId = guidGenerator.nextId();
-                sessionCache.putSession(sessionId, session);
-
-                ChannelShell channelShell = cast(session.openChannel("shell"));
-                int width = Term.getInstance().getWidth();
-                int height = Term.getInstance().getHeight();
-                channelShell.setPtyType("xterm", width, height, width, height);
-                channelShell.connect();
-                sessionCache.putChannelShell(sessionId, channelShell);
-
-                Shell shell = new Shell(sessionId, eventBus, channelShell.getOutputStream(), channelShell.getInputStream());
-                shell.setUser(credential.getUser());
-                shell.initialFirstCorrespondence();
-                sessionCache.putShell(sessionId, shell);
-            } catch (Exception e) {
-                Printer.println("Connect failed, message = " + e.getMessage());
-                success = false;
-            }
-        } else {
-            boolean reopenChannelShell = false;
-            boolean regenerateShell = false;
-            Session session = sessionCache.getSession(sessionId);
-            if (!session.isConnected()) {
+        try {
+            if (sessionId == 0) {
+                StatusCache.HANGED_ENTER = false;
                 try {
-                    session.connect();
-                } catch (Exception e) {
-                    session = jSch.getSession(credential.getUser(), credential.getHost(), credential.getPort());
+                    Session session = jSch.getSession(credential.getUser(), credential.getHost(), credential.getPort());
                     session.setPassword(credential.getPassword());
                     session.setUserInfo(new SshUserInfo());
                     Properties config = new Properties();
@@ -102,51 +69,89 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
                     session.setTimeout(30000);
                     session.connect();
 
+                    sessionId = guidGenerator.nextId();
                     sessionCache.putSession(sessionId, session);
+
+                    ChannelShell channelShell = cast(session.openChannel("shell"));
+                    int width = Term.getInstance().getWidth();
+                    int height = Term.getInstance().getHeight();
+                    channelShell.setPtyType("xterm", width, height, width, height);
+                    channelShell.connect();
+                    sessionCache.putChannelShell(sessionId, channelShell);
+
+                    Shell shell = new Shell(sessionId, eventBus, channelShell.getOutputStream(), channelShell.getInputStream());
+                    shell.setUser(credential.getUser());
+                    shell.initialFirstCorrespondence();
+                    sessionCache.putShell(sessionId, shell);
+                } catch (Exception e) {
+                    Printer.println("Connect failed, message = " + e.getMessage());
+                    success = false;
                 }
-                reopenChannelShell = true;
-                regenerateShell = true;
+            } else {
+                boolean reopenChannelShell = false;
+                boolean regenerateShell = false;
+                Session session = sessionCache.getSession(sessionId);
+                if (!session.isConnected()) {
+                    try {
+                        session.connect();
+                    } catch (Exception e) {
+                        session = jSch.getSession(credential.getUser(), credential.getHost(), credential.getPort());
+                        session.setPassword(credential.getPassword());
+                        session.setUserInfo(new SshUserInfo());
+                        Properties config = new Properties();
+                        config.put("StrictHostKeyChecking", "no");
+                        session.setConfig(config);
+                        session.setTimeout(30000);
+                        session.connect();
+
+                        sessionCache.putSession(sessionId, session);
+                    }
+                    reopenChannelShell = true;
+                    regenerateShell = true;
+                }
+
+                ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
+                if (reopenChannelShell) {
+
+                    sessionCache.stopChannelShell(sessionId);
+                    channelShell = cast(session.openChannel("shell"));
+                    int width = Term.getInstance().getWidth();
+                    int height = Term.getInstance().getHeight();
+                    channelShell.setPtyType("xterm", width, height, width, height);
+                    channelShell.connect();
+                    sessionCache.putChannelShell(sessionId, channelShell);
+
+                } else if (channelShell.isClosed() || !channelShell.isConnected()) {
+
+                    channelShell = cast(session.openChannel("shell"));
+                    int width = Term.getInstance().getWidth();
+                    int height = Term.getInstance().getHeight();
+                    channelShell.setPtyType("xterm", width, height, width, height);
+                    channelShell.connect();
+                    sessionCache.putChannelShell(sessionId, channelShell);
+                    regenerateShell = true;
+
+                }
+
+                if (regenerateShell) {
+                    Shell shell = new Shell(sessionId, eventBus, channelShell.getOutputStream(), channelShell.getInputStream());
+                    shell.setUser(credential.getUser());
+                    shell.initialFirstCorrespondence();
+                    sessionCache.putShell(sessionId, shell);
+                }
+
+                StatusCache.HANGED_ENTER = true;
             }
+            StatusCache.HANGED_QUIT = false;
 
-            ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
-            if (reopenChannelShell) {
-
-                sessionCache.stopChannelShell(sessionId);
-                channelShell = cast(session.openChannel("shell"));
-                int width = Term.getInstance().getWidth();
-                int height = Term.getInstance().getHeight();
-                channelShell.setPtyType("xterm", width, height, width, height);
-                channelShell.connect();
-                sessionCache.putChannelShell(sessionId, channelShell);
-
-            } else if (channelShell.isClosed() || !channelShell.isConnected()) {
-
-                channelShell = cast(session.openChannel("shell"));
-                int width = Term.getInstance().getWidth();
-                int height = Term.getInstance().getHeight();
-                channelShell.setPtyType("xterm", width, height, width, height);
-                channelShell.connect();
-                sessionCache.putChannelShell(sessionId, channelShell);
-                regenerateShell = true;
-
+            // invoke gc() to clean up already un-use object during initial processing. (it's very efficacious :))
+            System.gc();
+            if (success) {
+                promise.complete(sessionId);
+            } else {
+                promise.fail("Session establish failed.");
             }
-
-            if (regenerateShell) {
-                Shell shell = new Shell(sessionId, eventBus, channelShell.getOutputStream(), channelShell.getInputStream());
-                shell.setUser(credential.getUser());
-                shell.initialFirstCorrespondence();
-                sessionCache.putShell(sessionId, shell);
-            }
-
-            StatusCache.HANGED_ENTER = true;
-        }
-        StatusCache.HANGED_QUIT = false;
-
-        // invoke gc() to clean up already un-use object during initial processing. (it's very efficacious :))
-        System.gc();
-        if (success) {
-            promise.complete(sessionId);
-        } else {
+        } catch (Exception e) {
             promise.fail("Session establish failed.");
         }
     }
@@ -172,7 +177,7 @@ public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<
 
         } else {
 
-            eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 2);
+            eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), AcceptCommandHandler.CONNECT_FAILED);
 
         }
     }

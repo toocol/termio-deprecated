@@ -9,6 +9,7 @@ import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.term.handlers.AcceptCommandHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -138,12 +139,17 @@ public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
                     }
                 }, 1000, this.getClass(), ShellDisplayHandler.class);
                 if (remoteDisconnect.get()) {
-                    promise.complete(sessionId);
+                    promise.tryComplete(sessionId);
+                    break;
                 }
 
+                if (SessionCache.getInstance().isDisconnect(sessionId)) {
+                    // check the session status before await
+                    throw new RemoteDisconnectException("Session disconnect.");
+                }
                 latch.await();
             } catch (RemoteDisconnectException e) {
-               promise.complete(sessionId);
+               promise.tryComplete(sessionId);
             }
 
         }
@@ -164,7 +170,7 @@ public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
             sessionCache.stop(sessionId);
         }
 
-        eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), 1);
+        eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), AcceptCommandHandler.NORMAL_BACK);
     }
 
 }

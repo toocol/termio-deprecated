@@ -41,6 +41,10 @@ public class CharUtil {
      */
     public static final char CTRL_D = '\u0004';
     /**
+     * {@code Ctrl+U}
+     */
+    public static final char CTRL_U = '\u0015';
+    /**
      * {@code Ctrl+L}
      */
     public static final char CTRL_L = '\f';

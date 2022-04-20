@@ -88,6 +88,7 @@ public class Shell {
     protected final AtomicReference<String> prompt = new AtomicReference<>();
     protected final AtomicReference<String> user = new AtomicReference<>();
     protected final AtomicReference<String> fullPath = new AtomicReference<>();
+    protected volatile AtomicReference<String> bottomLinePrint = new AtomicReference<>(StrUtil.EMPTY);
 
     public enum Status {
         /**
@@ -140,6 +141,10 @@ public class Shell {
             }
         }
 
+        if (status.equals(Status.MORE_BEFORE)) {
+            status = Status.MORE_PROC;
+        }
+
         boolean hasPrint = false;
         switch (status) {
             case NORMAL -> hasPrint = shellPrinter.printInNormal(msg);
@@ -150,9 +155,6 @@ public class Shell {
             }
         }
 
-        if (status.equals(Status.MORE_BEFORE)) {
-            status = Status.MORE_PROC;
-        }
         if (status.equals(Shell.Status.VIM_BEFORE)) {
             status = Shell.Status.VIM_UNDER;
         }

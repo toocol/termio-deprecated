@@ -93,15 +93,29 @@ public class TermReader {
                         }
                     }
                 } else if (finalChar == CharUtil.TAB) {
-                    // To fulfill command.
+                    Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
+                    if (cursorPosition._1() < lineBuilder.length() + Term.PROMPT.length()) {
+                        term.setCursorPosition(lineBuilder.length() + Term.PROMPT.length(), cursorPosition._2());
+                    }
                 } else if (finalChar == CharUtil.BACKSPACE) {
 
-                    if (lineBuilder.isEmpty()) {
+                    Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
+                    if (cursorPosition._1() == Term.PROMPT.length()){
                         Printer.voice();
                         continue;
                     }
-                    lineBuilder.deleteCharAt(lineBuilder.length() - 1);
-                    Printer.virtualBackspace();
+                    if (cursorPosition._1() < lineBuilder.length() + Term.PROMPT.length()) {
+                        int index = cursorPosition._1() - Term.PROMPT.length() - 1;
+                        lineBuilder.deleteCharAt(index);
+                        term.hideCursor();
+                        Printer.virtualBackspace();
+                        Printer.print(lineBuilder.substring(index, lineBuilder.length()) + CharUtil.SPACE);
+                        term.setCursorPosition(cursorPosition._1() - 1, cursorPosition._2());
+                        term.showCursor();
+                    } else {
+                        lineBuilder.deleteCharAt(lineBuilder.length() - 1);
+                        Printer.virtualBackspace();
+                    }
 
                 } else if (finalChar == CharUtil.CR || finalChar == CharUtil.LF) {
 

@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.shell.core;
 
+import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.term.core.Printer;
 import org.apache.commons.lang3.StringUtils;
 
@@ -57,7 +58,20 @@ record ShellPrinter(Shell shell) {
                     shell.currentPrint.set(new StringBuffer(split[1]));
                 }
             }
+
+            Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
+            if (cursorPosition._1() != 0) {
+                shell.term.setCursorPosition(0, cursorPosition._2());
+            }
         }
+
+        if (msg.contains(CRLF)) {
+            String[] split = msg.split(CRLF);
+            shell.bottomLinePrint.set(split[split.length - 1]);
+        } else {
+            shell.bottomLinePrint.set(msg);
+        }
+
         printer.print(msg);
         return true;
     }
@@ -68,6 +82,12 @@ record ShellPrinter(Shell shell) {
         }
         if (shell.selectHistoryCmd.toString().trim().equals(msg.replaceAll("\r\n", ""))) {
             return;
+        }
+        if (msg.contains(CRLF)) {
+            String[] split = msg.split(CRLF);
+            shell.bottomLinePrint.set(split[split.length - 1]);
+        } else {
+            shell.bottomLinePrint.set(msg);
         }
         printer.print(msg);
     }
@@ -150,6 +170,7 @@ record ShellPrinter(Shell shell) {
 
             String[] split = msg.split("\r\n");
             if (split.length != 0) {
+                shell.bottomLinePrint.set(split[split.length - 1]);
                 for (String input : split) {
                     if (StringUtils.isEmpty(input)) {
                         continue;
@@ -172,6 +193,7 @@ record ShellPrinter(Shell shell) {
             }
         }
 
+        shell.bottomLinePrint.set(msg);
 
         String tmp = msg;
         shell.currentPrint.getAndUpdate(prev -> prev.append(tmp));
@@ -184,6 +206,12 @@ record ShellPrinter(Shell shell) {
         }
         if (shell.selectHistoryCmd.toString().trim().equals(msg.replaceAll("\r\n", ""))) {
             return;
+        }
+        if (msg.contains(CRLF)) {
+            String[] split = msg.split(CRLF);
+            shell.bottomLinePrint.set(split[split.length - 1]);
+        } else {
+            shell.bottomLinePrint.set(msg);
         }
         printer.print(msg);
     }

@@ -9,6 +9,7 @@ import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.config.SystemConfig;
 import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.term.handlers.AcceptCommandHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -115,7 +116,7 @@ public class TermioApplication {
                 while (true) {
                     if (StatusCache.LOADING_ACCOMPLISH) {
                         loadingLatch.await();
-                        vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), 0);
+                        vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), AcceptCommandHandler.FIRST_IN);
                         System.gc();
                         break;
                     }

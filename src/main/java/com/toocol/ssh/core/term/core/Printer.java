@@ -132,8 +132,8 @@ public class Printer {
                     System.exit(-1);
                 }
             }
-            JNI.showCursor();
             latch.countDown();
+            JNI.showCursor();
         }).start();
     }
 

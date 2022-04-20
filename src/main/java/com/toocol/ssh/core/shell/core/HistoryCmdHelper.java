@@ -44,6 +44,9 @@ public class HistoryCmdHelper {
 
     public synchronized void initialize(String[] historyCmds) {
         for (String historyCmd : historyCmds) {
+            if ("export HISTCONTROL=ignoreboth".equals(historyCmd)) {
+                continue;
+            }
             baseCmdStack.push(historyCmd);
         }
     }
