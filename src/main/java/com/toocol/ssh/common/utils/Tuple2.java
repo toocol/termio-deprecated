@@ -5,7 +5,7 @@ package com.toocol.ssh.common.utils;
  * @date 2021/11/23 15:09
  */
 @SuppressWarnings("all")
-public class Tuple2<F, S> {
+public final class Tuple2<F, S> {
 
     private F first;
 

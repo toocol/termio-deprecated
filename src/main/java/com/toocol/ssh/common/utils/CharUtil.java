@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author Joezeo
  */
-public class CharUtil {
+public final class CharUtil {
     /**
      * {@code up-arrow} translated
      */

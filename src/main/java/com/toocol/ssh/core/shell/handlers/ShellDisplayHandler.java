@@ -21,7 +21,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
  * @date 2022/3/31 15:44
  */
 @SuppressWarnings("all")
-public class ShellDisplayHandler extends AbstractMessageHandler<Long> {
+public final class ShellDisplayHandler extends AbstractMessageHandler<Long> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
 

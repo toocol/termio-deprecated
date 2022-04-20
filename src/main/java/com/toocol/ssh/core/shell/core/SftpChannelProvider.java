@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  * @date: 2022/4/10 17:26
  * @version: 0.0.1
  */
-public class SftpChannelProvider implements ICastable {
+public final class SftpChannelProvider implements ICastable {
 
     private static final int MAXIMUM_CACHE_SIZE = 30;
     private static final int EXPIRE_AFTER_ACCESS_AFTER_MINUTES = 10;

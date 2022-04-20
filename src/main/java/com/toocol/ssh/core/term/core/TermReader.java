@@ -11,7 +11,7 @@ import java.io.IOException;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/16 15:23
  */
-public class TermReader {
+public final class TermReader {
 
     private final Term term;
     private final ArrowHelper arrowHelper;

@@ -18,7 +18,7 @@ import io.vertx.core.AbstractVerticle;
         AcceptCommandHandler.class,
         ExecuteCommandHandler.class
 })
-public class TermVerticle extends AbstractVerticle implements IHandlerMounter {
+public final class TermVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {

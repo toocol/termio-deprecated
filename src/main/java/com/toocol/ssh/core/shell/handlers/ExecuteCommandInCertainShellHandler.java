@@ -24,7 +24,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
  * @date: 2022/4/10 22:45
  * @version: 0.0.1
  */
-public class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<String> {
+public final class ExecuteCommandInCertainShellHandler extends AbstractMessageHandler<String> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
 

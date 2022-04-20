@@ -10,7 +10,7 @@ import com.toocol.ssh.core.cache.SessionCache;
  * @date: 2022/4/10 17:48
  * @version: 0.0.1
  */
-public class ExecChannelProvider implements ICastable {
+public final class ExecChannelProvider implements ICastable {
 
     private static final ExecChannelProvider INSTANCE = new ExecChannelProvider();
 

@@ -18,7 +18,7 @@ import static com.toocol.ssh.core.config.SystemConfig.*;
  * @email joezane.cn@gmail.com
  * @date 2021/2/19 16:20
  */
-public class Printer {
+public final class Printer {
     public static final PrintStream PRINTER = System.out;
 
     private static final Runtime RUNTIME = Runtime.getRuntime();

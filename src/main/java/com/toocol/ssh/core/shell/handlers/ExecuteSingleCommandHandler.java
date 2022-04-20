@@ -20,7 +20,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND;
  * @date: 2022/4/10 17:57
  * @version: 0.0.1
  */
-public class ExecuteSingleCommandHandler extends AbstractMessageHandler<String> {
+public final class ExecuteSingleCommandHandler extends AbstractMessageHandler<String> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
     private final ExecChannelProvider execChannelProvider = ExecChannelProvider.getInstance();

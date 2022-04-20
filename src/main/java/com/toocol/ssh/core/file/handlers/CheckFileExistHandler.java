@@ -12,7 +12,7 @@ import static com.toocol.ssh.core.file.FileAddress.ADDRESS_CHECK_FILE_EXIST;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 16:19
  */
-public class CheckFileExistHandler extends AbstractMessageHandler<Void> {
+public final class CheckFileExistHandler extends AbstractMessageHandler<Void> {
 
     public CheckFileExistHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);

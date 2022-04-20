@@ -14,7 +14,7 @@ import static com.toocol.ssh.core.file.FileAddress.ADDRESS_READ_FILE;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:35
  */
-public class ReadFileHandler extends AbstractMessageHandler<String> {
+public final class ReadFileHandler extends AbstractMessageHandler<String> {
 
     public ReadFileHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);

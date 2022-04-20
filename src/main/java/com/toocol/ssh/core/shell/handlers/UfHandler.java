@@ -22,7 +22,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_UF_COMMAND;
  * @date: 2022/4/9 16:38
  * @version: 0.0.1
  */
-public class UfHandler extends AbstractMessageHandler<Void> {
+public final class UfHandler extends AbstractMessageHandler<Void> {
 
     private final SftpChannelProvider sftpChannelProvider = SftpChannelProvider.getInstance();
 

@@ -13,7 +13,7 @@ import static com.toocol.ssh.core.file.FileAddress.CHOOSE_FILE;
  * @date: 2022/4/10 19:34
  * @version: 0.0.1
  */
-public class ChooseFileHandler extends AbstractMessageHandler<String> {
+public final class ChooseFileHandler extends AbstractMessageHandler<String> {
 
     public ChooseFileHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);

@@ -23,7 +23,7 @@ import static com.toocol.ssh.core.term.TermAddress.ADDRESS_EXECUTE_OUTSIDE;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:11
  */
-public class AcceptCommandHandler extends AbstractMessageHandler<Boolean> {
+public final class AcceptCommandHandler extends AbstractMessageHandler<Boolean> {
 
     public static final int FIRST_IN = 0;
     public static final int NORMAL_BACK = 1;

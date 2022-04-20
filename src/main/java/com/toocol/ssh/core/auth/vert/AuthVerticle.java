@@ -25,7 +25,7 @@ import static com.toocol.ssh.core.file.FileAddress.ADDRESS_READ_FILE;
         AddCredentialHandler.class,
         DeleteCredentialHandler.class
 })
-public class AuthVerticle extends AbstractVerticle implements IHandlerMounter {
+public final class AuthVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {

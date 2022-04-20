@@ -17,7 +17,7 @@ import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
  * @version: 0.0.1
  */
 @SuppressWarnings("all")
-public class MonitorTerminalHandler extends AbstractMessageHandler<Void> {
+public final class MonitorTerminalHandler extends AbstractMessageHandler<Void> {
 
     private final Term term = Term.getInstance();
 

@@ -28,7 +28,7 @@ import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 15:25
  */
-public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
+public final class ShellReceiveHandler extends AbstractMessageHandler<Long> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
 
@@ -50,8 +50,8 @@ public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
 
         shell.writeAndFlush("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
 
-        while (true) {
-            try {
+        try {
+            while (true) {
                 String cmdRead = shell.readCmd();
                 if (cmdRead == null) {
                     continue;
@@ -152,11 +152,11 @@ public class ShellReceiveHandler extends AbstractMessageHandler<Long> {
                     throw new RemoteDisconnectException("Session disconnect.");
                 }
                 latch.await();
-            } catch (RemoteDisconnectException e) {
-               promise.tryComplete(sessionId);
             }
-
+        } catch (RemoteDisconnectException e) {
+            promise.tryComplete(sessionId);
         }
+
     }
 
     @Override

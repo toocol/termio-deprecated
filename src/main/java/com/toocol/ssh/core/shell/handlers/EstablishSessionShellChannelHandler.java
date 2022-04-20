@@ -28,7 +28,7 @@ import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-public class EstablishSessionShellChannelHandler extends AbstractMessageHandler<Long> {
+public final class EstablishSessionShellChannelHandler extends AbstractMessageHandler<Long> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
 

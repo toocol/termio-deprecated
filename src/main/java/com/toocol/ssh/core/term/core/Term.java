@@ -8,19 +8,17 @@ import jline.Terminal;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/14 11:09
  */
-public class Term {
+public final class Term {
 
     public static final String PROMPT = "[termio] > ";
 
     private static final Term INSTANCE = new Term();
     private static final TermioJNI JNI = TermioJNI.getInstance();
 
-    private final Terminal terminal;
     private final TermReader termReader;
 
     private Term() {
         termReader  = new TermReader(this);
-        terminal = termReader.getReader().getTerminal();
     }
 
 
@@ -29,11 +27,11 @@ public class Term {
     }
 
     public int getWidth() {
-        return terminal.getWidth();
+        return JNI.getWindowWidth();
     }
 
     public int getHeight() {
-        return terminal.getHeight();
+        return JNI.getWindowHeight();
     }
 
     public TermReader getReader() {

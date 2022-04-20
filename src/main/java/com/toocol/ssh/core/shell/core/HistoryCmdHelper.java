@@ -11,7 +11,7 @@ import java.util.UUID;
  * @date: 2022/4/15 0:26
  * @version: 0.0.1
  */
-public class HistoryCmdHelper {
+public final class HistoryCmdHelper {
 
     private final Shell shell;
     /**

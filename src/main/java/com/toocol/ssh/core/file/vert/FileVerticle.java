@@ -21,7 +21,7 @@ import io.vertx.core.AbstractVerticle;
         ReadFileHandler.class,
         ChooseFileHandler.class
 })
-public class FileVerticle extends AbstractVerticle implements IHandlerMounter {
+public final class FileVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {

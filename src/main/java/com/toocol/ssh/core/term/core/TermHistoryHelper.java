@@ -11,7 +11,7 @@ import java.util.UUID;
  * @date: 2022/4/18 23:16
  * @version: 0.0.1
  */
-public class TermHistoryHelper {
+public final class TermHistoryHelper {
 
     private final Term term;
     /**

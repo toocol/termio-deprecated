@@ -23,7 +23,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
  * @date: 2022/4/9 16:39
  * @version: 0.0.1
  */
-public class DfHandler extends AbstractMessageHandler<byte[]> {
+public final class DfHandler extends AbstractMessageHandler<byte[]> {
 
     private final SftpChannelProvider sftpChannelProvider = SftpChannelProvider.getInstance();
 

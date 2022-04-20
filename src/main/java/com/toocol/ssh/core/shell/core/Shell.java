@@ -32,9 +32,9 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/3 20:57
  */
-public class Shell {
+public final class Shell {
 
-    protected static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)]#)");
+    static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)]#)");
 
     private ConsoleReader reader;
     {
@@ -64,31 +64,31 @@ public class Shell {
     private volatile boolean promptNow = false;
     private volatile boolean initOnce = false;
 
-    protected final Term term = Term.getInstance();
-    protected final ShellPrinter shellPrinter;
-    protected final ShellReader shellReader;
-    protected final HistoryCmdHelper historyCmdHelper;
-    protected final MoreHelper moreHelper;
-    protected final ArrowHelper arrowHelper;
-    protected final VimHelper vimHelper;
+    final Term term = Term.getInstance();
+    final ShellPrinter shellPrinter;
+    final ShellReader shellReader;
+    final HistoryCmdHelper historyCmdHelper;
+    final MoreHelper moreHelper;
+    final ArrowHelper arrowHelper;
+    final VimHelper vimHelper;
 
-    protected volatile AtomicReference<StringBuffer> localLastCmd = new AtomicReference<>(new StringBuffer());
-    protected volatile AtomicReference<StringBuffer> remoteCmd = new AtomicReference<>(new StringBuffer());
-    protected volatile AtomicReference<StringBuffer> currentPrint = new AtomicReference<>(new StringBuffer());
-    protected volatile AtomicReference<StringBuffer> selectHistoryCmd = new AtomicReference<>(new StringBuffer());
-    protected volatile StringBuffer localLastInput = new StringBuffer();
-    protected volatile StringBuffer lastRemoteCmd = new StringBuffer();
-    protected volatile StringBuffer lastExecuteCmd = new StringBuffer();
-    protected volatile Status status = Status.NORMAL;
+    volatile AtomicReference<StringBuffer> localLastCmd = new AtomicReference<>(new StringBuffer());
+    volatile AtomicReference<StringBuffer> remoteCmd = new AtomicReference<>(new StringBuffer());
+    volatile AtomicReference<StringBuffer> currentPrint = new AtomicReference<>(new StringBuffer());
+    volatile AtomicReference<StringBuffer> selectHistoryCmd = new AtomicReference<>(new StringBuffer());
+    volatile StringBuffer localLastInput = new StringBuffer();
+    volatile StringBuffer lastRemoteCmd = new StringBuffer();
+    volatile StringBuffer lastExecuteCmd = new StringBuffer();
+    volatile Status status = Status.NORMAL;
 
-    protected final Set<String> tabFeedbackRec = new HashSet<>();
+    final Set<String> tabFeedbackRec = new HashSet<>();
 
-    protected final StringBuilder cmd = new StringBuilder();
-    protected final AtomicReference<String> welcome = new AtomicReference<>();
-    protected final AtomicReference<String> prompt = new AtomicReference<>();
-    protected final AtomicReference<String> user = new AtomicReference<>();
-    protected final AtomicReference<String> fullPath = new AtomicReference<>();
-    protected volatile AtomicReference<String> bottomLinePrint = new AtomicReference<>(StrUtil.EMPTY);
+    final StringBuilder cmd = new StringBuilder();
+    final AtomicReference<String> welcome = new AtomicReference<>();
+    final AtomicReference<String> prompt = new AtomicReference<>();
+    final AtomicReference<String> user = new AtomicReference<>();
+    final AtomicReference<String> fullPath = new AtomicReference<>();
+    volatile AtomicReference<String> bottomLinePrint = new AtomicReference<>(StrUtil.EMPTY);
 
     public enum Status {
         /**
@@ -136,6 +136,7 @@ public class Shell {
             extractUserFromPrompt();
             if (status.equals(Status.VIM_UNDER)) {
                 status = Status.NORMAL;
+                System.gc();
             } else if (status.equals(Status.MORE_PROC) || status.equals(Status.MORE_EDIT) || status.equals(Status.MORE_SUB)) {
                 status = Status.NORMAL;
             }
@@ -173,20 +174,20 @@ public class Shell {
 
         String cmdStr = cmd.toString();
         boolean isVimCmd = CmdUtil.isViVimCmd(localLastCmd.get().toString())
-                || CmdUtil.isViVimCmd(cmd.toString())
+                || CmdUtil.isViVimCmd(cmdStr)
                 || CmdUtil.isViVimCmd(selectHistoryCmd.get().toString());
         if (isVimCmd) {
             status = Status.VIM_BEFORE;
         }
 
         if (CmdUtil.isCdCmd(lastRemoteCmd.toString())
-                || CmdUtil.isCdCmd(cmd.toString())
+                || CmdUtil.isCdCmd(cmdStr)
                 || CmdUtil.isCdCmd(selectHistoryCmd.get().toString())) {
             StatusCache.EXECUTE_CD_CMD = true;
         }
 
         boolean isMoreCmd = CmdUtil.isMoreCmd(localLastCmd.get().toString())
-                || CmdUtil.isMoreCmd(cmd.toString())
+                || CmdUtil.isMoreCmd(cmdStr)
                 || CmdUtil.isMoreCmd(selectHistoryCmd.get().toString());
         if (isMoreCmd) {
             status = Shell.Status.MORE_BEFORE;

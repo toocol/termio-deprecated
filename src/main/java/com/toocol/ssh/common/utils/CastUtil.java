@@ -4,7 +4,7 @@ package com.toocol.ssh.common.utils;
  * @author Joezeo
  * @date 2020/12/6 16:27
  */
-public class CastUtil {
+public final class CastUtil {
     /**
      * Automatically deduce the type.
      *

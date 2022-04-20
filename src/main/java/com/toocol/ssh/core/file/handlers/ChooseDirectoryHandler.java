@@ -12,7 +12,7 @@ import static com.toocol.ssh.core.file.FileAddress.CHOOSE_DIRECTORY;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/16 16:19
  */
-public class ChooseDirectoryHandler extends AbstractMessageHandler<String> {
+public final class ChooseDirectoryHandler extends AbstractMessageHandler<String> {
 
     public ChooseDirectoryHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);

@@ -10,7 +10,7 @@ import java.nio.charset.Charset;
  *
  * @author Joezeo
  */
-public class StrUtil extends StringUtils {
+public final class StrUtil extends StringUtils {
     /**
      * {@code "."}
      */
