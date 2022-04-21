@@ -16,7 +16,30 @@ public abstract class AbstractCharAction {
      */
     public abstract CharEvent[] watch();
 
+    /**
+     * @param shell     the current shell
+     * @param charEvent char input event
+     * @param inChar    the input char
+     * @return true: break the outside loop; false: continue
+     */
+    public abstract boolean act(Shell shell, CharEvent charEvent, char inChar);
 
-    public abstract void act(Shell shell, CharEvent charEvent, char inChar);
+    /*
+     * reset the action;
+     **/
+    public static void reset() {
+        localLastInputBuffer.delete(0, localLastInputBuffer.length());
+        remoteCursorOffset = false;
+    }
+
+    /**
+     * record the local input string in this read loop.
+     */
+    protected static final StringBuilder localLastInputBuffer = new StringBuilder();
+
+    /**
+     * remote cursor position has changed sign.
+     */
+    protected static boolean remoteCursorOffset = false;
 
 }

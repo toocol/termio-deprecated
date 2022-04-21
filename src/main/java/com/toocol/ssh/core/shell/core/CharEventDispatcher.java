@@ -15,13 +15,13 @@ import java.util.Objects;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 19:32
  */
-public class CharEventDispatcher {
+public final class CharEventDispatcher {
 
-    private final ImmutableMap<CharEvent, AbstractCharAction> actionMap;
+    private static final ImmutableMap<CharEvent, AbstractCharAction> actionMap;
 
-    {
+    static {
         Map<CharEvent, AbstractCharAction> map = new HashMap<>();
-        new ClassScanner("com.toocol.ssh.core.shell.core.actions", clazz -> clazz.equals(AbstractCharAction.class))
+        new ClassScanner("com.toocol.ssh.core.shell.core", clazz -> clazz.getSuperclass().equals(AbstractCharAction.class))
                 .scan()
                 .forEach(clazz -> {
                     try {
@@ -42,15 +42,24 @@ public class CharEventDispatcher {
         actionMap = ImmutableMap.copyOf(map);
     }
 
-    public void dispatch(Shell shell, char inChar) {
+    public static void init() {
+
+    }
+
+    public boolean dispatch(Shell shell, char inChar) {
         CharEvent charEvent = CharEvent.eventOf(inChar);
         if (charEvent == null) {
-            return;
+            return false;
         }
 
         if (actionMap.containsKey(charEvent)) {
-            Objects.requireNonNull(actionMap.get(charEvent)).act(shell, charEvent, inChar);
+            boolean isBreak = Objects.requireNonNull(actionMap.get(charEvent)).act(shell, charEvent, inChar);
+            if (isBreak) {
+                AbstractCharAction.reset();
+            }
+            return isBreak;
         }
+        return false;
     }
 
 }
