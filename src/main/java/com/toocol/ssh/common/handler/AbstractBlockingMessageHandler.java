@@ -7,6 +7,8 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
+import java.util.concurrent.CountDownLatch;
+
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 10:46

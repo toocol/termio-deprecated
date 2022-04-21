@@ -7,6 +7,7 @@ import com.toocol.ssh.common.utils.ClassScanner;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.config.SystemConfig;
+import com.toocol.ssh.core.shell.core.CharEventDispatcher;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import io.vertx.core.AbstractVerticle;
@@ -41,6 +42,8 @@ public class TermioApplication {
             System.exit(-1);
         }
         SystemConfig.BOOT_TYPE = args[0];
+
+        CharEventDispatcher.init();
 
         CountDownLatch loadingLatch = new CountDownLatch(1);
         Printer.printLoading(loadingLatch);

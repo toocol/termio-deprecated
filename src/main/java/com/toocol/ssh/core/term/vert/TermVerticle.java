@@ -12,7 +12,7 @@ import io.vertx.core.AbstractVerticle;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:30
  */
-@VerticleDeployment(worker = true, workerPoolSize = 3, workerPoolName = "shell-worker-pool")
+@VerticleDeployment(worker = true, workerPoolSize = 3, workerPoolName = "term-worker-pool")
 @RegisterHandler(handlers = {
         BlockingMonitorTerminalHandler.class,
         BlockingAcceptCommandHandler.class,

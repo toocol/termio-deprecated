@@ -7,20 +7,21 @@ import com.toocol.ssh.core.shell.handlers.*;
 import io.vertx.core.AbstractVerticle;
 
 /**
- * @author ZhaoZhe (joezane.cn@gmail.com)
- * @date 2022/3/31 11:30
+ * @author ：JoeZane (joezane.cn@gmail.com)
+ * @date: 2022/4/21 22:48
+ * @version: 0.0.1
  */
 @VerticleDeployment(worker = true, workerPoolSize = 5, workerPoolName = "shell-worker-pool")
 @RegisterHandler(handlers = {
-        BlockingEstablishSessionHandler.class,
         BlockingShellDisplayHandler.class,
         BlockingShellReceiveHandler.class,
+        BlockingEstablishSessionHandler.class,
         BlockingExecuteSingleCmdHandler.class,
         BlockingExecuteCmdInShellHandler.class,
         BlockingDfHandler.class,
         BlockingUfHandler.class
 })
-public final class ShellVerticle extends AbstractVerticle implements IHandlerMounter {
+public class ShellVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {
