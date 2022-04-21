@@ -2,7 +2,7 @@ package com.toocol.ssh.core.shell.handlers;
 
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.execeptions.RemoteDisconnectException;
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.common.sync.SharedCountdownLatch;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.common.utils.Tuple2;
@@ -10,8 +10,11 @@ import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.shell.core.Shell;
-import com.toocol.ssh.core.term.handlers.AcceptCommandHandler;
-import io.vertx.core.*;
+import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
@@ -20,19 +23,19 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.toocol.ssh.core.shell.ShellAddress.RECEIVE_SHELL;
 import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
+import static com.toocol.ssh.core.shell.ShellAddress.RECEIVE_SHELL;
 import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 15:25
  */
-public final class ShellReceiveHandler extends AbstractMessageHandler<Long> {
+public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHandler<Long> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
 
-    public ShellReceiveHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingShellReceiveHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 
@@ -141,7 +144,7 @@ public final class ShellReceiveHandler extends AbstractMessageHandler<Long> {
                         // do nothing
                         remoteDisconnect.set(true);
                     }
-                }, 1000, this.getClass(), ShellDisplayHandler.class);
+                }, 1000, this.getClass(), BlockingShellDisplayHandler.class);
                 if (remoteDisconnect.get()) {
                     promise.tryComplete(sessionId);
                     break;
@@ -172,7 +175,7 @@ public final class ShellReceiveHandler extends AbstractMessageHandler<Long> {
             sessionCache.stop(sessionId);
         }
 
-        eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), AcceptCommandHandler.NORMAL_BACK);
+        eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.NORMAL_BACK);
     }
 
 }

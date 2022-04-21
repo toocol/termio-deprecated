@@ -1,11 +1,11 @@
 package com.toocol.ssh.core.file.vert;
 
-import com.toocol.ssh.common.annotation.VerticleDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
+import com.toocol.ssh.common.annotation.VerticleDeployment;
 import com.toocol.ssh.common.handler.IHandlerMounter;
-import com.toocol.ssh.core.file.handlers.CheckFileExistHandler;
-import com.toocol.ssh.core.file.handlers.ChooseFileHandler;
-import com.toocol.ssh.core.file.handlers.ReadFileHandler;
+import com.toocol.ssh.core.file.handlers.BlockingCheckFileExistHandler;
+import com.toocol.ssh.core.file.handlers.BlockingChooseFileHandler;
+import com.toocol.ssh.core.file.handlers.BlockingReadFileHandler;
 import io.vertx.core.AbstractVerticle;
 
 /**
@@ -17,9 +17,9 @@ import io.vertx.core.AbstractVerticle;
  */
 @VerticleDeployment(weight = 10, worker = true, workerPoolSize = 2, workerPoolName = "file-worker-pool")
 @RegisterHandler(handlers = {
-        CheckFileExistHandler.class,
-        ReadFileHandler.class,
-        ChooseFileHandler.class
+        BlockingCheckFileExistHandler.class,
+        BlockingReadFileHandler.class,
+        BlockingChooseFileHandler.class
 })
 public final class FileVerticle extends AbstractVerticle implements IHandlerMounter {
 

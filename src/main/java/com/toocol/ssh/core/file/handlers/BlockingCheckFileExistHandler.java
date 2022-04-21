@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.file.handlers;
 
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.utils.FileUtil;
 import io.vertx.core.*;
@@ -12,9 +12,9 @@ import static com.toocol.ssh.core.file.FileAddress.ADDRESS_CHECK_FILE_EXIST;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 16:19
  */
-public final class CheckFileExistHandler extends AbstractMessageHandler<Void> {
+public final class BlockingCheckFileExistHandler extends AbstractBlockingMessageHandler<Void> {
 
-    public CheckFileExistHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingCheckFileExistHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 

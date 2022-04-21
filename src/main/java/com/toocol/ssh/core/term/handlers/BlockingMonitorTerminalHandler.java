@@ -2,7 +2,7 @@ package com.toocol.ssh.core.term.handlers;
 
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.core.Term;
@@ -17,11 +17,11 @@ import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
  * @version: 0.0.1
  */
 @SuppressWarnings("all")
-public final class MonitorTerminalHandler extends AbstractMessageHandler<Void> {
+public final class BlockingMonitorTerminalHandler extends AbstractBlockingMessageHandler<Void> {
 
     private final Term term = Term.getInstance();
 
-    public MonitorTerminalHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingMonitorTerminalHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 

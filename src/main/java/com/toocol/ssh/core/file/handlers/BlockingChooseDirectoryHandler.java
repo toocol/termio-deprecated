@@ -1,33 +1,31 @@
 package com.toocol.ssh.core.file.handlers;
 
 import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.core.file.core.FileChooser;
+import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.core.file.core.DirectoryChooser;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
-import static com.toocol.ssh.core.file.FileAddress.CHOOSE_FILE;
+import static com.toocol.ssh.core.file.FileAddress.CHOOSE_DIRECTORY;
 
 /**
- * @author ：JoeZane (joezane.cn@gmail.com)
- * @date: 2022/4/10 19:34
- * @version: 0.0.1
+ * @author ZhaoZhe (joezane.cn@gmail.com)
+ * @date 2022/4/16 16:19
  */
-public final class ChooseFileHandler extends AbstractMessageHandler<String> {
+public final class BlockingChooseDirectoryHandler extends AbstractBlockingMessageHandler<String> {
 
-    public ChooseFileHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingChooseDirectoryHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 
     @Override
     public IAddress consume() {
-        return CHOOSE_FILE;
+        return CHOOSE_DIRECTORY;
     }
 
     @Override
     protected <T> void handleWithinBlocking(Promise<String> promise, Message<T> message) throws Exception {
-        FileChooser fileChooser = new FileChooser();
-        promise.complete(fileChooser.showOpenDialog());
+        promise.complete(new DirectoryChooser().showOpenDialog());
     }
 
     @Override

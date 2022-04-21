@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.auth.vert;
 
-import com.toocol.ssh.common.annotation.VerticleDeployment;
 import com.toocol.ssh.common.annotation.RegisterHandler;
+import com.toocol.ssh.common.annotation.VerticleDeployment;
 import com.toocol.ssh.common.handler.IHandlerMounter;
 import com.toocol.ssh.common.utils.FileUtil;
 import com.toocol.ssh.core.auth.handlers.AddCredentialHandler;
@@ -20,7 +20,7 @@ import static com.toocol.ssh.core.file.FileAddress.ADDRESS_READ_FILE;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 15:03
  */
-@VerticleDeployment(weight = 1, worker = true, workerPoolSize = 2, workerPoolName = "auth-worker-pool")
+@VerticleDeployment
 @RegisterHandler(handlers = {
         AddCredentialHandler.class,
         DeleteCredentialHandler.class
@@ -48,5 +48,10 @@ public final class AuthVerticle extends AbstractVerticle implements IHandlerMoun
                 StatusCache.LOADING_ACCOMPLISH = true;
             });
         });
+    }
+
+    @Override
+    public void stop() throws Exception {
+
     }
 }

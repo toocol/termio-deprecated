@@ -115,22 +115,22 @@ public final class Printer {
         new Thread(() -> {
             int idx = 0;
             print(patterns[idx++] + " starting termio.");
-            while (true) {
-                if (StatusCache.LOADING_ACCOMPLISH) {
-                    break;
-                }
-                JNI.setCursorPosition(0, 0);
-                ;
-                print(patterns[idx++]);
-                if (idx >= patterns.length) {
-                    idx = 1;
-                }
-                try {
+            try {
+                while (true) {
+                    if (StatusCache.LOADING_ACCOMPLISH) {
+                        break;
+                    }
+                    JNI.setCursorPosition(0, 0);
+                    ;
+                    print(patterns[idx++]);
+                    if (idx >= patterns.length) {
+                        idx = 1;
+                    }
                     Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    print("Start up failed.");
-                    System.exit(-1);
                 }
+            } catch (InterruptedException e) {
+                print("Start up failed.");
+                System.exit(-1);
             }
             latch.countDown();
             JNI.showCursor();

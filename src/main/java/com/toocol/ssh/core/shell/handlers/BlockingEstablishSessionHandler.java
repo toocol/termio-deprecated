@@ -4,7 +4,7 @@ import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.common.utils.SnowflakeGuidGenerator;
 import com.toocol.ssh.core.auth.vo.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
@@ -14,7 +14,7 @@ import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
-import com.toocol.ssh.core.term.handlers.AcceptCommandHandler;
+import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
@@ -28,14 +28,14 @@ import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-public final class EstablishSessionShellChannelHandler extends AbstractMessageHandler<Long> {
+public final class BlockingEstablishSessionHandler extends AbstractBlockingMessageHandler<Long> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
 
     private final JSch jSch = new JSch();
     private final SnowflakeGuidGenerator guidGenerator = new SnowflakeGuidGenerator();
 
-    public EstablishSessionShellChannelHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingEstablishSessionHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 
@@ -174,7 +174,7 @@ public final class EstablishSessionShellChannelHandler extends AbstractMessageHa
 
         } else {
 
-            eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), AcceptCommandHandler.CONNECT_FAILED);
+            eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
 
         }
     }

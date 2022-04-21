@@ -4,11 +4,9 @@ import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
 import com.toocol.ssh.core.shell.core.Shell;
-import com.toocol.ssh.core.shell.handlers.DfHandler;
-import io.vertx.core.Promise;
+import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -61,7 +59,7 @@ public class ShellDfCmdProcessor extends ShellCommandProcessor {
         JsonObject request = new JsonObject();
         request.put("sessionId", shell.getSessionId());
         request.put("remotePath", remotePath.toString());
-        request.put("type", DfHandler.DF_TYPE_FILE);
+        request.put("type", BlockingDfHandler.DF_TYPE_FILE);
 
         eventBus.send(START_DF_COMMAND.address(), request);
 

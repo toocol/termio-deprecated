@@ -5,7 +5,6 @@ import com.toocol.ssh.common.utils.ICastable;
 import com.toocol.ssh.core.term.core.Printer;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
-import io.vertx.core.WorkerExecutor;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
@@ -35,10 +34,21 @@ public interface IHandlerMounter extends ICastable {
         Arrays.stream(registerHandler.handlers()).forEach(handlerClass -> {
             try {
 
-                Constructor<? extends AbstractMessageHandler<?>> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, Context.class, boolean.class));
-                declaredConstructor.setAccessible(true);
-                AbstractMessageHandler<?> commandHandler = declaredConstructor.newInstance(vertx, context, parallel);
-                vertx.eventBus().consumer(commandHandler.consume().address(), commandHandler::handle);
+                if (handlerClass.getSuperclass().equals(AbstractMessageHandler.class)) {
+
+                    Constructor<? extends AbstractMessageHandler> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, Context.class));
+                    declaredConstructor.setAccessible(true);
+                    AbstractMessageHandler commandHandler = declaredConstructor.newInstance(vertx, context);
+                    vertx.eventBus().consumer(commandHandler.consume().address(), commandHandler::handle);
+
+                } else if (handlerClass.getSuperclass().equals(AbstractBlockingMessageHandler.class)) {
+
+                    Constructor<? extends AbstractBlockingMessageHandler<?>> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, Context.class, boolean.class));
+                    declaredConstructor.setAccessible(true);
+                    AbstractBlockingMessageHandler<?> commandHandler = declaredConstructor.newInstance(vertx, context, parallel);
+                    vertx.eventBus().consumer(commandHandler.consume().address(), commandHandler::handle);
+
+                }
 
             } catch (Exception e) {
                 e.printStackTrace();

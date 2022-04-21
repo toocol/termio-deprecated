@@ -2,7 +2,7 @@ package com.toocol.ssh.core.shell.handlers;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.core.SftpChannelProvider;
 import io.vertx.core.*;
@@ -23,14 +23,14 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
  * @date: 2022/4/9 16:39
  * @version: 0.0.1
  */
-public final class DfHandler extends AbstractMessageHandler<byte[]> {
+public final class BlockingDfHandler extends AbstractBlockingMessageHandler<byte[]> {
 
     private final SftpChannelProvider sftpChannelProvider = SftpChannelProvider.getInstance();
 
     public static final int DF_TYPE_FILE = 1;
     public static final int DF_TYPE_BYTE = 2;
 
-    public DfHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingDfHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 

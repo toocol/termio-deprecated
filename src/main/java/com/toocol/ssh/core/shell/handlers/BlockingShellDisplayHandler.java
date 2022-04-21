@@ -2,13 +2,16 @@ package com.toocol.ssh.core.shell.handlers;
 
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.common.sync.SharedCountdownLatch;
-import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
-import io.vertx.core.*;
+import com.toocol.ssh.core.term.core.Printer;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
 import java.io.InputStream;
@@ -21,7 +24,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
  * @date 2022/3/31 15:44
  */
 @SuppressWarnings("all")
-public final class ShellDisplayHandler extends AbstractMessageHandler<Long> {
+public final class BlockingShellDisplayHandler extends AbstractBlockingMessageHandler<Long> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
 
@@ -29,7 +32,7 @@ public final class ShellDisplayHandler extends AbstractMessageHandler<Long> {
 
     private volatile long firstIn = 0;
 
-    public ShellDisplayHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingShellDisplayHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 
@@ -77,7 +80,7 @@ public final class ShellDisplayHandler extends AbstractMessageHandler<Long> {
                 if (hasPrint && StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
                     cmdHasFeedbackWhenJustExit = true;
                 }
-                SharedCountdownLatch.countdown(ShellReceiveHandler.class, this.getClass());
+                SharedCountdownLatch.countdown(BlockingShellReceiveHandler.class, this.getClass());
             }
 
             if (StatusCache.HANGED_QUIT) {
@@ -127,7 +130,7 @@ public final class ShellDisplayHandler extends AbstractMessageHandler<Long> {
         if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
             StatusCache.JUST_CLOSE_EXHIBIT_SHELL = false;
             cmdHasFeedbackWhenJustExit = false;
-            SharedCountdownLatch.countdown(ExecuteCommandInCertainShellHandler.class, this.getClass());
+            SharedCountdownLatch.countdown(BlockingExecuteCmdInShellHandler.class, this.getClass());
             return;
         }
         if (StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING) {

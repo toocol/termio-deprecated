@@ -8,7 +8,7 @@ import com.toocol.ssh.common.address.IAddress;
  */
 public enum AuthAddress implements IAddress{
     /**
-     * add a ssh credential
+     * add ssh credential
      */
     ADD_CREDENTIAL("ssh.add.credential"),
     DELETE_CREDENTIAL("ssh.delete.credential");

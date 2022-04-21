@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.term.handlers;
 
 import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.commands.TermioCommand;
 import com.toocol.ssh.core.term.core.Printer;
@@ -23,14 +23,14 @@ import static com.toocol.ssh.core.term.TermAddress.ADDRESS_EXECUTE_OUTSIDE;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:11
  */
-public final class AcceptCommandHandler extends AbstractMessageHandler<Boolean> {
+public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageHandler<Boolean> {
 
     public static final int FIRST_IN = 0;
     public static final int NORMAL_BACK = 1;
     public static final int ACCEPT_ERROR = 2;
     public static final int CONNECT_FAILED = 3;
 
-    public AcceptCommandHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingAcceptCommandHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 

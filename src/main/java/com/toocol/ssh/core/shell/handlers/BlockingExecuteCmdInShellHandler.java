@@ -1,37 +1,40 @@
 package com.toocol.ssh.core.shell.handlers;
 
-import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.common.sync.SharedCountdownLatch;
+import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.CmdFeedbackHelper;
-import com.toocol.ssh.core.shell.core.ExecChannelProvider;
 import com.toocol.ssh.core.shell.core.Shell;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
-import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND;
+import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
+import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
- * @date: 2022/4/10 17:57
+ * @date: 2022/4/10 22:45
  * @version: 0.0.1
  */
-public final class ExecuteSingleCommandHandler extends AbstractMessageHandler<String> {
+public final class BlockingExecuteCmdInShellHandler extends AbstractBlockingMessageHandler<String> {
 
     private final SessionCache sessionCache = SessionCache.getInstance();
-    private final ExecChannelProvider execChannelProvider = ExecChannelProvider.getInstance();
 
-    public ExecuteSingleCommandHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingExecuteCmdInShellHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 
     @Override
     public IAddress consume() {
-        return EXECUTE_SINGLE_COMMAND;
+        return EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
     }
 
     @Override
@@ -40,21 +43,30 @@ public final class ExecuteSingleCommandHandler extends AbstractMessageHandler<St
         Long sessionId = request.getLong("sessionId");
         String cmd = request.getString("cmd");
 
-        ChannelExec channelExec = execChannelProvider.getChannelExec(sessionId);
+        SharedCountdownLatch.await(
+                () -> {
+                    StatusCache.JUST_CLOSE_EXHIBIT_SHELL = true;
+                    StatusCache.EXHIBIT_WAITING_BEFORE_COMMAND_PREPARE = false;
+                },
+                this.getClass(),
+                BlockingShellDisplayHandler.class
+        );
+
+        ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
         Shell shell = sessionCache.getShell(sessionId);
 
-        if (channelExec == null || shell == null) {
+        if (channelShell == null || shell == null) {
             promise.fail("ChannelExec or shell is null.");
             return;
         }
-        InputStream inputStream = channelExec.getInputStream();
 
-        channelExec.setCommand(cmd);
-        channelExec.connect();
+        InputStream inputStream = channelShell.getInputStream();
+        shell.writeAndFlush((cmd + StrUtil.LF).getBytes(StandardCharsets.UTF_8));
 
         String feedback = new CmdFeedbackHelper(inputStream, cmd, shell).extractFeedback();
 
-        channelExec.disconnect();
+        StatusCache.ACCESS_EXHIBIT_SHELL_WITH_PROMPT = false;
+        eventBus.send(DISPLAY_SHELL.address(), sessionId);
 
         promise.complete(feedback);
     }

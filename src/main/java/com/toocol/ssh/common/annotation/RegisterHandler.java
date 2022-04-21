@@ -19,5 +19,5 @@ public @interface RegisterHandler {
      *
      * @return the command handlers which belong to this verticle
      */
-    Class<? extends AbstractMessageHandler<?>>[] handlers();
+    Class<? extends AbstractMessageHandler>[] handlers();
 }

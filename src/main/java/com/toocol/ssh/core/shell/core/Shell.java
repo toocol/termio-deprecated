@@ -6,7 +6,7 @@ import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
-import com.toocol.ssh.core.shell.handlers.DfHandler;
+import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.ArrowHelper;
 import com.toocol.ssh.core.term.core.Term;
@@ -217,7 +217,7 @@ public final class Shell {
             JsonObject request = new JsonObject();
             request.put("sessionId", sessionId);
             request.put("remotePath", "/" + user + "/.bash_history");
-            request.put("type", DfHandler.DF_TYPE_BYTE);
+            request.put("type", BlockingDfHandler.DF_TYPE_BYTE);
             eventBus.request(START_DF_COMMAND.address(), request, result -> {
                 byte[] bytes = (byte[]) result.result().body();
                 String data = new String(bytes, StandardCharsets.UTF_8);

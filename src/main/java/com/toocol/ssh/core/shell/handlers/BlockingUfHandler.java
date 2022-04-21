@@ -2,7 +2,7 @@ package com.toocol.ssh.core.shell.handlers;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.common.utils.FileNameUtil;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.core.SftpChannelProvider;
@@ -22,11 +22,11 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_UF_COMMAND;
  * @date: 2022/4/9 16:38
  * @version: 0.0.1
  */
-public final class UfHandler extends AbstractMessageHandler<Void> {
+public final class BlockingUfHandler extends AbstractBlockingMessageHandler<Void> {
 
     private final SftpChannelProvider sftpChannelProvider = SftpChannelProvider.getInstance();
 
-    public UfHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingUfHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 
