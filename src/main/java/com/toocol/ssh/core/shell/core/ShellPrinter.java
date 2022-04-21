@@ -59,9 +59,11 @@ record ShellPrinter(Shell shell) {
                 }
             }
 
-            Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
-            if (cursorPosition._1() != 0) {
-                shell.term.setCursorPosition(0, cursorPosition._2());
+            if (!tmp.contains(CRLF)) {
+                Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
+                if (cursorPosition._1() != 0) {
+                    shell.term.setCursorPosition(0, cursorPosition._2());
+                }
             }
         }
 

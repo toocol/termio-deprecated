@@ -188,9 +188,9 @@ public final class Shell {
             StatusCache.EXECUTE_CD_CMD = true;
         }
 
-        boolean isMoreCmd = CmdUtil.isMoreCmd(localLastCmd.get().toString())
-                || CmdUtil.isMoreCmd(cmdStr)
-                || CmdUtil.isMoreCmd(selectHistoryCmd.get().toString());
+        boolean isMoreCmd = (CmdUtil.isMoreCmd(localLastCmd.get().toString()) && !"more".equals(localLastCmd.get().toString().trim()))
+                || (CmdUtil.isMoreCmd(cmdStr) && !"more".equals(cmdStr.trim()))
+                || (CmdUtil.isMoreCmd(selectHistoryCmd.get().toString()) && !"more".equals(selectHistoryCmd.get().toString().trim()));
         if (isMoreCmd) {
             status = Shell.Status.MORE_BEFORE;
         }
