@@ -15,19 +15,19 @@ public final class CharUtil {
     /**
      * {@code up-arrow} translated
      */
-    public static final int UP_ARROW = '\u0010';
+    public static final char UP_ARROW = '\u0010';
     /**
      * {@code down-arrow} translated
      */
-    public static final int DOWN_ARROW = '\u0011';
+    public static final char DOWN_ARROW = '\u0011';
     /**
      * {@code up-arrow} translated
      */
-    public static final int LEFT_ARROW = '\u0012';
+    public static final char LEFT_ARROW = '\u0012';
     /**
      * {@code down-arrow} translated
      */
-    public static final int RIGHT_ARROW = '\u0013';
+    public static final char RIGHT_ARROW = '\u0013';
     /**
      * {@code Ctrl+B}
      */
