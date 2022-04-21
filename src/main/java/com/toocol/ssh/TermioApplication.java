@@ -70,19 +70,19 @@ public class TermioApplication {
 
         /* Get the verticle which need to deploy in main class by annotation */
         Set<Class<?>> annotatedClassList = new ClassScanner("com.toocol.ssh.core", clazz -> clazz.isAnnotationPresent(VerticleDeployment.class)).scan();
-        List<Class<? extends AbstractVerticle>> preloadVerticleClassList = new ArrayList<>();
+        List<Class<? extends AbstractVerticle>> verticleClassList = new ArrayList<>();
         annotatedClassList.forEach(annotatedClass -> {
             if (annotatedClass.getSuperclass().equals(AbstractVerticle.class)) {
-                preloadVerticleClassList.add(CastUtil.cast(annotatedClass));
+                verticleClassList.add(CastUtil.cast(annotatedClass));
             } else {
                 Printer.printErr("Skip deploy verticle " + annotatedClass.getName() + ", please extends AbstractVerticle");
             }
         });
-        final CountDownLatch initialLatch = new CountDownLatch(preloadVerticleClassList.size());
+        final CountDownLatch initialLatch = new CountDownLatch(verticleClassList.size());
 
         /* Deploy the verticle */
-        preloadVerticleClassList.sort(Comparator.comparingInt(clazz -> -1 * clazz.getAnnotation(VerticleDeployment.class).weight()));
-        preloadVerticleClassList.forEach(verticleClass -> {
+        verticleClassList.sort(Comparator.comparingInt(clazz -> -1 * clazz.getAnnotation(VerticleDeployment.class).weight()));
+        verticleClassList.forEach(verticleClass -> {
                     VerticleDeployment deploy = verticleClass.getAnnotation(VerticleDeployment.class);
                     DeploymentOptions deploymentOptions = new DeploymentOptions();
                     if (deploy.worker()) {
