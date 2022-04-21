@@ -13,7 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SessionCache {
 
-    private SessionCache(){}
+    private SessionCache() {
+    }
 
     private static final SessionCache INSTANCE = new SessionCache();
 
@@ -26,6 +27,26 @@ public class SessionCache {
                 .filter(entry -> entry.getValue().isConnected())
                 .toList()
                 .size();
+    }
+
+    public long containSession(String ip) {
+        return sessionMap.entrySet().stream()
+                .filter(entry -> ip.equals(entry.getValue().getHost()))
+                .map(Map.Entry::getKey)
+                .findAny()
+                .orElse(0L);
+    }
+
+    public boolean isDisconnect(long sessionId) {
+        return !sessionMap.get(sessionId).isConnected() || !channelShellMap.get(sessionId).isConnected();
+    }
+
+    public boolean isActive(String ip) {
+        long sessionId = containSession(ip);
+        if (sessionId == 0) {
+            return false;
+        }
+        return sessionMap.get(sessionId).isConnected();
     }
 
     /**
@@ -89,17 +110,5 @@ public class SessionCache {
     public void stopAll() {
         channelShellMap.forEach((k, v) -> v.disconnect());
         sessionMap.forEach((k, v) -> v.disconnect());
-    }
-
-    public long containSession(String ip) {
-        return sessionMap.entrySet().stream()
-                .filter(entry -> ip.equals(entry.getValue().getHost()))
-                .map(Map.Entry::getKey)
-                .findAny()
-                .orElse(0L);
-    }
-
-    public boolean isDisconnect(long sessionId) {
-        return !sessionMap.get(sessionId).isConnected() || !channelShellMap.get(sessionId).isConnected();
     }
 }

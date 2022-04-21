@@ -57,7 +57,7 @@ public class CredentialCache {
                 Printer.print(credential.getUser());
                 Printer.print("@");
                 Printer.printColor(credential.getHost(), 228);
-                if (SessionCache.getInstance().containSession(credential.getHost()) > 0) {
+                if (SessionCache.getInstance().isActive(credential.getHost())) {
                     Printer.print("\t\t");
                     Printer.printColor("[active]", 78);
                 }
