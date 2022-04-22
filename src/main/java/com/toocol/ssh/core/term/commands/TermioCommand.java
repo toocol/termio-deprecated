@@ -1,8 +1,11 @@
 package com.toocol.ssh.core.term.commands;
 
+import com.toocol.ssh.common.utils.CharUtil;
+import com.toocol.ssh.core.term.core.HighlightHelper;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.term.commands.processors.*;
+import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,6 +26,7 @@ public enum TermioCommand {
     CMD_ADD("add", new AddCmdProcessor(), "Add new ssh connection property. Pattern: 'add --user@host -c=password [-p=port]',default port is 22."),
     CMD_DELETE("delete", new DeleteCmdProcessor(), "Delete ssh connection property. Pattern: 'delete --index', for example: 'delete --1'."),
     CMD_NUMBER("numbers", new NumberCmdProcessor(), "Select the connection properties."),
+    CMD_THEME("theme", new ThemeCmdProcessor(), "Change the Termio's color theme."),
     ;
 
     private static final String[] tabBuffer = new String[]{"\t\t\t", "\t\t", "\t"};
@@ -62,12 +66,17 @@ public enum TermioCommand {
         return cmd;
     }
 
-    public static void printHelp() {
-        Printer.println("Termio commands:\t[param] means optional param");
+    public static String help() {
+        StringBuilder helpBuilder = new StringBuilder();
+        helpBuilder.append("Termio commands:\t[param] means optional param\n");
         for (TermioCommand command : values()) {
-            Printer.printColor(command.cmd, 78);
-            Printer.println(tabBuffer[command.cmd.length() / 8] + command.comment);
+            if (StringUtils.isEmpty(command.comment)) {
+                continue;
+            }
+            helpBuilder.append(HighlightHelper.assembleColor(command.cmd, Term.theme.commandHighlightColor));
+            helpBuilder.append(tabBuffer[command.cmd.length() / 8]).append(command.comment).append(CharUtil.LF);
         }
-        Printer.println();
+        helpBuilder.append("\n");
+        return helpBuilder.toString();
     }
 }

@@ -14,7 +14,9 @@ import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.core.term.core.TermStatus;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
+import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
@@ -169,7 +171,8 @@ public final class BlockingEstablishSessionHandler extends AbstractBlockingMessa
 
             StatusCache.SHOW_WELCOME = true;
 
-            eventBus.send(MONITOR_TERMINAL.address(), sessionId);
+            BlockingMonitorTerminalHandler.sessionId = sessionId;
+            Term.status = TermStatus.SHELL;
             eventBus.send(DISPLAY_SHELL.address(), sessionId);
             eventBus.send(RECEIVE_SHELL.address(), sessionId);
 

@@ -1,54 +1,31 @@
 package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.common.utils.CharUtil;
+import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.common.utils.Tuple2;
-import jline.console.ConsoleReader;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+
+import static com.toocol.ssh.core.term.TermAddress.TERMINAL_ECHO;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/16 15:23
  */
-public final class TermReader {
+public record TermReader(Term term) {
 
-    private final Term term;
-    private final ArrowHelper arrowHelper;
-    private final TermHistoryHelper historyHelper;
-
-    private ConsoleReader reader;
-
-    public TermReader(Term term) {
-        arrowHelper = new ArrowHelper();
-        historyHelper = new TermHistoryHelper(term);
-        this.term = term;
-    }
-
-    {
-        try {
-            reader = new ConsoleReader();
-        } catch (Exception e) {
-            Printer.println("\nCreate console reader failed.");
-            System.exit(-1);
-        }
-    }
-
-    public String readLine(String prompt) {
-        if (StringUtils.isNotEmpty(prompt)) {
-            Printer.print(prompt);
-        }
+    String readLine() {
 
         StringBuilder lineBuilder = new StringBuilder();
         try {
             while (true) {
-                char inChar = (char) reader.readCharacter();
+                char inChar = (char) term.reader.readCharacter();
 
-                char finalChar = arrowHelper.processArrowStream(inChar);
+                char finalChar = term.arrowHelper.processArrowStream(inChar);
 
                 if (CharUtil.isAsciiPrintable(finalChar)) {
 
-                    if (arrowHelper.isAcceptBracketAfterEscape()) {
+                    if (term.arrowHelper.isAcceptBracketAfterEscape()) {
                         continue;
                     }
                     Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
@@ -56,27 +33,27 @@ public final class TermReader {
                         int index = cursorPosition._1() - Term.PROMPT.length();
                         lineBuilder.insert(index, finalChar);
                         term.hideCursor();
-                        Printer.print(lineBuilder.substring(index, lineBuilder.length()));
+                        Printer.print(HighlightHelper.assembleColorBackground(lineBuilder.substring(index, lineBuilder.length()), Term.theme.executeLineBackgroundColor));
                         term.setCursorPosition(cursorPosition._1() + 1, cursorPosition._2());
                         term.showCursor();
                     } else {
                         lineBuilder.append(finalChar);
-                        Printer.print(String.valueOf(finalChar));
+                        Printer.print(HighlightHelper.assembleColorBackground(String.valueOf(finalChar), Term.theme.executeLineBackgroundColor));
                     }
 
                 } else if (finalChar == CharUtil.UP_ARROW || finalChar == CharUtil.DOWN_ARROW) {
                     if (finalChar == CharUtil.UP_ARROW) {
-                        if (!historyHelper.isStart()) {
+                        if (!term.historyHelper.isStart()) {
                             if (lineBuilder.toString().length() != 0) {
-                                historyHelper.pushToDown(lineBuilder.toString());
+                                term.historyHelper.pushToDown(lineBuilder.toString());
                             }
                         }
-                        String up = historyHelper.up();
+                        String up = term.historyHelper.up();
                         if (up != null) {
                             lineBuilder.delete(0, lineBuilder.length()).append(up);
                         }
                     } else {
-                        String down = historyHelper.down();
+                        String down = term.historyHelper.down();
                         if (down != null) {
                             lineBuilder.delete(0, lineBuilder.length()).append(down);
                         }
@@ -108,32 +85,36 @@ public final class TermReader {
                         int index = cursorPosition._1() - Term.PROMPT.length() - 1;
                         lineBuilder.deleteCharAt(index);
                         term.hideCursor();
-                        Printer.virtualBackspace();
-                        Printer.print(lineBuilder.substring(index, lineBuilder.length()) + CharUtil.SPACE);
+                        Printer.virtualBackspaceWithBackground(Term.theme.executeLineBackgroundColor);
+                        Printer.print(HighlightHelper.assembleColorBackground(lineBuilder.substring(index, lineBuilder.length()) + CharUtil.SPACE, Term.theme.executeLineBackgroundColor));
                         term.setCursorPosition(cursorPosition._1() - 1, cursorPosition._2());
                         term.showCursor();
                     } else {
                         lineBuilder.deleteCharAt(lineBuilder.length() - 1);
-                        Printer.virtualBackspace();
+                        Printer.virtualBackspaceWithBackground(Term.theme.executeLineBackgroundColor);
                     }
 
                 } else if (finalChar == CharUtil.CR || finalChar == CharUtil.LF) {
 
-                    Printer.println();
-                    historyHelper.push(lineBuilder.toString());
+                    Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
+                    term.hideCursor();
+                    term.setCursorPosition(Term.PROMPT.length(), cursorPosition._2());
+                    Printer.print(HighlightHelper.assembleColorBackground(" ".repeat(lineBuilder.length()), Term.theme.executeLineBackgroundColor));
+                    term.setCursorPosition(Term.PROMPT.length(), cursorPosition._2());
+                    term.showCursor();
+                    term.historyHelper.push(lineBuilder.toString());
                     break;
-
                 }
+
+                term.eventBus.send(TERMINAL_ECHO.address(), lineBuilder.toString());
             }
+
+            term.eventBus.send(TERMINAL_ECHO.address(), StrUtil.EMPTY);
             return lineBuilder.toString();
         } catch (IOException e) {
             Printer.println("\nIO error.");
             System.exit(-1);
         }
         return null;
-    }
-
-    public ConsoleReader getReader() {
-        return reader;
     }
 }

@@ -39,10 +39,6 @@ public final class ExecuteCommandHandler extends AbstractMessageHandler {
                         Printer.printErr("Execute command failed, message = " + e.getMessage());
                     }
                 });
-        if (resultAndMessage._1()) {
-            message.reply(null);
-        } else {
-            message.reply(resultAndMessage._2());
-        }
+        message.reply(resultAndMessage._2());
     }
 }

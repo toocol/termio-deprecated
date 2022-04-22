@@ -2,11 +2,10 @@ package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.common.jni.TermioJNI;
 import com.toocol.ssh.common.utils.PomUtil;
+import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
-import com.toocol.ssh.core.shell.commands.ShellCommand;
-import com.toocol.ssh.core.term.commands.TermioCommand;
 
 import java.io.PrintStream;
 import java.util.concurrent.CountDownLatch;
@@ -63,24 +62,8 @@ public final class Printer {
         PRINTER.print("\u0007");
     }
 
-    public static void printlnWithLogo(String msg) {
-        println("<termio> " + msg);
-    }
-
     public static void printErr(String msg) {
         println("<error> " + msg);
-    }
-
-    public static void printColor(String msg, int color) {
-        print("\u001b[38;5;" + color + "m" + msg + "\u001b[0m");
-    }
-
-    public static void printlnColor(String msg, int color) {
-        println("\u001b[38;5;" + color + "m" + msg + "\u001b[0m");
-    }
-
-    public static void printColorBackground(String msg, int color) {
-        print("\u001b[48;5;" + color + "m" + msg + "\u001b[0m");
     }
 
     public static void virtualBackspace() {
@@ -89,23 +72,56 @@ public final class Printer {
         print("\b");
     }
 
-    public static void printTitleAndInfo() {
-        println("termio\t\tv" + PomUtil.getVersion() + "\n" +
-                "website\t\thttps://github.com/Joezeo/termio\n" +
-                "memory use\ttotal:" + totalMemory() + "MB, max:" + maxMemory() + "MB, free:" + freeMemory() + "MB, used:" + usedMemory() + "MB\n" +
-                "active\t\t" + SessionCache.getHangUp() + "\n"
-        );
+    public static void virtualBackspaceWithBackground(int color) {
+        print("\b");
+        print(HighlightHelper.assembleColorBackground(" ", color));
+        print("\b");
     }
 
-    public static void printScene() {
-        printTitleAndInfo();
-        print("Properties:                                                                           \n");
+    public static void printTermPrompt() {
+        Term term = Term.getInstance();
+        Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length()), Term.theme.executeLineBackgroundColor));
+        term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
+    }
+
+    public static void printScene(boolean resize) {
+        Term term = Term.getInstance();
+        Tuple2<Integer, Integer> oldPosition = term.getCursorPosition();
+        JNI.hideCursor();
+        if (resize) {
+            clear();
+        }
+        printInformationBar();
+        print("\nProperties:                                                                           \n");
         if (CredentialCache.credentialsSize() == 0) {
             print("You have no connection properties, type 'help' to get more information.                         \n\n");
         } else {
             CredentialCache.showCredentials();
             println();
         }
+        Term.executeLine = term.getCursorPosition()._2();
+        if (resize && oldPosition._1() != 0 && oldPosition._2() != 0) {
+            term.printDisplayBuffer();
+            printTermPrompt();
+            term.printCommandBuffer();
+        }
+        JNI.showCursor();
+    }
+
+    private static void printInformationBar() {
+        int windowWidth = JNI.getWindowWidth();
+
+        JNI.setCursorPosition(0, 0);
+
+        String termioVersion = "termio: V0.0.1";
+        String memoryUse = "memory-use: " + usedMemory() + "MB";
+        String active = "active: " + SessionCache.getHangUp();
+        String website = "https://github.com/Joezeo/termio ";
+        int totalLen = termioVersion.length() + website.length() + memoryUse.length() + active.length();
+        String space = " ".repeat((windowWidth - totalLen) / 3);
+
+        println(termioVersion + space + memoryUse + space + active + space + website);
+        println("-".repeat(windowWidth));
     }
 
     @SuppressWarnings("all")
@@ -135,19 +151,6 @@ public final class Printer {
             latch.countDown();
             JNI.showCursor();
         }).start();
-    }
-
-    public static void printPrompt(String wrongCmd) {
-        println("" + wrongCmd + ": command not found.");
-    }
-
-    public static void printCursorLine() {
-        print("[termio] > ");
-    }
-
-    public static void printHelp() {
-        TermioCommand.printHelp();
-        ShellCommand.printHelp();
     }
 
     public static void clear() {

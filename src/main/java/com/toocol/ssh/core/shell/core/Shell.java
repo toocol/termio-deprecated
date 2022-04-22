@@ -138,7 +138,6 @@ public final class Shell {
             extractUserFromPrompt();
             if (status.equals(Status.VIM_UNDER)) {
                 status = Status.NORMAL;
-                System.gc();
             } else if (status.equals(Status.MORE_PROC) || status.equals(Status.MORE_EDIT) || status.equals(Status.MORE_SUB)) {
                 status = Status.NORMAL;
             }
