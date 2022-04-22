@@ -22,7 +22,7 @@ public final class ActionLeftRightArrow extends AbstractCharAction {
                 shell.term.cursorLeft();
             }
         } else {
-            if (cursorX < (shell.currentPrint.get().length() + shell.prompt.get().length())) {
+            if (cursorX < (shell.currentPrint.length() + shell.prompt.get().length())) {
                 shell.term.cursorRight();
             }
         }

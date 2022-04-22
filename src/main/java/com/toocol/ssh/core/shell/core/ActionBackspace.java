@@ -26,24 +26,24 @@ public final class ActionBackspace extends AbstractCharAction {
             shell.status = Shell.Status.NORMAL;
             return false;
         }
-        if (cursorPosition._1() < shell.currentPrint.get().length() + shell.prompt.get().length()) {
+        if (cursorPosition._1() < shell.currentPrint.length() + shell.prompt.get().length()) {
             // cursor has moved
             int index = cursorPosition._1() - shell.prompt.get().length() - 1;
             if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                String removal = "\u007F".repeat(shell.remoteCmd.get().length());
-                shell.remoteCmd.get().deleteCharAt(index);
-                shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.remoteCmd.get()));
-                removal += shell.remoteCmd.get().toString();
+                String removal = "\u007F".repeat(shell.remoteCmd.length());
+                shell.remoteCmd.deleteCharAt(index);
+                shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(shell.remoteCmd);
+                removal += shell.remoteCmd.toString();
                 shell.writeAndFlush(removal.getBytes(StandardCharsets.UTF_8));
                 remoteCursorOffset = true;
             }
             if (shell.status.equals(Shell.Status.NORMAL)) {
                 shell.cmd.deleteCharAt(index);
             }
-            shell.currentPrint.get().deleteCharAt(index);
+            shell.currentPrint.deleteCharAt(index);
             shell.term.hideCursor();
             Printer.virtualBackspace();
-            Printer.print(shell.currentPrint.get().substring(index, shell.currentPrint.get().length()) + CharUtil.SPACE);
+            Printer.print(shell.currentPrint.substring(index, shell.currentPrint.length()) + CharUtil.SPACE);
             shell.term.setCursorPosition(cursorPosition._1() - 1, cursorPosition._2());
             shell.term.showCursor();
         } else {
@@ -53,18 +53,21 @@ public final class ActionBackspace extends AbstractCharAction {
             if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
                 // This is ctrl+backspace
                 shell.writeAndFlush('\u007F');
-                if (shell.remoteCmd.get().length() > 0) {
-                    shell.remoteCmd.getAndUpdate(prev -> new StringBuffer(prev.toString().substring(0, prev.length() - 1)));
+                if (shell.remoteCmd.length() > 0) {
+                    String newVal = shell.remoteCmd.toString().substring(0, shell.remoteCmd.length() - 1);
+                    shell.remoteCmd.delete(0, shell.remoteCmd.length()).append(newVal);
                 }
-                if (shell.localLastCmd.get().length() > 0) {
-                    shell.localLastCmd.getAndUpdate(prev -> new StringBuffer(prev.substring(0, prev.length() - 1)));
+                if (shell.localLastCmd.length() > 0) {
+                    String newVal = shell.localLastCmd.toString().substring(0, shell.localLastCmd.length() - 1);
+                    shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(newVal);
                 }
             }
             if (shell.status.equals(Shell.Status.NORMAL)) {
                 shell.cmd.deleteCharAt(shell.cmd.length() - 1);
             }
-            if (shell.currentPrint.get().length() > 0) {
-                shell.currentPrint.getAndUpdate(prev -> new StringBuffer(prev.substring(0, prev.length() - 1)));
+            if (shell.currentPrint.length() > 0) {
+                String newVal = shell.currentPrint.toString().substring(0, shell.currentPrint.length() - 1);
+                shell.currentPrint.delete(0, shell.currentPrint.length()).append(newVal);
             }
 
             Printer.virtualBackspace();

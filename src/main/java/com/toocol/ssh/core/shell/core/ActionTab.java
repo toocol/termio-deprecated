@@ -21,12 +21,12 @@ public final class ActionTab extends AbstractCharAction {
     public boolean act(Shell shell, CharEvent charEvent, char inChar) {
         if (shell.bottomLinePrint.get().contains(shell.prompt.get())) {
             Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
-            shell.term.setCursorPosition(shell.currentPrint.get().length() + shell.prompt.get().length(), cursorPosition._2());
+            shell.term.setCursorPosition(shell.currentPrint.length() + shell.prompt.get().length(), cursorPosition._2());
         }
 
         if (shell.status.equals(Shell.Status.NORMAL)) {
-            shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.cmd));
-            shell.remoteCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.cmd));
+            shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(shell.cmd);
+            shell.remoteCmd.delete(0, shell.remoteCmd.length()).append(shell.cmd);
         }
         shell.localLastInput.delete(0, shell.localLastInput.length()).append(localLastInputBuffer);
         localLastInputBuffer.delete(0, localLastInputBuffer.length());

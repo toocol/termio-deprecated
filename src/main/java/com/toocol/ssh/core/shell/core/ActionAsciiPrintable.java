@@ -23,35 +23,35 @@ public final class ActionAsciiPrintable extends AbstractCharAction {
             return false;
         }
         Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
-        if (cursorPosition._1() < shell.currentPrint.get().length() + shell.prompt.get().length()) {
+        if (cursorPosition._1() < shell.currentPrint.length() + shell.prompt.get().length()) {
             // cursor has moved
             int index = cursorPosition._1() - shell.prompt.get().length();
             if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                String removal = "\u007F".repeat(shell.remoteCmd.get().length());
-                shell.remoteCmd.getAndUpdate(prev -> prev.insert(index, inChar));
-                shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.remoteCmd.get()));
-                removal += shell.remoteCmd.get().toString();
+                String removal = "\u007F".repeat(shell.remoteCmd.length());
+                shell.remoteCmd.insert(index, inChar);
+                shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(shell.remoteCmd);
+                removal += shell.remoteCmd.toString();
                 shell.writeAndFlush(removal.getBytes(StandardCharsets.UTF_8));
                 remoteCursorOffset = true;
             } else {
                 shell.cmd.insert(index, inChar);
                 localLastInputBuffer.insert(index, inChar);
             }
-            shell.currentPrint.getAndUpdate(prev -> prev.insert(index, inChar));
+            shell.currentPrint.insert(index, inChar);
             shell.term.hideCursor();
-            Printer.print(shell.currentPrint.get().substring(index, shell.currentPrint.get().length()));
+            Printer.print(shell.currentPrint.substring(index, shell.currentPrint.length()));
             shell.term.setCursorPosition(cursorPosition._1() + 1, cursorPosition._2());
             shell.term.showCursor();
         } else {
             // normal print
             if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-                shell.remoteCmd.getAndUpdate(prev -> prev.append(inChar));
-                shell.localLastCmd.getAndUpdate(prev -> prev.append(inChar));
+                shell.remoteCmd.append(inChar);
+                shell.localLastCmd.append(inChar);
                 shell.writeAndFlush(inChar);
             } else {
                 shell.cmd.append(inChar);
             }
-            shell.currentPrint.getAndUpdate(prev -> prev.append(inChar));
+            shell.currentPrint.append(inChar);
             localLastInputBuffer.append(inChar);
             Printer.print(String.valueOf(inChar));
         }

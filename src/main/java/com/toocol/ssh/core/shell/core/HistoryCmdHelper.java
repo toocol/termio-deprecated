@@ -82,8 +82,8 @@ public final class HistoryCmdHelper {
             }
             upBuffer = null;
 
-            shell.currentPrint.getAndUpdate(prev -> prev.delete(0, prev.length()).append(cmd));
-            shell.selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(cmd));
+            shell.currentPrint.delete(0, shell.currentPrint.length()).append(cmd);
+            shell.selectHistoryCmd.delete(0, shell.selectHistoryCmd.length()).append(cmd);
             shell.cmd.delete(0, shell.cmd.length()).append(cmd);
 
             shell.clearShellLineWithPrompt();
@@ -94,8 +94,8 @@ public final class HistoryCmdHelper {
         if (upBuffer != null) {
             downArrowStack.push(upBuffer);
         }
-        shell.currentPrint.getAndUpdate(prev -> prev.delete(0, prev.length()).append(cmd));
-        shell.selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(cmd));
+        shell.currentPrint.delete(0, shell.currentPrint.length()).append(cmd);
+        shell.selectHistoryCmd.delete(0, shell.selectHistoryCmd.length()).append(cmd);
         shell.cmd.delete(0, shell.cmd.length()).append(cmd);
         if (StrUtil.EMPTY.equals(cmd)) {
             upBuffer = null;
@@ -134,8 +134,8 @@ public final class HistoryCmdHelper {
             resetFlag = true;
         }
         String tmp = cmd;
-        shell.currentPrint.getAndUpdate(prev -> prev.delete(0, prev.length()).append(tmp));
-        shell.selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(tmp));
+        shell.currentPrint.delete(0, shell.currentPrint.length()).append(tmp);
+        shell.selectHistoryCmd.delete(0, shell.selectHistoryCmd.length()).append(tmp);
         shell.cmd.delete(0, shell.cmd.length()).append(cmd);
         if (StrUtil.EMPTY.equals(cmd)) {
             downBuffer = null;

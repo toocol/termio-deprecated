@@ -19,12 +19,12 @@ public final class ActionCRLF extends AbstractCharAction {
     @Override
     public boolean act(Shell shell, CharEvent charEvent, char inChar) {
         if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
-            shell.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(shell.remoteCmd.get().toString()).append(StrUtil.CRLF));
+            shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(shell.remoteCmd).append(StrUtil.CRLF);
         }
         shell.localLastInput.delete(0, shell.localLastInput.length()).append(localLastInputBuffer);
-        shell.lastRemoteCmd.delete(0, shell.lastRemoteCmd.length()).append(shell.remoteCmd.get().toString());
+        shell.lastRemoteCmd.delete(0, shell.lastRemoteCmd.length()).append(shell.remoteCmd.toString());
         shell.lastExecuteCmd.delete(0, shell.lastExecuteCmd.length())
-                .append(StringUtils.isEmpty(shell.remoteCmd.get()) ? shell.cmd.toString() : shell.remoteCmd.get().toString().replaceAll("\b", ""));
+                .append(StringUtils.isEmpty(shell.remoteCmd) ? shell.cmd.toString() : shell.remoteCmd.toString().replaceAll("\b", ""));
         if (!StrUtil.EMPTY.equals(shell.lastExecuteCmd.toString()) && (shell.status == Shell.Status.NORMAL || shell.status == Shell.Status.TAB_ACCOMPLISH)) {
             shell.historyCmdHelper.push(shell.lastExecuteCmd.toString());
         }

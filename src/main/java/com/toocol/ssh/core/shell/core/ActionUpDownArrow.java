@@ -23,13 +23,13 @@ public final class ActionUpDownArrow extends AbstractCharAction {
 
         if (inChar == CharUtil.UP_ARROW) {
             if (!shell.historyCmdHelper.isStart()) {
-                if (shell.cmd.length() != 0 && StringUtils.isEmpty(shell.remoteCmd.get())) {
+                if (shell.cmd.length() != 0 && StringUtils.isEmpty(shell.remoteCmd)) {
                     shell.historyCmdHelper.pushToDown(shell.cmd.toString());
-                } else if (StringUtils.isNotEmpty(shell.remoteCmd.get())) {
-                    byte[] write = "\u007F".repeat(shell.remoteCmd.get().length()).getBytes(StandardCharsets.UTF_8);
+                } else if (StringUtils.isNotEmpty(shell.remoteCmd)) {
+                    byte[] write = "\u007F".repeat(shell.remoteCmd.length()).getBytes(StandardCharsets.UTF_8);
                     if (write.length > 0) {
                         shell.writeAndFlush(write);
-                        String cmdToPush = shell.remoteCmd.get().toString().replaceAll("\u007F", "");
+                        String cmdToPush = shell.remoteCmd.toString().replaceAll("\u007F", "");
                         shell.historyCmdHelper.pushToDown(cmdToPush);
                     }
                 }
@@ -39,7 +39,7 @@ public final class ActionUpDownArrow extends AbstractCharAction {
             shell.historyCmdHelper.down();
         }
         localLastInputBuffer.delete(0, localLastInputBuffer.length()).append(shell.cmd);
-        shell.localLastCmd.set(new StringBuffer());
+        shell.localLastCmd.delete(0, shell.localLastCmd.length());
         return false;
     }
 }

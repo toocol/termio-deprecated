@@ -73,10 +73,10 @@ public final class Shell {
     final VimHelper vimHelper;
     final CharEventDispatcher charEventDispatcher;
 
-    volatile AtomicReference<StringBuffer> localLastCmd = new AtomicReference<>(new StringBuffer());
-    volatile AtomicReference<StringBuffer> remoteCmd = new AtomicReference<>(new StringBuffer());
-    volatile AtomicReference<StringBuffer> currentPrint = new AtomicReference<>(new StringBuffer());
-    volatile AtomicReference<StringBuffer> selectHistoryCmd = new AtomicReference<>(new StringBuffer());
+    volatile StringBuffer localLastCmd = new StringBuffer();
+    volatile StringBuffer remoteCmd = new StringBuffer();
+    volatile StringBuffer currentPrint = new StringBuffer();
+    volatile StringBuffer selectHistoryCmd = new StringBuffer();
     volatile StringBuffer localLastInput = new StringBuffer();
     volatile StringBuffer lastRemoteCmd = new StringBuffer();
     volatile StringBuffer lastExecuteCmd = new StringBuffer();
@@ -162,8 +162,8 @@ public final class Shell {
             status = Shell.Status.VIM_UNDER;
         }
 
-        selectHistoryCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
-        localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
+        selectHistoryCmd.delete(0, selectHistoryCmd.length());
+        localLastCmd.delete(0, localLastCmd.length());
         return hasPrint;
     }
 
@@ -175,28 +175,28 @@ public final class Shell {
         }
 
         String cmdStr = cmd.toString();
-        boolean isVimCmd = CmdUtil.isViVimCmd(localLastCmd.get().toString())
+        boolean isVimCmd = CmdUtil.isViVimCmd(localLastCmd.toString())
                 || CmdUtil.isViVimCmd(cmdStr)
-                || CmdUtil.isViVimCmd(selectHistoryCmd.get().toString());
+                || CmdUtil.isViVimCmd(selectHistoryCmd.toString());
         if (isVimCmd) {
             status = Status.VIM_BEFORE;
         }
 
         if (CmdUtil.isCdCmd(lastRemoteCmd.toString())
                 || CmdUtil.isCdCmd(cmdStr)
-                || CmdUtil.isCdCmd(selectHistoryCmd.get().toString())) {
+                || CmdUtil.isCdCmd(selectHistoryCmd.toString())) {
             StatusCache.EXECUTE_CD_CMD = true;
         }
 
-        boolean isMoreCmd = (CmdUtil.isMoreCmd(localLastCmd.get().toString()) && !"more".equals(localLastCmd.get().toString().trim()))
+        boolean isMoreCmd = (CmdUtil.isMoreCmd(localLastCmd.toString()) && !"more".equals(localLastCmd.toString().trim()))
                 || (CmdUtil.isMoreCmd(cmdStr) && !"more".equals(cmdStr.trim()))
-                || (CmdUtil.isMoreCmd(selectHistoryCmd.get().toString()) && !"more".equals(selectHistoryCmd.get().toString().trim()));
+                || (CmdUtil.isMoreCmd(selectHistoryCmd.toString()) && !"more".equals(selectHistoryCmd.toString().trim()));
         if (isMoreCmd) {
             status = Shell.Status.MORE_BEFORE;
         }
 
         lastRemoteCmd.delete(0, lastRemoteCmd.length());
-        currentPrint.getAndUpdate(prev -> prev.delete(0, prev.length()));
+        currentPrint.delete(0, currentPrint.length());
         return cmdStr;
     }
 
@@ -365,10 +365,10 @@ public final class Shell {
     }
 
     public void cleanUp() {
-        remoteCmd.set(new StringBuffer());
-        currentPrint.set(new StringBuffer());
-        selectHistoryCmd.set(new StringBuffer());
-        localLastCmd.set(new StringBuffer());
+        remoteCmd.delete(0, remoteCmd.length());
+        currentPrint.delete(0, currentPrint.length());
+        selectHistoryCmd.delete(0, selectHistoryCmd.length());
+        localLastCmd.delete(0, localLastCmd.length());
     }
 
     public void printErr(String err) {
@@ -376,11 +376,11 @@ public final class Shell {
     }
 
     public void clearRemoteCmd() {
-        this.remoteCmd.getAndUpdate(prev -> prev.delete(0, prev.length()));
+        remoteCmd.delete(0, remoteCmd.length());
     }
 
     public void setLocalLastCmd(String cmd) {
-        this.localLastCmd.getAndUpdate(prev -> prev.delete(0, prev.length()).append(cmd));
+        localLastCmd.delete(0, localLastCmd.length()).append(cmd);
     }
 
     public Status getStatus() {
