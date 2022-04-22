@@ -15,7 +15,6 @@ import io.vertx.core.AbstractVerticle;
 @RegisterHandler(handlers = {
         BlockingShellDisplayHandler.class,
         BlockingShellReceiveHandler.class,
-        BlockingEstablishSessionHandler.class,
         BlockingExecuteSingleCmdHandler.class,
         BlockingExecuteCmdInShellHandler.class,
         BlockingDfHandler.class,

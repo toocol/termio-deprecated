@@ -8,10 +8,6 @@ import com.toocol.ssh.common.address.IAddress;
  */
 public enum ShellAddress implements IAddress{
     /**
-     * establish the ssh session
-     */
-    ESTABLISH_SESSION("ssh.establish.session"),
-    /**
      * accept the shell cmd
      */
     RECEIVE_SHELL("ssh.accept.shell.cmd"),

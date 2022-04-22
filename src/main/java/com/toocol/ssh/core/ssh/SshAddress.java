@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.auth;
+package com.toocol.ssh.core.ssh;
 
 import com.toocol.ssh.common.address.IAddress;
 
@@ -6,22 +6,19 @@ import com.toocol.ssh.common.address.IAddress;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-public enum AuthAddress implements IAddress{
+public enum SshAddress implements IAddress{
     /**
-     * add ssh credential.
+     * establish the ssh session
      */
-    ADD_CREDENTIAL("ssh.add.credential"),
-    /**
-     * delete ssh credential.
-     */
-    DELETE_CREDENTIAL("ssh.delete.credential");
+    ESTABLISH_SSH_SESSION("ssh.establish.session"),
+    ;
 
     /**
      * the address string of message
      */
     private final String address;
 
-    AuthAddress(String address) {
+    SshAddress(String address) {
         this.address = address;
     }
 

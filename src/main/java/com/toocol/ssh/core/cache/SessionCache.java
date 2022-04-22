@@ -46,7 +46,11 @@ public class SessionCache {
         if (sessionId == 0) {
             return false;
         }
-        return sessionMap.get(sessionId).isConnected();
+        boolean connected = sessionMap.get(sessionId).isConnected();
+        if (!connected) {
+            stop(sessionId);
+        }
+        return connected;
     }
 
     /**
@@ -96,6 +100,19 @@ public class SessionCache {
     }
 
     public void stop(long sessionId) {
+        channelShellMap.computeIfPresent(sessionId, (k, v) -> {
+            v.disconnect();
+            return null;
+        });
+        sessionMap.computeIfPresent(sessionId, (k, v) -> {
+            v.disconnect();
+            return null;
+        });
+        shellMap.computeIfPresent(sessionId, (k, v) -> null);
+    }
+
+    public void stop(String host) {
+        long sessionId = containSession(host);
         channelShellMap.computeIfPresent(sessionId, (k, v) -> {
             v.disconnect();
             return null;

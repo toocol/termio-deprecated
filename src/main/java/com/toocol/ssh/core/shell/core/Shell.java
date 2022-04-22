@@ -34,7 +34,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
  */
 public final class Shell {
 
-    static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)]#)");
+    static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#])");
 
     private ConsoleReader reader;
     {

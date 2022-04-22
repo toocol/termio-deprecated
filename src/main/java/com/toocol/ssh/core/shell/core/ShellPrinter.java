@@ -18,7 +18,7 @@ import static com.toocol.ssh.common.utils.StrUtil.SPACE;
 record ShellPrinter(Shell shell) {
 
     private static final PrintStream printer = Printer.PRINTER;
-    public static final Pattern PROMPT_ECHO_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)]#) .*");
+    public static final Pattern PROMPT_ECHO_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#]) .*");
 
     void printErr(String msg) {
         printer.print(msg);

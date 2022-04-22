@@ -117,7 +117,7 @@ public class CredentialCache {
         }
     }
 
-    public static void deleteCredential(int index) {
+    public static String deleteCredential(int index) {
         Lock lock = READ_WRITE_LOCK.writeLock();
         lock.lock();
         try {
@@ -125,9 +125,10 @@ public class CredentialCache {
             Iterator<SshCredential> iterator = CREDENTIAL_SET.iterator();
             while (iterator.hasNext()) {
                 tag++;
-                iterator.next();
+                SshCredential next = iterator.next();
                 if (tag == index) {
                     iterator.remove();
+                    return next.getHost();
                 }
             }
         }  catch (Exception e) {
@@ -137,5 +138,6 @@ public class CredentialCache {
         } finally {
             lock.unlock();
         }
+        return null;
     }
 }

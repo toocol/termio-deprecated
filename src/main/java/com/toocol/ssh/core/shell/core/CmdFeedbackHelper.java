@@ -34,7 +34,7 @@ public record CmdFeedbackHelper(InputStream inputStream, String cmd, Shell shell
                         && !cleanedMsg.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
                         && !cleanedMsg.equals(shell.localLastCmd.toString().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))) {
                     feedback = msg;
-                } else {
+                } else if (matcher.find()){
                     shell.setPrompt(matcher.group(0) + StrUtil.SPACE);
                     shell.extractUserFromPrompt();
                 }

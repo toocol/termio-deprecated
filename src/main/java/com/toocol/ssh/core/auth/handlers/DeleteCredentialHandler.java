@@ -4,10 +4,12 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractMessageHandler;
 import com.toocol.ssh.common.utils.FileUtil;
 import com.toocol.ssh.core.cache.CredentialCache;
+import com.toocol.ssh.core.cache.SessionCache;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.toocol.ssh.core.auth.AuthAddress.DELETE_CREDENTIAL;
 
@@ -29,7 +31,10 @@ public final class DeleteCredentialHandler extends AbstractMessageHandler {
     @Override
     public <T> void handle(Message<T> message) {
         int index = cast(message.body());
-        CredentialCache.deleteCredential(index);
+        String host = CredentialCache.deleteCredential(index);
+        if (StringUtils.isNotEmpty(host)) {
+            SessionCache.getInstance().stop(host);
+        }
 
         String filePath = FileUtil.relativeToFixed("./credentials.json");
         vertx.fileSystem().writeFile(filePath, Buffer.buffer(CredentialCache.getCredentialsJson()), result -> {

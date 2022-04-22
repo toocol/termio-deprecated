@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.shell.handlers;
+package com.toocol.ssh.core.ssh.handlers;
 
 import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
@@ -21,6 +21,7 @@ import io.vertx.core.eventbus.Message;
 import java.util.Properties;
 
 import static com.toocol.ssh.core.shell.ShellAddress.*;
+import static com.toocol.ssh.core.ssh.SshAddress.ESTABLISH_SSH_SESSION;
 import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
 import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
 
@@ -41,7 +42,7 @@ public final class BlockingEstablishSessionHandler extends AbstractBlockingMessa
 
     @Override
     public IAddress consume() {
-        return ESTABLISH_SESSION;
+        return ESTABLISH_SSH_SESSION;
     }
 
     @Override
@@ -63,7 +64,7 @@ public final class BlockingEstablishSessionHandler extends AbstractBlockingMessa
                     Properties config = new Properties();
                     config.put("StrictHostKeyChecking", "no");
                     session.setConfig(config);
-                    session.setTimeout(30000);
+                    session.setTimeout(20000);
                     session.connect();
 
                     sessionId = guidGenerator.nextId();

@@ -6,7 +6,7 @@ import com.toocol.ssh.core.cache.CredentialCache;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.toocol.ssh.core.shell.ShellAddress.ESTABLISH_SESSION;
+import static com.toocol.ssh.core.ssh.SshAddress.ESTABLISH_SSH_SESSION;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -35,7 +35,7 @@ public class NumberCmdProcessor extends OutsideCommandProcessor {
             return;
         }
 
-        eventBus.send(ESTABLISH_SESSION.address(), idx);
+        eventBus.send(ESTABLISH_SSH_SESSION.address(), idx);
         resultAndMsg.first(true);
     }
 }
