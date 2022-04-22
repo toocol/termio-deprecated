@@ -39,6 +39,10 @@ public final class Term {
     final TermReader termReader;
     final TermPrinter termPrinter;
 
+    public void cleanDisplayZone() {
+        termPrinter.cleanDisplayZone();
+    }
+
     public void printDisplay(String msg) {
         termPrinter.printDisplay(msg);
     }

@@ -8,7 +8,6 @@ package com.toocol.ssh.core.term.core;
 public record TermPrinter(Term term) {
 
     void cleanDisplayZone() {
-        term.hideCursor();
         term.setCursorPosition(0, Term.executeLine + 1);
         while (term.getCursorPosition()._2() < term.displayZoneBottom) {
             Printer.print(" ");
@@ -16,6 +15,7 @@ public record TermPrinter(Term term) {
     }
 
     void printDisplay(String msg) {
+        term.hideCursor();
         cleanDisplayZone();
         term.setCursorPosition(0, Term.executeLine + 2);
         Printer.print(msg);

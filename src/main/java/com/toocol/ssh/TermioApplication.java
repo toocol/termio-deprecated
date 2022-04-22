@@ -9,6 +9,7 @@ import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.config.SystemConfig;
 import com.toocol.ssh.core.shell.core.CharEventDispatcher;
 import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
@@ -60,7 +61,9 @@ public class TermioApplication {
         /* Add shutdown hook */
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                Printer.clear();
+                Term term = Term.getInstance();
+                term.cleanDisplayZone();
+                term.setCursorPosition(0, Term.executeLine + 1);
                 Printer.println("Termio: shutdown");
                 SessionCache.getInstance().stopAll();
                 vertx.close();
