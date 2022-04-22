@@ -1,11 +1,12 @@
 package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.common.utils.CharUtil;
+import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.common.utils.Tuple2;
 
 import java.io.IOException;
 
-import static com.toocol.ssh.core.term.core.HighlightHelper.EXECUTE_LINE_BACKGROUND;
+import static com.toocol.ssh.core.term.TermAddress.TERMINAL_ECHO;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -32,12 +33,12 @@ public record TermReader(Term term) {
                         int index = cursorPosition._1() - Term.PROMPT.length();
                         lineBuilder.insert(index, finalChar);
                         term.hideCursor();
-                        Printer.print(HighlightHelper.assembleColorBackground(lineBuilder.substring(index, lineBuilder.length()), EXECUTE_LINE_BACKGROUND));
+                        Printer.print(HighlightHelper.assembleColorBackground(lineBuilder.substring(index, lineBuilder.length()), Term.theme.executeLineBackgroundColor));
                         term.setCursorPosition(cursorPosition._1() + 1, cursorPosition._2());
                         term.showCursor();
                     } else {
                         lineBuilder.append(finalChar);
-                        Printer.print(HighlightHelper.assembleColorBackground(String.valueOf(finalChar), EXECUTE_LINE_BACKGROUND));
+                        Printer.print(HighlightHelper.assembleColorBackground(String.valueOf(finalChar), Term.theme.executeLineBackgroundColor));
                     }
 
                 } else if (finalChar == CharUtil.UP_ARROW || finalChar == CharUtil.DOWN_ARROW) {
@@ -84,13 +85,13 @@ public record TermReader(Term term) {
                         int index = cursorPosition._1() - Term.PROMPT.length() - 1;
                         lineBuilder.deleteCharAt(index);
                         term.hideCursor();
-                        Printer.virtualBackspaceWithBackground(EXECUTE_LINE_BACKGROUND);
-                        Printer.print(HighlightHelper.assembleColorBackground(lineBuilder.substring(index, lineBuilder.length()) + CharUtil.SPACE, EXECUTE_LINE_BACKGROUND));
+                        Printer.virtualBackspaceWithBackground(Term.theme.executeLineBackgroundColor);
+                        Printer.print(HighlightHelper.assembleColorBackground(lineBuilder.substring(index, lineBuilder.length()) + CharUtil.SPACE, Term.theme.executeLineBackgroundColor));
                         term.setCursorPosition(cursorPosition._1() - 1, cursorPosition._2());
                         term.showCursor();
                     } else {
                         lineBuilder.deleteCharAt(lineBuilder.length() - 1);
-                        Printer.virtualBackspaceWithBackground(EXECUTE_LINE_BACKGROUND);
+                        Printer.virtualBackspaceWithBackground(Term.theme.executeLineBackgroundColor);
                     }
 
                 } else if (finalChar == CharUtil.CR || finalChar == CharUtil.LF) {
@@ -98,14 +99,17 @@ public record TermReader(Term term) {
                     Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
                     term.hideCursor();
                     term.setCursorPosition(Term.PROMPT.length(), cursorPosition._2());
-                    Printer.print(HighlightHelper.assembleColorBackground(" ".repeat(lineBuilder.length()), EXECUTE_LINE_BACKGROUND));
+                    Printer.print(HighlightHelper.assembleColorBackground(" ".repeat(lineBuilder.length()), Term.theme.executeLineBackgroundColor));
                     term.setCursorPosition(Term.PROMPT.length(), cursorPosition._2());
                     term.showCursor();
                     term.historyHelper.push(lineBuilder.toString());
                     break;
-
                 }
+
+                term.eventBus.send(TERMINAL_ECHO.address(), lineBuilder.toString());
             }
+
+            term.eventBus.send(TERMINAL_ECHO.address(), StrUtil.EMPTY);
             return lineBuilder.toString();
         } catch (IOException e) {
             Printer.println("\nIO error.");

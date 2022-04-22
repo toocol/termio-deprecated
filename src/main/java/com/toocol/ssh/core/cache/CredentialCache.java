@@ -3,6 +3,7 @@ package com.toocol.ssh.core.cache;
 import com.toocol.ssh.core.term.core.HighlightHelper;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.auth.vo.SshCredential;
+import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.json.JsonArray;
 
 import java.util.*;
@@ -57,10 +58,10 @@ public class CredentialCache {
                 Printer.print("[" + idx.getAndIncrement() + "]\t\t");
                 Printer.print(credential.getUser());
                 Printer.print("@");
-                Printer.print(HighlightHelper.assembleColor(credential.getHost(), HighlightHelper.HOST_HIGHLIGHT_COLOR));
+                Printer.print(HighlightHelper.assembleColor(credential.getHost(), Term.theme.hostHighlightColor));
                 if (SessionCache.getInstance().isActive(credential.getHost())) {
                     Printer.print("\t\t");
-                    Printer.print(HighlightHelper.assembleColor("[alive]", HighlightHelper.ALIVE_STATUS_COLOR));
+                    Printer.print(HighlightHelper.assembleColor("[alive]", Term.theme.sessionAliveColor));
                 }
                 Printer.println();
             });

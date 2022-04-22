@@ -5,7 +5,9 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.core.term.core.TermStatus;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
@@ -21,6 +23,8 @@ public final class BlockingMonitorTerminalHandler extends AbstractBlockingMessag
 
     private final Term term = Term.getInstance();
 
+    public static volatile long sessionId;
+
     public BlockingMonitorTerminalHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
@@ -32,8 +36,6 @@ public final class BlockingMonitorTerminalHandler extends AbstractBlockingMessag
 
     @Override
     protected <T> void handleWithinBlocking(Promise<Void> promise, Message<T> message) throws Exception {
-        Long sessionId = cast(message.body());
-        ChannelShell channelShell = SessionCache.getInstance().getChannelShell(sessionId);
 
         int currentWidth = term.getWidth();
         int currentHeight = term.getHeight();
@@ -43,13 +45,20 @@ public final class BlockingMonitorTerminalHandler extends AbstractBlockingMessag
             int terminalHeight = term.getHeight();
 
             if (currentWidth != terminalWidth || currentHeight != terminalHeight) {
-                channelShell.setPtySize(terminalWidth, terminalHeight, terminalWidth, terminalHeight);
+                if (Term.status.equals(TermStatus.SHELL)) {
+                    ChannelShell channelShell = SessionCache.getInstance().getChannelShell(sessionId);
+                    channelShell.setPtySize(terminalWidth, terminalHeight, terminalWidth, terminalHeight);
+                } else if (Term.status.equals(TermStatus.TERMIO)) {
+                    Printer.printScene(true);
+                    SessionCache.getInstance()
+                            .allChannelShell()
+                            .forEach(channelShell -> channelShell.setPtySize(terminalWidth, terminalHeight, terminalWidth, terminalHeight));
+                }
                 currentHeight = terminalHeight;
                 currentWidth = terminalWidth;
             }
 
-            if (StatusCache.STOP_LISTEN_TERMINAL_SIZE_CHANGE) {
-                StatusCache.STOP_LISTEN_TERMINAL_SIZE_CHANGE = false;
+            if (StatusCache.STOP_PROGRAM) {
                 break;
             }
 

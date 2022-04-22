@@ -13,7 +13,7 @@ public class ClearCmdProcessor extends OutsideCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         Printer.clear();
-        Printer.printScene();
+        Printer.printScene(false);
 
         resultAndMsg.first(true);
     }

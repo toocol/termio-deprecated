@@ -9,7 +9,9 @@ import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.commands.TermioCommand;
 import com.toocol.ssh.core.term.core.HighlightHelper;
 import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.eventbus.EventBus;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
@@ -85,7 +87,10 @@ public enum ShellCommand {
         StringBuilder helpBuilder = new StringBuilder();
         helpBuilder.append("Shell commands:\t\t[param] means optional param\n");
         for (ShellCommand command : values()) {
-            helpBuilder.append(HighlightHelper.assembleColor(command.cmd, HighlightHelper.COMMAND_HIGHLIGHT_COLOR));
+            if (StringUtils.isEmpty(command.comment)) {
+                continue;
+            }
+            helpBuilder.append(HighlightHelper.assembleColor(command.cmd, Term.theme.commandHighlightColor));
             helpBuilder.append(tabBuffer[command.cmd.length() / 8]).append(command.comment).append(CharUtil.LF);
         }
         helpBuilder.append("\n");

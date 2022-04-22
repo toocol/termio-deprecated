@@ -2,6 +2,7 @@ package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.common.jni.TermioJNI;
 import com.toocol.ssh.common.utils.Tuple2;
+import io.vertx.core.eventbus.EventBus;
 import jline.console.ConsoleReader;
 
 /**
@@ -10,12 +11,12 @@ import jline.console.ConsoleReader;
  */
 public final class Term {
 
-    public static final String PROMPT = "[termio] > ";
+    public static final String PROMPT = " [termio] > ";
 
-    private static final Term INSTANCE = new Term();
     private static final TermioJNI JNI = TermioJNI.getInstance();
 
-    public Term() {
+    public Term(EventBus eventBus) {
+        this.eventBus = eventBus;
         arrowHelper = new ArrowHelper();
         historyHelper = new TermHistoryHelper(this);
         termReader  = new TermReader(this);
@@ -30,10 +31,18 @@ public final class Term {
         }
     }
 
+    private static Term INSTANCE;
+    public static void set(Term term) {
+        INSTANCE = term;
+    }
+
+    public static TermTheme theme = TermTheme.DARK_THEME;
+    public static volatile TermStatus status = TermStatus.TERMIO;
     public static int executeLine = 0;
     int displayZoneBottom = 0;
 
     ConsoleReader reader;
+    final EventBus eventBus;
     final ArrowHelper arrowHelper;
     final TermHistoryHelper historyHelper;
     final TermReader termReader;
@@ -45,6 +54,14 @@ public final class Term {
 
     public void printDisplay(String msg) {
         termPrinter.printDisplay(msg);
+    }
+
+    public void printDisplayBuffer() {
+        termPrinter.printDisplayBuffer();
+    }
+
+    public void printCommandBuffer() {
+        termPrinter.printCommandBuffer();
     }
 
     public String readLine() {
@@ -95,9 +112,7 @@ public final class Term {
         int cursorY = position._2();
         hideCursor();
         setCursorPosition(promptLen, cursorY);
-        for (int idx = 0; idx < cursorX - promptLen; idx++) {
-            Printer.print(" ");
-        }
+        Printer.print(HighlightHelper.assembleColorBackground(" ".repeat(cursorX - promptLen), Term.theme.executeLineBackgroundColor));
         setCursorPosition(promptLen, cursorY);
         showCursor();
     }

@@ -25,6 +25,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
+import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
 
 
 /**
@@ -64,6 +65,7 @@ public class TermioApplication {
                 Term term = Term.getInstance();
                 term.cleanDisplayZone();
                 term.setCursorPosition(0, Term.executeLine + 1);
+                StatusCache.STOP_PROGRAM = true;
                 Printer.println("Termio: shutdown");
                 SessionCache.getInstance().stopAll();
                 vertx.close();
@@ -112,6 +114,7 @@ public class TermioApplication {
             while (true) {
                 if (StatusCache.LOADING_ACCOMPLISH) {
                     loadingLatch.await();
+                    vertx.eventBus().send(MONITOR_TERMINAL.address(), null);
                     vertx.eventBus().send(ADDRESS_ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.FIRST_IN);
                     System.gc();
                     break;

@@ -4,7 +4,9 @@ import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.Session;
 import com.toocol.ssh.core.shell.core.Shell;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -51,6 +53,10 @@ public class SessionCache {
             stop(sessionId);
         }
         return connected;
+    }
+
+    public Set<ChannelShell> allChannelShell() {
+        return new HashSet<>(channelShellMap.values());
     }
 
     /**

@@ -10,6 +10,8 @@ import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.core.term.core.TermStatus;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -165,7 +167,7 @@ public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHa
     @Override
     protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = false;
-        StatusCache.STOP_LISTEN_TERMINAL_SIZE_CHANGE = true;
+        Term.status = TermStatus.TERMIO;
 
         long sessionId = asyncResult.result();
         if (sessionId == -1) {

@@ -48,15 +48,15 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
             int signal = cast(message.body());
             if (signal == NORMAL_BACK || signal == FIRST_IN || signal == CONNECT_FAILED) {
                 Printer.clear();
-                Printer.printScene();
+                Printer.printScene(false);
             }
             if (signal == CONNECT_FAILED) {
-                Printer.println("lost connection.");
+                term.printDisplay("lost connection.");
             }
 
             while (true) {
                 term.setCursorPosition(0, Term.executeLine);
-                Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length()), HighlightHelper.EXECUTE_LINE_BACKGROUND));
+                Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length()), Term.theme.executeLineBackgroundColor));
                 term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
                 String cmd = term.readLine();
 
