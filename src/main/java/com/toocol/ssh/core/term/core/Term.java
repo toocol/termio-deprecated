@@ -2,7 +2,7 @@ package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.common.jni.TermioJNI;
 import com.toocol.ssh.common.utils.Tuple2;
-import jline.Terminal;
+import jline.console.ConsoleReader;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -15,12 +15,37 @@ public final class Term {
     private static final Term INSTANCE = new Term();
     private static final TermioJNI JNI = TermioJNI.getInstance();
 
-    private final TermReader termReader;
-
-    private Term() {
+    public Term() {
+        arrowHelper = new ArrowHelper();
+        historyHelper = new TermHistoryHelper(this);
         termReader  = new TermReader(this);
+        termPrinter = new TermPrinter(this);
+    }
+    {
+        try {
+            reader = new ConsoleReader();
+        } catch (Exception e) {
+            Printer.println("\nCreate console reader failed.");
+            System.exit(-1);
+        }
     }
 
+    public static int executeLine = 0;
+    int displayZoneBottom = 0;
+
+    ConsoleReader reader;
+    final ArrowHelper arrowHelper;
+    final TermHistoryHelper historyHelper;
+    final TermReader termReader;
+    final TermPrinter termPrinter;
+
+    public void printDisplay(String msg) {
+        termPrinter.printDisplay(msg);
+    }
+
+    public String readLine() {
+        return termReader.readLine();
+    }
 
     public static Term getInstance() {
         return INSTANCE;
@@ -32,10 +57,6 @@ public final class Term {
 
     public int getHeight() {
         return JNI.getWindowHeight();
-    }
-
-    public TermReader getReader() {
-        return termReader;
     }
 
     public Tuple2<Integer, Integer> getCursorPosition() {

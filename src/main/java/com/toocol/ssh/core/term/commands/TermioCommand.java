@@ -1,5 +1,7 @@
 package com.toocol.ssh.core.term.commands;
 
+import com.toocol.ssh.common.utils.CharUtil;
+import com.toocol.ssh.core.term.core.HighlightHelper;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.term.commands.processors.*;
@@ -62,12 +64,14 @@ public enum TermioCommand {
         return cmd;
     }
 
-    public static void printHelp() {
-        Printer.println("Termio commands:\t[param] means optional param");
+    public static String help() {
+        StringBuilder helpBuilder = new StringBuilder();
+        helpBuilder.append("Termio commands:\t[param] means optional param\n");
         for (TermioCommand command : values()) {
-            Printer.printColor(command.cmd, 78);
-            Printer.println(tabBuffer[command.cmd.length() / 8] + command.comment);
+            helpBuilder.append(HighlightHelper.assembleColor(command.cmd, HighlightHelper.COMMAND_HIGHLIGHT_COLOR));
+            helpBuilder.append(tabBuffer[command.cmd.length() / 8]).append(command.comment).append(CharUtil.LF);
         }
-        Printer.println();
+        helpBuilder.append("\n");
+        return helpBuilder.toString();
     }
 }

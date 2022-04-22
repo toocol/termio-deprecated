@@ -1,12 +1,14 @@
 package com.toocol.ssh.core.shell.commands;
 
 import com.toocol.ssh.common.execeptions.RemoteDisconnectException;
+import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.shell.commands.processors.*;
 import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.term.commands.TermioCommand;
+import com.toocol.ssh.core.term.core.HighlightHelper;
 import com.toocol.ssh.core.term.core.Printer;
-import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 
 import java.nio.charset.StandardCharsets;
@@ -79,14 +81,14 @@ public enum ShellCommand {
         return cmd;
     }
 
-    public static void printHelp() {
-        Printer.println("Shell commands:\t\t[param] means optional param");
+    public static String help() {
+        StringBuilder helpBuilder = new StringBuilder();
+        helpBuilder.append("Shell commands:\t\t[param] means optional param\n");
         for (ShellCommand command : values()) {
-            if (command.comment == null) {
-                continue;
-            }
-            Printer.printColor(command.cmd, 78);
-            Printer.println(tabBuffer[command.cmd.length() / 8] + command.comment);
+            helpBuilder.append(HighlightHelper.assembleColor(command.cmd, HighlightHelper.COMMAND_HIGHLIGHT_COLOR));
+            helpBuilder.append(tabBuffer[command.cmd.length() / 8]).append(command.comment).append(CharUtil.LF);
         }
+        helpBuilder.append("\n");
+        return helpBuilder.toString();
     }
 }

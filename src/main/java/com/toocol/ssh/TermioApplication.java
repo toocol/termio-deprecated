@@ -60,6 +60,7 @@ public class TermioApplication {
         /* Add shutdown hook */
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
+                Printer.clear();
                 Printer.println("Termio: shutdown");
                 SessionCache.getInstance().stopAll();
                 vertx.close();

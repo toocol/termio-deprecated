@@ -71,21 +71,15 @@ public final class Printer {
         println("<error> " + msg);
     }
 
-    public static void printColor(String msg, int color) {
-        print("\u001b[38;5;" + color + "m" + msg + "\u001b[0m");
-    }
-
-    public static void printlnColor(String msg, int color) {
-        println("\u001b[38;5;" + color + "m" + msg + "\u001b[0m");
-    }
-
-    public static void printColorBackground(String msg, int color) {
-        print("\u001b[48;5;" + color + "m" + msg + "\u001b[0m");
-    }
-
     public static void virtualBackspace() {
         print("\b");
         print(" ");
+        print("\b");
+    }
+
+    public static void virtualBackspaceWithBackground(int color) {
+        print("\b");
+        print(HighlightHelper.assembleColorBackground(" ", color));
         print("\b");
     }
 
@@ -106,6 +100,7 @@ public final class Printer {
             CredentialCache.showCredentials();
             println();
         }
+        Term.executeLine = Term.getInstance().getCursorPosition()._2();
     }
 
     @SuppressWarnings("all")
@@ -135,19 +130,6 @@ public final class Printer {
             latch.countDown();
             JNI.showCursor();
         }).start();
-    }
-
-    public static void printPrompt(String wrongCmd) {
-        println("" + wrongCmd + ": command not found.");
-    }
-
-    public static void printCursorLine() {
-        print("[termio] > ");
-    }
-
-    public static void printHelp() {
-        TermioCommand.printHelp();
-        ShellCommand.printHelp();
     }
 
     public static void clear() {

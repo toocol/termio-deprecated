@@ -4,6 +4,7 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.commands.TermioCommand;
+import com.toocol.ssh.core.term.core.HighlightHelper;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.AsyncResult;
@@ -24,6 +25,8 @@ import static com.toocol.ssh.core.term.TermAddress.ADDRESS_EXECUTE_OUTSIDE;
  * @date 2022/3/30 11:11
  */
 public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageHandler<Boolean> {
+
+    private final Term term = Term.getInstance();
 
     public static final int FIRST_IN = 0;
     public static final int NORMAL_BACK = 1;
@@ -52,19 +55,22 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
             }
 
             while (true) {
-                String cmd = Term.getInstance().getReader().readLine(Term.PROMPT);
+                term.setCursorPosition(0, Term.executeLine);
+                Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length()), HighlightHelper.EXECUTE_LINE_BACKGROUND));
+                term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
+                String cmd = term.readLine();
 
                 CountDownLatch latch = new CountDownLatch(1);
                 AtomicBoolean isBreak = new AtomicBoolean();
 
                 boolean isCommand = TermioCommand.cmdOf(cmd).map(cmdCommand -> {
                     eventBus.request(ADDRESS_EXECUTE_OUTSIDE.address(), cmd, result -> {
-                        String failedMsg = cast(result.result().body());
-                        if (StringUtils.isNotEmpty(failedMsg)) {
-                            Printer.println(failedMsg);
+                        String msg = cast(result.result().body());
+                        if (StringUtils.isNotEmpty(msg)) {
+                            term.printDisplay(msg);
                         }
 
-                        if (TermioCommand.CMD_NUMBER.equals(cmdCommand) && StringUtils.isEmpty(failedMsg)) {
+                        if (TermioCommand.CMD_NUMBER.equals(cmdCommand) && StringUtils.isEmpty(msg)) {
                             isBreak.set(true);
                         }
 
@@ -90,7 +96,7 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
                     break;
                 }
                 if (!isCommand && StringUtils.isNotEmpty(cmd)) {
-                    Printer.printPrompt(cmd);
+                    term.printDisplay("" + cmd + ": command not found.");
                 }
             }
         } catch (Exception e) {
