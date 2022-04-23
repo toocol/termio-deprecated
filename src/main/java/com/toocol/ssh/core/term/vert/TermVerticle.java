@@ -7,7 +7,6 @@ import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.core.term.handlers.ExecuteCommandHandler;
 import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
-import com.toocol.ssh.core.term.handlers.TerminalEchoHandler;
 import io.vertx.core.AbstractVerticle;
 
 /**
@@ -18,8 +17,7 @@ import io.vertx.core.AbstractVerticle;
 @RegisterHandler(handlers = {
         BlockingMonitorTerminalHandler.class,
         BlockingAcceptCommandHandler.class,
-        ExecuteCommandHandler.class,
-        TerminalEchoHandler.class
+        ExecuteCommandHandler.class
 })
 public final class TermVerticle extends AbstractVerticle implements IHandlerMounter {
 

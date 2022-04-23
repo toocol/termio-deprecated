@@ -4,10 +4,6 @@ import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.common.utils.Tuple2;
 
-import java.util.concurrent.CountDownLatch;
-
-import static com.toocol.ssh.core.term.TermAddress.TERMINAL_ECHO;
-
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/16 15:23
@@ -117,21 +113,15 @@ public record TermReader(Term term) {
                     term.historyHelper.push(lineBuilder.toString());
 
                     Term.executeCursorOldX.set(Term.PROMPT.length());
-                    CountDownLatch latch = new CountDownLatch(1);
-                    term.eventBus.request(TERMINAL_ECHO.address(), StrUtil.EMPTY, result -> {
-                        term.showCursor();
-                        latch.countDown();
-                    });
-                    latch.await();
+                    term.hideCursor();
+                    term.printExecution(StrUtil.EMPTY);
+                    term.showCursor();
                     return lineBuilder.toString();
                 }
 
-                CountDownLatch latch = new CountDownLatch(1);
-                term.eventBus.request(TERMINAL_ECHO.address(), lineBuilder.toString(), result -> {
-                    term.showCursor();
-                    latch.countDown();
-                });
-                latch.await();
+                term.hideCursor();
+                term.printExecution(lineBuilder.toString());
+                term.showCursor();
             }
 
         } catch (Exception e) {
