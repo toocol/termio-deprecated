@@ -24,11 +24,33 @@ public class SessionCache {
         return INSTANCE;
     }
 
-    public static int getHangUp() {
+    public static int getAlive() {
         return INSTANCE.sessionMap.entrySet().stream()
                 .filter(entry -> entry.getValue().isConnected())
+                .map(Map.Entry::getKey)
+                .filter(sessionId -> {
+                    ChannelShell channelShell = INSTANCE.channelShellMap.get(sessionId);
+                    if (channelShell == null) {
+                        return false;
+                    }
+                    return channelShell.isConnected();
+                })
                 .toList()
                 .size();
+    }
+
+    public boolean isAlive(String ip) {
+        long sessionId = containSession(ip);
+        if (sessionId == 0) {
+            return false;
+        }
+        boolean sessionConnected = sessionMap.get(sessionId).isConnected();
+        if (!sessionConnected) {
+            stop(sessionId);
+            return false;
+        } else {
+            return channelShellMap.get(sessionId).isConnected();
+        }
     }
 
     public long containSession(String ip) {
@@ -41,18 +63,6 @@ public class SessionCache {
 
     public boolean isDisconnect(long sessionId) {
         return !sessionMap.get(sessionId).isConnected() || !channelShellMap.get(sessionId).isConnected();
-    }
-
-    public boolean isActive(String ip) {
-        long sessionId = containSession(ip);
-        if (sessionId == 0) {
-            return false;
-        }
-        boolean connected = sessionMap.get(sessionId).isConnected();
-        if (!connected) {
-            stop(sessionId);
-        }
-        return connected;
     }
 
     public Set<ChannelShell> allChannelShell() {

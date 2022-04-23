@@ -14,4 +14,8 @@ public final class HighlightHelper {
        return "\u001b[48;5;" + color + "m" + msg + "\u001b[0m";
     }
 
+    public static String assembleColorBoth(String msg, int front, int background) {
+        return "\u001b[48;5;" + background + "m\u001b[38;5;" + front + "m" + msg + "\u001b[0m\u001b[0m";
+    }
+
 }

@@ -24,37 +24,43 @@ public class ShellDfCmdProcessor extends ShellCommandProcessor {
     @Override
     public Tuple2<String, Long> process(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String cmd) {
         String[] split = cmd.trim().replaceAll(" {2,}", StrUtil.SPACE).split(StrUtil.SPACE);
-        if (split.length != 2) {
-            return new Tuple2<>(EMPTY, null);
+        if (split.length < 2) {
+            return new Tuple2<>(null, null);
         }
-
-        String inputPath = split[1];
-        String user = shell.getUser().get();
-        String currentPath = shell.getFullPath().get();
 
         StringBuilder remotePath = new StringBuilder();
-        if (inputPath.startsWith(CURRENT_FOLDER_PREFIX)) {
-            if (USER_FOLDER.equals(currentPath)) {
-                remotePath.append(ROOT_FOLDER_PREFIX).append(user).append(inputPath.substring(1));
-            } else {
-                remotePath.append(currentPath).append(inputPath.substring(1));
-            }
-        } else if (inputPath.startsWith(PARENT_FOLDER_PREFIX)) {
-            String[] singleCurrentPaths = currentPath.split("/");
-            if (singleCurrentPaths.length <= 1) {
-                remotePath.append(ROOT_FOLDER_PREFIX).append(inputPath.substring(1));
-            } else {
-                for (int idx = 0; idx <= singleCurrentPaths.length - 2; idx ++) {
-                    if (StringUtils.isEmpty(singleCurrentPaths[idx])) {
-                        continue;
-                    }
-                    remotePath.append("/").append(singleCurrentPaths[idx]);
+
+        for (int pathIndex = 1; pathIndex < split.length; pathIndex++) {
+            String inputPath = split[pathIndex];
+            String user = shell.getUser().get();
+            String currentPath = shell.getFullPath().get();
+
+            if (inputPath.startsWith(CURRENT_FOLDER_PREFIX)) {
+                if (USER_FOLDER.equals(currentPath)) {
+                    remotePath.append(ROOT_FOLDER_PREFIX).append(user).append(inputPath.substring(1));
+                } else {
+                    remotePath.append(currentPath).append(inputPath.substring(1));
                 }
-                remotePath.append(inputPath.substring(2));
+            } else if (inputPath.startsWith(PARENT_FOLDER_PREFIX)) {
+                String[] singleCurrentPaths = currentPath.split("/");
+                if (singleCurrentPaths.length <= 1) {
+                    remotePath.append(ROOT_FOLDER_PREFIX).append(inputPath.substring(1));
+                } else {
+                    for (int idx = 0; idx <= singleCurrentPaths.length - 2; idx ++) {
+                        if (StringUtils.isEmpty(singleCurrentPaths[idx])) {
+                            continue;
+                        }
+                        remotePath.append("/").append(singleCurrentPaths[idx]);
+                    }
+                    remotePath.append(inputPath.substring(2));
+                }
+            } else {
+                remotePath.append(currentPath).append("/").append(inputPath);
             }
-        } else {
-            remotePath.append(currentPath).append("/").append(inputPath);
+
+            remotePath.append(",");
         }
+        remotePath.deleteCharAt(remotePath.length() - 1);
 
         JsonObject request = new JsonObject();
         request.put("sessionId", shell.getSessionId());
@@ -63,7 +69,7 @@ public class ShellDfCmdProcessor extends ShellCommandProcessor {
 
         eventBus.send(START_DF_COMMAND.address(), request);
 
-        return new Tuple2<>(EMPTY, null);
+        return new Tuple2<>(null, null);
     }
 
 }

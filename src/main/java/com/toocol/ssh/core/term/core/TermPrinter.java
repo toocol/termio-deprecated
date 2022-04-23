@@ -1,7 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.common.utils.StrUtil;
-import com.toocol.ssh.core.term.handlers.TerminalEchoHandler;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -10,7 +9,8 @@ import com.toocol.ssh.core.term.handlers.TerminalEchoHandler;
  */
 public record TermPrinter(Term term) {
 
-    public static volatile String buffer = StrUtil.EMPTY;
+    public static volatile String displayBuffer = StrUtil.EMPTY;
+    public static volatile String commandBuffer = StrUtil.EMPTY;
 
     void cleanDisplayZone() {
         term.setCursorPosition(0, Term.executeLine + 1);
@@ -21,7 +21,7 @@ public record TermPrinter(Term term) {
     }
 
     void printDisplay(String msg) {
-        buffer = msg;
+        displayBuffer = msg;
         term.hideCursor();
         cleanDisplayZone();
         term.setCursorPosition(0, Term.executeLine + 2);
@@ -34,14 +34,22 @@ public record TermPrinter(Term term) {
     void printDisplayBuffer() {
         cleanDisplayZone();
         term.setCursorPosition(0, Term.executeLine + 2);
-        Printer.print(buffer);
+        Printer.print(displayBuffer);
         term.displayZoneBottom = term.getCursorPosition()._2() + 1;
         term.setCursorPosition(0, Term.executeLine);
     }
 
     void printCommandBuffer() {
         term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
-        Printer.print(TerminalEchoHandler.command);
+        Printer.print(commandBuffer);
     }
 
+    public void printExecution(String msg) {
+        commandBuffer = msg;
+        term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
+        Printer.print(HighlightHelper.assembleColorBackground(" ".repeat(term.getWidth() - Term.PROMPT.length()), Term.theme.executeLineBackgroundColor));
+        term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
+        Printer.print(HighlightHelper.assembleColorBackground(msg, Term.theme.executeLineBackgroundColor));
+        term.setCursorPosition(Term.executeCursorOldX.get(), Term.executeLine);
+    }
 }

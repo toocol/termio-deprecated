@@ -17,8 +17,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
-import static com.toocol.ssh.core.term.TermAddress.ADDRESS_EXECUTE_OUTSIDE;
+import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
+import static com.toocol.ssh.core.term.TermAddress.EXECUTE_OUTSIDE;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -39,7 +39,7 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
 
     @Override
     public IAddress consume() {
-        return ADDRESS_ACCEPT_COMMAND;
+        return ACCEPT_COMMAND;
     }
 
     @Override
@@ -54,9 +54,9 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
                 term.printDisplay("lost connection.");
             }
 
+            term.setCursorPosition(0, Term.executeLine);
+            Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length()), Term.theme.executeLineBackgroundColor));
             while (true) {
-                term.setCursorPosition(0, Term.executeLine);
-                Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length()), Term.theme.executeLineBackgroundColor));
                 term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
                 String cmd = term.readLine();
 
@@ -64,7 +64,7 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
                 AtomicBoolean isBreak = new AtomicBoolean();
 
                 boolean isCommand = TermioCommand.cmdOf(cmd).map(cmdCommand -> {
-                    eventBus.request(ADDRESS_EXECUTE_OUTSIDE.address(), cmd, result -> {
+                    eventBus.request(EXECUTE_OUTSIDE.address(), cmd, result -> {
                         String msg = cast(result.result().body());
                         if (StringUtils.isNotEmpty(msg)) {
                             term.printDisplay(msg);
@@ -108,7 +108,7 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
     @Override
     protected <T> void resultWithinBlocking(AsyncResult<Boolean> asyncResult, Message<T> message) {
         if (asyncResult.result()) {
-            eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), ACCEPT_ERROR);
+            eventBus.send(ACCEPT_COMMAND.address(), ACCEPT_ERROR);
         }
     }
 }

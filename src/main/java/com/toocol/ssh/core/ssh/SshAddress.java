@@ -11,6 +11,10 @@ public enum SshAddress implements IAddress{
      * establish the ssh session
      */
     ESTABLISH_SSH_SESSION("ssh.establish.session"),
+    /**
+     * active the ssh session
+     */
+    ACTIVE_SSH_SESSION("ssh.active.session")
     ;
 
     /**

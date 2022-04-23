@@ -6,9 +6,7 @@ import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.shell.commands.processors.*;
 import com.toocol.ssh.core.shell.core.Shell;
-import com.toocol.ssh.core.term.commands.TermioCommand;
 import com.toocol.ssh.core.term.core.HighlightHelper;
-import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
@@ -71,7 +69,9 @@ public enum ShellCommand {
 
             result = this.commandProcessor.process(eventBus, shell, isBreak, msg);
 
-            shell.writeAndFlush(StrUtil.LF.getBytes(StandardCharsets.UTF_8));
+            if (!this.equals(CMD_DF) && !this.equals(CMD_UF)) {
+                shell.writeAndFlush(StrUtil.LF.getBytes(StandardCharsets.UTF_8));
+            }
         } catch (RemoteDisconnectException e) {
             isBreak.set(true);
             result.second(shell.getSessionId());

@@ -12,7 +12,7 @@ public class DirectoryChooser {
     private static final TermioJNI TERMIO_JNI = TermioJNI.getInstance();
 
     /**
-     * multiple file paths separate by ','
+     * chose the local path
      *
      * @return file paths
      */

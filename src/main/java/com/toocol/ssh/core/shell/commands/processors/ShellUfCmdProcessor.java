@@ -1,8 +1,10 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
+import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
 import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.term.core.Printer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 
@@ -18,6 +20,10 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_UF_COMMAND;
 public class ShellUfCmdProcessor extends ShellCommandProcessor {
     @Override
     public Tuple2<String, Long> process(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String cmd) {
+        if (cmd.contains(StrUtil.SPACE)) {
+            String ignore = cmd.replaceAll("uf ", "");
+            Printer.println("uf: should have no params, ignored '" + ignore.trim() + "'.");
+        }
         String remotePath = shell.getFullPath().get();
 
         JsonObject request = new JsonObject();

@@ -13,8 +13,8 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-import static com.toocol.ssh.core.file.FileAddress.ADDRESS_CHECK_FILE_EXIST;
-import static com.toocol.ssh.core.file.FileAddress.ADDRESS_READ_FILE;
+import static com.toocol.ssh.core.file.FileAddress.CHECK_FILE_EXIST;
+import static com.toocol.ssh.core.file.FileAddress.READ_FILE;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -34,9 +34,9 @@ public final class AuthVerticle extends AbstractVerticle implements IHandlerMoun
         mountHandler(vertx, context);
 
         context.executeBlocking(promise -> {
-            vertx.eventBus().request(ADDRESS_CHECK_FILE_EXIST.address(), filePath, reply -> promise.complete());
+            vertx.eventBus().request(CHECK_FILE_EXIST.address(), filePath, reply -> promise.complete());
         }, result -> {
-            vertx.eventBus().request(ADDRESS_READ_FILE.address(), filePath, reply -> {
+            vertx.eventBus().request(READ_FILE.address(), filePath, reply -> {
                 JsonArray sshCredentials = cast(reply.result().body());
 
                 sshCredentials.forEach(o -> {

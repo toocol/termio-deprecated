@@ -1,7 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.common.jni.TermioJNI;
-import com.toocol.ssh.common.utils.PomUtil;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
@@ -92,7 +91,7 @@ public final class Printer {
             clear();
         }
         printInformationBar();
-        print("\nProperties:                                                                           \n");
+        print("Properties:                                                                           \n");
         if (CredentialCache.credentialsSize() == 0) {
             print("You have no connection properties, type 'help' to get more information.                         \n\n");
         } else {
@@ -113,15 +112,23 @@ public final class Printer {
 
         JNI.setCursorPosition(0, 0);
 
-        String termioVersion = "termio: V0.0.1";
+        String termioVersion = " termio: V0.0.1";
         String memoryUse = "memory-use: " + usedMemory() + "MB";
-        String active = "active: " + SessionCache.getHangUp();
+        String active = "alive: " + SessionCache.getAlive();
         String website = "https://github.com/Joezeo/termio ";
         int totalLen = termioVersion.length() + website.length() + memoryUse.length() + active.length();
+        if (totalLen >= windowWidth) {
+            return;
+        }
         String space = " ".repeat((windowWidth - totalLen) / 3);
 
-        println(termioVersion + space + memoryUse + space + active + space + website);
-        println("-".repeat(windowWidth));
+        String merge = termioVersion + space + memoryUse + space + active + space + website;
+        int fulfil = windowWidth - merge.length();
+        if (fulfil != 0) {
+            merge = merge.replaceAll(website, " ".repeat(fulfil)) + website;
+        }
+        println(HighlightHelper.assembleColorBoth(merge, Term.theme.infoBarFront, Term.theme.infoBarBackground));
+        println();
     }
 
     @SuppressWarnings("all")

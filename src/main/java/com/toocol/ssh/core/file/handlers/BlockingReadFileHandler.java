@@ -8,7 +8,7 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.toocol.ssh.core.file.FileAddress.ADDRESS_READ_FILE;
+import static com.toocol.ssh.core.file.FileAddress.READ_FILE;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -22,7 +22,7 @@ public final class BlockingReadFileHandler extends AbstractBlockingMessageHandle
 
     @Override
     public IAddress consume() {
-        return ADDRESS_READ_FILE;
+        return READ_FILE;
     }
 
     @Override

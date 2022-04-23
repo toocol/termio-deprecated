@@ -9,7 +9,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
-import static com.toocol.ssh.core.term.TermAddress.ADDRESS_EXECUTE_OUTSIDE;
+import static com.toocol.ssh.core.term.TermAddress.EXECUTE_OUTSIDE;
 
 
 /**
@@ -24,7 +24,7 @@ public final class ExecuteCommandHandler extends AbstractMessageHandler {
 
     @Override
     public IAddress consume() {
-        return ADDRESS_EXECUTE_OUTSIDE;
+        return EXECUTE_OUTSIDE;
     }
 
     @Override

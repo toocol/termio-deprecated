@@ -4,7 +4,7 @@ import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.common.utils.Tuple2;
 
-import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 
 import static com.toocol.ssh.core.term.TermAddress.TERMINAL_ECHO;
 
@@ -17,30 +17,35 @@ public record TermReader(Term term) {
     String readLine() {
 
         StringBuilder lineBuilder = new StringBuilder();
+        Term.executeCursorOldX.set(term.getCursorPosition()._1());
         try {
             while (true) {
                 char inChar = (char) term.reader.readCharacter();
 
-                char finalChar = term.arrowHelper.processArrowStream(inChar);
+                char finalChar = term.escapeHelper.processArrowStream(inChar);
 
                 if (CharUtil.isAsciiPrintable(finalChar)) {
 
-                    if (term.arrowHelper.isAcceptBracketAfterEscape()) {
+                    if (term.escapeHelper.isAcceptBracketAfterEscape()) {
+                        continue;
+                    }
+                    if (finalChar == CharUtil.SPACE && lineBuilder.length() == 0) {
                         continue;
                     }
                     Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
+                    if (cursorPosition._1() >= term.getWidth() - 1) {
+                        continue;
+                    }
                     if (cursorPosition._1() < lineBuilder.length() + Term.PROMPT.length()) {
                         int index = cursorPosition._1() - Term.PROMPT.length();
+                        if (index == 0 && finalChar == CharUtil.SPACE) {
+                            continue;
+                        }
                         lineBuilder.insert(index, finalChar);
-                        term.hideCursor();
-                        Printer.print(HighlightHelper.assembleColorBackground(lineBuilder.substring(index, lineBuilder.length()), Term.theme.executeLineBackgroundColor));
-                        term.setCursorPosition(cursorPosition._1() + 1, cursorPosition._2());
-                        term.showCursor();
                     } else {
                         lineBuilder.append(finalChar);
-                        Printer.print(HighlightHelper.assembleColorBackground(String.valueOf(finalChar), Term.theme.executeLineBackgroundColor));
                     }
-
+                    Term.executeCursorOldX.getAndIncrement();
                 } else if (finalChar == CharUtil.UP_ARROW || finalChar == CharUtil.DOWN_ARROW) {
                     if (finalChar == CharUtil.UP_ARROW) {
                         if (!term.historyHelper.isStart()) {
@@ -58,18 +63,23 @@ public record TermReader(Term term) {
                             lineBuilder.delete(0, lineBuilder.length()).append(down);
                         }
                     }
+                    Term.executeCursorOldX.set(lineBuilder.length() + Term.PROMPT.length());
                 } else if (finalChar == CharUtil.LEFT_ARROW || finalChar == CharUtil.RIGHT_ARROW) {
                     int cursorX = term.getCursorPosition()._1();
                     if (finalChar == CharUtil.LEFT_ARROW) {
                         if (cursorX > Term.PROMPT.length()) {
                             term.cursorLeft();
+                            Term.executeCursorOldX.getAndDecrement();
                         }
                     } else {
                         if (cursorX < (lineBuilder.length() + Term.PROMPT.length())) {
                             term.cursorRight();
+                            Term.executeCursorOldX.getAndIncrement();
                         }
                     }
+                    continue;
                 } else if (finalChar == CharUtil.TAB) {
+
                     Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
                     if (cursorPosition._1() < lineBuilder.length() + Term.PROMPT.length()) {
                         term.setCursorPosition(lineBuilder.length() + Term.PROMPT.length(), cursorPosition._2());
@@ -77,42 +87,55 @@ public record TermReader(Term term) {
                 } else if (finalChar == CharUtil.BACKSPACE) {
 
                     Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
-                    if (cursorPosition._1() == Term.PROMPT.length()){
+                    if (cursorPosition._1() == Term.PROMPT.length()) {
                         Printer.voice();
                         continue;
                     }
                     if (cursorPosition._1() < lineBuilder.length() + Term.PROMPT.length()) {
                         int index = cursorPosition._1() - Term.PROMPT.length() - 1;
                         lineBuilder.deleteCharAt(index);
-                        term.hideCursor();
-                        Printer.virtualBackspaceWithBackground(Term.theme.executeLineBackgroundColor);
-                        Printer.print(HighlightHelper.assembleColorBackground(lineBuilder.substring(index, lineBuilder.length()) + CharUtil.SPACE, Term.theme.executeLineBackgroundColor));
-                        term.setCursorPosition(cursorPosition._1() - 1, cursorPosition._2());
-                        term.showCursor();
                     } else {
                         lineBuilder.deleteCharAt(lineBuilder.length() - 1);
-                        Printer.virtualBackspaceWithBackground(Term.theme.executeLineBackgroundColor);
                     }
+                    Term.executeCursorOldX.getAndDecrement();
 
+                } else if (finalChar == CharUtil.CTRL_U) {
+
+                    lineBuilder.delete(0, lineBuilder.length());
+                    term.clearTermLineWithPrompt();
+                    Term.executeCursorOldX.set(Term.PROMPT.length());
+
+                } else if (finalChar == CharUtil.ESCAPE) {
+                    continue;
                 } else if (finalChar == CharUtil.CR || finalChar == CharUtil.LF) {
 
                     Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
                     term.hideCursor();
                     term.setCursorPosition(Term.PROMPT.length(), cursorPosition._2());
-                    Printer.print(HighlightHelper.assembleColorBackground(" ".repeat(lineBuilder.length()), Term.theme.executeLineBackgroundColor));
                     term.setCursorPosition(Term.PROMPT.length(), cursorPosition._2());
                     term.showCursor();
                     term.historyHelper.push(lineBuilder.toString());
-                    break;
+
+                    Term.executeCursorOldX.set(Term.PROMPT.length());
+                    CountDownLatch latch = new CountDownLatch(1);
+                    term.eventBus.request(TERMINAL_ECHO.address(), StrUtil.EMPTY, result -> {
+                        term.showCursor();
+                        latch.countDown();
+                    });
+                    latch.await();
+                    return lineBuilder.toString();
                 }
 
-                term.eventBus.send(TERMINAL_ECHO.address(), lineBuilder.toString());
+                CountDownLatch latch = new CountDownLatch(1);
+                term.eventBus.request(TERMINAL_ECHO.address(), lineBuilder.toString(), result -> {
+                    term.showCursor();
+                    latch.countDown();
+                });
+                latch.await();
             }
 
-            term.eventBus.send(TERMINAL_ECHO.address(), StrUtil.EMPTY);
-            return lineBuilder.toString();
-        } catch (IOException e) {
-            Printer.println("\nIO error.");
+        } catch (Exception e) {
+            Printer.println("\nSomething error.");
             System.exit(-1);
         }
         return null;

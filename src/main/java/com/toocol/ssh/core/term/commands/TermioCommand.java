@@ -2,7 +2,6 @@ package com.toocol.ssh.core.term.commands;
 
 import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.core.term.core.HighlightHelper;
-import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.term.commands.processors.*;
 import com.toocol.ssh.core.term.core.Term;
@@ -23,10 +22,12 @@ public enum TermioCommand {
     CMD_HELP("help", new HelpCmdProcessor(), "Show holistic executive command."),
     CMD_CLEAR("clear", new ClearCmdProcessor(), "Clear the screen."),
     CMD_EXIT("exit", new ExitCmdProcessor(), "Exit Termio."),
+    CMD_THEME("theme", new ThemeCmdProcessor(), "Change the Termio's color theme."),
     CMD_ADD("add", new AddCmdProcessor(), "Add new ssh connection property. Pattern: 'add --user@host -c=password [-p=port]',default port is 22."),
     CMD_DELETE("delete", new DeleteCmdProcessor(), "Delete ssh connection property. Pattern: 'delete --index', for example: 'delete --1'."),
     CMD_NUMBER("numbers", new NumberCmdProcessor(), "Select the connection properties."),
-    CMD_THEME("theme", new ThemeCmdProcessor(), "Change the Termio's color theme."),
+    CMD_ACTIVE("active", new ActiveCmdProcessor(), "Active the selected ssh connect session, without enter the Shell."),
+    CMD_HELLO_WORLD("hello", new HelloCmdProcessor(), null)
     ;
 
     private static final String[] tabBuffer = new String[]{"\t\t\t", "\t\t", "\t"};

@@ -2,6 +2,7 @@ package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.common.action.AbstractCharAction;
 import com.toocol.ssh.common.event.CharEvent;
+import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.term.core.Printer;
 
@@ -19,13 +20,19 @@ public final class ActionAsciiPrintable extends AbstractCharAction {
 
     @Override
     public boolean act(Shell shell, CharEvent charEvent, char inChar) {
-        if (shell.arrowHelper.isAcceptBracketAfterEscape()) {
+        if (shell.escapeHelper.isAcceptBracketAfterEscape()) {
+            return false;
+        }
+        if (inChar == CharUtil.SPACE && shell.currentPrint.length() == 0) {
             return false;
         }
         Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
         if (cursorPosition._1() < shell.currentPrint.length() + shell.prompt.get().length()) {
             // cursor has moved
             int index = cursorPosition._1() - shell.prompt.get().length();
+            if (index == 0 && inChar == CharUtil.SPACE) {
+                return false;
+            }
             if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
                 String removal = "\u007F".repeat(shell.remoteCmd.length());
                 shell.remoteCmd.insert(index, inChar);

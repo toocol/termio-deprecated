@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
 import static com.toocol.ssh.core.shell.ShellAddress.RECEIVE_SHELL;
-import static com.toocol.ssh.core.term.TermAddress.ADDRESS_ACCEPT_COMMAND;
+import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -88,7 +88,7 @@ public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHa
                 ShellCommand.cmdOf(shell.getRemoteCmd()).ifPresent(shellCommand -> {
                     try {
                         String finalCmd;
-                        Tuple2<String, Long> result = shellCommand.processCmd(eventBus, shell, isBreak, cmd.toString());
+                        Tuple2<String, Long> result = shellCommand.processCmd(eventBus, shell, isBreak, shell.getRemoteCmd());
                         finalCmd = result._1();
                         completeSessionId.set(result._2());
                         if (finalCmd != null) {
@@ -177,7 +177,7 @@ public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHa
             sessionCache.stop(sessionId);
         }
 
-        eventBus.send(ADDRESS_ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.NORMAL_BACK);
+        eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.NORMAL_BACK);
     }
 
 }

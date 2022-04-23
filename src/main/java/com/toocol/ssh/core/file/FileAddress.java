@@ -11,11 +11,11 @@ public enum FileAddress implements IAddress {
      * check the file is whether exist.
      * If not, create it.
      */
-    ADDRESS_CHECK_FILE_EXIST("terminal.file.check.exist"),
+    CHECK_FILE_EXIST("terminal.file.check.exist"),
     /**
      * read the credential file(credentials.json)
      */
-    ADDRESS_READ_FILE("terminal.file.read.file"),
+    READ_FILE("terminal.file.read.file"),
     /**
      * choose the local file.
      */
@@ -23,7 +23,7 @@ public enum FileAddress implements IAddress {
     /**
      * choose the local directory path.
      */
-    CHOOSE_DIRECTORY("terminal.file.choose")
+    CHOOSE_DIRECTORY("terminal.directory.choose")
     ;
 
     /**

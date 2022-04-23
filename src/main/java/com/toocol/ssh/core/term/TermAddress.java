@@ -10,11 +10,11 @@ public enum TermAddress implements IAddress{
     /**
      * execute outside command
      */
-    ADDRESS_EXECUTE_OUTSIDE("ssh.command.execute.outside"),
+    EXECUTE_OUTSIDE("ssh.command.execute.outside"),
     /**
      * to accept the user command input
      */
-    ADDRESS_ACCEPT_COMMAND("ssh.command.accept"),
+    ACCEPT_COMMAND("ssh.command.accept"),
     /**
      * monitor the terminal program's status
      * include terminal's size and memory use.

@@ -10,7 +10,7 @@ import jline.internal.NonBlockingInputStream;
  * @date: 2022/4/18 22:53
  * @version: 0.0.1
  */
-public final class ArrowHelper {
+public final class EscapeHelper {
 
     private boolean acceptEscape = false;
     private boolean acceptBracketAfterEscape = false;

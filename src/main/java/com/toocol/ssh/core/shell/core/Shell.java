@@ -8,7 +8,7 @@ import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
 import com.toocol.ssh.core.term.core.Printer;
-import com.toocol.ssh.core.term.core.ArrowHelper;
+import com.toocol.ssh.core.term.core.EscapeHelper;
 import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
@@ -69,7 +69,7 @@ public final class Shell {
     final ShellReader shellReader;
     final HistoryCmdHelper historyCmdHelper;
     final MoreHelper moreHelper;
-    final ArrowHelper arrowHelper;
+    final EscapeHelper escapeHelper;
     final VimHelper vimHelper;
     final CharEventDispatcher charEventDispatcher;
 
@@ -124,7 +124,7 @@ public final class Shell {
         this.shellReader = new ShellReader(this, reader);
         this.historyCmdHelper = new HistoryCmdHelper(this);
         this.moreHelper = new MoreHelper();
-        this.arrowHelper = new ArrowHelper();
+        this.escapeHelper = new EscapeHelper();
         this.vimHelper = new VimHelper();
         this.charEventDispatcher = new CharEventDispatcher();
 
@@ -349,6 +349,21 @@ public final class Shell {
         }
     }
 
+    public void cursorBackLine(int lines) {
+        term.cursorBackLine(lines);
+    }
+
+    public void clearShellLine() {
+        Tuple2<Integer, Integer> position = term.getCursorPosition();
+        int cursorX = position._1();
+        int cursorY = position._2();
+        term.hideCursor();
+        term.setCursorPosition(0, cursorY);
+        Printer.print(" ".repeat(cursorX));
+        term.setCursorPosition(0, cursorY);
+        term.showCursor();
+    }
+
     public void clearShellLineWithPrompt() {
         int promptLen = prompt.get().length();
         Tuple2<Integer, Integer> position = term.getCursorPosition();
@@ -356,9 +371,7 @@ public final class Shell {
         int cursorY = position._2();
         term.hideCursor();
         term.setCursorPosition(promptLen, cursorY);
-        for (int idx = 0; idx < cursorX - promptLen; idx++) {
-            Printer.print(" ");
-        }
+        Printer.print(" ".repeat(cursorX - promptLen));
         term.setCursorPosition(promptLen, cursorY);
         term.showCursor();
     }
@@ -400,6 +413,10 @@ public final class Shell {
 
     public String getRemoteCmd() {
         return remoteCmd.toString();
+    }
+
+    public String getCurrentPrint() {
+        return currentPrint.toString();
     }
 
     public AtomicReference<String> getUser() {

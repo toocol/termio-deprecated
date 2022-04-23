@@ -74,7 +74,7 @@ public final class TermHistoryHelper {
         String cmd = upArrowStack.pop();
         if (upArrowStack.isEmpty()) {
             upArrowStack.push(cmd);
-            term.clearShellLineWithPrompt();
+            term.clearTermLineWithPrompt();
             Printer.print(HighlightHelper.assembleColorBackground(cmd, Term.theme.executeLineBackgroundColor));
             if (upBuffer != null) {
                 downArrowStack.push(upBuffer);
@@ -92,7 +92,7 @@ public final class TermHistoryHelper {
             upBuffer = cmd;
         }
 
-        term.clearShellLineWithPrompt();
+        term.clearTermLineWithPrompt();
         Printer.print(HighlightHelper.assembleColorBackground(cmd, Term.theme.executeLineBackgroundColor));
         return cmd;
     }
@@ -132,7 +132,7 @@ public final class TermHistoryHelper {
             reset();
         }
 
-        term.clearShellLineWithPrompt();
+        term.clearTermLineWithPrompt();
         Printer.print(HighlightHelper.assembleColorBackground(cmd, Term.theme.executeLineBackgroundColor));
         return cmd;
     }

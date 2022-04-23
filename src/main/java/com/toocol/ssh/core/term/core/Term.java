@@ -5,6 +5,9 @@ import com.toocol.ssh.common.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import jline.console.ConsoleReader;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/14 11:09
@@ -17,7 +20,7 @@ public final class Term {
 
     public Term(EventBus eventBus) {
         this.eventBus = eventBus;
-        arrowHelper = new ArrowHelper();
+        escapeHelper = new EscapeHelper();
         historyHelper = new TermHistoryHelper(this);
         termReader  = new TermReader(this);
         termPrinter = new TermPrinter(this);
@@ -38,18 +41,35 @@ public final class Term {
 
     public static TermTheme theme = TermTheme.DARK_THEME;
     public static volatile TermStatus status = TermStatus.TERMIO;
+    public static volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
     public static int executeLine = 0;
     int displayZoneBottom = 0;
 
     ConsoleReader reader;
     final EventBus eventBus;
-    final ArrowHelper arrowHelper;
+    final EscapeHelper escapeHelper;
     final TermHistoryHelper historyHelper;
     final TermReader termReader;
     final TermPrinter termPrinter;
 
+    public void clearTermLineWithPrompt() {
+        int promptLen = PROMPT.length();
+        Tuple2<Integer, Integer> position = getCursorPosition();
+        int cursorX = position._1();
+        int cursorY = position._2();
+        hideCursor();
+        setCursorPosition(promptLen, cursorY);
+        Printer.print(HighlightHelper.assembleColorBackground(" ".repeat(cursorX - promptLen), Term.theme.executeLineBackgroundColor));
+        setCursorPosition(promptLen, cursorY);
+        showCursor();
+    }
+
     public void cleanDisplayZone() {
         termPrinter.cleanDisplayZone();
+    }
+
+    public void printExecution(String msg) {
+        termPrinter.printExecution(msg);
     }
 
     public void printDisplay(String msg) {
@@ -105,15 +125,7 @@ public final class Term {
         JNI.cursorRight();
     }
 
-    public void clearShellLineWithPrompt() {
-        int promptLen = PROMPT.length();
-        Tuple2<Integer, Integer> position = getCursorPosition();
-        int cursorX = position._1();
-        int cursorY = position._2();
-        hideCursor();
-        setCursorPosition(promptLen, cursorY);
-        Printer.print(HighlightHelper.assembleColorBackground(" ".repeat(cursorX - promptLen), Term.theme.executeLineBackgroundColor));
-        setCursorPosition(promptLen, cursorY);
-        showCursor();
+    public void cursorBackLine(int lines) {
+        JNI.cursorBackLine(lines);
     }
 }

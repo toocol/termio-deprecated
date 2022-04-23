@@ -6,6 +6,8 @@ import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.common.utils.FileNameUtil;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.core.SftpChannelProvider;
+import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.term.core.Printer;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
@@ -56,6 +58,9 @@ public final class BlockingUfHandler extends AbstractBlockingMessageHandler<Void
         }
 
         latch.await();
+
+        Shell shell = SessionCache.getInstance().getShell(sessionId);
+        Printer.print(shell.getPrompt());
 
         String fileNames = localPathBuilder.toString();
         if ("-1".equals(fileNames)) {

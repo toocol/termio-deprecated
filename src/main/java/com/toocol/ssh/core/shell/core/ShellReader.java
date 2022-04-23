@@ -1,14 +1,8 @@
 package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.common.utils.CharUtil;
-import com.toocol.ssh.common.utils.StrUtil;
-import com.toocol.ssh.common.utils.Tuple2;
-import com.toocol.ssh.core.term.core.Printer;
 import jline.console.ConsoleReader;
-import org.apache.commons.lang3.StringUtils;
 import sun.misc.Signal;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -41,11 +35,11 @@ record ShellReader(Shell shell, ConsoleReader reader) {
             /*
              * Start to deal with arrow key.
              */
-            char finalChar = shell.arrowHelper.processArrowStream(inChar);
+            char finalChar = shell.escapeHelper.processArrowStream(inChar);
 
             if (shell.status.equals(Shell.Status.VIM_UNDER)) {
 
-                char vimChar = shell.arrowHelper.processArrowBundle(finalChar, shell, reader);
+                char vimChar = shell.escapeHelper.processArrowBundle(finalChar, shell, reader);
 
                 shell.writeAndFlush(shell.vimHelper.transferVimInput(vimChar));
 

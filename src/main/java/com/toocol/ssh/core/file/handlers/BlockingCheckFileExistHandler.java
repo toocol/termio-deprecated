@@ -6,7 +6,7 @@ import com.toocol.ssh.common.utils.FileUtil;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
-import static com.toocol.ssh.core.file.FileAddress.ADDRESS_CHECK_FILE_EXIST;
+import static com.toocol.ssh.core.file.FileAddress.CHECK_FILE_EXIST;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -20,7 +20,7 @@ public final class BlockingCheckFileExistHandler extends AbstractBlockingMessage
 
     @Override
     public IAddress consume() {
-        return ADDRESS_CHECK_FILE_EXIST;
+        return CHECK_FILE_EXIST;
     }
 
     @Override

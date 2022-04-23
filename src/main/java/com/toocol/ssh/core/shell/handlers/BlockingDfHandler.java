@@ -5,12 +5,15 @@ import com.toocol.ssh.common.address.IAddress;
 import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.core.SftpChannelProvider;
+import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.term.core.Printer;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.io.IOUtils;
 
 import java.io.InputStream;
+import java.nio.file.NoSuchFileException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -41,6 +44,7 @@ public final class BlockingDfHandler extends AbstractBlockingMessageHandler<byte
 
     @Override
     protected <T> void handleWithinBlocking(Promise<byte[]> promise, Message<T> message) throws Exception {
+
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String remotePath = request.getString("remotePath");
@@ -62,23 +66,53 @@ public final class BlockingDfHandler extends AbstractBlockingMessageHandler<byte
             CountDownLatch latch = new CountDownLatch(1);
             StringBuilder localPathBuilder = new StringBuilder();
             eventBus.request(CHOOSE_DIRECTORY.address(), null, result -> {
-                localPathBuilder.append(Objects.requireNonNullElse(result.result().body(), "-1"));
+                if (result.result() == null) {
+                    localPathBuilder.append("-1");
+                } else {
+                    localPathBuilder.append(Objects.requireNonNullElse(result.result().body(), "-1"));
+                }
                 latch.countDown();
             });
             latch.await();
 
+            Shell shell = SessionCache.getInstance().getShell(sessionId);
+            Printer.print(shell.getPrompt());
+
             String storagePath = localPathBuilder.toString();
             if ("-1".equals(storagePath)) {
                 promise.fail("-1");
-                promise.complete();
+                promise.tryComplete();
                 return;
             }
 
-            promise.complete();
+            if (remotePath.contains(",")) {
+                for (String rpath : remotePath.split(",")) {
+                    try {
+                        channelSftp.get(rpath, localPathBuilder.toString());
+                    } catch (Exception e) {
+                        Printer.println("\ndf: no such file '" + rpath + "'.");
+                        Printer.print(shell.getPrompt() + shell.getCurrentPrint());
+                    }
+                }
+            } else {
+                try {
+                    channelSftp.get(remotePath, localPathBuilder.toString());
+                } catch (Exception e) {
+                    Printer.println("\ndf: no such file '" + remotePath + "'.");
+                    Printer.print(shell.getPrompt() + shell.getCurrentPrint());
+                }
+            }
+
+
+            promise.tryComplete();
         } else {
-            InputStream inputStream = channelSftp.get(remotePath);
-            byte[] bytes = IOUtils.buffer(inputStream).readAllBytes();
-            promise.complete(bytes);
+            try {
+                InputStream inputStream = channelSftp.get(remotePath);
+                byte[] bytes = IOUtils.buffer(inputStream).readAllBytes();
+                promise.complete(bytes);
+            } catch (Exception e) {
+                promise.complete();
+            }
         }
 
     }
