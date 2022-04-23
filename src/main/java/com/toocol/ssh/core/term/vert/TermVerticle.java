@@ -7,13 +7,14 @@ import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.core.term.handlers.ExecuteCommandHandler;
 import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
+import com.toocol.ssh.core.term.handlers.DynamicEchoHandler;
 import io.vertx.core.AbstractVerticle;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:30
  */
-@VerticleDeployment(worker = true, workerPoolSize = 5, workerPoolName = "term-worker-pool")
+@VerticleDeployment(worker = true, workerPoolSize = 3, workerPoolName = "term-worker-pool")
 @RegisterHandler(handlers = {
         BlockingMonitorTerminalHandler.class,
         BlockingAcceptCommandHandler.class,

@@ -20,7 +20,7 @@ public record TermPrinter(Term term) {
         }
     }
 
-    void printDisplay(String msg) {
+    synchronized void printDisplay(String msg) {
         displayBuffer = msg;
         term.hideCursor();
         cleanDisplayZone();
@@ -31,7 +31,7 @@ public record TermPrinter(Term term) {
         term.showCursor();
     }
 
-    void printDisplayBuffer() {
+    synchronized void printDisplayBuffer() {
         cleanDisplayZone();
         term.setCursorPosition(0, Term.executeLine + 2);
         Printer.print(displayBuffer);
@@ -39,17 +39,19 @@ public record TermPrinter(Term term) {
         term.setCursorPosition(0, Term.executeLine);
     }
 
-    void printCommandBuffer() {
+    synchronized void printCommandBuffer() {
         term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
         Printer.print(commandBuffer);
     }
 
-    public void printExecution(String msg) {
+    synchronized void printExecution(String msg) {
         commandBuffer = msg;
+        term.hideCursor();
         term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
         Printer.print(HighlightHelper.assembleColorBackground(" ".repeat(term.getWidth() - Term.PROMPT.length()), Term.theme.executeLineBackgroundColor));
         term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
         Printer.print(HighlightHelper.assembleColorBackground(msg, Term.theme.executeLineBackgroundColor));
-        term.setCursorPosition(Term.executeCursorOldX.get(), Term.executeLine);
+        term.setCursorPosition(term.executeCursorOldX.get(), Term.executeLine);
+        term.showCursor();
     }
 }

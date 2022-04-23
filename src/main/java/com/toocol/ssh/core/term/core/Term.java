@@ -21,7 +21,7 @@ public final class Term {
     public Term(EventBus eventBus) {
         this.eventBus = eventBus;
         escapeHelper = new EscapeHelper();
-        historyHelper = new TermHistoryHelper(this);
+        historyHelper = new TermHistoryHelper();
         termReader  = new TermReader(this);
         termPrinter = new TermPrinter(this);
     }
@@ -39,10 +39,11 @@ public final class Term {
         INSTANCE = term;
     }
 
-    public static TermTheme theme = TermTheme.DARK_THEME;
     public static volatile TermStatus status = TermStatus.TERMIO;
-    public static volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
+    public static TermTheme theme = TermTheme.DARK_THEME;
     public static int executeLine = 0;
+
+    volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
     int displayZoneBottom = 0;
 
     ConsoleReader reader;
@@ -51,18 +52,6 @@ public final class Term {
     final TermHistoryHelper historyHelper;
     final TermReader termReader;
     final TermPrinter termPrinter;
-
-    public void clearTermLineWithPrompt() {
-        int promptLen = PROMPT.length();
-        Tuple2<Integer, Integer> position = getCursorPosition();
-        int cursorX = position._1();
-        int cursorY = position._2();
-        hideCursor();
-        setCursorPosition(promptLen, cursorY);
-        Printer.print(HighlightHelper.assembleColorBackground(" ".repeat(cursorX - promptLen), Term.theme.executeLineBackgroundColor));
-        setCursorPosition(promptLen, cursorY);
-        showCursor();
-    }
 
     public void cleanDisplayZone() {
         termPrinter.cleanDisplayZone();

@@ -13,7 +13,6 @@ import java.util.UUID;
  */
 public final class TermHistoryHelper {
 
-    private final Term term;
     /**
      * The stack storage all the executed cmd.
      */
@@ -38,8 +37,7 @@ public final class TermHistoryHelper {
     private boolean puToDown = false;
     private boolean start = false;
 
-    public TermHistoryHelper(Term term) {
-        this.term = term;
+    public TermHistoryHelper() {
     }
 
     public synchronized void push(String cmd) {
@@ -74,8 +72,6 @@ public final class TermHistoryHelper {
         String cmd = upArrowStack.pop();
         if (upArrowStack.isEmpty()) {
             upArrowStack.push(cmd);
-            term.clearTermLineWithPrompt();
-            Printer.print(HighlightHelper.assembleColorBackground(cmd, Term.theme.executeLineBackgroundColor));
             if (upBuffer != null) {
                 downArrowStack.push(upBuffer);
             }
@@ -92,8 +88,6 @@ public final class TermHistoryHelper {
             upBuffer = cmd;
         }
 
-        term.clearTermLineWithPrompt();
-        Printer.print(HighlightHelper.assembleColorBackground(cmd, Term.theme.executeLineBackgroundColor));
         return cmd;
     }
 
@@ -132,8 +126,6 @@ public final class TermHistoryHelper {
             reset();
         }
 
-        term.clearTermLineWithPrompt();
-        Printer.print(HighlightHelper.assembleColorBackground(cmd, Term.theme.executeLineBackgroundColor));
         return cmd;
     }
 

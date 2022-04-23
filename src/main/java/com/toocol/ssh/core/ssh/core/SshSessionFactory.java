@@ -9,7 +9,6 @@ import com.toocol.ssh.core.auth.vo.SshCredential;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;
-import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.eventbus.EventBus;
 

@@ -4,6 +4,8 @@ import com.toocol.ssh.common.utils.CharUtil;
 import com.toocol.ssh.common.utils.StrUtil;
 import com.toocol.ssh.common.utils.Tuple2;
 
+import static com.toocol.ssh.core.term.TermAddress.TERMINAL_ECHO;
+
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/16 15:23
@@ -13,7 +15,7 @@ public record TermReader(Term term) {
     String readLine() {
 
         StringBuilder lineBuilder = new StringBuilder();
-        Term.executeCursorOldX.set(term.getCursorPosition()._1());
+        term.executeCursorOldX.set(term.getCursorPosition()._1());
         try {
             while (true) {
                 char inChar = (char) term.reader.readCharacter();
@@ -41,7 +43,7 @@ public record TermReader(Term term) {
                     } else {
                         lineBuilder.append(finalChar);
                     }
-                    Term.executeCursorOldX.getAndIncrement();
+                    term.executeCursorOldX.getAndIncrement();
                 } else if (finalChar == CharUtil.UP_ARROW || finalChar == CharUtil.DOWN_ARROW) {
                     if (finalChar == CharUtil.UP_ARROW) {
                         if (!term.historyHelper.isStart()) {
@@ -59,18 +61,18 @@ public record TermReader(Term term) {
                             lineBuilder.delete(0, lineBuilder.length()).append(down);
                         }
                     }
-                    Term.executeCursorOldX.set(lineBuilder.length() + Term.PROMPT.length());
+                    term.executeCursorOldX.set(lineBuilder.length() + Term.PROMPT.length());
                 } else if (finalChar == CharUtil.LEFT_ARROW || finalChar == CharUtil.RIGHT_ARROW) {
                     int cursorX = term.getCursorPosition()._1();
                     if (finalChar == CharUtil.LEFT_ARROW) {
                         if (cursorX > Term.PROMPT.length()) {
                             term.cursorLeft();
-                            Term.executeCursorOldX.getAndDecrement();
+                            term.executeCursorOldX.getAndDecrement();
                         }
                     } else {
                         if (cursorX < (lineBuilder.length() + Term.PROMPT.length())) {
                             term.cursorRight();
-                            Term.executeCursorOldX.getAndIncrement();
+                            term.executeCursorOldX.getAndIncrement();
                         }
                     }
                     continue;
@@ -93,13 +95,12 @@ public record TermReader(Term term) {
                     } else {
                         lineBuilder.deleteCharAt(lineBuilder.length() - 1);
                     }
-                    Term.executeCursorOldX.getAndDecrement();
+                    term.executeCursorOldX.getAndDecrement();
 
                 } else if (finalChar == CharUtil.CTRL_U) {
 
                     lineBuilder.delete(0, lineBuilder.length());
-                    term.clearTermLineWithPrompt();
-                    Term.executeCursorOldX.set(Term.PROMPT.length());
+                    term.executeCursorOldX.set(Term.PROMPT.length());
 
                 } else if (finalChar == CharUtil.ESCAPE) {
                     continue;
@@ -112,16 +113,14 @@ public record TermReader(Term term) {
                     term.showCursor();
                     term.historyHelper.push(lineBuilder.toString());
 
-                    Term.executeCursorOldX.set(Term.PROMPT.length());
-                    term.hideCursor();
+                    term.executeCursorOldX.set(Term.PROMPT.length());
                     term.printExecution(StrUtil.EMPTY);
-                    term.showCursor();
+                    term.eventBus.send(TERMINAL_ECHO.address(), StrUtil.EMPTY);
                     return lineBuilder.toString();
                 }
 
-                term.hideCursor();
                 term.printExecution(lineBuilder.toString());
-                term.showCursor();
+                term.eventBus.send(TERMINAL_ECHO.address(), lineBuilder.toString());
             }
 
         } catch (Exception e) {

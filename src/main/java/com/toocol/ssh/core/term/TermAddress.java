@@ -24,6 +24,10 @@ public enum TermAddress implements IAddress{
      * check typewriting status.
      */
     CHECK_TYPEWRITING_STATUS("ssh.term.check.typewriting"),
+    /**
+     * deal with the termio command echo and prompt display.
+     */
+    TERMINAL_ECHO("ssh.term.echo")
     ;
 
     /**
