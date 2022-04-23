@@ -25,7 +25,7 @@ public class ShellDfCmdProcessor extends ShellCommandProcessor {
     public Tuple2<String, Long> process(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String cmd) {
         String[] split = cmd.trim().replaceAll(" {2,}", StrUtil.SPACE).split(StrUtil.SPACE);
         if (split.length < 2) {
-            return new Tuple2<>(null, null);
+            return new Tuple2<>(EMPTY, null);
         }
 
         StringBuilder remotePath = new StringBuilder();
