@@ -1,8 +1,8 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.action.AbstractCharAction;
-import com.toocol.ssh.common.event.CharEvent;
-import com.toocol.ssh.common.utils.CharUtil;
+import com.toocol.ssh.utilities.action.AbstractCharAction;
+import com.toocol.ssh.utilities.event.CharEvent;
+import com.toocol.ssh.utilities.utils.CharUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;

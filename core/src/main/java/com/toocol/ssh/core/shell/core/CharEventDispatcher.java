@@ -1,10 +1,10 @@
 package com.toocol.ssh.core.shell.core;
 
 import com.google.common.collect.ImmutableMap;
-import com.toocol.ssh.common.action.AbstractCharAction;
-import com.toocol.ssh.common.event.CharEvent;
-import com.toocol.ssh.common.utils.CastUtil;
-import com.toocol.ssh.common.utils.ClassScanner;
+import com.toocol.ssh.utilities.action.AbstractCharAction;
+import com.toocol.ssh.utilities.event.CharEvent;
+import com.toocol.ssh.utilities.utils.CastUtil;
+import com.toocol.ssh.utilities.utils.ClassScanner;
 import com.toocol.ssh.core.term.core.Printer;
 
 import java.lang.reflect.Constructor;

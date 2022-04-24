@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.common.utils.CharUtil;
+import com.toocol.ssh.utilities.utils.CharUtil;
 import com.toocol.ssh.core.shell.core.Shell;
 import jline.console.ConsoleReader;
 import jline.internal.NonBlockingInputStream;

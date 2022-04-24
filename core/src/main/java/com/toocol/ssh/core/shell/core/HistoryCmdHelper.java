@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.core.term.core.Printer;
 
 import java.util.Stack;

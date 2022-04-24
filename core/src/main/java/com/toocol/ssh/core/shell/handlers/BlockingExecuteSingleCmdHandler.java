@@ -1,8 +1,8 @@
 package com.toocol.ssh.core.shell.handlers;
 
 import com.jcraft.jsch.ChannelExec;
-import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.core.CmdFeedbackHelper;
 import com.toocol.ssh.core.shell.core.ExecChannelProvider;

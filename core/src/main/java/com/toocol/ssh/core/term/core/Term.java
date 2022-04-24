@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.common.console.Console;
-import com.toocol.ssh.common.utils.Tuple2;
+import com.toocol.ssh.utilities.console.Console;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import jline.console.ConsoleReader;
 

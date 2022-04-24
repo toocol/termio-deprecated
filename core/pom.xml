@@ -54,47 +54,11 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <minimizeJar>true</minimizeJar>
-                            <filters>
-                                <filter>
-                                    <artifact>com.jcraft:jsch</artifact>
-                                    <includes>
-                                        <include>com/jcraft/jsch/**</include>
-                                    </includes>
-                                </filter>
-                            </filters>
-                            <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <manifestEntries>
-                                        <Main-Class>${main.class}</Main-Class>
-                                    </manifestEntries>
-                                </transformer>
-                            </transformers>
-                            <outputFile>${project.build.directory}/termio.jar</outputFile>
+                            <outputFile>${project.build.directory}/${project.artifactId}.jar</outputFile>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
-
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>**/*.properties</include>
-                    <include>**/*.xml</include>
-                </includes>
-                <filtering>true</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>**/*.dll</include>
-                    <include>**/*.so</include>
-                </includes>
-                <filtering>false</filtering>
-            </resource>
-        </resources>
     </build>
 </project>

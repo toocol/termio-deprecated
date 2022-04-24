@@ -1,8 +1,8 @@
 package com.toocol.ssh.core.auth.handlers;
 
-import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.common.utils.FileUtil;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.handler.AbstractMessageHandler;
+import com.toocol.ssh.utilities.utils.FileUtil;
 import com.toocol.ssh.core.auth.vo.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
 import io.vertx.core.Context;

@@ -1,8 +1,8 @@
 package com.toocol.ssh.core.term.commands.processors;
 
 import com.toocol.ssh.core.term.core.Printer;
-import com.toocol.ssh.common.utils.RegexUtils;
-import com.toocol.ssh.common.utils.Tuple2;
+import com.toocol.ssh.utilities.utils.RegexUtils;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.term.commands.OutsideCommandProcessor;
 import com.toocol.ssh.core.auth.vo.SshCredential;

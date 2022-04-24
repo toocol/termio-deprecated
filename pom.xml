@@ -9,6 +9,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>starter</module>
         <module>core</module>
         <module>utilities</module>
     </modules>
@@ -21,6 +22,7 @@
 
         <!--second party dependency-->
         <termio.utilities.version>0.0.1</termio.utilities.version>
+        <termio.core.version>0.0.1</termio.core.version>
 
         <!--third party dependency-->
         <vertx.version>4.2.6</vertx.version>
@@ -38,6 +40,11 @@
                 <groupId>com.toocol.termio</groupId>
                 <artifactId>utilities</artifactId>
                 <version>${termio.utilities.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.toocol.termio</groupId>
+                <artifactId>core</artifactId>
+                <version>${termio.core.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.vertx</groupId>

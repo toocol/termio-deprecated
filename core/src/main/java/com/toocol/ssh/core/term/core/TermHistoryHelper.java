@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Stack;

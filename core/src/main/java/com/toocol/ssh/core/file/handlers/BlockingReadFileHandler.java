@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.file.handlers;
 
-import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
-import com.toocol.ssh.common.address.IAddress;
+import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.address.IAddress;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;

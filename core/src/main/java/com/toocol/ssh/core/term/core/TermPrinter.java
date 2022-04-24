@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.utilities.utils.StrUtil;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)

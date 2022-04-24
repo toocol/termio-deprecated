@@ -1,8 +1,8 @@
 package com.toocol.ssh.core.term.handlers;
 
-import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
-import com.toocol.ssh.common.utils.Tuple2;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.handler.AbstractMessageHandler;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.term.commands.TermioCommand;
 import com.toocol.ssh.core.term.core.Printer;
 import io.vertx.core.Context;

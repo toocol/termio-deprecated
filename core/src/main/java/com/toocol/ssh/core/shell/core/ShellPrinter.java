@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.utils.Tuple2;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.term.core.Printer;
 import org.apache.commons.lang3.StringUtils;
 
@@ -8,8 +8,8 @@ import java.io.PrintStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.toocol.ssh.common.utils.StrUtil.CRLF;
-import static com.toocol.ssh.common.utils.StrUtil.SPACE;
+import static com.toocol.ssh.utilities.utils.StrUtil.CRLF;
+import static com.toocol.ssh.utilities.utils.StrUtil.SPACE;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

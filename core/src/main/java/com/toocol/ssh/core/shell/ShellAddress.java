@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell;
 
-import com.toocol.ssh.common.address.IAddress;
+import com.toocol.ssh.utilities.address.IAddress;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

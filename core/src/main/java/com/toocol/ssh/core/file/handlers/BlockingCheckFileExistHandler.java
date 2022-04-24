@@ -1,8 +1,8 @@
 package com.toocol.ssh.core.file.handlers;
 
-import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
-import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.utils.FileUtil;
+import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.utils.FileUtil;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 

@@ -2,7 +2,7 @@ package com.toocol.ssh.core.shell.core;
 
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.Session;
-import com.toocol.ssh.common.utils.ICastable;
+import com.toocol.ssh.utilities.utils.ICastable;
 import com.toocol.ssh.core.cache.SessionCache;
 
 /**

@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.term.handlers;
 
-import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.handler.AbstractMessageHandler;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.handler.AbstractMessageHandler;
 import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;

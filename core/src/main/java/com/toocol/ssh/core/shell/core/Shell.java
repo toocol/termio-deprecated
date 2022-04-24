@@ -1,10 +1,10 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.action.AbstractShell;
-import com.toocol.ssh.common.execeptions.RemoteDisconnectException;
-import com.toocol.ssh.common.utils.CmdUtil;
-import com.toocol.ssh.common.utils.StrUtil;
-import com.toocol.ssh.common.utils.Tuple2;
+import com.toocol.ssh.utilities.action.AbstractShell;
+import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
+import com.toocol.ssh.utilities.utils.CmdUtil;
+import com.toocol.ssh.utilities.utils.StrUtil;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
@@ -221,6 +221,9 @@ public final class Shell extends AbstractShell {
             request.put("remotePath", "/" + user + "/.bash_history");
             request.put("type", BlockingDfHandler.DF_TYPE_BYTE);
             eventBus.request(START_DF_COMMAND.address(), request, result -> {
+                if (result == null || result.result() == null) {
+                    return;
+                }
                 byte[] bytes = (byte[]) result.result().body();
                 String data = new String(bytes, StandardCharsets.UTF_8);
                 historyCmdHelper.initialize(data.split(StrUtil.LF));
@@ -348,21 +351,6 @@ public final class Shell extends AbstractShell {
         } catch (IOException e) {
             throw new RemoteDisconnectException(e.getMessage());
         }
-    }
-
-    public void cursorBackLine(int lines) {
-        term.cursorBackLine(lines);
-    }
-
-    public void clearShellLine() {
-        Tuple2<Integer, Integer> position = term.getCursorPosition();
-        int cursorX = position._1();
-        int cursorY = position._2();
-        term.hideCursor();
-        term.setCursorPosition(0, cursorY);
-        Printer.print(" ".repeat(cursorX));
-        term.setCursorPosition(0, cursorY);
-        term.showCursor();
     }
 
     public void clearShellLineWithPrompt() {

@@ -1,8 +1,8 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.action.AbstractCharAction;
-import com.toocol.ssh.common.event.CharEvent;
-import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.utilities.action.AbstractCharAction;
+import com.toocol.ssh.utilities.event.CharEvent;
+import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.core.term.core.Printer;
 import org.apache.commons.lang3.StringUtils;
 

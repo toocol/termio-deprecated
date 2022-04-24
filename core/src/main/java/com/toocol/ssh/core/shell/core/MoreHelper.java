@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.utils.CharUtil;
+import com.toocol.ssh.utilities.utils.CharUtil;
 
 /**
  * the helper of linux command 'more'

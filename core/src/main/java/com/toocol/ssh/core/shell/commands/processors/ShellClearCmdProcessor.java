@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
-import com.toocol.ssh.common.utils.Tuple2;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;

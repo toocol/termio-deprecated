@@ -2,7 +2,7 @@ package com.toocol.ssh.core.shell.core;
 
 import java.nio.charset.StandardCharsets;
 
-import static com.toocol.ssh.common.utils.CharUtil.*;
+import static com.toocol.ssh.utilities.utils.CharUtil.*;
 
 
 /**

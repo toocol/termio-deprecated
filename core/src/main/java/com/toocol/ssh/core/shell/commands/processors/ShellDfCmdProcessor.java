@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
-import com.toocol.ssh.common.utils.StrUtil;
-import com.toocol.ssh.common.utils.Tuple2;
+import com.toocol.ssh.utilities.utils.StrUtil;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
@@ -11,7 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.toocol.ssh.common.utils.FilePathUtil.*;
+import static com.toocol.ssh.utilities.utils.FilePathUtil.*;
 import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
 
 /**

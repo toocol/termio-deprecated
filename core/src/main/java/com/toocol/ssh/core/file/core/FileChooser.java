@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.file.core;
 
-import com.toocol.ssh.common.console.Console;
+import com.toocol.ssh.utilities.console.Console;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)

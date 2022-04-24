@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.common.utils.StrUtil;
+import com.toocol.ssh.utilities.utils.StrUtil;
 
 import java.io.InputStream;
 import java.util.regex.Matcher;

@@ -1,8 +1,8 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.common.utils.CharUtil;
-import com.toocol.ssh.common.utils.StrUtil;
-import com.toocol.ssh.common.utils.Tuple2;
+import com.toocol.ssh.utilities.utils.CharUtil;
+import com.toocol.ssh.utilities.utils.StrUtil;
+import com.toocol.ssh.utilities.utils.Tuple2;
 
 import static com.toocol.ssh.core.term.TermAddress.TERMINAL_ECHO;
 

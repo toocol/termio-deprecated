@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.ssh.handlers;
 
-import com.toocol.ssh.common.address.IAddress;
-import com.toocol.ssh.common.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.auth.vo.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
