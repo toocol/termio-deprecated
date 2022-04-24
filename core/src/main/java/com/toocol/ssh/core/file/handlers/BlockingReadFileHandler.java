@@ -37,6 +37,6 @@ public final class BlockingReadFileHandler extends AbstractBlockingMessageHandle
     @Override
     protected <T> void resultWithinBlocking(AsyncResult<String> asyncResult, Message<T> message) {
         String result = asyncResult.result();
-        message.reply(StringUtils.isEmpty(result) ? new JsonArray() : new JsonArray(result));
+        message.reply(result);
     }
 }

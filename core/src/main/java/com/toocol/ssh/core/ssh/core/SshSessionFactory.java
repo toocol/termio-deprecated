@@ -5,7 +5,7 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.toocol.ssh.utilities.utils.ICastable;
 import com.toocol.ssh.utilities.utils.SnowflakeGuidGenerator;
-import com.toocol.ssh.core.auth.vo.SshCredential;
+import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;

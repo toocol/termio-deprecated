@@ -1,5 +1,7 @@
 package com.toocol.ssh.core.auth.handlers;
 
+import com.toocol.ssh.core.auth.core.SecurityCoder;
+import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.AbstractMessageHandler;
 import com.toocol.ssh.utilities.utils.FileUtil;
@@ -36,9 +38,24 @@ public final class DeleteCredentialHandler extends AbstractMessageHandler {
             SessionCache.getInstance().stop(host);
         }
 
-        String filePath = FileUtil.relativeToFixed("./credentials.json");
-        vertx.fileSystem().writeFile(filePath, Buffer.buffer(CredentialCache.getCredentialsJson()), result -> {
+        String filePath = FileUtil.relativeToFixed("./credentials.tsh");
+        String credentialsJson = CredentialCache.getCredentialsJson();
+
+        SecurityCoder coder = SecurityCoder.get();
+        if (coder != null) {
+            credentialsJson = coder.encode(credentialsJson);
+
+            if (credentialsJson == null) {
+                Printer.clear();
+                Printer.printErr("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
+                        ", or try to delete unsafe credentials.tsh at program's home folder.");
+                System.exit(-1);
+            }
+        }
+
+        vertx.fileSystem().writeFile(filePath, Buffer.buffer(credentialsJson), result -> {
         });
+
         message.reply(null);
     }
 

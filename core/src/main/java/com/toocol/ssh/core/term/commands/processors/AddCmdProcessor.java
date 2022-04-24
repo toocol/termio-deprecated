@@ -5,7 +5,7 @@ import com.toocol.ssh.utilities.utils.RegexUtils;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.term.commands.OutsideCommandProcessor;
-import com.toocol.ssh.core.auth.vo.SshCredential;
+import com.toocol.ssh.core.auth.core.SshCredential;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 

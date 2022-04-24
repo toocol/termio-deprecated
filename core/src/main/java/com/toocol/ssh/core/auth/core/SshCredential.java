@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.auth.vo;
+package com.toocol.ssh.core.auth.core;
 
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.builder.EqualsBuilder;

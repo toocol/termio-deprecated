@@ -3,8 +3,8 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-credentials.json
-starter/credentials.json
+credentials.tsh
+starter/credentials.tsh
 starter/.vertx/
 starter/arthas-output
 

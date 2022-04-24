@@ -62,7 +62,7 @@ public final class Printer {
     }
 
     public static void printErr(String msg) {
-        println("<error> " + msg);
+        println(HighlightHelper.assembleColor(msg, 167));
     }
 
     public static void virtualBackspace() {
