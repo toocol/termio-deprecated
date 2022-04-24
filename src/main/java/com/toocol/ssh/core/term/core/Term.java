@@ -1,12 +1,11 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.common.jni.TermioJNI;
+import com.toocol.ssh.common.console.Console;
 import com.toocol.ssh.common.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import jline.console.ConsoleReader;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -15,8 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class Term {
 
     public static final String PROMPT = " [termio] > ";
-
-    private static final TermioJNI JNI = TermioJNI.getInstance();
+    private static final Console CONSOLE = Console.get();
 
     public Term(EventBus eventBus) {
         this.eventBus = eventBus;
@@ -82,39 +80,39 @@ public final class Term {
     }
 
     public int getWidth() {
-        return JNI.getWindowWidth();
+        return CONSOLE.getWindowWidth();
     }
 
     public int getHeight() {
-        return JNI.getWindowHeight();
+        return CONSOLE.getWindowHeight();
     }
 
     public Tuple2<Integer, Integer> getCursorPosition() {
-        String[] coord = JNI.getCursorPosition().split(",");
+        String[] coord = CONSOLE.getCursorPosition().split(",");
         return new Tuple2<>(Integer.parseInt(coord[0]), Integer.parseInt(coord[1]));
     }
 
     public void setCursorPosition(int x, int y) {
-        JNI.setCursorPosition(x, y);
+        CONSOLE.setCursorPosition(x, y);
     }
 
     public void showCursor() {
-        JNI.showCursor();
+        CONSOLE.showCursor();
     }
 
     public void hideCursor() {
-        JNI.hideCursor();
+        CONSOLE.hideCursor();
     }
 
     public void cursorLeft() {
-        JNI.cursorLeft();
+        CONSOLE.cursorLeft();
     }
 
     public void cursorRight() {
-        JNI.cursorRight();
+        CONSOLE.cursorRight();
     }
 
     public void cursorBackLine(int lines) {
-        JNI.cursorBackLine(lines);
+        CONSOLE.cursorBackLine(lines);
     }
 }

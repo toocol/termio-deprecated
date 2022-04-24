@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.file.core;
 
-import com.toocol.ssh.common.jni.TermioJNI;
+import com.toocol.ssh.common.console.Console;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -9,7 +9,7 @@ import com.toocol.ssh.common.jni.TermioJNI;
  */
 public class DirectoryChooser {
 
-    private static final TermioJNI TERMIO_JNI = TermioJNI.getInstance();
+    private static final Console CONSOLE = Console.get();
 
     /**
      * chose the local path
@@ -17,7 +17,7 @@ public class DirectoryChooser {
      * @return file paths
      */
     public String showOpenDialog() {
-        return TERMIO_JNI.chooseDirectory();
+        return CONSOLE.chooseDirectory();
     }
 
 }

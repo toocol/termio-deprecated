@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.common.jni.TermioJNI;
+import com.toocol.ssh.common.console.Console;
 import com.toocol.ssh.common.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
@@ -21,7 +21,7 @@ public final class Printer {
 
     private static final Runtime RUNTIME = Runtime.getRuntime();
 
-    private static final TermioJNI JNI = TermioJNI.getInstance();
+    private static final Console CONSOLE = Console.get();
 
     private static final String[] patterns = new String[]{"-",
             "\\",
@@ -86,7 +86,7 @@ public final class Printer {
     public static void printScene(boolean resize) {
         Term term = Term.getInstance();
         Tuple2<Integer, Integer> oldPosition = term.getCursorPosition();
-        JNI.hideCursor();
+        CONSOLE.hideCursor();
         if (resize) {
             clear();
         }
@@ -104,13 +104,13 @@ public final class Printer {
             printTermPrompt();
             term.printCommandBuffer();
         }
-        JNI.showCursor();
+        CONSOLE.showCursor();
     }
 
     private static void printInformationBar() {
-        int windowWidth = JNI.getWindowWidth();
+        int windowWidth = CONSOLE.getWindowWidth();
 
-        JNI.setCursorPosition(0, 0);
+        CONSOLE.setCursorPosition(0, 0);
 
         String termioVersion = " termio: V0.0.1";
         String memoryUse = "memory-use: " + usedMemory() + "MB";
@@ -133,7 +133,7 @@ public final class Printer {
 
     @SuppressWarnings("all")
     public static void printLoading(CountDownLatch latch) {
-        JNI.hideCursor();
+        CONSOLE.hideCursor();
         clear();
         new Thread(() -> {
             int idx = 0;
@@ -143,7 +143,7 @@ public final class Printer {
                     if (StatusCache.LOADING_ACCOMPLISH) {
                         break;
                     }
-                    JNI.setCursorPosition(0, 0);
+                    CONSOLE.setCursorPosition(0, 0);
                     ;
                     print(patterns[idx++]);
                     if (idx >= patterns.length) {
@@ -156,7 +156,7 @@ public final class Printer {
                 System.exit(-1);
             }
             latch.countDown();
-            JNI.showCursor();
+            CONSOLE.showCursor();
         }).start();
     }
 

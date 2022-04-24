@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.file.core;
 
-import com.toocol.ssh.common.jni.TermioJNI;
+import com.toocol.ssh.common.console.Console;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -9,7 +9,7 @@ import com.toocol.ssh.common.jni.TermioJNI;
  */
 public class FileChooser {
 
-    private static final TermioJNI TERMIO_JNI = TermioJNI.getInstance();
+    private static final Console CONSOLE = Console.get();
 
     /**
      * multiple file paths separate by ','
@@ -17,7 +17,7 @@ public class FileChooser {
      * @return file paths
      */
     public String showOpenDialog() {
-        String files = TERMIO_JNI.chooseFiles();
+        String files = CONSOLE.chooseFiles();
         return files == null ? null : files.substring(0, files.length() - 1);
     }
 

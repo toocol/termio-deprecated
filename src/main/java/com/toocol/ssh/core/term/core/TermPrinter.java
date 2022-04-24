@@ -12,7 +12,7 @@ public record TermPrinter(Term term) {
     public static volatile String displayBuffer = StrUtil.EMPTY;
     public static volatile String commandBuffer = StrUtil.EMPTY;
 
-    void cleanDisplayZone() {
+    synchronized void cleanDisplayZone() {
         term.setCursorPosition(0, Term.executeLine + 1);
         int windowWidth = term.getWidth();
         while (term.getCursorPosition()._2() < term.displayZoneBottom) {
@@ -41,7 +41,7 @@ public record TermPrinter(Term term) {
 
     synchronized void printCommandBuffer() {
         term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
-        Printer.print(commandBuffer);
+        Printer.print(HighlightHelper.assembleColorBackground(commandBuffer, Term.theme.executeLineBackgroundColor));
     }
 
     synchronized void printExecution(String msg) {

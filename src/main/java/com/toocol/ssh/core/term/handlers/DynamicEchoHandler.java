@@ -14,9 +14,9 @@ import static com.toocol.ssh.core.term.TermAddress.TERMINAL_ECHO;
  * @date: 2022/4/23 2:59
  * @version: 0.0.1
  */
-public class DynamicEchoHandler extends AbstractMessageHandler {
+public final class DynamicEchoHandler extends AbstractMessageHandler {
 
-    protected DynamicEchoHandler(Vertx vertx, Context context) {
+    public DynamicEchoHandler(Vertx vertx, Context context) {
         super(vertx, context);
     }
 

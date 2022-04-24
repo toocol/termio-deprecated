@@ -15,7 +15,7 @@ import io.vertx.core.AbstractVerticle;
 @RegisterHandler(handlers = {
         DynamicEchoHandler.class
 })
-public class DynamicEchoVerticle extends AbstractVerticle implements IHandlerMounter {
+public final class DynamicEchoVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {
