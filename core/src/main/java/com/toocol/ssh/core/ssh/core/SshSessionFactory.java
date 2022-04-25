@@ -42,7 +42,7 @@ public final class SshSessionFactory implements ICastable {
             Properties config = new Properties();
             config.put("StrictHostKeyChecking", "no");
             session.setConfig(config);
-            session.setTimeout(20000);
+            session.setTimeout(10000);
             session.connect();
 
             sessionId = guidGenerator.nextId();
