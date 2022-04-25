@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
+import com.toocol.ssh.utilities.action.AbstractDevice;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
@@ -11,10 +12,18 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/14 11:09
  */
-public final class Term {
+public final class Term extends AbstractDevice {
 
     public static final String PROMPT = " [termio] > ";
     private static final Console CONSOLE = Console.get();
+
+    ConsoleReader reader;
+    final EventBus eventBus;
+    final EscapeHelper escapeHelper;
+    final TermHistoryHelper historyHelper;
+    final TermReader termReader;
+    final TermPrinter termPrinter;
+    final TermCharEventDispatcher termCharEventDispatcher;
 
     public Term(EventBus eventBus) {
         this.eventBus = eventBus;
@@ -22,6 +31,7 @@ public final class Term {
         historyHelper = new TermHistoryHelper();
         termReader  = new TermReader(this);
         termPrinter = new TermPrinter(this);
+        termCharEventDispatcher = new TermCharEventDispatcher();
     }
     {
         try {
@@ -44,12 +54,7 @@ public final class Term {
     volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
     int displayZoneBottom = 0;
 
-    ConsoleReader reader;
-    final EventBus eventBus;
-    final EscapeHelper escapeHelper;
-    final TermHistoryHelper historyHelper;
-    final TermReader termReader;
-    final TermPrinter termPrinter;
+    StringBuilder lineBuilder = new StringBuilder();
 
     public void cleanDisplayZone() {
         termPrinter.cleanDisplayZone();

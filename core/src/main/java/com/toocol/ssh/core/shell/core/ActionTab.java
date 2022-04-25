@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 20:45
  */
-public final class ActionTab extends AbstractCharAction<Shell> {
+public final class ActionTab extends ShellCharAction {
     @Override
     public CharEvent[] watch() {
         return new CharEvent[]{CharEvent.TAB};

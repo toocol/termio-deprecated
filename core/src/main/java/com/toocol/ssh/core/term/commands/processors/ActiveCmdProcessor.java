@@ -12,6 +12,6 @@ import io.vertx.core.eventbus.EventBus;
 public final class ActiveCmdProcessor extends OutsideCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> tuple) {
-
+        // TODO: see com.toocol.ssh.core.term.commands.processors.NumberCmdProcessor
     }
 }

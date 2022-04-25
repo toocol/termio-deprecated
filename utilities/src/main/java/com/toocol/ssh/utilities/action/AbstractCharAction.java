@@ -6,7 +6,7 @@ import com.toocol.ssh.utilities.event.CharEvent;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 18:23
  */
-public abstract class AbstractCharAction<S extends AbstractShell> {
+public abstract class AbstractCharAction<D extends AbstractDevice> {
 
     /**
      * subscribe the interested char event;
@@ -16,29 +16,12 @@ public abstract class AbstractCharAction<S extends AbstractShell> {
     public abstract CharEvent[] watch();
 
     /**
-     * @param shell     the current shell
-     * @param charEvent char input event
-     * @param inChar    the input char
+     * @param device    the char event action which belongs to.
+     * @param charEvent char input event.
+     * @param inChar    the input char.
      * @return true: break the outside loop; false: continue
      */
-    public abstract boolean act(S shell, CharEvent charEvent, char inChar);
+    public abstract boolean act(D device, CharEvent charEvent, char inChar);
 
-    /*
-     * reset the action;
-     **/
-    public static void reset() {
-        localLastInputBuffer.delete(0, localLastInputBuffer.length());
-        remoteCursorOffset = false;
-    }
-
-    /**
-     * record the local input string in this read loop.
-     */
-    protected static final StringBuilder localLastInputBuffer = new StringBuilder();
-
-    /**
-     * remote cursor position has changed sign.
-     */
-    protected static boolean remoteCursorOffset = false;
 
 }

@@ -1,11 +1,9 @@
-package com.toocol.ssh.core.shell.core;
+package com.toocol.ssh.core.term.core;
 
 import com.google.common.collect.ImmutableMap;
-import com.toocol.ssh.utilities.action.AbstractCharAction;
 import com.toocol.ssh.utilities.event.CharEvent;
 import com.toocol.ssh.utilities.utils.CastUtil;
 import com.toocol.ssh.utilities.utils.ClassScanner;
-import com.toocol.ssh.core.term.core.Printer;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -16,19 +14,19 @@ import java.util.Objects;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 19:32
  */
-public final class CharEventDispatcher {
+public final class TermCharEventDispatcher {
 
-    private static final ImmutableMap<CharEvent, AbstractCharAction<Shell>> actionMap;
+    private static final ImmutableMap<CharEvent, TermCharAction> actionMap;
 
     static {
-        Map<CharEvent, AbstractCharAction<Shell>> map = new HashMap<>();
-        new ClassScanner("com.toocol.ssh.core.shell.core", clazz -> clazz.getSuperclass().equals(AbstractCharAction.class))
+        Map<CharEvent, TermCharAction> map = new HashMap<>();
+        new ClassScanner("com.toocol.ssh.core.term.core", clazz -> clazz.getSuperclass().equals(TermCharAction.class))
                 .scan()
                 .forEach(clazz -> {
                     try {
-                        Constructor<AbstractCharAction<Shell>> declaredConstructor = CastUtil.cast(clazz.getDeclaredConstructor());
+                        Constructor<TermCharAction> declaredConstructor = CastUtil.cast(clazz.getDeclaredConstructor());
                         declaredConstructor.setAccessible(true);
-                        AbstractCharAction<Shell> charAction = declaredConstructor.newInstance();
+                        TermCharAction charAction = declaredConstructor.newInstance();
                         for (CharEvent event : charAction.watch()) {
                             if (map.containsKey(event)) {
                                 throw new RuntimeException("Char event conflict.");
@@ -47,18 +45,14 @@ public final class CharEventDispatcher {
 
     }
 
-    public boolean dispatch(Shell shell, char inChar) {
+    public boolean dispatch(Term term, char inChar) {
         CharEvent charEvent = CharEvent.eventOf(inChar);
         if (charEvent == null) {
             return false;
         }
 
         if (actionMap.containsKey(charEvent)) {
-            boolean isBreak = Objects.requireNonNull(actionMap.get(charEvent)).act(shell, charEvent, inChar);
-            if (isBreak) {
-                AbstractCharAction.reset();
-            }
-            return isBreak;
+            return Objects.requireNonNull(actionMap.get(charEvent)).act(term, charEvent, inChar);
         }
         return false;
     }

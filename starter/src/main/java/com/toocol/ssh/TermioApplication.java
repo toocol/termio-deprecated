@@ -1,5 +1,6 @@
 package com.toocol.ssh;
 
+import com.toocol.ssh.core.term.core.TermCharEventDispatcher;
 import com.toocol.ssh.utilities.annotation.VerticleDeployment;
 import com.toocol.ssh.utilities.jni.JNILoader;
 import com.toocol.ssh.utilities.utils.CastUtil;
@@ -7,7 +8,7 @@ import com.toocol.ssh.utilities.utils.ClassScanner;
 import com.toocol.ssh.core.cache.SessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.config.SystemConfig;
-import com.toocol.ssh.core.shell.core.CharEventDispatcher;
+import com.toocol.ssh.core.shell.core.ShellCharEventDispatcher;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
@@ -45,7 +46,8 @@ public class TermioApplication {
         }
         SystemConfig.BOOT_TYPE = args[0];
 
-        CharEventDispatcher.init();
+        TermCharEventDispatcher.init();
+        ShellCharEventDispatcher.init();
 
         CountDownLatch loadingLatch = new CountDownLatch(1);
         Printer.printLoading(loadingLatch);

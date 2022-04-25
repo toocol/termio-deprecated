@@ -59,7 +59,7 @@ record ShellReader(Shell shell, ConsoleReader reader) {
                 }
 
             } else {
-                if (shell.charEventDispatcher.dispatch(shell, finalChar)) {
+                if (shell.shellCharEventDispatcher.dispatch(shell, finalChar)) {
                     break;
                 }
             }

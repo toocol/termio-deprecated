@@ -15,6 +15,8 @@ public enum CharEvent {
     BACKSPACE(CharUtil.BACKSPACE),
     CR(CharUtil.CR),
     LF(CharUtil.LF),
+    CTRL_U(CharUtil.CTRL_U),
+    ESCAPE(CharUtil.ESCAPE),
     ASCII_PRINTABLE('\0'),
     CHINESE_CHARACTER('\0')
     ;

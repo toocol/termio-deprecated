@@ -36,7 +36,6 @@ public final class BlockingMonitorTerminalHandler extends AbstractBlockingMessag
 
     @Override
     protected <T> void handleWithinBlocking(Promise<Void> promise, Message<T> message) throws Exception {
-
         int currentWidth = term.getWidth();
         int currentHeight = term.getHeight();
 

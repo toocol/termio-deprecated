@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.utilities.action.AbstractShell;
+import com.toocol.ssh.utilities.action.AbstractDevice;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.utilities.utils.CmdUtil;
 import com.toocol.ssh.utilities.utils.StrUtil;
@@ -33,7 +33,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/3 20:57
  */
-public final class Shell extends AbstractShell {
+public final class Shell extends AbstractDevice {
 
     static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#])");
 
@@ -72,7 +72,7 @@ public final class Shell extends AbstractShell {
     final MoreHelper moreHelper;
     final EscapeHelper escapeHelper;
     final VimHelper vimHelper;
-    final CharEventDispatcher charEventDispatcher;
+    final ShellCharEventDispatcher shellCharEventDispatcher;
 
     volatile StringBuffer localLastCmd = new StringBuffer();
     volatile StringBuffer remoteCmd = new StringBuffer();
@@ -127,7 +127,7 @@ public final class Shell extends AbstractShell {
         this.moreHelper = new MoreHelper();
         this.escapeHelper = new EscapeHelper();
         this.vimHelper = new VimHelper();
-        this.charEventDispatcher = new CharEventDispatcher();
+        this.shellCharEventDispatcher = new ShellCharEventDispatcher();
 
         this.shellReader.initReader();
     }

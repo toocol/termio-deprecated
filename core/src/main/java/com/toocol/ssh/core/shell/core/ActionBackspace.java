@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 20:46
  */
-public final class ActionBackspace extends AbstractCharAction<Shell> {
+public final class ActionBackspace extends ShellCharAction {
     @Override
     public CharEvent[] watch() {
         return new CharEvent[]{CharEvent.BACKSPACE};
@@ -26,6 +26,7 @@ public final class ActionBackspace extends AbstractCharAction<Shell> {
             shell.status = Shell.Status.NORMAL;
             return false;
         }
+
         if (cursorPosition._1() < shell.currentPrint.length() + shell.prompt.get().length()) {
             // cursor has moved
             int index = cursorPosition._1() - shell.prompt.get().length() - 1;

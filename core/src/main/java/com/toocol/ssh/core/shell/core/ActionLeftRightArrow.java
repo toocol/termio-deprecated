@@ -8,7 +8,7 @@ import com.toocol.ssh.utilities.utils.CharUtil;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 20:42
  */
-public final class ActionLeftRightArrow extends AbstractCharAction<Shell> {
+public final class ActionLeftRightArrow extends ShellCharAction {
     @Override
     public CharEvent[] watch() {
         return new CharEvent[]{CharEvent.LEFT_ARROW, CharEvent.RIGHT_ARROW};

@@ -43,7 +43,6 @@ public final class BlockingDfHandler extends AbstractBlockingMessageHandler<byte
 
     @Override
     protected <T> void handleWithinBlocking(Promise<byte[]> promise, Message<T> message) throws Exception {
-
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String remotePath = request.getString("remotePath");

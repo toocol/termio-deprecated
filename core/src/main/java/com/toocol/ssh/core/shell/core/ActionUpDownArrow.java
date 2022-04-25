@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 20:40
  */
-public final class ActionUpDownArrow extends AbstractCharAction<Shell> {
+public final class ActionUpDownArrow extends ShellCharAction {
     @Override
     public CharEvent[] watch() {
         return new CharEvent[]{CharEvent.UP_ARROW, CharEvent.DOWN_ARROW};

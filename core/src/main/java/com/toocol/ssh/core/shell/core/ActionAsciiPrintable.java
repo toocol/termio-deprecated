@@ -1,11 +1,10 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.utilities.action.AbstractCharAction;
+import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.utilities.event.CharEvent;
 import com.toocol.ssh.utilities.utils.ASCIIStrCache;
 import com.toocol.ssh.utilities.utils.CharUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
-import com.toocol.ssh.core.term.core.Printer;
 
 import java.nio.charset.StandardCharsets;
 
@@ -13,7 +12,7 @@ import java.nio.charset.StandardCharsets;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 20:43
  */
-public final class ActionAsciiPrintable extends AbstractCharAction<Shell> {
+public final class ActionAsciiPrintable extends ShellCharAction {
     @Override
     public CharEvent[] watch() {
         return new CharEvent[]{CharEvent.ASCII_PRINTABLE};
