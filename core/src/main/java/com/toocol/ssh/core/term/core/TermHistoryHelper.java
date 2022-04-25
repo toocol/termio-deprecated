@@ -12,7 +12,6 @@ import java.util.UUID;
  * @version: 0.0.1
  */
 public final class TermHistoryHelper {
-
     /**
      * The stack storage all the executed cmd.
      */
@@ -146,5 +145,4 @@ public final class TermHistoryHelper {
     public boolean isStart() {
         return start;
     }
-
 }

@@ -7,7 +7,6 @@ import com.toocol.ssh.utilities.event.CharEvent;
  * @date 2022/4/21 18:23
  */
 public abstract class AbstractCharAction<D extends AbstractDevice> {
-
     /**
      * subscribe the interested char event;
      *
@@ -22,6 +21,4 @@ public abstract class AbstractCharAction<D extends AbstractDevice> {
      * @return true: break the outside loop; false: continue
      */
     public abstract boolean act(D device, CharEvent charEvent, char inChar);
-
-
 }
