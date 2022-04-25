@@ -13,14 +13,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 12:12
  */
-public class SessionCache {
+public class SshSessionCache {
 
-    private SessionCache() {
+    private SshSessionCache() {
     }
 
-    private static final SessionCache INSTANCE = new SessionCache();
+    private static final SshSessionCache INSTANCE = new SshSessionCache();
 
-    public static SessionCache getInstance() {
+    public static SshSessionCache getInstance() {
         return INSTANCE;
     }
 

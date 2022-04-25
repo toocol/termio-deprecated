@@ -8,7 +8,7 @@ import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.Session;
 import com.toocol.ssh.utilities.utils.ICastable;
 import com.toocol.ssh.core.term.core.Printer;
-import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.SshSessionCache;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,13 +28,13 @@ public final class SftpChannelProvider implements ICastable {
 
     private static final SftpChannelProvider INSTANCE = new SftpChannelProvider();
 
-    private final SessionCache sessionCache = SessionCache.getInstance();
+    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
 
     private final CacheLoader<Long, ChannelSftp> cacheLoader = new CacheLoader<>() {
         @Override
         @Nonnull
         public ChannelSftp load(@Nullable Long sessionId) throws Exception {
-            Session session= sessionCache.getSession(sessionId);
+            Session session= sshSessionCache.getSession(sessionId);
             if (session == null) {
                 throw new RuntimeException("Session is null.");
             }

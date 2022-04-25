@@ -6,7 +6,7 @@ import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.AbstractMessageHandler;
 import com.toocol.ssh.utilities.utils.FileUtil;
 import com.toocol.ssh.core.cache.CredentialCache;
-import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.SshSessionCache;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -35,7 +35,7 @@ public final class DeleteCredentialHandler extends AbstractMessageHandler {
         int index = cast(message.body());
         String host = CredentialCache.deleteCredential(index);
         if (StringUtils.isNotEmpty(host)) {
-            SessionCache.getInstance().stop(host);
+            SshSessionCache.getInstance().stop(host);
         }
 
         String filePath = FileUtil.relativeToFixed("./credentials.tsh");

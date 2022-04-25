@@ -59,7 +59,7 @@ public class CredentialCache {
                 Printer.print(credential.getUser());
                 Printer.print("@");
                 Printer.print(HighlightHelper.assembleColor(credential.getHost(), Term.theme.hostHighlightColor));
-                if (SessionCache.getInstance().isAlive(credential.getHost())) {
+                if (SshSessionCache.getInstance().isAlive(credential.getHost())) {
                     Printer.print("\t\t");
                     Printer.print(HighlightHelper.assembleColor("[alive]", Term.theme.sessionAliveColor));
                 }

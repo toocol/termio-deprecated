@@ -5,7 +5,7 @@ import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.utilities.utils.CmdUtil;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
-import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
 import com.toocol.ssh.core.term.core.Printer;
@@ -297,7 +297,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public void flush() {
-        if (SessionCache.getInstance().isDisconnect(sessionId)) {
+        if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
             throw new RemoteDisconnectException("Session disconnect.");
         }
         try {
@@ -308,7 +308,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public void write(byte[] bytes) {
-        if (SessionCache.getInstance().isDisconnect(sessionId)) {
+        if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
             throw new RemoteDisconnectException("Session disconnect.");
         }
         try {
@@ -319,7 +319,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public void write(char bytes) {
-        if (SessionCache.getInstance().isDisconnect(sessionId)) {
+        if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
             throw new RemoteDisconnectException("Session disconnect.");
         }
         try {
@@ -330,7 +330,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public void writeAndFlush(byte[] bytes) {
-        if (SessionCache.getInstance().isDisconnect(sessionId)) {
+        if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
             throw new RemoteDisconnectException("Session disconnect.");
         }
         try {
@@ -342,7 +342,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public void writeAndFlush(char inChar) {
-        if (SessionCache.getInstance().isDisconnect(sessionId)) {
+        if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
             throw new RemoteDisconnectException("Session disconnect.");
         }
         try {

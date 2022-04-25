@@ -4,7 +4,7 @@ import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.utils.PomUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
-import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 
 import java.io.PrintStream;
@@ -109,7 +109,7 @@ public final class Printer {
 
         String termioVersion = " termio: V" + PomUtil.getVersion();
         String memoryUse = "memory-use: " + usedMemory() + "MB";
-        String active = "alive: " + SessionCache.getAlive();
+        String active = "alive: " + SshSessionCache.getAlive();
         String website = "https://github.com/Joezeo/termio ";
         int totalLen = termioVersion.length() + website.length() + memoryUse.length() + active.length();
         if (totalLen >= windowWidth) {

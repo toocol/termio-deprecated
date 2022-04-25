@@ -5,7 +5,7 @@ import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
 import com.toocol.ssh.utilities.utils.StrUtil;
-import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.CmdFeedbackHelper;
 import com.toocol.ssh.core.shell.core.Shell;
@@ -26,7 +26,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
  */
 public final class BlockingExecuteCmdInShellHandler extends AbstractBlockingMessageHandler<String> {
 
-    private final SessionCache sessionCache = SessionCache.getInstance();
+    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
 
     public BlockingExecuteCmdInShellHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -52,8 +52,8 @@ public final class BlockingExecuteCmdInShellHandler extends AbstractBlockingMess
                 BlockingShellDisplayHandler.class
         );
 
-        ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
-        Shell shell = sessionCache.getShell(sessionId);
+        ChannelShell channelShell = sshSessionCache.getChannelShell(sessionId);
+        Shell shell = sshSessionCache.getShell(sessionId);
 
         if (channelShell == null || shell == null) {
             promise.fail("ChannelExec or shell is null.");

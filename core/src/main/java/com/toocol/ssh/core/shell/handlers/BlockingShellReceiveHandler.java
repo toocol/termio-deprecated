@@ -6,7 +6,7 @@ import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
-import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.shell.core.Shell;
@@ -35,7 +35,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  */
 public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHandler<Long> {
 
-    private final SessionCache sessionCache = SessionCache.getInstance();
+    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
 
     public BlockingShellReceiveHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -51,7 +51,7 @@ public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHa
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = true;
 
         long sessionId = cast(message.body());
-        Shell shell = sessionCache.getShell(sessionId);
+        Shell shell = sshSessionCache.getShell(sessionId);
 
         shell.writeAndFlush("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
 
@@ -117,7 +117,7 @@ public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHa
                     shell.setLocalLastCmd(cmd + StrUtil.CRLF);
                 }
 
-                if (SessionCache.getInstance().isDisconnect(sessionId)) {
+                if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
                     throw new RemoteDisconnectException("Session disconnect.");
                 }
 
@@ -152,7 +152,7 @@ public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHa
                     break;
                 }
 
-                if (SessionCache.getInstance().isDisconnect(sessionId)) {
+                if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
                     // check the session status before await
                     throw new RemoteDisconnectException("Session disconnect.");
                 }
@@ -174,7 +174,7 @@ public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHa
             // hang up the session
             StatusCache.HANGED_QUIT = true;
         } else {
-            sessionCache.stop(sessionId);
+            sshSessionCache.stop(sessionId);
         }
 
         eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.NORMAL_BACK);

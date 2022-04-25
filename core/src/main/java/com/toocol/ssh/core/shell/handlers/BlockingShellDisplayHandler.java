@@ -4,7 +4,7 @@ import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
-import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;
@@ -26,7 +26,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
 @SuppressWarnings("all")
 public final class BlockingShellDisplayHandler extends AbstractBlockingMessageHandler<Long> {
 
-    private final SessionCache sessionCache = SessionCache.getInstance();
+    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
 
     private volatile boolean cmdHasFeedbackWhenJustExit = false;
 
@@ -45,8 +45,8 @@ public final class BlockingShellDisplayHandler extends AbstractBlockingMessageHa
     protected <T> void handleWithinBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         long sessionId = cast(message.body());
 
-        ChannelShell channelShell = sessionCache.getChannelShell(sessionId);
-        Shell shell = sessionCache.getShell(sessionId);
+        ChannelShell channelShell = sshSessionCache.getChannelShell(sessionId);
+        Shell shell = sshSessionCache.getShell(sessionId);
 
         if (shell.getWelcome() != null && StatusCache.SHOW_WELCOME) {
             Printer.print(shell.getWelcome());
@@ -135,7 +135,7 @@ public final class BlockingShellDisplayHandler extends AbstractBlockingMessageHa
         }
         if (StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING) {
             Long sessionId = asyncResult.result();
-            ChannelShell channelShell = SessionCache.getInstance().getChannelShell(sessionId);
+            ChannelShell channelShell = SshSessionCache.getInstance().getChannelShell(sessionId);
             if (channelShell != null && !channelShell.isClosed()) {
                 eventBus.send(DISPLAY_SHELL.address(), sessionId);
             }

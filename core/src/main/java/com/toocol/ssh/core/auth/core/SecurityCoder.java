@@ -42,7 +42,7 @@ public record SecurityCoder(String key) {
     public static SecurityCoder get() {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         if (!stackTrace[2].getClassName().startsWith(SUPPORT_PACKAGE)) {
-            return null;
+            throw new RuntimeException("Illegal access.");
         }
 
         return instance;

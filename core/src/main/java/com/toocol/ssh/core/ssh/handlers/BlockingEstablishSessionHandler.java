@@ -4,7 +4,7 @@ import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
-import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
 import com.toocol.ssh.core.term.core.Printer;
@@ -25,7 +25,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  */
 public final class BlockingEstablishSessionHandler extends AbstractBlockingMessageHandler<Long> {
 
-    private final SessionCache sessionCache = SessionCache.getInstance();
+    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final SshSessionFactory factory = SshSessionFactory.factory();
 
     public BlockingEstablishSessionHandler(Vertx vertx, Context context, boolean parallel) {
@@ -43,7 +43,7 @@ public final class BlockingEstablishSessionHandler extends AbstractBlockingMessa
         SshCredential credential = CredentialCache.getCredential(index);
         assert credential != null;
 
-        long sessionId = sessionCache.containSession(credential.getHost());
+        long sessionId = sshSessionCache.containSession(credential.getHost());
 
         if (sessionId == 0) {
             StatusCache.HANGED_ENTER = false;

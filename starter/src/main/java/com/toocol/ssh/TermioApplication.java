@@ -5,7 +5,7 @@ import com.toocol.ssh.utilities.annotation.VerticleDeployment;
 import com.toocol.ssh.utilities.jni.JNILoader;
 import com.toocol.ssh.utilities.utils.CastUtil;
 import com.toocol.ssh.utilities.utils.ClassScanner;
-import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.config.SystemConfig;
 import com.toocol.ssh.core.shell.core.ShellCharEventDispatcher;
@@ -71,7 +71,7 @@ public class TermioApplication {
                 }
                 StatusCache.STOP_PROGRAM = true;
                 Printer.println("Termio: shutdown");
-                SessionCache.getInstance().stopAll();
+                SshSessionCache.getInstance().stopAll();
                 vertx.close();
             } catch (Exception e) {
                 Printer.println("Failed to execute shutdown hook.");

@@ -4,7 +4,7 @@ import com.jcraft.jsch.ChannelSftp;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.utilities.utils.FileNameUtil;
-import com.toocol.ssh.core.cache.SessionCache;
+import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.shell.core.SftpChannelProvider;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;
@@ -52,14 +52,14 @@ public final class BlockingUfHandler extends AbstractBlockingMessageHandler<Void
 
         ChannelSftp channelSftp = sftpChannelProvider.getChannelSftp(sessionId);
         if (channelSftp == null) {
-            SessionCache.getInstance().getShell(sessionId).printErr("Create sftp channel failed.");
+            SshSessionCache.getInstance().getShell(sessionId).printErr("Create sftp channel failed.");
             promise.complete();
             return;
         }
 
         latch.await();
 
-        Shell shell = SessionCache.getInstance().getShell(sessionId);
+        Shell shell = SshSessionCache.getInstance().getShell(sessionId);
         Printer.print(shell.getPrompt());
 
         String fileNames = localPathBuilder.toString();
