@@ -22,7 +22,7 @@ public record TermReader(Term term) {
 
                 char finalChar = term.escapeHelper.processArrowStream(inChar);
 
-                if (CharUtil.isAsciiPrintable(finalChar)) {
+                if (CharUtil.isAsciiPrintable(finalChar) || CharUtil.isChinese(finalChar)) {
 
                     if (term.escapeHelper.isAcceptBracketAfterEscape()) {
                         continue;
@@ -43,7 +43,13 @@ public record TermReader(Term term) {
                     } else {
                         lineBuilder.append(finalChar);
                     }
-                    term.executeCursorOldX.getAndIncrement();
+                    term.executeCursorOldX.getAndUpdate(prev -> {
+                        if (CharUtil.isChinese(finalChar)) {
+                            return prev + 2;
+                        } else {
+                            return ++prev;
+                        }
+                    });
                 } else if (finalChar == CharUtil.UP_ARROW || finalChar == CharUtil.DOWN_ARROW) {
                     if (finalChar == CharUtil.UP_ARROW) {
                         if (!term.historyHelper.isStart()) {
@@ -89,13 +95,23 @@ public record TermReader(Term term) {
                         Printer.voice();
                         continue;
                     }
+                    char deleteChar;
                     if (cursorPosition._1() < lineBuilder.length() + Term.PROMPT.length()) {
                         int index = cursorPosition._1() - Term.PROMPT.length() - 1;
+                        deleteChar = lineBuilder.charAt(index);
                         lineBuilder.deleteCharAt(index);
                     } else {
+                        deleteChar = lineBuilder.charAt(lineBuilder.length() - 1);
                         lineBuilder.deleteCharAt(lineBuilder.length() - 1);
                     }
-                    term.executeCursorOldX.getAndDecrement();
+                    term.executeCursorOldX.getAndUpdate(prev -> {
+                        if (CharUtil.isChinese(deleteChar)) {
+                            int val = prev - 2;
+                            return Math.max(val, Term.PROMPT.length());
+                        } else {
+                            return --prev;
+                        }
+                    });
 
                 } else if (finalChar == CharUtil.CTRL_U) {
 

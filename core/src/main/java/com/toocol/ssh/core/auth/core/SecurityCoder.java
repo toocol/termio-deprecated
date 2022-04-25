@@ -36,14 +36,14 @@ public final class SecurityCoder {
 
     public static SecurityCoder get() {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        if (!stackTrace[2].getClassName().contains(SUPPORT_PACKAGE)) {
+        if (!stackTrace[2].getClassName().startsWith(SUPPORT_PACKAGE)) {
             return null;
         }
 
         return instance;
     }
 
-    String key;
+    private final String key;
 
     public String decode(String origin) {
         if (StringUtils.isEmpty(origin)) {

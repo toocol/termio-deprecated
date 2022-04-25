@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.utilities.console.Console;
+import com.toocol.ssh.utilities.utils.PomUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SessionCache;
@@ -106,7 +107,7 @@ public final class Printer {
 
         CONSOLE.setCursorPosition(0, 0);
 
-        String termioVersion = " termio: V0.0.1";
+        String termioVersion = " termio: V" + PomUtil.getVersion();
         String memoryUse = "memory-use: " + usedMemory() + "MB";
         String active = "alive: " + SessionCache.getAlive();
         String website = "https://github.com/Joezeo/termio ";

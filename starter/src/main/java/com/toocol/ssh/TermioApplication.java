@@ -63,8 +63,10 @@ public class TermioApplication {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 Term term = Term.getInstance();
-                term.cleanDisplayZone();
-                term.setCursorPosition(0, Term.executeLine + 1);
+                if (term != null) {
+                    term.cleanDisplayZone();
+                    term.setCursorPosition(0, Term.executeLine + 1);
+                }
                 StatusCache.STOP_PROGRAM = true;
                 Printer.println("Termio: shutdown");
                 SessionCache.getInstance().stopAll();
