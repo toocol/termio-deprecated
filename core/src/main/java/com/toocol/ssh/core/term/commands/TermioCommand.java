@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.term.commands;
 
+import com.toocol.ssh.utilities.command.ICommand;
 import com.toocol.ssh.utilities.utils.CharUtil;
 import com.toocol.ssh.core.term.core.HighlightHelper;
 import com.toocol.ssh.utilities.utils.Tuple2;
@@ -15,7 +16,7 @@ import java.util.Optional;
  * @email joezane.cn@gmail.com
  * @date 2021/2/22 13:21
  */
-public enum TermioCommand {
+public enum TermioCommand implements ICommand {
     /**
      * outside command enums
      */
@@ -29,8 +30,6 @@ public enum TermioCommand {
     CMD_ACTIVE("active", new ActiveCmdProcessor(), "Active the selected ssh connect session, without enter the Shell."),
     CMD_HELLO_WORLD("hello", new HelloCmdProcessor(), null)
     ;
-
-    private static final String[] tabBuffer = new String[]{"\t\t\t", "\t\t", "\t"};
 
     private final String cmd;
     private final OutsideCommandProcessor commandProcessor;

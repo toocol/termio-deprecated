@@ -12,6 +12,8 @@ import io.vertx.core.json.JsonObject;
 import static com.toocol.ssh.core.ssh.SshAddress.ACTIVE_SSH_SESSION;
 
 /**
+ * Active an ssh session without enter the Shell.
+ *
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/23 20:49
  * @version: 0.0.1
@@ -24,12 +26,18 @@ public final class BlockingActiveSessionHandler extends AbstractBlockingMessageH
 
     @Override
     protected <T> void handleWithinBlocking(Promise<JsonObject> promise, Message<T> message) throws Exception {
+        int index = cast(message.body());
 
+        //TODO: see com.toocol.ssh.core.ssh.handlers.BlockingEstablishSessionHandler
     }
 
     @Override
     protected <T> void resultWithinBlocking(AsyncResult<JsonObject> asyncResult, Message<T> message) throws Exception {
-
+        if (asyncResult.succeeded()) {
+            message.reply(true);
+        } else {
+            message.reply(false);
+        }
     }
 
     @Override

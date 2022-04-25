@@ -1,5 +1,7 @@
 package com.toocol.ssh.core.shell.core;
 
+import com.toocol.ssh.utilities.utils.ASCIIStrCache;
+
 import java.nio.charset.StandardCharsets;
 
 import static com.toocol.ssh.utilities.utils.CharUtil.*;
@@ -17,7 +19,7 @@ public record VimHelper() {
             case DOWN_ARROW -> "\u001B[1B".getBytes(StandardCharsets.UTF_8);
             case LEFT_ARROW -> "\u001B[1D".getBytes(StandardCharsets.UTF_8);
             case RIGHT_ARROW -> "\u001B[1C".getBytes(StandardCharsets.UTF_8);
-            default -> String.valueOf(inChar).getBytes(StandardCharsets.UTF_8);
+            default -> ASCIIStrCache.toString(inChar).getBytes(StandardCharsets.UTF_8);
         };
     }
 

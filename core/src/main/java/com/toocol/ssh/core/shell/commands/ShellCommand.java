@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.shell.commands;
 
+import com.toocol.ssh.utilities.command.ICommand;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.utilities.utils.CharUtil;
 import com.toocol.ssh.utilities.utils.StrUtil;
@@ -20,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @email joezane.cn@gmail.com
  * @date 2021/2/22 13:21
  */
-public enum ShellCommand {
+public enum ShellCommand implements ICommand {
     /**
      * shell's command enums
      */
@@ -30,8 +31,6 @@ public enum ShellCommand {
     CMD_DF("df", new ShellDfCmdProcessor(), "Batch download remote files to local."),
     CMD_CLEAR("clear", new ShellClearCmdProcessor(), null),
     ;
-
-    private static final String[] tabBuffer = new String[]{"\t\t\t", "\t\t", "\t"};
 
     private final String cmd;
     private final ShellCommandProcessor commandProcessor;

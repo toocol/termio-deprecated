@@ -2,6 +2,7 @@ package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.utilities.action.AbstractCharAction;
 import com.toocol.ssh.utilities.event.CharEvent;
+import com.toocol.ssh.utilities.utils.ASCIIStrCache;
 import com.toocol.ssh.utilities.utils.CharUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.term.core.Printer;
@@ -60,7 +61,8 @@ public final class ActionAsciiPrintable extends AbstractCharAction<Shell> {
             }
             shell.currentPrint.append(inChar);
             localLastInputBuffer.append(inChar);
-            Printer.print(String.valueOf(inChar));
+
+            Printer.print(ASCIIStrCache.toString(inChar));
         }
         return false;
     }

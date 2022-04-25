@@ -18,15 +18,20 @@ import java.util.Base64;
  * @date: 2022/4/25 0:27
  * @version: 0.0.1
  */
-public final class SecurityCoder {
+public record SecurityCoder(String key) {
 
     private static final String ALGORITHM = "AES";
     private static final String SECURE_RANDOM = "SHA1PRNG";
     private static final String SUPPORT_PACKAGE = "com.toocol.ssh.core.auth";
 
     private static SecurityCoder instance = null;
-    SecurityCoder(String key) {
+
+    public SecurityCoder(String key) {
         if (instance != null) {
+            throw new RuntimeException("Illegal access.");
+        }
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        if (!stackTrace[2].getClassName().startsWith(SUPPORT_PACKAGE)) {
             throw new RuntimeException("Illegal access.");
         }
         this.key = key;
@@ -42,8 +47,6 @@ public final class SecurityCoder {
 
         return instance;
     }
-
-    private final String key;
 
     public String decode(String origin) {
         if (StringUtils.isEmpty(origin)) {
@@ -73,16 +76,16 @@ public final class SecurityCoder {
         }
     }
 
-    private static String encryptData(String key, String message) throws Exception{
+    private static String encryptData(String key, String message) throws Exception {
         KeyGenerator keygen = getKeyGenerator(key);
-        SecretKey secretKey = new SecretKeySpec(keygen.generateKey().getEncoded(),ALGORITHM);
+        SecretKey secretKey = new SecretKeySpec(keygen.generateKey().getEncoded(), ALGORITHM);
 
         return Base64.getEncoder().encodeToString(encrypt(secretKey, message.getBytes(StandardCharsets.UTF_8)));
     }
 
-    private static String decryptData(String key, String ciphertext) throws Exception{
+    private static String decryptData(String key, String ciphertext) throws Exception {
         KeyGenerator keygen = getKeyGenerator(key);
-        SecretKey secretKey = new SecretKeySpec(keygen.generateKey().getEncoded(),ALGORITHM);
+        SecretKey secretKey = new SecretKeySpec(keygen.generateKey().getEncoded(), ALGORITHM);
         return new String(decrypt(secretKey, Base64.getDecoder().decode(ciphertext)), StandardCharsets.UTF_8);
     }
 
@@ -95,13 +98,13 @@ public final class SecurityCoder {
     }
 
     private static byte[] encrypt(Key key, byte[] messBytes) {
-        if(key != null) {
+        if (key != null) {
             try {
                 // create a Cipher object base on AES.
                 Cipher cipher = Cipher.getInstance(ALGORITHM);
                 cipher.init(Cipher.ENCRYPT_MODE, key);
                 return cipher.doFinal(messBytes);
-            }catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -109,12 +112,12 @@ public final class SecurityCoder {
     }
 
     private static byte[] decrypt(Key key, byte[] cipherBytes) {
-        if(key != null) {
+        if (key != null) {
             try {
                 Cipher cipher = Cipher.getInstance(ALGORITHM);
                 cipher.init(Cipher.DECRYPT_MODE, key);
                 return cipher.doFinal(cipherBytes);
-            }catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

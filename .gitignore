@@ -38,3 +38,5 @@ build/
 
 ### VERTX ###
 .vertx/
+
+dependency-reduced-pom.xml
