@@ -1,3 +1,3 @@
-# *.h linguist-language=C
-special-vendored-path/* linguist-vendored
-*.h linguist-vendored=false
+*.h linguist-language=C
+jni.h linguist-vendored=false
+jni_md.h linguist-vendored=false
