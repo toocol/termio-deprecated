@@ -1,5 +1,8 @@
 package com.toocol.ssh.core.term.core;
 
+import com.toocol.ssh.utilities.utils.StrUtil;
+import org.apache.commons.lang3.StringUtils;
+
 import static com.toocol.ssh.core.term.TermAddress.TERMINAL_ECHO;
 
 /**
@@ -8,16 +11,26 @@ import static com.toocol.ssh.core.term.TermAddress.TERMINAL_ECHO;
  */
 public record TermReader(Term term) {
 
+    @SuppressWarnings("all")
     String readLine() {
-        term.lineBuilder.delete(0, term.lineBuilder.length());
         term.executeCursorOldX.set(term.getCursorPosition()._1());
         try {
             while (true) {
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException e) {
+                    // do nothing
+                }
                 char inChar = (char) term.reader.readCharacter();
                 char finalChar = term.escapeHelper.processArrowStream(inChar);
 
                 if (term.termCharEventDispatcher.dispatch(term, finalChar)) {
-                    return term.lineBuilder.toString();
+                    String cmd = term.lineBuilder.toString();
+                    term.lineBuilder.delete(0, term.lineBuilder.length());
+                    if (StringUtils.isEmpty(cmd)) {
+                        term.eventBus.send(TERMINAL_ECHO.address(), StrUtil.EMPTY);
+                    }
+                    return cmd;
                 }
 
                 term.printExecution(term.lineBuilder.toString());

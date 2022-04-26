@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.cache;
 
-import com.toocol.ssh.core.term.core.HighlightHelper;
+import com.toocol.ssh.utilities.anis.HighlightHelper;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.term.core.Term;

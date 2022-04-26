@@ -1,10 +1,11 @@
 package com.toocol.ssh.core.term.handlers;
 
 import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.commands.TermioCommand;
-import com.toocol.ssh.core.term.core.HighlightHelper;
+import com.toocol.ssh.utilities.anis.HighlightHelper;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.AsyncResult;
@@ -54,6 +55,7 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
                 term.printDisplay("lost connection.");
             }
 
+            term.printBackground();
             term.setCursorPosition(0, Term.executeLine);
             Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length()), Term.theme.executeLineBackgroundColor));
             while (true) {
@@ -96,7 +98,12 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
                     break;
                 }
                 if (!isCommand && StringUtils.isNotEmpty(cmd)) {
-                    term.printDisplay("" + cmd + ": command not found.");
+                    AnisStringBuilder builder = new AnisStringBuilder().background(Term.theme.executeLineBackgroundColor)
+                            .front(Term.theme.commandHighlightColor)
+                            .append(cmd)
+                            .clearFront()
+                            .append(": command not found.");
+                    term.printDisplay(builder.toString());
                 }
             }
         } catch (Exception e) {

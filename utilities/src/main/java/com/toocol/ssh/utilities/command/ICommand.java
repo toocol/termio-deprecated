@@ -6,6 +6,4 @@ package com.toocol.ssh.utilities.command;
  */
 public interface ICommand {
 
-     String[] tabBuffer = new String[]{"\t\t\t", "\t\t", "\t"};
-
 }

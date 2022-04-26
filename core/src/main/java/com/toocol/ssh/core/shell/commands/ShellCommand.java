@@ -1,18 +1,21 @@
 package com.toocol.ssh.core.shell.commands;
 
+import com.toocol.ssh.core.shell.commands.processors.*;
+import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.command.ICommand;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.utilities.utils.CharUtil;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
-import com.toocol.ssh.core.shell.commands.processors.*;
-import com.toocol.ssh.core.shell.core.Shell;
-import com.toocol.ssh.core.term.core.HighlightHelper;
-import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -32,6 +35,12 @@ public enum ShellCommand implements ICommand {
     CMD_CLEAR("clear", new ShellClearCmdProcessor(), null),
     ;
 
+    public static final Map<String, ShellCommand> COMMANDS = new HashMap<>();
+    static {
+        Arrays.stream(values())
+                .forEach(command -> COMMANDS.put(command.cmd, command));
+    }
+
     private final String cmd;
     private final ShellCommandProcessor commandProcessor;
     private final String comment;
@@ -44,12 +53,7 @@ public enum ShellCommand implements ICommand {
 
     public static Optional<ShellCommand> cmdOf(String cmd) {
         String originCmd = cmd.trim().replaceAll(" {2,}", " ").split(" ")[0];
-        ShellCommand shellCommand = null;
-        for (ShellCommand command : values()) {
-            if (command.cmd.equals(originCmd)) {
-                shellCommand = command;
-            }
-        }
+        ShellCommand shellCommand = COMMANDS.get(originCmd);
         return Optional.ofNullable(shellCommand);
     }
 
@@ -83,14 +87,14 @@ public enum ShellCommand implements ICommand {
     }
 
     public static String help() {
-        StringBuilder helpBuilder = new StringBuilder();
-        helpBuilder.append("Shell commands:\t\t[param] means optional param\n");
+        AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.executeLineBackgroundColor);
+        helpBuilder.append("Shell commands:\t[param] means optional param\n");
         for (ShellCommand command : values()) {
             if (StringUtils.isEmpty(command.comment)) {
                 continue;
             }
-            helpBuilder.append(HighlightHelper.assembleColor(command.cmd, Term.theme.commandHighlightColor));
-            helpBuilder.append(tabBuffer[command.cmd.length() / 8]).append(command.comment).append(CharUtil.LF);
+            helpBuilder.front(Term.theme.commandHighlightColor).append(command.cmd).clearFront()
+                    .append(" ".repeat(20 - command.cmd.length())).append(command.comment).append(CharUtil.LF);
         }
         helpBuilder.append("\n");
         return helpBuilder.toString();

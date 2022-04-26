@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
+import com.toocol.ssh.utilities.anis.HighlightHelper;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.utils.PomUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;

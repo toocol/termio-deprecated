@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.term.core;
+package com.toocol.ssh.utilities.anis;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

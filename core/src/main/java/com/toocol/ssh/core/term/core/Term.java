@@ -18,15 +18,14 @@ public final class Term extends AbstractDevice {
     private static final Console CONSOLE = Console.get();
 
     ConsoleReader reader;
-    final EventBus eventBus;
+    EventBus eventBus;
     final EscapeHelper escapeHelper;
     final TermHistoryHelper historyHelper;
     final TermReader termReader;
     final TermPrinter termPrinter;
     final TermCharEventDispatcher termCharEventDispatcher;
 
-    public Term(EventBus eventBus) {
-        this.eventBus = eventBus;
+    public Term() {
         escapeHelper = new EscapeHelper();
         historyHelper = new TermHistoryHelper();
         termReader  = new TermReader(this);
@@ -42,19 +41,19 @@ public final class Term extends AbstractDevice {
         }
     }
 
-    private static Term INSTANCE;
-    public static void set(Term term) {
-        INSTANCE = term;
+    private static final Term INSTANCE = new Term();
+    public static void setEventBus(EventBus eventBus) {
+        INSTANCE.eventBus = eventBus;
     }
 
     public static volatile TermStatus status = TermStatus.TERMIO;
     public static TermTheme theme = TermTheme.DARK_THEME;
     public static int executeLine = 0;
 
+    volatile StringBuilder lineBuilder = new StringBuilder();
     volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
     int displayZoneBottom = 0;
 
-    StringBuilder lineBuilder = new StringBuilder();
 
     public void cleanDisplayZone() {
         termPrinter.cleanDisplayZone();
@@ -74,6 +73,10 @@ public final class Term extends AbstractDevice {
 
     public void printCommandBuffer() {
         termPrinter.printCommandBuffer();
+    }
+
+    public void printBackground() {
+        termPrinter.printBackground();
     }
 
     public String readLine() {
