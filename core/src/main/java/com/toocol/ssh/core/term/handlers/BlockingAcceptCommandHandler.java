@@ -1,13 +1,13 @@
 package com.toocol.ssh.core.term.handlers;
 
-import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.anis.AnisStringBuilder;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.commands.TermioCommand;
-import com.toocol.ssh.utilities.anis.HighlightHelper;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.anis.AnisStringBuilder;
+import com.toocol.ssh.utilities.anis.HighlightHelper;
+import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -56,10 +56,10 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
             }
 
             term.printBackground();
-            term.setCursorPosition(0, Term.executeLine);
-            Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length()), Term.theme.executeLineBackgroundColor));
+            term.setCursorPosition(4, Term.executeLine);
+            Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length() - 8), Term.theme.backgroundColor));
             while (true) {
-                term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
+                term.setCursorPosition(Term.PROMPT.length() + 4, Term.executeLine);
                 String cmd = term.readLine();
 
                 CountDownLatch latch = new CountDownLatch(1);
@@ -98,7 +98,7 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
                     break;
                 }
                 if (!isCommand && StringUtils.isNotEmpty(cmd)) {
-                    AnisStringBuilder builder = new AnisStringBuilder().background(Term.theme.executeLineBackgroundColor)
+                    AnisStringBuilder builder = new AnisStringBuilder().background(Term.theme.backgroundColor)
                             .front(Term.theme.commandHighlightColor)
                             .append(cmd)
                             .clearFront()

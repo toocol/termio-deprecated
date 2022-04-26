@@ -25,12 +25,22 @@ public record TermPrinter(Term term) {
         }
     }
 
+    synchronized void printExecuteBackground() {
+        term.hideCursor();
+        term.setCursorPosition(4, Term.executeLine);
+        Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length() - 8), Term.theme.backgroundColor));
+        term.showCursor();
+    }
+
     synchronized void printBackground() {
         int width = term.getWidth();
         int height = term.getHeight() - Term.executeLine - 5;
 
-        String backLine = HighlightHelper.assembleColorBackground(" ".repeat(width - 8), Term.theme.executeLineBackgroundColor);
+        String backLine = HighlightHelper.assembleColorBackground(" ".repeat(width - 8), Term.theme.backgroundColor);
+        String transition = HighlightHelper.assembleColorBackground(" ".repeat(width - 8), Term.theme.transitionBackground);
         term.hideCursor();
+        term.setCursorPosition(leftMargin, Term.executeLine + 1);
+        Printer.println(transition);
         for (int idx = 0; idx < height; idx ++) {
             term.setCursorPosition(leftMargin, Term.executeLine + 2 + idx);
             Printer.println(backLine);
@@ -47,10 +57,10 @@ public record TermPrinter(Term term) {
         int idx = 0;
         for (String line : msg.split("\n")) {
             term.setCursorPosition(textLeftMargin, Term.executeLine + 3 + idx++);
-            Printer.println(new AnisStringBuilder().background(Term.theme.executeLineBackgroundColor).append(line).toString());
+            Printer.println(new AnisStringBuilder().background(Term.theme.backgroundColor).append(line).toString());
         }
         term.displayZoneBottom = term.getCursorPosition()._2() + 1;
-        term.setCursorPosition(Term.PROMPT.length() + term.lineBuilder.length(), Term.executeLine);
+        term.setCursorPosition(Term.PROMPT.length() + 4 + term.lineBuilder.length(), Term.executeLine);
         term.showCursor();
     }
 
@@ -58,23 +68,38 @@ public record TermPrinter(Term term) {
         cleanDisplayZone();
         printBackground();
         term.setCursorPosition(textLeftMargin, Term.executeLine + 3);
-        Printer.print(new AnisStringBuilder().background(Term.theme.executeLineBackgroundColor).append(displayBuffer).toString());
+        Printer.print(new AnisStringBuilder().background(Term.theme.backgroundColor).append(displayBuffer).toString());
         term.displayZoneBottom = term.getCursorPosition()._2() + 1;
         term.setCursorPosition(0, Term.executeLine);
     }
 
     synchronized void printCommandBuffer() {
-        term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
-        Printer.print(new AnisStringBuilder().background(Term.theme.executeLineBackgroundColor).append(commandBuffer).toString());
+        term.setCursorPosition(Term.PROMPT.length() + 4, Term.executeLine);
+        Printer.print(new AnisStringBuilder().background(Term.theme.backgroundColor).append(commandBuffer).toString());
+    }
+
+    synchronized void printDisplayEcho(String msg) {
+        displayBuffer = msg;
+        term.hideCursor();
+        cleanDisplayZone();
+        printBackground();
+        int idx = 0;
+        for (String line : msg.split("\n")) {
+            term.setCursorPosition(textLeftMargin, Term.executeLine + 3 + idx++);
+            Printer.println(new AnisStringBuilder().background(Term.theme.backgroundColor).append(line).toString());
+        }
+        term.displayZoneBottom = term.getCursorPosition()._2() + 1;
+        term.setCursorPosition(term.executeCursorOldX.get(), Term.executeLine);
+        term.showCursor();
     }
 
     synchronized void printExecution(String msg) {
         commandBuffer = msg;
         term.hideCursor();
-        term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
-        Printer.print(HighlightHelper.assembleColorBackground(" ".repeat(term.getWidth() - Term.PROMPT.length()), Term.theme.executeLineBackgroundColor));
-        term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
-        Printer.print(HighlightHelper.assembleColorBackground(msg, Term.theme.executeLineBackgroundColor));
+        term.setCursorPosition(Term.PROMPT.length() + 4, Term.executeLine);
+        Printer.print(HighlightHelper.assembleColorBackground(" ".repeat(term.getWidth() - Term.PROMPT.length() - 8), Term.theme.backgroundColor));
+        term.setCursorPosition(Term.PROMPT.length() + 4, Term.executeLine);
+        Printer.print(HighlightHelper.assembleColorBackground(msg, Term.theme.backgroundColor));
         term.setCursorPosition(term.executeCursorOldX.get(), Term.executeLine);
         term.showCursor();
     }

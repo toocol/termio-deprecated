@@ -24,7 +24,7 @@ public enum TermioCommand implements ICommand {
      * outside command enums
      */
     CMD_HELP("help", new HelpCmdProcessor(), "Show holistic executive command.", "Show holistic executive command of Termio."),
-    CMD_CLEAR("clear", new ClearCmdProcessor(), "Clear the screen.", "Refresh and clear the screen"),
+    CMD_CLEAR("flush", new FlushCmdProcessor(), "Flush the screen.", "Refresh and clear the screen"),
     CMD_EXIT("exit", new ExitCmdProcessor(), "Exit Termio.", "Exit termio."),
     CMD_THEME("theme", new ThemeCmdProcessor(), "Change the Termio's color theme.", "Change the color theme, current support [dark/light]\nExamples:\ntheme dark\ntheme light"),
     CMD_ADD("add", new AddCmdProcessor(), "Add new ssh connection property.", "add --user@host -c=password [-p=port]\n\n-p=port is a optional parameter, the default port is 22."),
@@ -73,7 +73,7 @@ public enum TermioCommand implements ICommand {
     }
 
     public static String help() {
-        AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.executeLineBackgroundColor);
+        AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.backgroundColor);
         helpBuilder.append("Termio commands:\t[param] means optional param\n");
         for (TermioCommand command : values()) {
             if (StringUtils.isEmpty(command.comment)) {

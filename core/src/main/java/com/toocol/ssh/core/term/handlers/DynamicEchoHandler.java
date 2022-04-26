@@ -39,13 +39,13 @@ public final class DynamicEchoHandler extends AbstractMessageHandler {
     @Override
     public <T> void handle(Message<T> message) {
         String cmd = cast(message.body());
-        int backgroundColor = Term.theme.executeLineBackgroundColor;
+        int backgroundColor = Term.theme.backgroundColor;
         String finalCmd = cmd.trim();
 
         TermioCommand command = COMMANDS.get(finalCmd);
         if (command == null) {
             if (StringUtils.isEmpty(finalCmd)) {
-                term.printDisplay(StrUtil.EMPTY);
+                term.printDisplayEcho(StrUtil.EMPTY);
                 return;
             }
             if (StringUtils.isNumeric(finalCmd)) {
@@ -66,14 +66,14 @@ public final class DynamicEchoHandler extends AbstractMessageHandler {
                     ;
                 }
 
-                term.printDisplay(connectionPrompt.toString());
+                term.printDisplayEcho(connectionPrompt.toString());
                 return;
             }
 
             spaceProcess(term, finalCmd);
         } else {
             if (StringUtils.isNotEmpty(command.getSpecify())) {
-                term.printDisplay(command.getSpecify());
+                term.printDisplayEcho(command.getSpecify());
             }
         }
     }
@@ -85,7 +85,7 @@ public final class DynamicEchoHandler extends AbstractMessageHandler {
 
     private void spaceProcess(Term term, String cmd) {
         int commandHighlightColor = Term.theme.commandHighlightColor;
-        int backgroundColor = Term.theme.executeLineBackgroundColor;
+        int backgroundColor = Term.theme.backgroundColor;
 
         if (cmd.contains(StrUtil.SPACE)) {
             String[] split = cmd.split(StrUtil.SPACE);
@@ -98,16 +98,16 @@ public final class DynamicEchoHandler extends AbstractMessageHandler {
                 if (alikeCommand != null) {
                     printMsg.append(", do you mean: ").front(commandHighlightColor).append(alikeCommand).clearFront();
                 } else {
-                    printMsg.append("'\n")
+                    printMsg.append("\n")
                             .append("Press ")
                             .front(commandHighlightColor)
                             .append("Ctrl+U").clearFront()
                             .append(" to clear input. ");
                 }
-                term.printDisplay(printMsg.toString());
+                term.printDisplayEcho(printMsg.toString());
             } else {
                 if (StringUtils.isNotEmpty(splitCommand.getSpecify())) {
-                    term.printDisplay(splitCommand.getSpecify());
+                    term.printDisplayEcho(splitCommand.getSpecify());
                 }
             }
         } else {
@@ -122,7 +122,7 @@ public final class DynamicEchoHandler extends AbstractMessageHandler {
             }
             if (printMsg.length() != 0) {
                 titleMsg.append(printMsg);
-                term.printDisplay(titleMsg.toString());
+                term.printDisplayEcho(titleMsg.toString());
             } else {
                 AnisStringBuilder builder = new AnisStringBuilder().background(backgroundColor)
                         .append("Didn't find command '")
@@ -132,7 +132,7 @@ public final class DynamicEchoHandler extends AbstractMessageHandler {
                         .front(commandHighlightColor)
                         .append("Ctrl+U").clearFront()
                         .append(" to clear input. ");
-                term.printDisplay(builder.toString());
+                term.printDisplayEcho(builder.toString());
             }
         }
     }

@@ -87,7 +87,7 @@ public enum ShellCommand implements ICommand {
     }
 
     public static String help() {
-        AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.executeLineBackgroundColor);
+        AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.backgroundColor);
         helpBuilder.append("Shell commands:\t[param] means optional param\n");
         for (ShellCommand command : values()) {
             if (StringUtils.isEmpty(command.comment)) {

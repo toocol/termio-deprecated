@@ -6,11 +6,12 @@ package com.toocol.ssh.core.term.core;
  * @version: 0.0.1
  */
 public enum TermTheme {
-    DARK_THEME("dark", 234, 43, 43, 229, 0, 15, 105),
-    LIGHT_THEME("light",231, 36, 36, 31, 15, 0, 105),
+    DARK_THEME("dark", 234, 233, 43, 43, 229, 0, 15, 105),
+    LIGHT_THEME("light",231, 231, 36, 36, 31, 15, 0, 105),
     ;
     public final String name;
-    public final int executeLineBackgroundColor;
+    public final int backgroundColor;
+    public final int transitionBackground;
     public final int commandHighlightColor;
     public final int sessionAliveColor;
     public final int hostHighlightColor;
@@ -27,9 +28,10 @@ public enum TermTheme {
         return null;
     }
 
-    TermTheme(String name, int executeLineBackgroundColor, int commandHighlightColor, int sessionAliveColor, int hostHighlightColor, int infoBarFront, int infoBarBackground, int connectionPrompt) {
+    TermTheme(String name, int backgroundColor, int transitionBackground, int commandHighlightColor, int sessionAliveColor, int hostHighlightColor, int infoBarFront, int infoBarBackground, int connectionPrompt) {
         this.name = name;
-        this.executeLineBackgroundColor = executeLineBackgroundColor;
+        this.backgroundColor = backgroundColor;
+        this.transitionBackground = transitionBackground;
         this.commandHighlightColor = commandHighlightColor;
         this.sessionAliveColor = sessionAliveColor;
         this.hostHighlightColor = hostHighlightColor;

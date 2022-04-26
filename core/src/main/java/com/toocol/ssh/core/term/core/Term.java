@@ -123,4 +123,12 @@ public final class Term extends AbstractDevice {
     public void cursorBackLine(int lines) {
         CONSOLE.cursorBackLine(lines);
     }
+
+    public void printDisplayEcho(String msg) {
+        termPrinter.printDisplayEcho(msg);
+    }
+
+    public void printExecuteBackground() {
+        termPrinter.printExecuteBackground();
+    }
 }

@@ -18,8 +18,8 @@ public final class ActionCRLF extends TermCharAction {
     public boolean act(Term term, CharEvent charEvent, char inChar) {
         Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
         term.hideCursor();
-        term.setCursorPosition(Term.PROMPT.length(), cursorPosition._2());
-        term.setCursorPosition(Term.PROMPT.length(), cursorPosition._2());
+        term.setCursorPosition(Term.PROMPT.length() + 4, cursorPosition._2());
+//        term.setCursorPosition(Term.PROMPT.length(), cursorPosition._2());
         term.showCursor();
         term.historyHelper.push(term.lineBuilder.toString());
 

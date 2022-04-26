@@ -75,8 +75,8 @@ public final class Printer {
 
     public static void printTermPrompt() {
         Term term = Term.getInstance();
-        Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length()), Term.theme.executeLineBackgroundColor));
-        term.setCursorPosition(Term.PROMPT.length(), Term.executeLine);
+        Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length() - 8), Term.theme.backgroundColor));
+        term.setCursorPosition(Term.PROMPT.length() + 4, Term.executeLine);
     }
 
     public static void printScene(boolean resize) {
@@ -95,6 +95,7 @@ public final class Printer {
             println();
         }
         Term.executeLine = term.getCursorPosition()._2();
+        term.printExecuteBackground();
         if (resize && oldPosition._1() != 0 && oldPosition._2() != 0) {
             term.printDisplayBuffer();
             printTermPrompt();

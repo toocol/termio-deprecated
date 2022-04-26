@@ -11,13 +11,14 @@ import io.vertx.core.eventbus.EventBus;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 19:24
  */
-public class ClearCmdProcessor extends OutsideCommandProcessor {
+public class FlushCmdProcessor extends OutsideCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         Printer.clear();
         Printer.printScene(false);
-        Term.getInstance().setCursorPosition(0, Term.executeLine);
-        Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(Term.getInstance().getWidth() - Term.PROMPT.length()), Term.theme.executeLineBackgroundColor));
+        Term.getInstance().setCursorPosition(4, Term.executeLine);
+        Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(Term.getInstance().getWidth() - Term.PROMPT.length() - 8), Term.theme.backgroundColor));
+        Term.getInstance().printBackground();
 
         resultAndMsg.first(true);
     }
