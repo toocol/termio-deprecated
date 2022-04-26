@@ -3,7 +3,7 @@ package com.toocol.ssh.core.term.commands.processors;
 import com.toocol.ssh.core.term.commands.OutsideCommandProcessor;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
-import com.toocol.ssh.utilities.anis.ColorHelper;
+import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 
@@ -17,7 +17,13 @@ public class FlushCmdProcessor extends OutsideCommandProcessor {
         Printer.clear();
         Printer.printScene(false);
         Term.getInstance().setCursorPosition(4, Term.executeLine);
-        Printer.print(ColorHelper.background(Term.PROMPT + " ".repeat(Term.getInstance().getWidth() - Term.getPromptLen() - 4), Term.theme.executeBackgroundColor));
+
+        AnisStringBuilder builder = new AnisStringBuilder()
+                .background(Term.theme.executeBackgroundColor)
+                .front(Term.theme.executeFrontColor)
+                .append(Term.PROMPT)
+                .append(" ".repeat(Term.getInstance().getWidth() - Term.getPromptLen() - 4));
+        Printer.print(builder.toString());
         Term.getInstance().printBackground();
 
         resultAndMsg.first(true);
