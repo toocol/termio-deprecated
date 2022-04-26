@@ -26,8 +26,8 @@ public final class ActionPrintable extends TermCharAction {
         if (cursorPosition._1() >= term.getWidth() - 1) {
             return false;
         }
-        if (cursorPosition._1() < term.lineBuilder.length() + Term.PROMPT.length()) {
-            int index = cursorPosition._1() - Term.PROMPT.length();
+        if (cursorPosition._1() < term.lineBuilder.length() + Term.getPromptLen()) {
+            int index = cursorPosition._1() - Term.getPromptLen();
             if (index == 0 && inChar == CharUtil.SPACE) {
                 return false;
             }

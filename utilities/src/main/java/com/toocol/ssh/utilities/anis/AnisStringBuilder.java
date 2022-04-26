@@ -27,12 +27,12 @@ public final class AnisStringBuilder {
         return this;
     }
 
-    public AnisStringBuilder clearFront() {
+    public AnisStringBuilder deFront() {
         this.front = -1;
         return this;
     }
 
-    public AnisStringBuilder clearBackground() {
+    public AnisStringBuilder deBackground() {
         this.background = -1;
         return this;
     }
@@ -42,10 +42,10 @@ public final class AnisStringBuilder {
             return this;
         }
         if (this.front != - 1) {
-            str = HighlightHelper.assembleColor(str, this.front);
+            str = ColorHelper.front(str, this.front);
         }
         if (this.background != -1) {
-            str = HighlightHelper.assembleColorBackground(str, this.background);
+            str = ColorHelper.background(str, this.background);
         }
         builder.append(str);
         return this;
@@ -53,38 +53,17 @@ public final class AnisStringBuilder {
 
     public AnisStringBuilder append(char ch) {
         String str = ASCIIStrCache.toString(ch);
-        if (this.front != - 1) {
-            str = HighlightHelper.assembleColor(str, this.front);
-        }
-        if (this.background != -1) {
-            str = HighlightHelper.assembleColorBackground(str, this.background);
-        }
-        builder.append(str);
-        return this;
+        return append(str);
     }
 
     public AnisStringBuilder append(int integer) {
         String str = String.valueOf(integer);
-        if (this.front != - 1) {
-            str = HighlightHelper.assembleColor(str, this.front);
-        }
-        if (this.background != -1) {
-            str = HighlightHelper.assembleColorBackground(str, this.background);
-        }
-        builder.append(str);
-        return this;
+        return append(str);
     }
 
     public AnisStringBuilder append(long l) {
         String str = String.valueOf(l);
-        if (this.front != - 1) {
-            str = HighlightHelper.assembleColor(str, this.front);
-        }
-        if (this.background != -1) {
-            str = HighlightHelper.assembleColorBackground(str, this.background);
-        }
-        builder.append(str);
-        return this;
+        return append(str);
     }
 
     public AnisStringBuilder append(StringBuilder sb) {
@@ -92,18 +71,22 @@ public final class AnisStringBuilder {
             return this;
         }
         String str = sb.toString();
-        if (this.front != - 1) {
-            str = HighlightHelper.assembleColor(str, this.front);
-        }
-        if (this.background != -1) {
-            str = HighlightHelper.assembleColorBackground(str, this.background);
-        }
-        builder.append(str);
-        return this;
+        return append(str);
     }
 
     public AnisStringBuilder append(AnisStringBuilder ansiSb) {
         builder.append(ansiSb.toString());
+        return this;
+    }
+
+    public AnisStringBuilder clearStr() {
+        builder.delete(0, builder.length());
+        return this;
+    }
+
+    public AnisStringBuilder clearColor() {
+        front = -1;
+        background = -1;
         return this;
     }
 

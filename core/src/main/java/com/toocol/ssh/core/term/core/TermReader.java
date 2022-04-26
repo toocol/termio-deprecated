@@ -1,5 +1,8 @@
 package com.toocol.ssh.core.term.core;
 
+import com.google.common.util.concurrent.RateLimiter;
+import com.toocol.ssh.core.term.handlers.DynamicEchoHandler;
+import com.toocol.ssh.utilities.utils.CharUtil;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -17,7 +20,7 @@ public record TermReader(Term term) {
         try {
             while (true) {
                 try {
-                    Thread.sleep(5);
+                    Thread.sleep(10);
                 } catch (InterruptedException e) {
                     // do nothing
                 }
@@ -27,12 +30,15 @@ public record TermReader(Term term) {
                 if (term.termCharEventDispatcher.dispatch(term, finalChar)) {
                     String cmd = term.lineBuilder.toString();
                     term.lineBuilder.delete(0, term.lineBuilder.length());
-                    if (StringUtils.isEmpty(cmd)) {
+                    if (StringUtils.isEmpty(cmd) && term.lastChar != CharUtil.CR) {
                         term.eventBus.send(TERMINAL_ECHO.address(), StrUtil.EMPTY);
                     }
+                    term.lastChar = finalChar;
+                    DynamicEchoHandler.lastInput = StrUtil.EMPTY;
                     return cmd;
                 }
 
+                term.lastChar = finalChar;
                 term.printExecution(term.lineBuilder.toString());
                 term.eventBus.send(TERMINAL_ECHO.address(), term.lineBuilder.toString());
             }

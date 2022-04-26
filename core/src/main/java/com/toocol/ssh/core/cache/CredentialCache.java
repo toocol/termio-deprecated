@@ -1,9 +1,9 @@
 package com.toocol.ssh.core.cache;
 
-import com.toocol.ssh.utilities.anis.HighlightHelper;
-import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.auth.core.SshCredential;
+import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.utilities.anis.ColorHelper;
 import io.vertx.core.json.JsonArray;
 
 import java.util.*;
@@ -55,13 +55,14 @@ public class CredentialCache {
         try {
             AtomicInteger idx = new AtomicInteger(1);
             CREDENTIAL_SET.forEach(credential -> {
-                Printer.print("[" + idx.getAndIncrement() + "]\t\t");
+                int index = idx.getAndIncrement();
+                Printer.print("[" + (index < 10 ? "0" + index : index) + "]\t\t");
                 Printer.print(credential.getUser());
                 Printer.print("@");
-                Printer.print(HighlightHelper.assembleColor(credential.getHost(), Term.theme.hostHighlightColor));
+                Printer.print(ColorHelper.front(credential.getHost(), Term.theme.hostHighlightColor));
                 if (SshSessionCache.getInstance().isAlive(credential.getHost())) {
                     Printer.print("\t\t");
-                    Printer.print(HighlightHelper.assembleColor("[alive]", Term.theme.sessionAliveColor));
+                    Printer.print(ColorHelper.front("[alive]", Term.theme.sessionAliveColor));
                 }
                 Printer.println();
             });

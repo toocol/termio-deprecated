@@ -15,7 +15,7 @@ public final class ActionCtrlU extends TermCharAction {
     @Override
     public boolean act(Term term, CharEvent charEvent, char inChar) {
         term.lineBuilder.delete(0, term.lineBuilder.length());
-        term.executeCursorOldX.set(Term.PROMPT.length());
+        term.executeCursorOldX.set(Term.getPromptLen());
         return false;
     }
 }

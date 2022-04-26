@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.utilities.anis.HighlightHelper;
+import com.toocol.ssh.utilities.anis.AnisStringBuilder;
+import com.toocol.ssh.utilities.anis.ColorHelper;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.utils.PomUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
@@ -64,7 +65,7 @@ public final class Printer {
     }
 
     public static void printErr(String msg) {
-        println(HighlightHelper.assembleColor(msg, 167));
+        println(ColorHelper.front(msg, 167));
     }
 
     public static void virtualBackspace() {
@@ -75,8 +76,8 @@ public final class Printer {
 
     public static void printTermPrompt() {
         Term term = Term.getInstance();
-        Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length() - 8), Term.theme.backgroundColor));
-        term.setCursorPosition(Term.PROMPT.length() + 4, Term.executeLine);
+        term.printExecuteBackground();
+        term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
     }
 
     public static void printScene(boolean resize) {
@@ -92,8 +93,11 @@ public final class Printer {
             print("You have no connection properties, type 'help' to get more information.                         \n\n");
         } else {
             CredentialCache.showCredentials();
-            println();
         }
+        println();
+        println();
+        println();
+        println();
         Term.executeLine = term.getCursorPosition()._2();
         term.printExecuteBackground();
         if (resize && oldPosition._1() != 0 && oldPosition._2() != 0) {
@@ -124,7 +128,12 @@ public final class Printer {
         if (fulfil != 0) {
             merge = merge.replaceAll(website, " ".repeat(fulfil)) + website;
         }
-        println(HighlightHelper.assembleColorBoth(merge, Term.theme.infoBarFront, Term.theme.infoBarBackground));
+
+        AnisStringBuilder builder = new AnisStringBuilder()
+                .background(Term.theme.infoBarBackground)
+                .front(Term.theme.infoBarFront)
+                .append(merge);
+        println(builder.toString());
         println();
     }
 

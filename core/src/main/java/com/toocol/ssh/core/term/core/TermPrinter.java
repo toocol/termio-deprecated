@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
-import com.toocol.ssh.utilities.anis.HighlightHelper;
+import com.toocol.ssh.utilities.anis.ColorHelper;
 import com.toocol.ssh.utilities.utils.StrUtil;
 
 /**
@@ -11,11 +11,44 @@ import com.toocol.ssh.utilities.utils.StrUtil;
  */
 public record TermPrinter(Term term) {
 
-    public static volatile String displayBuffer = StrUtil.EMPTY;
-    public static volatile String commandBuffer = StrUtil.EMPTY;
+    public static volatile String DISPLAY_BUFF = StrUtil.EMPTY;
+    public static volatile String COMMAND_BUFF = StrUtil.EMPTY;
     
-    public static final int leftMargin = 4;
-    public static final int textLeftMargin = 5;
+    public static final int LEFT_MARGIN = 4;
+    public static final int TEXT_LEFT_MARGIN = 5;
+
+    synchronized void printExecuteBackground() {
+        String transition = ColorHelper.background(" ".repeat(term.getWidth() - 8), Term.theme.transitionBackground);
+        term.hideCursor();
+        term.setCursorPosition(LEFT_MARGIN, Term.executeLine - 1);
+        Printer.println(transition);
+
+        term.setCursorPosition(4, Term.executeLine);
+        AnisStringBuilder builder = new AnisStringBuilder()
+                .background(Term.theme.executeBackgroundColor)
+                .front(Term.theme.executeFrontColor)
+                .append(Term.PROMPT + " ".repeat(term.getWidth() - Term.getPromptLen() - 4));
+        Printer.print(builder.toString());
+        term.showCursor();
+    }
+
+    synchronized void printExecution(String msg) {
+        COMMAND_BUFF = msg;
+        term.hideCursor();
+        term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
+
+        AnisStringBuilder builder = new AnisStringBuilder()
+                .background(Term.theme.executeBackgroundColor)
+                .front(Term.theme.executeFrontColor)
+                .append(" ".repeat(term.getWidth() - Term.getPromptLen() - 4));
+        Printer.print(builder.toString());
+        term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
+
+        builder.clearStr().append(msg);
+        Printer.print(builder.toString());
+        term.setCursorPosition(term.executeCursorOldX.get(), Term.executeLine);
+        term.showCursor();
+    }
 
     synchronized void cleanDisplayZone() {
         term.setCursorPosition(0, Term.executeLine + 1);
@@ -25,82 +58,68 @@ public record TermPrinter(Term term) {
         }
     }
 
-    synchronized void printExecuteBackground() {
-        term.hideCursor();
-        term.setCursorPosition(4, Term.executeLine);
-        Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length() - 8), Term.theme.backgroundColor));
-        term.showCursor();
-    }
-
-    synchronized void printBackground() {
+    synchronized void printDisplayBackground() {
         int width = term.getWidth();
         int height = term.getHeight() - Term.executeLine - 5;
 
-        String backLine = HighlightHelper.assembleColorBackground(" ".repeat(width - 8), Term.theme.backgroundColor);
-        String transition = HighlightHelper.assembleColorBackground(" ".repeat(width - 8), Term.theme.transitionBackground);
+        String transition = ColorHelper.background(" ".repeat(width - 8), Term.theme.transitionBackground);
+        String backLine = ColorHelper.background(" ".repeat(width - 8), Term.theme.displayBackGroundColor);
         term.hideCursor();
-        term.setCursorPosition(leftMargin, Term.executeLine + 1);
+        term.setCursorPosition(LEFT_MARGIN, Term.executeLine + 1);
         Printer.println(transition);
         for (int idx = 0; idx < height; idx ++) {
-            term.setCursorPosition(leftMargin, Term.executeLine + 2 + idx);
+            term.setCursorPosition(LEFT_MARGIN, Term.executeLine + 2 + idx);
             Printer.println(backLine);
         }
-        term.setCursorPosition(leftMargin, Term.executeLine + 2);
+        term.setCursorPosition(LEFT_MARGIN, Term.executeLine + 2);
         term.showCursor();
     }
 
     synchronized void printDisplay(String msg) {
-        displayBuffer = msg;
+        DISPLAY_BUFF = msg;
         term.hideCursor();
         cleanDisplayZone();
-        printBackground();
+        printDisplayBackground();
         int idx = 0;
         for (String line : msg.split("\n")) {
-            term.setCursorPosition(textLeftMargin, Term.executeLine + 3 + idx++);
-            Printer.println(new AnisStringBuilder().background(Term.theme.backgroundColor).append(line).toString());
+            term.setCursorPosition(TEXT_LEFT_MARGIN, Term.executeLine + 3 + idx++);
+            Printer.println(new AnisStringBuilder().background(Term.theme.displayBackGroundColor).append(line).toString());
         }
         term.displayZoneBottom = term.getCursorPosition()._2() + 1;
-        term.setCursorPosition(Term.PROMPT.length() + 4 + term.lineBuilder.length(), Term.executeLine);
+        term.setCursorPosition(Term.getPromptLen() + term.lineBuilder.length(), Term.executeLine);
         term.showCursor();
     }
 
     synchronized void printDisplayBuffer() {
         cleanDisplayZone();
-        printBackground();
-        term.setCursorPosition(textLeftMargin, Term.executeLine + 3);
-        Printer.print(new AnisStringBuilder().background(Term.theme.backgroundColor).append(displayBuffer).toString());
+        printDisplayBackground();
+        term.setCursorPosition(TEXT_LEFT_MARGIN, Term.executeLine + 3);
+        int idx = 0;
+        for (String line : DISPLAY_BUFF.split("\n")) {
+            term.setCursorPosition(TEXT_LEFT_MARGIN, Term.executeLine + 3 + idx++);
+            Printer.print(new AnisStringBuilder().background(Term.theme.displayBackGroundColor).append(line).toString());
+        }
         term.displayZoneBottom = term.getCursorPosition()._2() + 1;
         term.setCursorPosition(0, Term.executeLine);
     }
 
-    synchronized void printCommandBuffer() {
-        term.setCursorPosition(Term.PROMPT.length() + 4, Term.executeLine);
-        Printer.print(new AnisStringBuilder().background(Term.theme.backgroundColor).append(commandBuffer).toString());
-    }
-
     synchronized void printDisplayEcho(String msg) {
-        displayBuffer = msg;
+        DISPLAY_BUFF = msg;
         term.hideCursor();
         cleanDisplayZone();
-        printBackground();
+        printDisplayBackground();
         int idx = 0;
         for (String line : msg.split("\n")) {
-            term.setCursorPosition(textLeftMargin, Term.executeLine + 3 + idx++);
-            Printer.println(new AnisStringBuilder().background(Term.theme.backgroundColor).append(line).toString());
+            term.setCursorPosition(TEXT_LEFT_MARGIN, Term.executeLine + 3 + idx++);
+            Printer.println(new AnisStringBuilder().background(Term.theme.displayBackGroundColor).append(line).toString());
         }
         term.displayZoneBottom = term.getCursorPosition()._2() + 1;
         term.setCursorPosition(term.executeCursorOldX.get(), Term.executeLine);
         term.showCursor();
     }
 
-    synchronized void printExecution(String msg) {
-        commandBuffer = msg;
-        term.hideCursor();
-        term.setCursorPosition(Term.PROMPT.length() + 4, Term.executeLine);
-        Printer.print(HighlightHelper.assembleColorBackground(" ".repeat(term.getWidth() - Term.PROMPT.length() - 8), Term.theme.backgroundColor));
-        term.setCursorPosition(Term.PROMPT.length() + 4, Term.executeLine);
-        Printer.print(HighlightHelper.assembleColorBackground(msg, Term.theme.backgroundColor));
-        term.setCursorPosition(term.executeCursorOldX.get(), Term.executeLine);
-        term.showCursor();
+    synchronized void printCommandBuffer() {
+        term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
+        Printer.print(new AnisStringBuilder().background(Term.theme.executeBackgroundColor).front(Term.theme.executeFrontColor).append(COMMAND_BUFF).toString());
     }
 }

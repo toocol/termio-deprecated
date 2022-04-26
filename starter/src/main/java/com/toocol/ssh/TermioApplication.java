@@ -1,17 +1,16 @@
 package com.toocol.ssh;
 
-import com.toocol.ssh.core.term.core.TermCharEventDispatcher;
-import com.toocol.ssh.utilities.annotation.VerticleDeployment;
-import com.toocol.ssh.utilities.jni.JNILoader;
-import com.toocol.ssh.utilities.utils.CastUtil;
-import com.toocol.ssh.utilities.utils.ClassScanner;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.config.SystemConfig;
 import com.toocol.ssh.core.shell.core.ShellCharEventDispatcher;
 import com.toocol.ssh.core.term.core.Printer;
-import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.core.term.core.TermCharEventDispatcher;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
+import com.toocol.ssh.utilities.annotation.VerticleDeployment;
+import com.toocol.ssh.utilities.jni.JNILoader;
+import com.toocol.ssh.utilities.utils.CastUtil;
+import com.toocol.ssh.utilities.utils.ClassScanner;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -64,11 +63,7 @@ public class TermioApplication {
         /* Add shutdown hook */
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                Term term = Term.getInstance();
-                if (term != null) {
-                    term.cleanDisplayZone();
-                    term.setCursorPosition(0, Term.executeLine + 1);
-                }
+                Printer.clear();
                 StatusCache.STOP_PROGRAM = true;
                 Printer.println("Termio: shutdown");
                 SshSessionCache.getInstance().stopAll();

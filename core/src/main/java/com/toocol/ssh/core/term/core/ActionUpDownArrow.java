@@ -31,7 +31,7 @@ public final class ActionUpDownArrow extends TermCharAction {
                 term.lineBuilder.delete(0, term.lineBuilder.length()).append(down);
             }
         }
-        term.executeCursorOldX.set(term.lineBuilder.length() + Term.PROMPT.length());
+        term.executeCursorOldX.set(term.lineBuilder.length() + Term.getPromptLen());
         return false;
     }
 }

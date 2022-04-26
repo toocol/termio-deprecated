@@ -17,13 +17,13 @@ public final class ActionBackspace extends TermCharAction {
     @Override
     public boolean act(Term term, CharEvent charEvent, char inChar) {
         Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
-        if (cursorPosition._1() == Term.PROMPT.length() + 4) {
+        if (cursorPosition._1() == Term.getPromptLen()) {
             Printer.voice();
             return false;
         }
         char deleteChar;
-        if (cursorPosition._1() < term.lineBuilder.length() + Term.PROMPT.length() + 4) {
-            int index = cursorPosition._1() - Term.PROMPT.length() + 4 - 1;
+        if (cursorPosition._1() < term.lineBuilder.length() + Term.getPromptLen()) {
+            int index = cursorPosition._1() - Term.getPromptLen() - 1;
             deleteChar = term.lineBuilder.charAt(index);
             term.lineBuilder.deleteCharAt(index);
         } else {
@@ -33,7 +33,7 @@ public final class ActionBackspace extends TermCharAction {
         term.executeCursorOldX.getAndUpdate(prev -> {
             if (CharUtil.isChinese(deleteChar)) {
                 int val = prev - 2;
-                return Math.max(val, Term.PROMPT.length() + 4);
+                return Math.max(val, Term.getPromptLen());
             } else {
                 return --prev;
             }

@@ -16,8 +16,8 @@ public final class ActionTab extends TermCharAction {
     @Override
     public boolean act(Term term, CharEvent charEvent, char inChar) {
         Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
-        if (cursorPosition._1() < term.lineBuilder.length() + Term.PROMPT.length()) {
-            term.setCursorPosition(term.lineBuilder.length() + Term.PROMPT.length(), cursorPosition._2());
+        if (cursorPosition._1() < term.lineBuilder.length() + Term.getPromptLen()) {
+            term.setCursorPosition(term.lineBuilder.length() + Term.getPromptLen(), cursorPosition._2());
         }
         return false;
     }

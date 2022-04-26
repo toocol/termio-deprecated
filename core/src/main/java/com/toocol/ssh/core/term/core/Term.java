@@ -53,11 +53,7 @@ public final class Term extends AbstractDevice {
     volatile StringBuilder lineBuilder = new StringBuilder();
     volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
     int displayZoneBottom = 0;
-
-
-    public void cleanDisplayZone() {
-        termPrinter.cleanDisplayZone();
-    }
+    char lastChar = '\0';
 
     public void printExecution(String msg) {
         termPrinter.printExecution(msg);
@@ -76,7 +72,15 @@ public final class Term extends AbstractDevice {
     }
 
     public void printBackground() {
-        termPrinter.printBackground();
+        termPrinter.printDisplayBackground();
+    }
+
+    public void printDisplayEcho(String msg) {
+        termPrinter.printDisplayEcho(msg);
+    }
+
+    public void printExecuteBackground() {
+        termPrinter.printExecuteBackground();
     }
 
     public String readLine() {
@@ -85,6 +89,10 @@ public final class Term extends AbstractDevice {
 
     public static Term getInstance() {
         return INSTANCE;
+    }
+
+    public static int getPromptLen() {
+        return PROMPT.length() + 4;
     }
 
     public int getWidth() {
@@ -124,11 +132,4 @@ public final class Term extends AbstractDevice {
         CONSOLE.cursorBackLine(lines);
     }
 
-    public void printDisplayEcho(String msg) {
-        termPrinter.printDisplayEcho(msg);
-    }
-
-    public void printExecuteBackground() {
-        termPrinter.printExecuteBackground();
-    }
 }

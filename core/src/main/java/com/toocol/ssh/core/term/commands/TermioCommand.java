@@ -28,7 +28,7 @@ public enum TermioCommand implements ICommand {
     CMD_EXIT("exit", new ExitCmdProcessor(), "Exit Termio.", "Exit termio."),
     CMD_THEME("theme", new ThemeCmdProcessor(), "Change the Termio's color theme.", "Change the color theme, current support [dark/light]\nExamples:\ntheme dark\ntheme light"),
     CMD_ADD("add", new AddCmdProcessor(), "Add new ssh connection property.", "add --user@host -c=password [-p=port]\n\n-p=port is a optional parameter, the default port is 22."),
-    CMD_DELETE("delete", new DeleteCmdProcessor(), "Delete ssh connection property.", "Delete a connection property.\nExamples:\ndelete a certain connection property: delete --1"),
+    CMD_DELETE("delete", new DeleteCmdProcessor(), "Delete ssh connection property.", "Delete a certain connection property.\n\nExamples:\ndelete --1"),
     CMD_NUMBER("numbers", new NumberCmdProcessor(), "Select the connection properties.", "Input property index to connect"),
     CMD_ACTIVE("active", new ActiveCmdProcessor(), "Active the selected ssh connect session, without enter the Shell.", "Active the selected ssh connect session, without enter the Shell.\n\nExamples:\nactive 1\nactive 1 3 4\nactive 1-10"),
     CMD_HELLO_WORLD("hello", new HelloCmdProcessor(), null, null);
@@ -73,13 +73,13 @@ public enum TermioCommand implements ICommand {
     }
 
     public static String help() {
-        AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.backgroundColor);
+        AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.displayBackGroundColor);
         helpBuilder.append("Termio commands:\t[param] means optional param\n");
         for (TermioCommand command : values()) {
             if (StringUtils.isEmpty(command.comment)) {
                 continue;
             }
-            helpBuilder.front(Term.theme.commandHighlightColor).append(command.cmd).clearFront()
+            helpBuilder.front(Term.theme.commandHighlightColor).append(command.cmd).deFront()
                     .append(" ".repeat(20 - command.cmd.length())).append(command.comment).append(CharUtil.LF);
         }
         helpBuilder.append("\n");

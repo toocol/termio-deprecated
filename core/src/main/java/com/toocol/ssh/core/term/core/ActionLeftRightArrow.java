@@ -17,12 +17,12 @@ public final class ActionLeftRightArrow extends TermCharAction {
     public boolean act(Term term, CharEvent charEvent, char inChar) {
         int cursorX = term.getCursorPosition()._1();
         if (inChar == CharUtil.LEFT_ARROW) {
-            if (cursorX > Term.PROMPT.length() + 4) {
+            if (cursorX > Term.getPromptLen()) {
                 term.cursorLeft();
                 term.executeCursorOldX.getAndDecrement();
             }
         } else {
-            if (cursorX < (term.lineBuilder.length() + Term.PROMPT.length() + 4)) {
+            if (cursorX < (term.lineBuilder.length() + Term.getPromptLen())) {
                 term.cursorRight();
                 term.executeCursorOldX.getAndIncrement();
             }

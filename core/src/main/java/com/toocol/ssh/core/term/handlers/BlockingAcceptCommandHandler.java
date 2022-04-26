@@ -6,7 +6,6 @@ import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
-import com.toocol.ssh.utilities.anis.HighlightHelper;
 import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -51,15 +50,15 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
                 Printer.clear();
                 Printer.printScene(false);
             }
-            if (signal == CONNECT_FAILED) {
-                term.printDisplay("lost connection.");
-            }
 
             term.printBackground();
-            term.setCursorPosition(4, Term.executeLine);
-            Printer.print(HighlightHelper.assembleColorBackground(Term.PROMPT + " ".repeat(term.getWidth() - Term.PROMPT.length() - 8), Term.theme.backgroundColor));
+            term.printExecuteBackground();
+            if (signal == CONNECT_FAILED) {
+                term.printDisplay(new AnisStringBuilder().background(Term.theme.displayBackGroundColor).append("lost connection.").toString());
+            }
+            term.showCursor();
             while (true) {
-                term.setCursorPosition(Term.PROMPT.length() + 4, Term.executeLine);
+                term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
                 String cmd = term.readLine();
 
                 CountDownLatch latch = new CountDownLatch(1);
@@ -98,10 +97,10 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
                     break;
                 }
                 if (!isCommand && StringUtils.isNotEmpty(cmd)) {
-                    AnisStringBuilder builder = new AnisStringBuilder().background(Term.theme.backgroundColor)
+                    AnisStringBuilder builder = new AnisStringBuilder().background(Term.theme.displayBackGroundColor)
                             .front(Term.theme.commandHighlightColor)
                             .append(cmd)
-                            .clearFront()
+                            .deFront()
                             .append(": command not found.");
                     term.printDisplay(builder.toString());
                 }

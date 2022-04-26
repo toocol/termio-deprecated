@@ -87,13 +87,13 @@ public enum ShellCommand implements ICommand {
     }
 
     public static String help() {
-        AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.backgroundColor);
+        AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.displayBackGroundColor);
         helpBuilder.append("Shell commands:\t[param] means optional param\n");
         for (ShellCommand command : values()) {
             if (StringUtils.isEmpty(command.comment)) {
                 continue;
             }
-            helpBuilder.front(Term.theme.commandHighlightColor).append(command.cmd).clearFront()
+            helpBuilder.front(Term.theme.commandHighlightColor).append(command.cmd).deFront()
                     .append(" ".repeat(20 - command.cmd.length())).append(command.comment).append(CharUtil.LF);
         }
         helpBuilder.append("\n");

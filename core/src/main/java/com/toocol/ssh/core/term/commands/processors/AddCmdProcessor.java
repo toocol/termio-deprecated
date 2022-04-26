@@ -1,11 +1,12 @@
 package com.toocol.ssh.core.term.commands.processors;
 
-import com.toocol.ssh.core.term.core.Printer;
-import com.toocol.ssh.utilities.utils.RegexUtils;
-import com.toocol.ssh.utilities.utils.Tuple2;
+import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.term.commands.OutsideCommandProcessor;
-import com.toocol.ssh.core.auth.core.SshCredential;
+import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.utilities.utils.RegexUtils;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 
@@ -76,6 +77,8 @@ public class AddCmdProcessor extends OutsideCommandProcessor {
             Printer.clear();
             Printer.printScene(false);
             Printer.printTermPrompt();
+            Term.getInstance().printBackground();
+            Term.getInstance().setCursorPosition(Term.getPromptLen(), Term.executeLine);
         });
         resultAndMsg.first(true);
     }
