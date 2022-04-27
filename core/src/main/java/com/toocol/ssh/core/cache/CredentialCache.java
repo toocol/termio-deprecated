@@ -3,7 +3,7 @@ package com.toocol.ssh.core.cache;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
-import com.toocol.ssh.utilities.anis.ColorHelper;
+import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import io.vertx.core.json.JsonArray;
 
 import java.util.*;
@@ -56,15 +56,15 @@ public class CredentialCache {
             AtomicInteger idx = new AtomicInteger(1);
             CREDENTIAL_SET.forEach(credential -> {
                 int index = idx.getAndIncrement();
-                Printer.print("[" + (index < 10 ? "0" + index : index) + "]\t\t");
-                Printer.print(credential.getUser());
-                Printer.print("@");
-                Printer.print(ColorHelper.front(credential.getHost(), Term.theme.hostHighlightColor));
+                AnisStringBuilder builder = new AnisStringBuilder()
+                        .append("[" + (index < 10 ? "0" + index : index) + "]\t\t")
+                        .append(credential.getUser())
+                        .append("@")
+                        .front(Term.theme.hostHighlightColor).append(credential.getHost()).deFront();
                 if (SshSessionCache.getInstance().isAlive(credential.getHost())) {
-                    Printer.print("\t\t");
-                    Printer.print(ColorHelper.front("[alive]", Term.theme.sessionAliveColor));
+                    builder.append("\t\t").front(Term.theme.sessionAliveColor).append("[alive]").deFront();
                 }
-                Printer.println();
+                Printer.println(builder.toString());
             });
         } catch (Exception e) {
             Printer.println("System devastating error.");
@@ -112,7 +112,7 @@ public class CredentialCache {
         lock.lock();
         try {
             CREDENTIAL_SET.add(credential);
-        }  catch (Exception e) {
+        } catch (Exception e) {
             Printer.println("System devastating error.");
             System.exit(-1);
         } finally {
@@ -134,7 +134,7 @@ public class CredentialCache {
                     return next.getHost();
                 }
             }
-        }  catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             Printer.println("System devastating error.");
             System.exit(-1);

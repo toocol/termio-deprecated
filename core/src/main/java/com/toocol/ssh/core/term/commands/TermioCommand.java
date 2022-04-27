@@ -30,7 +30,8 @@ public enum TermioCommand implements ICommand {
     CMD_ADD("add", new AddCmdProcessor(), "Add new ssh connection property.", "add --user@host -c=password [-p=port]\n\n-p=port is a optional parameter, the default port is 22."),
     CMD_DELETE("delete", new DeleteCmdProcessor(), "Delete ssh connection property.", "Delete a certain connection property.\n\nExamples:\ndelete --1"),
     CMD_NUMBER("numbers", new NumberCmdProcessor(), "Select the connection properties.", "Input property index to connect"),
-    CMD_ACTIVE("active", new ActiveCmdProcessor(), "Active the selected ssh connect session, without enter the Shell.", "Active the selected ssh connect session, without enter the Shell.\n\nExamples:\nactive 1\nactive 1 3 4\nactive 1-10"),
+    CMD_ACTIVE("active", new ActiveCmdProcessor(), "Active the ssh connect session without enter the Shell.", "Active the selected ssh connect session, without enter the Shell.\n\nExamples:\nactive 1\nactive 1 3 4\nactive 1-10"),
+    CMD_MOSH("mosh", new MoshCmdProcessor(), "Use mosh to connect remote device.", "Use mosh to connect remote device.\n\nExamples:\nmosh 1"),
     CMD_HELLO_WORLD("hello", new HelloCmdProcessor(), null, null);
 
     public static final Map<String, TermioCommand> COMMANDS = new HashMap<>();
@@ -41,11 +42,11 @@ public enum TermioCommand implements ICommand {
     }
 
     private final String cmd;
-    private final OutsideCommandProcessor commandProcessor;
+    private final TermioCommandProcessor commandProcessor;
     private final String comment;
     private final String specify;
 
-    TermioCommand(String cmd, OutsideCommandProcessor commandProcessor, String comment, String specify) {
+    TermioCommand(String cmd, TermioCommandProcessor commandProcessor, String comment, String specify) {
         this.cmd = cmd;
         this.commandProcessor = commandProcessor;
         this.comment = comment;

@@ -62,6 +62,7 @@ public record TermPrinter(Term term) {
 
     synchronized void printDisplay(String msg) {
         if (StringUtils.isEmpty(msg)) {
+            DISPLAY_BUFF = StrUtil.EMPTY;
             cleanDisplayZone();
             term.setCursorPosition(Term.getPromptLen() + term.lineBuilder.length(), Term.executeLine);
             return;
@@ -107,6 +108,7 @@ public record TermPrinter(Term term) {
 
     synchronized void printDisplayEcho(String msg) {
         if (StringUtils.isEmpty(msg)) {
+            DISPLAY_BUFF = StrUtil.EMPTY;
             cleanDisplayZone();
             term.setCursorPosition(Term.getPromptLen() + term.lineBuilder.length(), Term.executeLine);
             return;

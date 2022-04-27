@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.term.commands.processors;
 
 import com.toocol.ssh.core.cache.CredentialCache;
-import com.toocol.ssh.core.term.commands.OutsideCommandProcessor;
+import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.utils.Tuple2;
@@ -14,7 +14,7 @@ import static com.toocol.ssh.core.auth.AuthAddress.DELETE_CREDENTIAL;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/1 18:55
  */
-public class DeleteCmdProcessor extends OutsideCommandProcessor {
+public class DeleteCmdProcessor extends TermioCommandProcessor {
 
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
@@ -38,7 +38,6 @@ public class DeleteCmdProcessor extends OutsideCommandProcessor {
             Printer.clear();
             Printer.printScene(false);
             Printer.printTermPrompt();
-//            Term.getInstance().printBackground();
             Term.getInstance().setCursorPosition(Term.getPromptLen(), Term.executeLine);
         });
 

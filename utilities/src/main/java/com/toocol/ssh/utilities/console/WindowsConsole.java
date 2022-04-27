@@ -6,7 +6,7 @@ import com.toocol.ssh.utilities.jni.TermioJNI;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/24 11:47
  */
-public final class WindowsConsole extends Console{
+public final class WindowsConsole extends Console {
 
     private final TermioJNI jni = TermioJNI.getInstance();
 
@@ -22,12 +22,24 @@ public final class WindowsConsole extends Console{
 
     @Override
     public int getWindowWidth() {
-        return jni.getWindowWidth();
+        int windowWidth;
+        try {
+            windowWidth = jni.getWindowWidth();
+        } catch (Error e) {
+            windowWidth = 0;
+        }
+        return windowWidth;
     }
 
     @Override
     public int getWindowHeight() {
-        return jni.getWindowHeight();
+        int windowHeight;
+        try {
+            windowHeight = jni.getWindowHeight();
+        } catch (Error e) {
+            windowHeight = 0;
+        }
+        return windowHeight;
     }
 
     @Override

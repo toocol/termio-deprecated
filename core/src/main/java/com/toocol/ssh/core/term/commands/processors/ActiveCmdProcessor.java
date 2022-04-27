@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.term.commands.processors;
 
 import com.toocol.ssh.utilities.utils.Tuple2;
-import com.toocol.ssh.core.term.commands.OutsideCommandProcessor;
+import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
 import io.vertx.core.eventbus.EventBus;
 
 /**
@@ -9,7 +9,7 @@ import io.vertx.core.eventbus.EventBus;
  * @date: 2022/4/23 20:45
  * @version: 0.0.1
  */
-public final class ActiveCmdProcessor extends OutsideCommandProcessor {
+public final class ActiveCmdProcessor extends TermioCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> tuple) {
         // TODO: see com.toocol.ssh.core.term.commands.processors.NumberCmdProcessor

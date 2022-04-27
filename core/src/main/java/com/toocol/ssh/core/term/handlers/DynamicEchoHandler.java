@@ -71,7 +71,7 @@ public final class DynamicEchoHandler extends AbstractMessageHandler {
                 } else {
                     String status = sshSessionCache.isAlive(credential.getHost()) ? ColorHelper.front("alive", Term.theme.sessionAliveColor) : "offline";
                     connectionPrompt
-                            .append("Host:").append(" ".repeat(15 - 5)).append(ColorHelper.front(credential.getHost(), Term.theme.hostHighlightColor)).append("\n")
+                            .append("Host:").append(" ".repeat(15 - 5)).front(Term.theme.hostHighlightColor).append(credential.getHost()).deFront().append("\n")
                             .append("User:").append(" ".repeat(15 - 5)).append(credential.getUser()).append("\n")
                             .append("Port:").append(" ".repeat(15 - 5)).append(credential.getPort()).append("\n")
                             .append("Type:").append(" ".repeat(15 - 5)).append("SSH").append("\n")

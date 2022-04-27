@@ -7,7 +7,7 @@ import io.vertx.core.eventbus.EventBus;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/2 17:32
  */
-public abstract class OutsideCommandProcessor {
+public abstract class TermioCommandProcessor {
 
     /**
      * process command

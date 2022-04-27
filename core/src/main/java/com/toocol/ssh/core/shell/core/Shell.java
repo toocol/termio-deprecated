@@ -1,16 +1,16 @@
 package com.toocol.ssh.core.shell.core;
 
+import com.toocol.ssh.core.cache.SshSessionCache;
+import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
+import com.toocol.ssh.core.term.core.EscapeHelper;
+import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.action.AbstractDevice;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.utilities.utils.CmdUtil;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
-import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.core.cache.StatusCache;
-import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
-import com.toocol.ssh.core.term.core.Printer;
-import com.toocol.ssh.core.term.core.EscapeHelper;
-import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import jline.console.ConsoleReader;
@@ -220,14 +220,16 @@ public final class Shell extends AbstractDevice {
             request.put("sessionId", sessionId);
             request.put("remotePath", "/" + user + "/.bash_history");
             request.put("type", BlockingDfHandler.DF_TYPE_BYTE);
-            eventBus.request(START_DF_COMMAND.address(), request, result -> {
-                if (result == null || result.result() == null) {
-                    return;
-                }
-                byte[] bytes = (byte[]) result.result().body();
-                String data = new String(bytes, StandardCharsets.UTF_8);
-                historyCmdHelper.initialize(data.split(StrUtil.LF));
-            });
+            if (eventBus != null) {
+                eventBus.request(START_DF_COMMAND.address(), request, result -> {
+                    if (result == null || result.result() == null) {
+                        return;
+                    }
+                    byte[] bytes = (byte[]) result.result().body();
+                    String data = new String(bytes, StandardCharsets.UTF_8);
+                    historyCmdHelper.initialize(data.split(StrUtil.LF));
+                });
+            }
 
             new Thread(() -> {
                 try {

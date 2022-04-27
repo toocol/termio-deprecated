@@ -1,12 +1,20 @@
 package com.toocol.ssh.core.mosh.core;
 
+import com.jcraft.jsch.ChannelShell;
+import com.toocol.ssh.core.auth.core.SshCredential;
+import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
+import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
+import com.toocol.ssh.utilities.utils.Tuple2;
 
+import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -23,17 +31,69 @@ public class MoshSessionFactory {
     /**
      * touch mosh-server by ssh;
      *
-     * @param host host address
-     * @return mosh key
+     * @param index the index of ssh credential
+     * @return mosh server port / key
      */
-    private String sshTouch(String host) {
-        return null;
+    public Tuple2<Integer, String> sshTouch(int index) {
+        SshCredential credential = CredentialCache.getCredential(index);
+        long sessionId = sshSessionCache.containSession(credential.getHost());
+        if (sessionId != 0) {
+            sessionId = sshSessionFactory.invokeSession(sessionId, credential, null);
+        } else {
+            sessionId = sshSessionFactory.createSession(credential, null);
+        }
+
+        ChannelShell channelShell = sshSessionCache.getChannelShell(sessionId);
+        Shell shell = sshSessionCache.getShell(sessionId);
+
+        Tuple2<Integer, String> portKey = new Tuple2<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        try {
+            InputStream inputStream = channelShell.getInputStream();
+
+            new Thread(() -> {
+                byte[] tmp = new byte[1024];
+                while (true) {
+                    try {
+                        while (inputStream.available() > 0) {
+                            int i = inputStream.read(tmp, 0, 1024);
+                            if (i < 0) {
+                                break;
+                            }
+                            String inputStr = new String(tmp, 0, i);
+
+                            for (String line : inputStr.split("\r\n")) {
+                                if (line.contains("MOSH CONNECT")) {
+                                    String[] split = line.split(" ");
+                                    portKey.first(Integer.parseInt(split[2])).second(split[3]);
+                                    latch.countDown();
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        latch.countDown();
+                    }
+
+                }
+            }).start();
+
+            new Thread(() -> shell.writeAndFlush("mosh-server\n".getBytes(StandardCharsets.UTF_8))).start();
+
+            boolean suc = latch.await(20, TimeUnit.SECONDS);
+            if (!suc) {
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+
+        return portKey;
     }
 
     /**
      * creating udp connection to mosh-server and starting data transport;
      */
-    private void tryMosh(String host, int port, String key) {
+    public void tryMosh(String host, int port, String key) {
         DatagramSocket socket = null;
         try {
             InetAddress address = InetAddress.getByName(LOCAL_IP_ADDRESS);

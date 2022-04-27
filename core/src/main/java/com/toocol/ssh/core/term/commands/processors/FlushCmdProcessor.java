@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.term.commands.processors;
 
-import com.toocol.ssh.core.term.commands.OutsideCommandProcessor;
+import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
@@ -11,7 +11,7 @@ import io.vertx.core.eventbus.EventBus;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 19:24
  */
-public class FlushCmdProcessor extends OutsideCommandProcessor {
+public class FlushCmdProcessor extends TermioCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         Printer.clear();
@@ -24,7 +24,6 @@ public class FlushCmdProcessor extends OutsideCommandProcessor {
                 .append(Term.PROMPT)
                 .append(" ".repeat(Term.getInstance().getWidth() - Term.getPromptLen() - Term.LEFT_MARGIN));
         Printer.print(builder.toString());
-//        Term.getInstance().printBackground();
 
         resultAndMsg.first(true);
     }

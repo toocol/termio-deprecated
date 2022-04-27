@@ -6,11 +6,11 @@ import io.vertx.core.eventbus.EventBus;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
- * @date 2022/3/30 14:53
+ * @date 2022/4/27 16:19
  */
-public class ExitCmdProcessor extends TermioCommandProcessor {
+public class MoshCmdProcessor extends TermioCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> tuple) {
-        System.exit(-1);
+
     }
 }

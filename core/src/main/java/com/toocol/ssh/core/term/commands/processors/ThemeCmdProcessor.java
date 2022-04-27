@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.term.commands.processors;
 
 import com.toocol.ssh.utilities.utils.Tuple2;
-import com.toocol.ssh.core.term.commands.OutsideCommandProcessor;
+import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.core.TermTheme;
@@ -12,7 +12,7 @@ import io.vertx.core.eventbus.EventBus;
  * @date: 2022/4/23 1:16
  * @version: 0.0.1
  */
-public class ThemeCmdProcessor extends OutsideCommandProcessor {
+public class ThemeCmdProcessor extends TermioCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> tuple) {
         String[] split = cmd.trim().replaceAll(" {2,}"," ").split(" ");

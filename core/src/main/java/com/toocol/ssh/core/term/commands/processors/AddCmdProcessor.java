@@ -2,7 +2,7 @@ package com.toocol.ssh.core.term.commands.processors;
 
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
-import com.toocol.ssh.core.term.commands.OutsideCommandProcessor;
+import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.utils.RegexUtils;
@@ -16,7 +16,7 @@ import static com.toocol.ssh.core.auth.AuthAddress.ADD_CREDENTIAL;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/1 16:07
  */
-public class AddCmdProcessor extends OutsideCommandProcessor {
+public class AddCmdProcessor extends TermioCommandProcessor {
 
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
@@ -77,7 +77,6 @@ public class AddCmdProcessor extends OutsideCommandProcessor {
             Printer.clear();
             Printer.printScene(false);
             Printer.printTermPrompt();
-//            Term.getInstance().printBackground();
             Term.getInstance().setCursorPosition(Term.getPromptLen(), Term.executeLine);
         });
         resultAndMsg.first(true);
