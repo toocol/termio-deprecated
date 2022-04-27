@@ -94,10 +94,11 @@ public final class Printer {
         } else {
             CredentialCache.showCredentials();
         }
-        println();
-        println();
-        println();
-        println();
+
+        for (int idx = 0; idx < Term.TOP_MARGIN; idx++) {
+            println();
+        }
+
         Term.executeLine = term.getCursorPosition()._2();
         term.printExecuteBackground();
         if (resize && oldPosition._1() != 0 && oldPosition._2() != 0) {

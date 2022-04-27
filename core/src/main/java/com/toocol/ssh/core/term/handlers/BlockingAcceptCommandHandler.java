@@ -51,7 +51,7 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
                 Printer.printScene(false);
             }
 
-            term.printBackground();
+//            term.printBackground();
             term.printExecuteBackground();
             if (signal == CONNECT_FAILED) {
                 term.printDisplay(new AnisStringBuilder().background(Term.theme.displayBackGroundColor).append("lost connection.").toString());

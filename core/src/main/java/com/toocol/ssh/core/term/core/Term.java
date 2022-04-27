@@ -17,6 +17,10 @@ public final class Term extends AbstractDevice {
     public static final String PROMPT = " [termio] > ";
     private static final Console CONSOLE = Console.get();
 
+    public static final int TOP_MARGIN = 3;
+    public static final int LEFT_MARGIN = 0;
+    public static final int TEXT_LEFT_MARGIN = 1;
+
     ConsoleReader reader;
     EventBus eventBus;
     final EscapeHelper escapeHelper;
@@ -71,10 +75,6 @@ public final class Term extends AbstractDevice {
         termPrinter.printCommandBuffer();
     }
 
-    public void printBackground() {
-        termPrinter.printDisplayBackground();
-    }
-
     public void printDisplayEcho(String msg) {
         termPrinter.printDisplayEcho(msg);
     }
@@ -92,7 +92,7 @@ public final class Term extends AbstractDevice {
     }
 
     public static int getPromptLen() {
-        return PROMPT.length() + 4;
+        return PROMPT.length() + LEFT_MARGIN;
     }
 
     public int getWidth() {

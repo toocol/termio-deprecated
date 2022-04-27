@@ -80,7 +80,7 @@ public enum TermioCommand implements ICommand {
                 continue;
             }
             helpBuilder.front(Term.theme.commandHighlightColor).append(command.cmd).deFront()
-                    .append(" ".repeat(20 - command.cmd.length())).append(command.comment).append(CharUtil.LF);
+                    .append(" ".repeat(23 - command.cmd.length())).append(command.comment).append(CharUtil.LF);
         }
         helpBuilder.append("\n");
         return helpBuilder.toString();

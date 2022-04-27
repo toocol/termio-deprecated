@@ -77,7 +77,7 @@ public class AddCmdProcessor extends OutsideCommandProcessor {
             Printer.clear();
             Printer.printScene(false);
             Printer.printTermPrompt();
-            Term.getInstance().printBackground();
+//            Term.getInstance().printBackground();
             Term.getInstance().setCursorPosition(Term.getPromptLen(), Term.executeLine);
         });
         resultAndMsg.first(true);

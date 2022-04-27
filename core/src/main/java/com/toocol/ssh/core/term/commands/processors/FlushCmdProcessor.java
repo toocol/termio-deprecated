@@ -16,15 +16,15 @@ public class FlushCmdProcessor extends OutsideCommandProcessor {
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         Printer.clear();
         Printer.printScene(false);
-        Term.getInstance().setCursorPosition(4, Term.executeLine);
+        Term.getInstance().setCursorPosition(Term.LEFT_MARGIN, Term.executeLine);
 
         AnisStringBuilder builder = new AnisStringBuilder()
                 .background(Term.theme.executeBackgroundColor)
                 .front(Term.theme.executeFrontColor)
                 .append(Term.PROMPT)
-                .append(" ".repeat(Term.getInstance().getWidth() - Term.getPromptLen() - 4));
+                .append(" ".repeat(Term.getInstance().getWidth() - Term.getPromptLen() - Term.LEFT_MARGIN));
         Printer.print(builder.toString());
-        Term.getInstance().printBackground();
+//        Term.getInstance().printBackground();
 
         resultAndMsg.first(true);
     }

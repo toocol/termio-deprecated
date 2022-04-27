@@ -42,6 +42,7 @@ public final class DynamicEchoHandler extends AbstractMessageHandler {
     public <T> void handle(Message<T> message) {
         String cmd = cast(message.body());
         int backgroundColor = Term.theme.displayBackGroundColor;
+        int commandHighlightColor = Term.theme.commandHighlightColor;
         String finalCmd = cmd.trim();
 
         TermioCommand command = COMMANDS.get(finalCmd);
@@ -69,11 +70,12 @@ public final class DynamicEchoHandler extends AbstractMessageHandler {
                     connectionPrompt.append("the index corresponded connection not found.");
                 } else {
                     String status = sshSessionCache.isAlive(credential.getHost()) ? ColorHelper.front("alive", Term.theme.sessionAliveColor) : "offline";
-                    connectionPrompt.append("Host:\t\t").append(ColorHelper.front(credential.getHost(), Term.theme.hostHighlightColor)).append("\n")
-                            .append("User:\t\t").append(credential.getUser()).append("\n")
-                            .append("Port:\t\t").append(credential.getPort()).append("\n")
-                            .append("Type:\t\t").append("SSH").append("\n")
-                            .append("Status:\t\t").append(status).append("\n")
+                    connectionPrompt
+                            .append("Host:").append(" ".repeat(15 - 5)).append(ColorHelper.front(credential.getHost(), Term.theme.hostHighlightColor)).append("\n")
+                            .append("User:").append(" ".repeat(15 - 5)).append(credential.getUser()).append("\n")
+                            .append("Port:").append(" ".repeat(15 - 5)).append(credential.getPort()).append("\n")
+                            .append("Type:").append(" ".repeat(15 - 5)).append("SSH").append("\n")
+                            .append("Status:").append(" ".repeat(15 - 7)).append(status).append("\n")
                     ;
                 }
 
@@ -91,6 +93,19 @@ public final class DynamicEchoHandler extends AbstractMessageHandler {
                     term.printDisplayEcho(command.getSpecify());
                 }
                 lastInput = command.getSpecify();
+            } else {
+                AnisStringBuilder builder = new AnisStringBuilder().background(backgroundColor)
+                        .append("Didn't find command '")
+                        .front(commandHighlightColor).append(cmd).deFront()
+                        .append("'\n\n")
+                        .append("Press ")
+                        .front(commandHighlightColor)
+                        .append("Ctrl+U").deFront()
+                        .append(" to clear input. ");
+                if (!lastInput.equals(builder.toString())) {
+                    term.printDisplayEcho(builder.toString());
+                }
+                lastInput = builder.toString();
             }
         }
     }
