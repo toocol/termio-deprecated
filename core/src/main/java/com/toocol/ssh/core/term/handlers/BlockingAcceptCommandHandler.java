@@ -4,9 +4,11 @@ import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.commands.TermioCommand;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.core.term.core.TermPrinter;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.utils.StrUtil;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -68,6 +70,8 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
                         String msg = cast(result.result().body());
                         if (StringUtils.isNotEmpty(msg)) {
                             term.printDisplay(msg);
+                        } else {
+                            TermPrinter.DISPLAY_BUFF = StrUtil.EMPTY;
                         }
 
                         if (TermioCommand.CMD_NUMBER.equals(cmdCommand) && StringUtils.isEmpty(msg)) {
