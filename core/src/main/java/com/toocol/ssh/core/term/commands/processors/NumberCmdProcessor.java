@@ -1,8 +1,10 @@
 package com.toocol.ssh.core.term.commands.processors;
 
-import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
-import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
+import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
+import com.toocol.ssh.core.term.core.TermPrinter;
+import com.toocol.ssh.utilities.utils.StrUtil;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,6 +38,7 @@ public class NumberCmdProcessor extends TermioCommandProcessor {
         }
 
         eventBus.send(ESTABLISH_SSH_SESSION.address(), idx);
+        TermPrinter.DISPLAY_BUFF = StrUtil.EMPTY;
         resultAndMsg.first(true);
     }
 }

@@ -3,7 +3,9 @@ package com.toocol.ssh.core.term.commands.processors;
 import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.core.term.core.TermPrinter;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
+import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 
@@ -24,6 +26,7 @@ public class FlushCmdProcessor extends TermioCommandProcessor {
                 .append(Term.PROMPT)
                 .append(" ".repeat(Term.getInstance().getWidth() - Term.getPromptLen() - Term.LEFT_MARGIN));
         Printer.print(builder.toString());
+        TermPrinter.DISPLAY_BUFF = StrUtil.EMPTY;
 
         resultAndMsg.first(true);
     }
