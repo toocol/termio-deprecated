@@ -91,11 +91,11 @@ public final class Shell extends AbstractDevice {
     final Set<String> tabFeedbackRec = new HashSet<>();
 
     final StringBuilder cmd = new StringBuilder();
-    final AtomicReference<String> welcome = new AtomicReference<>();
-    final AtomicReference<String> prompt = new AtomicReference<>();
-    final AtomicReference<String> user = new AtomicReference<>();
-    final AtomicReference<String> fullPath = new AtomicReference<>();
-    volatile AtomicReference<String> bottomLinePrint = new AtomicReference<>(StrUtil.EMPTY);
+    volatile AtomicReference<String> prompt = new AtomicReference<>();
+    volatile AtomicReference<String> fullPath = new AtomicReference<>();
+    volatile String welcome = null;
+    volatile String user = null;
+    volatile String bottomLinePrint = StrUtil.EMPTY;
 
     public enum Status {
         /**
@@ -215,7 +215,7 @@ public final class Shell extends AbstractDevice {
                 .replaceAll("]", "")
                 .replaceAll("#", "")
                 .trim();
-        user.set(preprocess.split("@")[0]);
+        user = preprocess.split("@")[0];
     }
 
     @SuppressWarnings("all")
@@ -276,7 +276,7 @@ public final class Shell extends AbstractDevice {
                                 returnWrite = true;
                                 break;
                             } else {
-                                welcome.set(inputStr);
+                                welcome = inputStr;
                                 returnWrite = true;
                                 break;
                             }
@@ -303,7 +303,7 @@ public final class Shell extends AbstractDevice {
 
         assert prompt.get() != null;
         extractUserFromPrompt();
-        fullPath.set("/" + user.get());
+        fullPath.set("/" + user);
 
         try {
             this.inputStream = channelShell.getInputStream();
@@ -408,7 +408,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public String getWelcome() {
-        return StringUtils.isEmpty(welcome.get()) ? null : welcome.get();
+        return StringUtils.isEmpty(welcome) ? null : welcome;
     }
 
     public String getPrompt() {
@@ -427,7 +427,7 @@ public final class Shell extends AbstractDevice {
         return currentPrint.toString();
     }
 
-    public AtomicReference<String> getUser() {
+    public String getUser() {
         return user;
     }
 
@@ -440,7 +440,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public void setUser(String user) {
-        this.user.set(user);
+        this.user = user;
     }
 
     public void setPrompt(String prompt) {

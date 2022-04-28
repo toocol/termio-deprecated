@@ -69,9 +69,9 @@ record ShellPrinter(Shell shell) {
 
         if (msg.contains(CRLF)) {
             String[] split = msg.split(CRLF);
-            shell.bottomLinePrint.set(split[split.length - 1]);
+            shell.bottomLinePrint = split[split.length - 1];
         } else {
-            shell.bottomLinePrint.set(msg);
+            shell.bottomLinePrint = msg;
         }
 
         printer.print(msg);
@@ -87,9 +87,9 @@ record ShellPrinter(Shell shell) {
         }
         if (msg.contains(CRLF)) {
             String[] split = msg.split(CRLF);
-            shell.bottomLinePrint.set(split[split.length - 1]);
+            shell.bottomLinePrint = split[split.length - 1];
         } else {
-            shell.bottomLinePrint.set(msg);
+            shell.bottomLinePrint = msg;
         }
         printer.print(msg);
     }
@@ -172,7 +172,7 @@ record ShellPrinter(Shell shell) {
 
             String[] split = msg.split("\r\n");
             if (split.length != 0) {
-                shell.bottomLinePrint.set(split[split.length - 1]);
+                shell.bottomLinePrint = split[split.length - 1];
                 for (String input : split) {
                     if (StringUtils.isEmpty(input)) {
                         continue;
@@ -194,7 +194,7 @@ record ShellPrinter(Shell shell) {
             }
         }
 
-        shell.bottomLinePrint.set(msg);
+        shell.bottomLinePrint = msg;
 
         shell.currentPrint.append(msg);
         printer.print(msg);
@@ -209,9 +209,9 @@ record ShellPrinter(Shell shell) {
         }
         if (msg.contains(CRLF)) {
             String[] split = msg.split(CRLF);
-            shell.bottomLinePrint.set(split[split.length - 1]);
+            shell.bottomLinePrint = split[split.length - 1];
         } else {
-            shell.bottomLinePrint.set(msg);
+            shell.bottomLinePrint = msg;
         }
         printer.print(msg);
     }

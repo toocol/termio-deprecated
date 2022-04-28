@@ -1,6 +1,5 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.utilities.action.AbstractCharAction;
 import com.toocol.ssh.utilities.event.CharEvent;
 import com.toocol.ssh.utilities.utils.CharUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
@@ -19,7 +18,7 @@ public final class ActionTab extends ShellCharAction {
 
     @Override
     public boolean act(Shell shell, CharEvent charEvent, char inChar) {
-        if (shell.bottomLinePrint.get().contains(shell.prompt.get())) {
+        if (shell.bottomLinePrint.contains(shell.prompt.get())) {
             Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
             shell.term.setCursorPosition(shell.currentPrint.length() + shell.prompt.get().length(), cursorPosition._2());
         }

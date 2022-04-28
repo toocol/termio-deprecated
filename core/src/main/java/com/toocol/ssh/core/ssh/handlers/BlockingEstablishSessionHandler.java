@@ -15,6 +15,8 @@ import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 
+import java.util.Optional;
+
 import static com.toocol.ssh.core.shell.ShellAddress.*;
 import static com.toocol.ssh.core.ssh.SshAddress.ESTABLISH_SSH_SESSION;
 import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
@@ -52,9 +54,11 @@ public final class BlockingEstablishSessionHandler extends AbstractBlockingMessa
             sessionId = factory.invokeSession(sessionId, credential, eventBus);
             StatusCache.HANGED_ENTER = true;
         }
-        int width = Term.getInstance().getWidth();
-        int height = Term.getInstance().getHeight();
-        sshSessionCache.getChannelShell(sessionId).setPtySize(width, height, width, height);
+        Optional.ofNullable(sshSessionCache.getChannelShell(sessionId)).ifPresent(channelShell -> {
+            int width = Term.getInstance().getWidth();
+            int height = Term.getInstance().getHeight();
+            channelShell.setPtySize(width, height, width, height);
+        });
         StatusCache.HANGED_QUIT = false;
 
         // invoke gc() to clean up already un-use object during initial processing. (it's very efficacious :))
