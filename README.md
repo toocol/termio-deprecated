@@ -22,8 +22,6 @@
 > The program is mainly based on Java OpenJDK 17 with Vert.x and JSch, it's a lightweight command line SSH terminal tool;   
 >  
 > Provide SSH login **credential storage** and **fast login**, as well as the **async sftp function**;  
-> 
-> Vim file editing function is not supported for the time now, and it may be accomplished in the future.  
 
 ### Build with source code 
 ```
@@ -39,21 +37,22 @@
 
 ### Commands
 ```
-Terminal commands:     [param] means optional param
-        help            -- Show holistic executive command.
-        clear           -- Clear the screen.
-        exit            -- Exit terminatio.
-        add             -- Add new ssh connection property. Pattern: 'add --host@user -c=password [-p=port]',
-                        default port is 22.
-        delete          -- Delete ssh connection property. Pattern: 'delete --index', 
-                        for example: 'delete --1'.
-        numbers         -- Select the connection properties.
+ Termio commands:       [param] means optional param
+ help                   Show holistic executive command.
+ flush                  Flush the screen.
+ exit                   Exit Termio.
+ theme                  Change the Termio's color theme.
+ add                    Add new ssh connection property.
+ delete                 Delete ssh connection property.
+ numbers                Select the connection properties.
+ active                 Active the ssh connect session without enter the Shell.
+ mosh                   Use mosh to connect remote device.
 
-
-Shell commands:        [param] means optional param
-        exit            -- Exit current shell, close ssh connection and destroy connect channel.
-        hang            -- Will not close the connection, exit shell with connection running 
-                        in the background.
+ Shell commands:        [param] means optional param
+ exit                   Exit current shell, close ssh connection and destroy connect channel.
+ hang                   Will not close the connection, exit shell with connection running in the background.
+ uf                     Batch upload local files to remote connection.
+ df                     Batch download remote files to local.
 ```
 
 ## License
