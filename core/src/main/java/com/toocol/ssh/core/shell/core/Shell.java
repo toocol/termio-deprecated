@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.shell.core;
 
+import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
@@ -56,9 +57,13 @@ public final class Shell extends AbstractDevice {
      */
     private final EventBus eventBus;
     /**
+     * JSch channel shell
+     */
+    private final ChannelShell channelShell;
+    /**
      * the output/input Stream belong to JSch's channelShell;
      */
-    private final OutputStream outputStream;
+    private OutputStream outputStream;
     private InputStream inputStream;
 
     private volatile boolean returnWrite = false;
@@ -115,12 +120,17 @@ public final class Shell extends AbstractDevice {
         public final String comment;
     }
 
-    public Shell(long sessionId, EventBus eventBus, OutputStream outputStream, InputStream inputStream) {
+    public Shell(long sessionId, EventBus eventBus, ChannelShell channelShell) {
         this.sessionId = sessionId;
         this.eventBus = eventBus;
-        assert outputStream != null && inputStream != null;
-        this.outputStream = outputStream;
-        this.inputStream = inputStream;
+        this.channelShell = channelShell;
+        try {
+            this.outputStream = channelShell.getOutputStream();
+            this.inputStream = channelShell.getInputStream();
+        } catch (IOException e) {
+            Printer.printErr("Get IO failed");
+            System.exit(-1);
+        }
         this.shellPrinter = new ShellPrinter(this);
         this.shellReader = new ShellReader(this, reader);
         this.historyCmdHelper = new HistoryCmdHelper(this);
@@ -290,11 +300,18 @@ public final class Shell extends AbstractDevice {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         assert prompt.get() != null;
         extractUserFromPrompt();
         fullPath.set("/" + user.get());
-        // this InputStream is already invalid.
-        this.inputStream = null;
+
+        try {
+            this.inputStream = channelShell.getInputStream();
+            this.outputStream = channelShell.getOutputStream();
+        } catch (IOException e) {
+            Printer.printErr(e.getMessage());
+        }
+
         this.initOnce = true;
     }
 
@@ -434,4 +451,7 @@ public final class Shell extends AbstractDevice {
         this.fullPath.set(fullPath);
     }
 
+    public InputStream getInputStream() {
+        return inputStream;
+    }
 }

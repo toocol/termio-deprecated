@@ -52,7 +52,7 @@ public final class SshSessionFactory implements ICastable {
             channelShell.connect();
             sshSessionCache.putChannelShell(sessionId, channelShell);
 
-            Shell shell = new Shell(sessionId, eventBus, channelShell.getOutputStream(), channelShell.getInputStream());
+            Shell shell = new Shell(sessionId, eventBus, channelShell);
             shell.setUser(credential.getUser());
             shell.initialFirstCorrespondence();
             sshSessionCache.putShell(sessionId, shell);
@@ -106,7 +106,7 @@ public final class SshSessionFactory implements ICastable {
             }
 
             if (regenerateShell) {
-                Shell shell = new Shell(sessionId, eventBus, channelShell.getOutputStream(), channelShell.getInputStream());
+                Shell shell = new Shell(sessionId, eventBus, channelShell);
                 shell.setUser(credential.getUser());
                 shell.initialFirstCorrespondence();
                 sshSessionCache.putShell(sessionId, shell);

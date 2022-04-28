@@ -63,7 +63,7 @@ public final class BlockingShellDisplayHandler extends AbstractBlockingMessageHa
          * All the remote feedback data is getting from this InputStream.
          * And don't know why, there should get a new InputStream from channelShell.
          **/
-        InputStream in = channelShell.getInputStream();
+        InputStream in = shell.getInputStream();
         byte[] tmp = new byte[1024];
 
         while (true) {
