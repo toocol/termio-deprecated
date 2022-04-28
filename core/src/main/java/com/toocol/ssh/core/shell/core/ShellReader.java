@@ -1,5 +1,7 @@
 package com.toocol.ssh.core.shell.core;
 
+import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.core.term.core.TermStatus;
 import com.toocol.ssh.utilities.utils.CharUtil;
 import jline.console.ConsoleReader;
 import sun.misc.Signal;
@@ -16,6 +18,9 @@ record ShellReader(Shell shell, ConsoleReader reader) {
          * custom handle CTRL+C
          */
         Signal.handle(new Signal("INT"), signal -> {
+            if (Term.status.equals(TermStatus.TERMIO)) {
+                return;
+            }
             try {
                 shell.historyCmdHelper.reset();
                 shell.cmd.delete(0, shell.cmd.length());
