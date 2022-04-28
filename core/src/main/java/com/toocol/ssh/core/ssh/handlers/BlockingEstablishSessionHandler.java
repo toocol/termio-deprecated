@@ -52,6 +52,9 @@ public final class BlockingEstablishSessionHandler extends AbstractBlockingMessa
             sessionId = factory.invokeSession(sessionId, credential, eventBus);
             StatusCache.HANGED_ENTER = true;
         }
+        int width = Term.getInstance().getWidth();
+        int height = Term.getInstance().getHeight();
+        sshSessionCache.getChannelShell(sessionId).setPtySize(width, height, width, height);
         StatusCache.HANGED_QUIT = false;
 
         // invoke gc() to clean up already un-use object during initial processing. (it's very efficacious :))

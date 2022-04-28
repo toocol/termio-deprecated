@@ -3,13 +3,12 @@ package com.toocol.ssh.core.ssh.core;
 import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
-import com.toocol.ssh.utilities.utils.ICastable;
-import com.toocol.ssh.utilities.utils.SnowflakeGuidGenerator;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;
-import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.utilities.utils.ICastable;
+import com.toocol.ssh.utilities.utils.SnowflakeGuidGenerator;
 import io.vertx.core.eventbus.EventBus;
 
 import java.util.Properties;
@@ -49,9 +48,7 @@ public final class SshSessionFactory implements ICastable {
             sshSessionCache.putSession(sessionId, session);
 
             ChannelShell channelShell = cast(session.openChannel("shell"));
-            int width = Term.getInstance().getWidth();
-            int height = Term.getInstance().getHeight();
-            channelShell.setPtyType("xterm", width, height, width, height);
+            channelShell.setPtyType("xterm");
             channelShell.connect();
             sshSessionCache.putChannelShell(sessionId, channelShell);
 
@@ -94,18 +91,14 @@ public final class SshSessionFactory implements ICastable {
 
                 sshSessionCache.stopChannelShell(sessionId);
                 channelShell = cast(session.openChannel("shell"));
-                int width = Term.getInstance().getWidth();
-                int height = Term.getInstance().getHeight();
-                channelShell.setPtyType("xterm", width, height, width, height);
+                channelShell.setPtyType("xterm");
                 channelShell.connect();
                 sshSessionCache.putChannelShell(sessionId, channelShell);
 
             } else if (channelShell.isClosed() || !channelShell.isConnected()) {
 
                 channelShell = cast(session.openChannel("shell"));
-                int width = Term.getInstance().getWidth();
-                int height = Term.getInstance().getHeight();
-                channelShell.setPtyType("xterm", width, height, width, height);
+                channelShell.setPtyType("xterm");
                 channelShell.connect();
                 sshSessionCache.putChannelShell(sessionId, channelShell);
                 regenerateShell = true;

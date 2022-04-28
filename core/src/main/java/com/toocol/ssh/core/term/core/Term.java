@@ -21,6 +21,9 @@ public final class Term extends AbstractDevice {
     public static final int LEFT_MARGIN = 0;
     public static final int TEXT_LEFT_MARGIN = 1;
 
+    public static volatile int WIDTH = CONSOLE.getWindowWidth();
+    public static volatile int HEIGHT = CONSOLE.getWindowHeight();
+
     ConsoleReader reader;
     EventBus eventBus;
     final EscapeHelper escapeHelper;
@@ -96,11 +99,11 @@ public final class Term extends AbstractDevice {
     }
 
     public int getWidth() {
-        return CONSOLE.getWindowWidth();
+        return WIDTH;
     }
 
     public int getHeight() {
-        return CONSOLE.getWindowHeight();
+        return HEIGHT;
     }
 
     public Tuple2<Integer, Integer> getCursorPosition() {

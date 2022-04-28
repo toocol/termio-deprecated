@@ -6,7 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
- * @date: 2022/leftMargin/22 22:03
+ * @date: 2022/4/22 22:03
  * @version: 0.0.1
  */
 public record TermPrinter(Term term) {
