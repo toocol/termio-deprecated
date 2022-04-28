@@ -25,12 +25,12 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-public final class BlockingEstablishSessionHandler extends AbstractBlockingMessageHandler<Long> {
+public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMessageHandler<Long> {
 
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final SshSessionFactory factory = SshSessionFactory.factory();
 
-    public BlockingEstablishSessionHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingEstablishSshSessionHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 

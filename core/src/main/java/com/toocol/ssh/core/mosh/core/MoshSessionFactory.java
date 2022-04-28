@@ -6,35 +6,56 @@ import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
 import com.toocol.ssh.utilities.utils.Tuple2;
+import io.vertx.core.Vertx;
 
 import java.io.InputStream;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/25 19:47
  */
 public class MoshSessionFactory {
-    public static final String LOCAL_IP_ADDRESS = "172.16.30.10";
-    public static final int LOCAL_PORT = 60001;
-    public static final int MAX_BYTES = 2048;
+    private static MoshSessionFactory FACTORY;
 
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final SshSessionFactory sshSessionFactory = SshSessionFactory.factory();
 
+    private final Vertx vertx;
+
+    private MoshSessionFactory(Vertx vertx) {
+        this.vertx = vertx;
+    }
+
+    public static synchronized MoshSessionFactory factory(Vertx vertx) {
+        if (FACTORY != null) {
+            FACTORY = new MoshSessionFactory(vertx);
+        }
+        return FACTORY;
+    }
+
+    /**
+     * creating udp connection to mosh-server and starting data transport;
+     */
+    public MoshSession getSession(int index) {
+        SshCredential credential = CredentialCache.getCredential(index);
+        Tuple2<Integer, String> portKey = sshTouch(credential);
+        if (portKey == null) {
+            return null;
+        }
+        return new MoshSession(vertx, credential.getHost(), portKey._1(), portKey._2()).connect();
+    }
+
     /**
      * touch mosh-server by ssh;
      *
-     * @param index the index of ssh credential
+     * @param credential the ssh credential
      * @return mosh server port / key
      */
-    public Tuple2<Integer, String> sshTouch(int index) {
-        SshCredential credential = CredentialCache.getCredential(index);
+    private Tuple2<Integer, String> sshTouch(SshCredential credential) {
         long sessionId = sshSessionCache.containSession(credential.getHost());
         if (sessionId != 0) {
             sessionId = sshSessionFactory.invokeSession(sessionId, credential, null);
@@ -48,6 +69,7 @@ public class MoshSessionFactory {
         CountDownLatch latch = new CountDownLatch(1);
         try {
             InputStream inputStream = shell.getInputStream();
+            AtomicBoolean failed = new AtomicBoolean(false);
 
             new Thread(() -> {
                 byte[] tmp = new byte[1024];
@@ -69,6 +91,7 @@ public class MoshSessionFactory {
                             }
                         }
                     } catch (Exception e) {
+                        failed.set(true);
                         latch.countDown();
                     }
 
@@ -78,62 +101,13 @@ public class MoshSessionFactory {
             new Thread(() -> shell.writeAndFlush("mosh-server\n".getBytes(StandardCharsets.UTF_8))).start();
 
             boolean suc = latch.await(20, TimeUnit.SECONDS);
-            if (!suc) {
+            if (!suc || failed.get()) {
                 return null;
             }
+            return portKey;
         } catch (Exception e) {
             return null;
         }
-
-        return portKey;
     }
 
-    /**
-     * creating udp connection to mosh-server and starting data transport;
-     */
-    public void tryMosh(String host, int port, String key) {
-        DatagramSocket socket = null;
-        try {
-            InetAddress address = InetAddress.getByName(LOCAL_IP_ADDRESS);
-            socket = new DatagramSocket(LOCAL_PORT, address);
-            byte[] receiveBytes = new byte[MAX_BYTES];
-            DatagramPacket receivePacket = new DatagramPacket(receiveBytes, receiveBytes.length);
-
-            byte[] bytes = key.getBytes(StandardCharsets.UTF_8);
-            DatagramPacket responsePacket = new DatagramPacket(bytes, bytes.length, InetAddress.getByName(host), port);
-            socket.send(responsePacket);
-
-            while (true) {
-                try {
-                    socket.receive(receivePacket);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                String receiveMsg = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                InetAddress clientAddress = receivePacket.getAddress();
-                int clientPort = receivePacket.getPort();
-
-                String response = "response： " + receiveMsg;
-                byte[] responseBuf = response.getBytes();
-                responsePacket = new DatagramPacket(responseBuf, responseBuf.length, clientAddress, clientPort);
-
-                try {
-
-                    socket.send(responsePacket);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    break;
-                }
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (socket != null) {
-                socket.close();
-            }
-        }
-    }
 }

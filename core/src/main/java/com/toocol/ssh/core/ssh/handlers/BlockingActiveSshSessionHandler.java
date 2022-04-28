@@ -18,9 +18,9 @@ import static com.toocol.ssh.core.ssh.SshAddress.ACTIVE_SSH_SESSION;
  * @date: 2022/4/23 20:49
  * @version: 0.0.1
  */
-public final class BlockingActiveSessionHandler extends AbstractBlockingMessageHandler<JsonObject> {
+public final class BlockingActiveSshSessionHandler extends AbstractBlockingMessageHandler<JsonObject> {
 
-    public BlockingActiveSessionHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingActiveSshSessionHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 

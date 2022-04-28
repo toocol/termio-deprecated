@@ -3,8 +3,8 @@ package com.toocol.ssh.core.ssh.vert;
 import com.toocol.ssh.utilities.annotation.RegisterHandler;
 import com.toocol.ssh.utilities.annotation.VerticleDeployment;
 import com.toocol.ssh.utilities.handler.IHandlerMounter;
-import com.toocol.ssh.core.ssh.handlers.BlockingActiveSessionHandler;
-import com.toocol.ssh.core.ssh.handlers.BlockingEstablishSessionHandler;
+import com.toocol.ssh.core.ssh.handlers.BlockingActiveSshSessionHandler;
+import com.toocol.ssh.core.ssh.handlers.BlockingEstablishSshSessionHandler;
 import io.vertx.core.AbstractVerticle;
 
 /**
@@ -14,8 +14,8 @@ import io.vertx.core.AbstractVerticle;
  */
 @VerticleDeployment(worker = true, workerPoolSize = 5, workerPoolName = "ssh-worker-pool")
 @RegisterHandler(handlers = {
-        BlockingActiveSessionHandler.class,
-        BlockingEstablishSessionHandler.class,
+        BlockingActiveSshSessionHandler.class,
+        BlockingEstablishSshSessionHandler.class,
 })
 public class SshVerticle extends AbstractVerticle implements IHandlerMounter {
 
