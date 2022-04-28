@@ -9,8 +9,10 @@ import java.io.PipedInputStream;
  */
 public class MoshInputStream extends PipedInputStream {
 
-    public MoshInputStream() {
+    private static final int DEFAULT_BUFFER_SIZE = 32768;
 
+    public MoshInputStream() {
+        super(DEFAULT_BUFFER_SIZE);
     }
 
 }
