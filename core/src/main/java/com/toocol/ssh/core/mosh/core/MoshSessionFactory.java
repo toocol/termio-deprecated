@@ -1,6 +1,5 @@
 package com.toocol.ssh.core.mosh.core;
 
-import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
@@ -43,13 +42,12 @@ public class MoshSessionFactory {
             sessionId = sshSessionFactory.createSession(credential, null);
         }
 
-        ChannelShell channelShell = sshSessionCache.getChannelShell(sessionId);
         Shell shell = sshSessionCache.getShell(sessionId);
 
         Tuple2<Integer, String> portKey = new Tuple2<>();
         CountDownLatch latch = new CountDownLatch(1);
         try {
-            InputStream inputStream = channelShell.getInputStream();
+            InputStream inputStream = shell.getInputStream();
 
             new Thread(() -> {
                 byte[] tmp = new byte[1024];

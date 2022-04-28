@@ -1,23 +1,25 @@
 package com.toocol.ssh.core.shell.handlers;
 
-import com.jcraft.jsch.ChannelShell;
-import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
-import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
-import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.CmdFeedbackHelper;
 import com.toocol.ssh.core.shell.core.Shell;
-import io.vertx.core.*;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
+import com.toocol.ssh.utilities.utils.StrUtil;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
 import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
+import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -52,15 +54,9 @@ public final class BlockingExecuteCmdInShellHandler extends AbstractBlockingMess
                 BlockingShellDisplayHandler.class
         );
 
-        ChannelShell channelShell = sshSessionCache.getChannelShell(sessionId);
         Shell shell = sshSessionCache.getShell(sessionId);
 
-        if (channelShell == null || shell == null) {
-            promise.fail("ChannelExec or shell is null.");
-            return;
-        }
-
-        InputStream inputStream = channelShell.getInputStream();
+        InputStream inputStream = shell.getInputStream();
         shell.writeAndFlush((cmd + StrUtil.LF).getBytes(StandardCharsets.UTF_8));
 
         String feedback = new CmdFeedbackHelper(inputStream, cmd, shell).extractFeedback();
