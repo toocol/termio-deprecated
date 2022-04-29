@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.shell.handlers;
 
+import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
@@ -36,6 +37,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
 public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHandler<Long> {
 
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
+    private final ShellCache shellCache = ShellCache.getInstance();
 
     public BlockingShellReceiveHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -51,7 +53,7 @@ public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHa
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = true;
 
         long sessionId = cast(message.body());
-        Shell shell = sshSessionCache.getShell(sessionId);
+        Shell shell = shellCache.getShell(sessionId);
 
         shell.writeAndFlush("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
 

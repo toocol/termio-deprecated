@@ -1,13 +1,16 @@
 package com.toocol.ssh.core.shell.handlers;
 
 import com.jcraft.jsch.ChannelExec;
-import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
-import com.toocol.ssh.core.cache.SshSessionCache;
+import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.shell.core.CmdFeedbackHelper;
 import com.toocol.ssh.core.shell.core.ExecChannelProvider;
 import com.toocol.ssh.core.shell.core.Shell;
-import io.vertx.core.*;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
@@ -22,7 +25,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND;
  */
 public final class BlockingExecuteSingleCmdHandler extends AbstractBlockingMessageHandler<String> {
 
-    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
+    private final ShellCache shellCache = ShellCache.getInstance();
     private final ExecChannelProvider execChannelProvider = ExecChannelProvider.getInstance();
 
     public BlockingExecuteSingleCmdHandler(Vertx vertx, Context context, boolean parallel) {
@@ -41,7 +44,7 @@ public final class BlockingExecuteSingleCmdHandler extends AbstractBlockingMessa
         String cmd = request.getString("cmd");
 
         ChannelExec channelExec = execChannelProvider.getChannelExec(sessionId);
-        Shell shell = sshSessionCache.getShell(sessionId);
+        Shell shell = shellCache.getShell(sessionId);
 
         if (channelExec == null || shell == null) {
             promise.fail("ChannelExec or shell is null.");

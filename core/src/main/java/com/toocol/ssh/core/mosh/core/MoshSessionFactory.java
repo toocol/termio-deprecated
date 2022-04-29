@@ -1,14 +1,18 @@
 package com.toocol.ssh.core.mosh.core;
 
+import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
+import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.Vertx;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +35,7 @@ public class MoshSessionFactory {
     }
 
     public static synchronized MoshSessionFactory factory(Vertx vertx) {
-        if (FACTORY != null) {
+        if (FACTORY == null) {
             FACTORY = new MoshSessionFactory(vertx);
         }
         return FACTORY;
@@ -40,22 +44,7 @@ public class MoshSessionFactory {
     /**
      * creating udp connection to mosh-server and starting data transport;
      */
-    public MoshSession getSession(int index) {
-        SshCredential credential = CredentialCache.getCredential(index);
-        Tuple2<Integer, String> portKey = sshTouch(credential);
-        if (portKey == null) {
-            return null;
-        }
-        return new MoshSession(vertx, credential.getHost(), portKey._1(), portKey._2()).connect();
-    }
-
-    /**
-     * touch mosh-server by ssh;
-     *
-     * @param credential the ssh credential
-     * @return mosh server port / key
-     */
-    private Tuple2<Integer, String> sshTouch(SshCredential credential) {
+    public MoshSession getSession(SshCredential credential) {
         long sessionId = sshSessionCache.containSession(credential.getHost());
         if (sessionId != 0) {
             sessionId = sshSessionFactory.invokeSession(sessionId, credential, null);
@@ -63,7 +52,21 @@ public class MoshSessionFactory {
             sessionId = sshSessionFactory.createSession(credential, null);
         }
 
-        Shell shell = sshSessionCache.getShell(sessionId);
+        Tuple2<Integer, String> portKey = sshTouch(sessionId);
+        if (portKey == null) {
+            return null;
+        }
+        return new MoshSession(vertx, sessionId, credential.getHost(), portKey._1(), portKey._2()).connect();
+    }
+
+    /**
+     * touch mosh-server by ssh;
+     *
+     * @return mosh server port / key
+     */
+    private Tuple2<Integer, String> sshTouch(long sessionId) {
+
+        ChannelShell shell = sshSessionCache.getChannelShell(sessionId);
 
         Tuple2<Integer, String> portKey = new Tuple2<>();
         CountDownLatch latch = new CountDownLatch(1);
@@ -98,7 +101,15 @@ public class MoshSessionFactory {
                 }
             }).start();
 
-            new Thread(() -> shell.writeAndFlush("mosh-server\n".getBytes(StandardCharsets.UTF_8))).start();
+            new Thread(() -> {
+                try {
+                    OutputStream outputStream = shell.getOutputStream();
+                    outputStream.write("mosh-server\n".getBytes(StandardCharsets.UTF_8));
+                    outputStream.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
 
             boolean suc = latch.await(20, TimeUnit.SECONDS);
             if (!suc || failed.get()) {

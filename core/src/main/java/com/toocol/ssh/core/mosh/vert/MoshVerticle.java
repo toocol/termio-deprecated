@@ -11,12 +11,13 @@ import io.vertx.core.AbstractVerticle;
  * @date 2022/4/25 19:54
  */
 @VerticleDeployment(worker = true, workerPoolSize = 2, workerPoolName = "mosh-worker-pool")
+//@VerticleDeployment
 @RegisterHandler(handlers = {
         BlockingEstablishMoshSessionHandler.class
 })
 public class MoshVerticle extends AbstractVerticle implements IHandlerMounter {
     @Override
     public void start() throws Exception {
-        mountHandler(vertx, context);
+        mountHandler(vertx, context, true);
     }
 }

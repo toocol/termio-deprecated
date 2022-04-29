@@ -1,6 +1,5 @@
 package com.toocol.ssh.core.mosh.core;
 
-import com.toocol.ssh.core.term.core.Printer;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.datagram.DatagramSocket;
 
@@ -15,49 +14,35 @@ import java.io.PipedOutputStream;
  * @version: 0.0.1
  */
 public class MoshOutputStream extends PipedOutputStream {
-    public record Transport(String serverHost, int port, String key) {
+    public static class Transport {
+        final String serverHost;
+        final int port;
+        final String key;
+
+        public Transport(String serverHost, int port, String key) {
+            this.serverHost = serverHost;
+            this.port = port;
+            this.key = key;
+        }
     }
 
-    private final DatagramSocket socket;
-    private final Transport transport;
-    private final byte[] buff = new byte[1];
-
-    private boolean listened = false;
+    final DatagramSocket socket;
+    final Transport transport;
+    final byte[] buff = new byte[1];
 
     public MoshOutputStream(PipedInputStream in, DatagramSocket socket, Transport transport) throws IOException {
         super(in);
         this.socket = socket;
         this.transport = transport;
-        this.socket.listen(transport.port, "127.0.0.1", result -> {
-            if (result.succeeded()) {
-                socket.handler(packet -> {
-                    try {
-                        byte[] bytes = packet.data().getBytes();
-                        this.write(bytes, 0, bytes.length);
-                    } catch (IOException e) {
-                        Printer.printErr(e.getMessage());
-                    }
-                });
-                listened = true;
-            } else {
-                listened = false;
-            }
-        });
     }
 
     @Override
     public void write(@Nonnull byte[] bytes) throws IOException {
-        if (!listened) {
-            throw new IOException("Bind local mosh port failed.");
-        }
         socket.send(Buffer.buffer(bytes), transport.port, transport.serverHost);
     }
 
     @Override
     public void write(int i) throws IOException {
-        if (!listened) {
-            throw new IOException("Bind local mosh port failed.");
-        }
         this.buff[0] = (byte) i;
         socket.send(Buffer.buffer(this.buff), transport.port, transport.serverHost);
     }

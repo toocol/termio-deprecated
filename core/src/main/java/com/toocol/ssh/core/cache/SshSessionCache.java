@@ -15,6 +15,20 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SshSessionCache {
 
+    public Set<ChannelShell> allChannelShell() {
+        return new HashSet<>(channelShellMap.values());
+    }
+
+    /**
+     * the map stored all alive ssh session.
+     */
+    private final Map<Long, Session> sessionMap = new ConcurrentHashMap<>();
+
+    /**
+     * the map stored all alive ssh channelShell.
+     */
+    private final Map<Long, ChannelShell> channelShellMap = new ConcurrentHashMap<>();
+
     private SshSessionCache() {
     }
 
@@ -64,26 +78,6 @@ public class SshSessionCache {
     public boolean isDisconnect(long sessionId) {
         return !sessionMap.get(sessionId).isConnected() || !channelShellMap.get(sessionId).isConnected();
     }
-
-    public Set<ChannelShell> allChannelShell() {
-        return new HashSet<>(channelShellMap.values());
-    }
-
-    /**
-     * the map stored all alive ssh session.
-     */
-    private final Map<Long, Session> sessionMap = new ConcurrentHashMap<>();
-
-    /**
-     * the map stored all alive ssh channelShell.
-     */
-    private final Map<Long, ChannelShell> channelShellMap = new ConcurrentHashMap<>();
-
-    /**
-     * the map stored all alive ssh session shell's object.
-     */
-    private final Map<Long, Shell> shellMap = new ConcurrentHashMap<>();
-
     public void putSession(Long sessionId, Session session) {
         sessionMap.put(sessionId, session);
     }
@@ -98,14 +92,6 @@ public class SshSessionCache {
 
     public ChannelShell getChannelShell(Long sessionId) {
         return channelShellMap.get(sessionId);
-    }
-
-    public void putShell(Long sessionId, Shell shell) {
-        shellMap.put(sessionId, shell);
-    }
-
-    public Shell getShell(Long sessionId) {
-        return shellMap.get(sessionId);
     }
 
     public void stopChannelShell(long sessionId) {
@@ -124,7 +110,7 @@ public class SshSessionCache {
             v.disconnect();
             return null;
         });
-        shellMap.computeIfPresent(sessionId, (k, v) -> null);
+        ShellCache.getInstance().stop(sessionId);
     }
 
     public void stop(String host) {
@@ -137,7 +123,7 @@ public class SshSessionCache {
             v.disconnect();
             return null;
         });
-        shellMap.computeIfPresent(sessionId, (k, v) -> null);
+        ShellCache.getInstance().stop(sessionId);
     }
 
     public void stopAll() {

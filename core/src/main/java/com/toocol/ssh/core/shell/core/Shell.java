@@ -3,6 +3,7 @@ package com.toocol.ssh.core.shell.core;
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
 import com.toocol.ssh.core.term.core.EscapeHelper;
 import com.toocol.ssh.core.term.core.Printer;
@@ -57,14 +58,18 @@ public final class Shell extends AbstractDevice {
      */
     private final EventBus eventBus;
     /**
-     * JSch channel shell
-     */
-    private final ChannelShell channelShell;
-    /**
      * the output/input Stream belong to JSch's channelShell;
      */
     private OutputStream outputStream;
     private InputStream inputStream;
+    /**
+     * JSch channel shell
+     */
+    private ChannelShell channelShell;
+    /**
+     * Mosh session
+     */
+    private MoshSession moshSession;
 
     private volatile boolean returnWrite = false;
     private volatile boolean promptNow = false;
@@ -118,6 +123,28 @@ public final class Shell extends AbstractDevice {
 
         public final int status;
         public final String comment;
+    }
+
+    public Shell(long sessionId, EventBus eventBus, MoshSession moshSession) {
+        this.sessionId = sessionId;
+        this.eventBus = eventBus;
+        this.moshSession = moshSession;
+        try {
+            this.outputStream = moshSession.getOutputStream();
+            this.inputStream = moshSession.getInputStream();
+        } catch (IOException e) {
+            Printer.printErr("Get IO failed: " + e.getMessage());
+            System.exit(-1);
+        }
+        this.shellPrinter = new ShellPrinter(this);
+        this.shellReader = new ShellReader(this, reader);
+        this.historyCmdHelper = new HistoryCmdHelper(this);
+        this.moreHelper = new MoreHelper();
+        this.escapeHelper = new EscapeHelper();
+        this.vimHelper = new VimHelper();
+        this.shellCharEventDispatcher = new ShellCharEventDispatcher();
+
+        this.shellReader.initReader();
     }
 
     public Shell(long sessionId, EventBus eventBus, ChannelShell channelShell) {
@@ -262,6 +289,9 @@ public final class Shell extends AbstractDevice {
                 try {
                     byte[] tmp = new byte[1024];
                     long startTime = System.currentTimeMillis();
+                    if (channelShell == null) {
+                        promptNow = true;
+                    }
                     while (true) {
                         while (inputStream.available() > 0) {
                             int i = inputStream.read(tmp, 0, 1024);
@@ -306,8 +336,10 @@ public final class Shell extends AbstractDevice {
         fullPath.set("/" + user);
 
         try {
-            this.inputStream = channelShell.getInputStream();
-            this.outputStream = channelShell.getOutputStream();
+            if (channelShell != null) {
+                this.inputStream = channelShell.getInputStream();
+                this.outputStream = channelShell.getOutputStream();
+            }
         } catch (IOException e) {
             Printer.printErr(e.getMessage());
         }
@@ -393,6 +425,16 @@ public final class Shell extends AbstractDevice {
 
     public void printErr(String err) {
         shellPrinter.printErr(err);
+    }
+
+    public boolean isClosed() {
+        if (channelShell != null) {
+            return channelShell.isClosed();
+        }
+        if (moshSession != null) {
+            return !moshSession.isConnected();
+        }
+        return true;
     }
 
     public void clearRemoteCmd() {

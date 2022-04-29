@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.handlers;
 
-import com.toocol.ssh.core.cache.SshSessionCache;
+import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.CmdFeedbackHelper;
 import com.toocol.ssh.core.shell.core.Shell;
@@ -28,7 +28,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND_IN_C
  */
 public final class BlockingExecuteCmdInShellHandler extends AbstractBlockingMessageHandler<String> {
 
-    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
+    private final ShellCache shellCache = ShellCache.getInstance();
 
     public BlockingExecuteCmdInShellHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -54,7 +54,7 @@ public final class BlockingExecuteCmdInShellHandler extends AbstractBlockingMess
                 BlockingShellDisplayHandler.class
         );
 
-        Shell shell = sshSessionCache.getShell(sessionId);
+        Shell shell = shellCache.getShell(sessionId);
 
         InputStream inputStream = shell.getInputStream();
         shell.writeAndFlush((cmd + StrUtil.LF).getBytes(StandardCharsets.UTF_8));

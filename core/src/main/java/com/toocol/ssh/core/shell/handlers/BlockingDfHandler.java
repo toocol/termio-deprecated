@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.shell.handlers;
 
 import com.jcraft.jsch.ChannelSftp;
+import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.cache.SshSessionCache;
@@ -55,7 +56,7 @@ public final class BlockingDfHandler extends AbstractBlockingMessageHandler<byte
 
         ChannelSftp channelSftp = sftpChannelProvider.getChannelSftp(sessionId);
         if (channelSftp == null) {
-            SshSessionCache.getInstance().getShell(sessionId).printErr("Create sftp channel failed.");
+            ShellCache.getInstance().getShell(sessionId).printErr("Create sftp channel failed.");
             promise.complete();
             return;
         }
@@ -73,7 +74,7 @@ public final class BlockingDfHandler extends AbstractBlockingMessageHandler<byte
             });
             latch.await();
 
-            Shell shell = SshSessionCache.getInstance().getShell(sessionId);
+            Shell shell = ShellCache.getInstance().getShell(sessionId);
             Printer.print(shell.getPrompt());
 
             String storagePath = localPathBuilder.toString();

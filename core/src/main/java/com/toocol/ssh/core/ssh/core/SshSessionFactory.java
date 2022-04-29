@@ -4,6 +4,7 @@ import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.toocol.ssh.core.auth.core.SshCredential;
+import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;
@@ -51,11 +52,6 @@ public final class SshSessionFactory implements ICastable {
             channelShell.setPtyType("xterm");
             channelShell.connect();
             sshSessionCache.putChannelShell(sessionId, channelShell);
-
-            Shell shell = new Shell(sessionId, eventBus, channelShell);
-            shell.setUser(credential.getUser());
-            shell.initialFirstCorrespondence();
-            sshSessionCache.putShell(sessionId, shell);
         } catch (Exception e) {
             sessionId = -1;
         }
@@ -65,12 +61,12 @@ public final class SshSessionFactory implements ICastable {
     public long invokeSession(long sessionId, SshCredential credential, EventBus eventBus) {
         try {
             boolean reopenChannelShell = false;
-            boolean regenerateShell = false;
             Session session = sshSessionCache.getSession(sessionId);
             if (!session.isConnected()) {
                 try {
                     session.connect();
                 } catch (Exception e) {
+                    sessionId = guidGenerator.nextId();
                     session = jSch.getSession(credential.getUser(), credential.getHost(), credential.getPort());
                     session.setPassword(credential.getPassword());
                     session.setUserInfo(new SshUserInfo());
@@ -83,7 +79,6 @@ public final class SshSessionFactory implements ICastable {
                     sshSessionCache.putSession(sessionId, session);
                 }
                 reopenChannelShell = true;
-                regenerateShell = true;
             }
 
             ChannelShell channelShell = sshSessionCache.getChannelShell(sessionId);
@@ -101,15 +96,7 @@ public final class SshSessionFactory implements ICastable {
                 channelShell.setPtyType("xterm");
                 channelShell.connect();
                 sshSessionCache.putChannelShell(sessionId, channelShell);
-                regenerateShell = true;
 
-            }
-
-            if (regenerateShell) {
-                Shell shell = new Shell(sessionId, eventBus, channelShell);
-                shell.setUser(credential.getUser());
-                shell.initialFirstCorrespondence();
-                sshSessionCache.putShell(sessionId, shell);
             }
         } catch (Exception e) {
             sessionId = -1;

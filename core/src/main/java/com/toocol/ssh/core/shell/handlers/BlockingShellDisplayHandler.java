@@ -1,13 +1,14 @@
 package com.toocol.ssh.core.shell.handlers;
 
 import com.jcraft.jsch.ChannelShell;
-import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
-import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
+import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -27,6 +28,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
 public final class BlockingShellDisplayHandler extends AbstractBlockingMessageHandler<Long> {
 
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
+    private final ShellCache shellCache = ShellCache.getInstance();
 
     private volatile boolean cmdHasFeedbackWhenJustExit = false;
 
@@ -45,8 +47,7 @@ public final class BlockingShellDisplayHandler extends AbstractBlockingMessageHa
     protected <T> void handleWithinBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         long sessionId = cast(message.body());
 
-        ChannelShell channelShell = sshSessionCache.getChannelShell(sessionId);
-        Shell shell = sshSessionCache.getShell(sessionId);
+        Shell shell = shellCache.getShell(sessionId);
 
         if (shell.getWelcome() != null && StatusCache.SHOW_WELCOME) {
             Printer.print(shell.getWelcome());
@@ -89,7 +90,7 @@ public final class BlockingShellDisplayHandler extends AbstractBlockingMessageHa
                 }
                 break;
             }
-            if (channelShell.isClosed()) {
+            if (shell.isClosed()) {
                 if (in.available() > 0) {
                     continue;
                 }

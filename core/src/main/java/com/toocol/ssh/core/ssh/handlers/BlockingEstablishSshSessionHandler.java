@@ -1,5 +1,7 @@
 package com.toocol.ssh.core.ssh.handlers;
 
+import com.toocol.ssh.core.cache.ShellCache;
+import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.auth.core.SshCredential;
@@ -28,6 +30,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
 public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMessageHandler<Long> {
 
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
+    private final ShellCache shellCache = ShellCache.getInstance();
     private final SshSessionFactory factory = SshSessionFactory.factory();
 
     public BlockingEstablishSshSessionHandler(Vertx vertx, Context context, boolean parallel) {
@@ -50,10 +53,25 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMe
         if (sessionId == 0) {
             StatusCache.HANGED_ENTER = false;
             sessionId = factory.createSession(credential, eventBus);
+
+            Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
+            shell.setUser(credential.getUser());
+            shell.initialFirstCorrespondence();
+            shellCache.putShell(sessionId, shell);
         } else {
-            sessionId = factory.invokeSession(sessionId, credential, eventBus);
             StatusCache.HANGED_ENTER = true;
+            long newSessionId = factory.invokeSession(sessionId, credential, eventBus);
+
+            if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
+                Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
+                shell.setUser(credential.getUser());
+                shell.initialFirstCorrespondence();
+                shellCache.putShell(sessionId, shell);
+                sessionId = newSessionId;
+            }
         }
+
+
         Optional.ofNullable(sshSessionCache.getChannelShell(sessionId)).ifPresent(channelShell -> {
             int width = Term.getInstance().getWidth();
             int height = Term.getInstance().getHeight();
