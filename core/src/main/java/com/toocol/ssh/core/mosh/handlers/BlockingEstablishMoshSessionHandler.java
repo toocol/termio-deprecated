@@ -49,7 +49,6 @@ public class BlockingEstablishMoshSessionHandler extends AbstractBlockingMessage
             try {
                 Shell shell = new Shell(sessionId, eventBus, session);
                 shell.setUser(credential.getUser());
-                shell.resetIO(ShellProtocol.MOSH);
                 shell.initialFirstCorrespondence(ShellProtocol.MOSH);
                 shellCache.putShell(sessionId, shell);
 

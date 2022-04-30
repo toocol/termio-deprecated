@@ -57,7 +57,6 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMe
 
             Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
             shell.setUser(credential.getUser());
-            shell.resetIO(ShellProtocol.SSH);
             shell.initialFirstCorrespondence(ShellProtocol.SSH);
             shellCache.putShell(sessionId, shell);
         } else {
@@ -67,7 +66,6 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMe
             if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
                 Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
                 shell.setUser(credential.getUser());
-                shell.resetIO(ShellProtocol.SSH);
                 shell.initialFirstCorrespondence(ShellProtocol.SSH);
                 shellCache.putShell(sessionId, shell);
             } else {

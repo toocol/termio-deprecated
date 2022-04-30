@@ -155,6 +155,7 @@ public final class Shell extends AbstractDevice {
         this.vimHelper = new VimHelper();
         this.shellCharEventDispatcher = new ShellCharEventDispatcher();
 
+        this.resetIO(ShellProtocol.MOSH);
         this.shellReader.initReader();
     }
 
@@ -170,6 +171,7 @@ public final class Shell extends AbstractDevice {
         this.vimHelper = new VimHelper();
         this.shellCharEventDispatcher = new ShellCharEventDispatcher();
 
+        this.resetIO(ShellProtocol.SSH);
         this.shellReader.initReader();
     }
 

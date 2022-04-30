@@ -29,13 +29,13 @@ public class MoshPacket {
         this.direction = direction;
     }
 
+    public byte[] getBytes() {
+        return Crypto.encrypt(toMessage());
+    }
+
     Crypto.Message toMessage() {
         long directionSeq = (direction.idx << 63) | (seq & SEQUENCE_MASK);
         String timestamps = "";
         return new Crypto.Message(new Crypto.Nonce(directionSeq), timestamps + payload);
-    }
-
-    public byte[] getBytes() {
-        return Crypto.encrypt(toMessage());
     }
 }
