@@ -47,7 +47,6 @@ public class BlockingEstablishMoshSessionHandler extends AbstractBlockingMessage
         // let event loop thread pool to handler udp packet receive.
         vertx.eventBus().request(LISTEN_LOCAL_SOCKET.address(), sessionId, messageAsyncResult -> {
             try {
-                Term.getInstance().printDisplay(Thread.currentThread().getName());
                 Shell shell = new Shell(sessionId, eventBus, session);
                 shell.setUser(credential.getUser());
                 shell.resetIO(ShellProtocol.MOSH);
