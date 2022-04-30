@@ -3,6 +3,7 @@ package com.toocol.ssh.core.mosh.core;
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
+import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.shell.core.Shell;
@@ -27,6 +28,7 @@ public class MoshSessionFactory {
 
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final SshSessionFactory sshSessionFactory = SshSessionFactory.factory();
+    private final MoshSessionCache moshSessionCache = MoshSessionCache.getInstance();
 
     private final Vertx vertx;
 
@@ -56,7 +58,9 @@ public class MoshSessionFactory {
         if (portKey == null) {
             return null;
         }
-        return new MoshSession(vertx, sessionId, credential.getHost(), portKey._1(), portKey._2()).connect();
+        MoshSession moshSession = new MoshSession(vertx, sessionId, credential.getHost(), portKey._1(), portKey._2());
+        moshSessionCache.put(moshSession);
+        return moshSession;
     }
 
     /**

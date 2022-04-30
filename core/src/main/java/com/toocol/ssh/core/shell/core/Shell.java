@@ -125,17 +125,28 @@ public final class Shell extends AbstractDevice {
         public final String comment;
     }
 
+    public void resetIO(ShellProtocol protocol) {
+        try {
+            switch (protocol) {
+                case SSH -> {
+                    this.inputStream = channelShell.getInputStream();
+                    this.outputStream = channelShell.getOutputStream();
+                }
+                case MOSH -> {
+                    this.inputStream = moshSession.getInputStream();
+                    this.outputStream = moshSession.getOutputStream();
+                }
+            }
+        } catch (Exception e) {
+            Printer.printErr("Reset IO failed: " + e.getMessage());
+            System.exit(-1);
+        }
+    }
+
     public Shell(long sessionId, EventBus eventBus, MoshSession moshSession) {
         this.sessionId = sessionId;
         this.eventBus = eventBus;
         this.moshSession = moshSession;
-        try {
-            this.outputStream = moshSession.getOutputStream();
-            this.inputStream = moshSession.getInputStream();
-        } catch (IOException e) {
-            Printer.printErr("Get IO failed: " + e.getMessage());
-            System.exit(-1);
-        }
         this.shellPrinter = new ShellPrinter(this);
         this.shellReader = new ShellReader(this, reader);
         this.historyCmdHelper = new HistoryCmdHelper(this);
@@ -151,13 +162,6 @@ public final class Shell extends AbstractDevice {
         this.sessionId = sessionId;
         this.eventBus = eventBus;
         this.channelShell = channelShell;
-        try {
-            this.outputStream = channelShell.getOutputStream();
-            this.inputStream = channelShell.getInputStream();
-        } catch (IOException e) {
-            Printer.printErr("Get IO failed");
-            System.exit(-1);
-        }
         this.shellPrinter = new ShellPrinter(this);
         this.shellReader = new ShellReader(this, reader);
         this.historyCmdHelper = new HistoryCmdHelper(this);
@@ -246,7 +250,7 @@ public final class Shell extends AbstractDevice {
     }
 
     @SuppressWarnings("all")
-    public void initialFirstCorrespondence() {
+    public void initialFirstCorrespondence(ShellProtocol protocol) {
         if (initOnce) {
             return;
         }
@@ -335,15 +339,7 @@ public final class Shell extends AbstractDevice {
         extractUserFromPrompt();
         fullPath.set("/" + user);
 
-        try {
-            if (channelShell != null) {
-                this.inputStream = channelShell.getInputStream();
-                this.outputStream = channelShell.getOutputStream();
-            }
-        } catch (IOException e) {
-            Printer.printErr(e.getMessage());
-        }
-
+        resetIO(protocol);
         this.initOnce = true;
     }
 

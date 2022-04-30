@@ -2,6 +2,7 @@ package com.toocol.ssh.core.ssh.handlers;
 
 import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.auth.core.SshCredential;
@@ -56,7 +57,8 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMe
 
             Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
             shell.setUser(credential.getUser());
-            shell.initialFirstCorrespondence();
+            shell.resetIO(ShellProtocol.SSH);
+            shell.initialFirstCorrespondence(ShellProtocol.SSH);
             shellCache.putShell(sessionId, shell);
         } else {
             StatusCache.HANGED_ENTER = true;
@@ -65,10 +67,13 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMe
             if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
                 Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
                 shell.setUser(credential.getUser());
-                shell.initialFirstCorrespondence();
+                shell.resetIO(ShellProtocol.SSH);
+                shell.initialFirstCorrespondence(ShellProtocol.SSH);
                 shellCache.putShell(sessionId, shell);
-                sessionId = newSessionId;
+            } else {
+                shellCache.getShell(newSessionId).resetIO(ShellProtocol.SSH);
             }
+            sessionId = newSessionId;
         }
 
 

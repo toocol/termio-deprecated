@@ -30,6 +30,10 @@ public class MoshSessionCache {
         moshSessionMap.put(moshSession.getSessionId(), moshSession);
     }
 
+    public MoshSession get(long sessionId) {
+        return moshSessionMap.get(sessionId);
+    }
+
     public boolean containSession(long sessionId) {
         return moshSessionMap.containsKey(sessionId);
     }
