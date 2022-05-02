@@ -23,19 +23,34 @@ public class MoshPacket {
     private final long seq = Crypto.unique();
     private final Direction direction;
     private final String payload;
+    private final short timestamp;
+    private final short timestampReply;
 
-    public MoshPacket(String payload, Direction direction) {
+    public MoshPacket(String payload, Direction direction, short timestamp, short timestampReply) {
         this.payload = payload;
         this.direction = direction;
+        this.timestamp = timestamp;
+        this.timestampReply = timestampReply;
     }
 
-    public byte[] getBytes() {
-        return Crypto.encrypt(toMessage());
+    public byte[] getBytes(String printableKey) {
+        return Crypto.encrypt(printableKey, toMessage());
     }
 
-    Crypto.Message toMessage() {
+    private Crypto.Message toMessage() {
         long directionSeq = (direction.idx << 63) | (seq & SEQUENCE_MASK);
-        String timestamps = "";
+
+        String timestamps = new String(timestampsMerge());
+
         return new Crypto.Message(new Crypto.Nonce(directionSeq), timestamps + payload);
+    }
+
+    private byte[] timestampsMerge() {
+        byte[] timestampBytes = ByteOrder.htobe16(timestamp);
+        byte[] timestampReplyBytes = ByteOrder.htobe16(timestampReply);
+        byte[] target = new byte[4];
+        System.arraycopy(timestampBytes, 0, target, 0, 2);
+        System.arraycopy(timestampReplyBytes, 0, target, 2, 2);
+        return target;
     }
 }

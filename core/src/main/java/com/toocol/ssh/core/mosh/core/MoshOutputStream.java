@@ -12,6 +12,8 @@ import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 
 /**
+ * Equivalent to network.h/network.cc
+ *
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/28 22:17
  * @version: 0.0.1
@@ -34,6 +36,14 @@ public class MoshOutputStream extends PipedOutputStream {
     final Transport transport;
     final byte[] buff = new byte[1];
 
+    private short savedTimestamp;
+    private long savedTimestampReceivedAt;
+    private long expectedReceiverSeq;
+
+    private long lastHeard;
+    private long lastPortChoice;
+    private long lastRoundtripSuccess;
+
     public MoshOutputStream(PipedInputStream in, DatagramSocket socket, Transport transport) throws IOException {
         super(in);
         this.socket = socket;
@@ -41,8 +51,8 @@ public class MoshOutputStream extends PipedOutputStream {
     }
 
     public void sendPacket(byte[] bytes) {
-        MoshPacket packet = new MoshPacket(new String(bytes, StandardCharsets.UTF_8), MoshPacket.Direction.TO_SERVER);
-        socket.send(Buffer.buffer(packet.getBytes()), transport.port, transport.serverHost);
+        MoshPacket packet = newPacket(bytes);
+        socket.send(Buffer.buffer(packet.getBytes(transport.key)), transport.port, transport.serverHost);
     }
 
     public void receivePacket(DatagramPacket datagramPacket) {
@@ -69,5 +79,24 @@ public class MoshOutputStream extends PipedOutputStream {
     public void close() throws IOException {
         super.close();
         this.socket.close();
+    }
+
+    private MoshPacket newPacket(byte[] bytes) {
+        short outgoingTimestampReply = -1;
+
+        long now = Timestamp.timestamp();
+
+        if (now - savedTimestampReceivedAt < 1000) {
+            outgoingTimestampReply = (short) (savedTimestamp + (short) (now - savedTimestampReceivedAt));
+            savedTimestamp = -1;
+            savedTimestampReceivedAt = -1;
+        }
+
+        return new MoshPacket(
+                new String(bytes, StandardCharsets.UTF_8),
+                MoshPacket.Direction.TO_SERVER,
+                Timestamp.timestamp16(),
+                outgoingTimestampReply
+        );
     }
 }

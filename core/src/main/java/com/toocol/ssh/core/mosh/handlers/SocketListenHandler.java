@@ -7,6 +7,8 @@ import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
+import java.util.Optional;
+
 import static com.toocol.ssh.core.mosh.MoshAddress.LISTEN_LOCAL_SOCKET;
 
 /**
@@ -24,7 +26,8 @@ public class SocketListenHandler extends AbstractMessageHandler {
 
     @Override
     public <T> void handle(Message<T> message) {
-        moshSessionCache.get(cast(message.body())).connect(message);
+        Optional.ofNullable(moshSessionCache.get(cast(message.body())))
+                .ifPresent(moshSession -> moshSession.connect(message));
     }
 
     @Override

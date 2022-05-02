@@ -25,4 +25,11 @@ public class ByteOrder {
         };
     }
 
+    public static byte[] htobe16(short x) {
+        return new byte[] {
+                (byte) ((x >> 8) & 0xFF),
+                (byte) ((x) & 0xFF),
+        };
+    }
+
 }
