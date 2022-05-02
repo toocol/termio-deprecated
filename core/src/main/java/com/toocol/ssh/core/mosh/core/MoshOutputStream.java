@@ -19,6 +19,9 @@ import java.nio.charset.StandardCharsets;
  * @version: 0.0.1
  */
 public class MoshOutputStream extends PipedOutputStream {
+
+    private static final int DEFAULT_BUFF_SIZE = 1024 * 10;
+
     @SuppressWarnings("all")
     public static class Transport {
         final String serverHost;
@@ -34,7 +37,9 @@ public class MoshOutputStream extends PipedOutputStream {
 
     final DatagramSocket socket;
     final Transport transport;
-    final byte[] buff = new byte[1];
+    final byte[] buff = new byte[DEFAULT_BUFF_SIZE];
+
+    private int curlen = 0;
 
     private short savedTimestamp;
     private long savedTimestampReceivedAt;
@@ -50,8 +55,12 @@ public class MoshOutputStream extends PipedOutputStream {
         this.transport = transport;
     }
 
-    public void sendPacket(byte[] bytes) {
-        MoshPacket packet = newPacket(bytes);
+    public void sendPacket() {
+        byte[] cutOff = new byte[curlen];
+        System.arraycopy(buff, 0, cutOff, 0, curlen);
+        curlen = 0;
+
+        MoshPacket packet = newPacket(cutOff);
         socket.send(Buffer.buffer(packet.getBytes(transport.key)), transport.port, transport.serverHost);
     }
 
@@ -59,6 +68,7 @@ public class MoshOutputStream extends PipedOutputStream {
         try {
             byte[] bytes = datagramPacket.data().getBytes();
             this.write(bytes, 0, bytes.length);
+            super.flush();
         } catch (IOException e) {
             Printer.printErr(e.getMessage());
         }
@@ -66,13 +76,22 @@ public class MoshOutputStream extends PipedOutputStream {
 
     @Override
     public void write(@Nonnull byte[] bytes) throws IOException {
-        sendPacket(bytes);
+        System.arraycopy(bytes, 0, buff, curlen, bytes.length);
+        curlen+=bytes.length;
     }
 
     @Override
     public void write(int i) throws IOException {
-        this.buff[0] = (byte) i;
-        sendPacket(this.buff);
+        this.buff[curlen++] = (byte) i;
+    }
+
+    @Override
+    public synchronized void flush() throws IOException {
+        try {
+            sendPacket();
+        } catch (Exception e) {
+            throw new IOException("Send packet failed");
+        }
     }
 
     @Override

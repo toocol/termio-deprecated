@@ -86,6 +86,7 @@ public class Crypto {
 
         public AlignedBuffer(int len) {
             this.len = len;
+            this.data = new byte[len];
         }
     }
 

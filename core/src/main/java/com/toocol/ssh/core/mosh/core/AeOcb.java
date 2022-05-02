@@ -27,7 +27,7 @@ public class AeOcb {
             AeCtx ctx,
             byte[] nonce,
             byte[] plaintext,
-            long plaintextLen,
+            int plaintextLen,
             byte[] ad,
             long adLen,
             byte[] ciphertext,
@@ -35,6 +35,6 @@ public class AeOcb {
             int finalize
     ) {
         // todo: fulfill
-        return 0;
+        return plaintextLen + 16;
     }
 }
