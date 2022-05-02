@@ -56,6 +56,9 @@ public class MoshOutputStream extends PipedOutputStream {
     }
 
     public void sendPacket() {
+        if (curlen == 0) {
+            return;
+        }
         byte[] cutOff = new byte[curlen];
         System.arraycopy(buff, 0, cutOff, 0, curlen);
         curlen = 0;
