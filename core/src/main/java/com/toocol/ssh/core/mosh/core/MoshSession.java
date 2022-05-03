@@ -74,18 +74,10 @@ public class MoshSession {
         return this.io.outputStream;
     }
 
-    public IO getIo() {
-        return io;
-    }
-
-    public Vertx getVertx() {
-        return vertx;
-    }
-
     public void close() {
         try {
-            this.socket.close();
             this.connected = false;
+            this.socket.close();
             this.io.outputStream.close();
             this.io.inputStream.close();
         } catch (Exception e) {

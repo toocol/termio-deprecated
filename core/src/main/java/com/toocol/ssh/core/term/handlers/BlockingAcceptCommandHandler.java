@@ -65,26 +65,9 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
                 CountDownLatch latch = new CountDownLatch(1);
                 AtomicBoolean isBreak = new AtomicBoolean();
 
-                boolean isCommand = TermioCommand.cmdOf(cmd).map(cmdCommand -> {
-                    eventBus.request(EXECUTE_OUTSIDE.address(), cmd, result -> {
-                        String msg = cast(result.result().body());
-                        if (StringUtils.isNotEmpty(msg)) {
-                            term.printDisplay(msg);
-                        } else {
-                            TermPrinter.DISPLAY_BUFF = StrUtil.EMPTY;
-                        }
-
-                        if (TermioCommand.CMD_NUMBER.equals(cmdCommand) && StringUtils.isEmpty(msg)) {
-                            isBreak.set(true);
-                        }
-
-                        latch.countDown();
-                    });
-
-                    return true;
-                }).orElseGet(() -> {
+                eventBus.request(EXECUTE_OUTSIDE.address(), cmd, result -> {
+                    isBreak.set(cast(result.result().body()));
                     latch.countDown();
-                    return false;
                 });
 
                 latch.await();
@@ -98,14 +81,6 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
                     StatusCache.STOP_ACCEPT_OUT_COMMAND = false;
                     promise.complete(false);
                     break;
-                }
-                if (!isCommand && StringUtils.isNotEmpty(cmd)) {
-                    AnisStringBuilder builder = new AnisStringBuilder().background(Term.theme.displayBackGroundColor)
-                            .front(Term.theme.commandHighlightColor)
-                            .append(cmd)
-                            .deFront()
-                            .append(": command not found.");
-                    term.printDisplay(builder.toString());
                 }
             }
         } catch (Exception e) {

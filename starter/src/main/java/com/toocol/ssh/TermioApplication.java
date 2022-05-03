@@ -97,7 +97,7 @@ public class TermioApplication {
                         if (result.succeeded()) {
                             initialLatch.countDown();
                         } else {
-                            Printer.printErr("Terminal start up failed, verticle = " + verticleClass.getSimpleName());
+                            Printer.printErr("Termio start up failed, verticle = " + verticleClass.getSimpleName());
                             vertx.close();
                             System.exit(-1);
                         }

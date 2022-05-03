@@ -1,6 +1,5 @@
 package com.toocol.ssh.core.term.core;
 
-import com.google.common.util.concurrent.RateLimiter;
 import com.toocol.ssh.core.term.handlers.DynamicEchoHandler;
 import com.toocol.ssh.utilities.utils.CharUtil;
 import com.toocol.ssh.utilities.utils.StrUtil;
@@ -19,11 +18,6 @@ public record TermReader(Term term) {
         term.executeCursorOldX.set(term.getCursorPosition()._1());
         try {
             while (true) {
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                    // do nothing
-                }
                 char inChar = (char) term.reader.readCharacter();
                 char finalChar = term.escapeHelper.processArrowStream(inChar);
 

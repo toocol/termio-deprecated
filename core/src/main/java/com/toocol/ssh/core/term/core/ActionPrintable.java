@@ -22,12 +22,12 @@ public final class ActionPrintable extends TermCharAction {
         if (inChar == CharUtil.SPACE && term.lineBuilder.length() == 0) {
             return false;
         }
-        Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
-        if (cursorPosition._1() >= term.getWidth() - 1) {
+        int cursorX = term.executeCursorOldX.get();
+        if (cursorX >= term.getWidth() - 1) {
             return false;
         }
-        if (cursorPosition._1() < term.lineBuilder.length() + Term.getPromptLen()) {
-            int index = cursorPosition._1() - Term.getPromptLen();
+        if (cursorX < term.lineBuilder.length() + Term.getPromptLen()) {
+            int index = cursorX - Term.getPromptLen();
             if (index == 0 && inChar == CharUtil.SPACE) {
                 return false;
             }

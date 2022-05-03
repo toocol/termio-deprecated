@@ -1,13 +1,20 @@
 package com.toocol.ssh.core.term.handlers;
 
-import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractMessageHandler;
-import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.term.commands.TermioCommand;
 import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.core.term.core.TermPrinter;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.anis.AnisStringBuilder;
+import com.toocol.ssh.utilities.handler.AbstractMessageHandler;
+import com.toocol.ssh.utilities.utils.StrUtil;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.toocol.ssh.core.term.TermAddress.EXECUTE_OUTSIDE;
 
@@ -22,6 +29,8 @@ public final class ExecuteCommandHandler extends AbstractMessageHandler {
         super(vertx, context);
     }
 
+    private final Term term = Term.getInstance();
+
     @Override
     public IAddress consume() {
         return EXECUTE_OUTSIDE;
@@ -30,15 +39,38 @@ public final class ExecuteCommandHandler extends AbstractMessageHandler {
     @Override
     public <T> void handle(Message<T> message) {
         String cmd = String.valueOf(message.body());
+
         Tuple2<Boolean, String> resultAndMessage = new Tuple2<>();
-        TermioCommand.cmdOf(cmd)
-                .ifPresent(termioCommand -> {
+        AtomicBoolean isBreak = new AtomicBoolean();
+        boolean isCommand = TermioCommand.cmdOf(cmd)
+                .map(termioCommand -> {
                     try {
                         termioCommand.processCmd(eventBus, cmd, resultAndMessage);
+                        if (TermioCommand.CMD_NUMBER.equals(termioCommand) && StringUtils.isEmpty(resultAndMessage._2())) {
+                            isBreak.set(true);
+                        }
                     } catch (Exception e) {
                         Printer.printErr("Execute command failed, message = " + e.getMessage());
                     }
-                });
-        message.reply(resultAndMessage._2());
+                    return true;
+                }).orElse(false);
+
+        String msg = resultAndMessage._2();
+        if (StringUtils.isNotEmpty(msg)) {
+            term.printDisplay(msg);
+        } else {
+            TermPrinter.DISPLAY_BUFF = StrUtil.EMPTY;
+        }
+
+        if (!isCommand && StringUtils.isNotEmpty(cmd)) {
+            AnisStringBuilder builder = new AnisStringBuilder().background(Term.theme.displayBackGroundColor)
+                    .front(Term.theme.commandHighlightColor)
+                    .append(cmd)
+                    .deFront()
+                    .append(": command not found.");
+            term.printDisplay(builder.toString());
+        }
+
+        message.reply(isBreak.get());
     }
 }
