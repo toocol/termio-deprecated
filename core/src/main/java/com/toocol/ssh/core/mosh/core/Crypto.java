@@ -21,7 +21,7 @@ public class Crypto {
         private final byte[] bytes = new byte[NONCE_LEN];
 
         public Nonce(long directionSeq) {
-            System.arraycopy(ByteOrder.htobe64(directionSeq), 0, this.bytes, 4, 8);
+            System.arraycopy(ByteOrder.htoBe64(directionSeq), 0, this.bytes, 4, 8);
         }
 
         public byte[] data() {
@@ -99,9 +99,9 @@ public class Crypto {
         private AlignedBuffer ctxBuf;
         private long blocksEncrypted;
 
-        AlignedBuffer plaintextBuffer;
-        AlignedBuffer ciphertextBuffer;
-        AlignedBuffer nonceBuffer;
+        private AlignedBuffer plaintextBuffer;
+        private AlignedBuffer ciphertextBuffer;
+        private AlignedBuffer nonceBuffer;
 
         public Session(Base64Key key) {
             this.key = key;
@@ -109,7 +109,11 @@ public class Crypto {
             this.plaintextBuffer = new AlignedBuffer(RECEIVE_MTU);
             this.ciphertextBuffer = new AlignedBuffer(RECEIVE_MTU);
             this.nonceBuffer = new AlignedBuffer(Nonce.NONCE_LEN);
-            this.ctx = AeOcb.aeInit(key.key, 16, 12, 16);
+            this.ctx = new AeOcb.AeCtx();
+
+            if (AeOcb.AE_SUCCESS != AeOcb.aeInit(this.ctx, key.key, 16, 12, 16)) {
+                throw new CryptoException("Could not initialize AES-OCB context.");
+            }
         }
 
         public byte[] encrypt(Message plainText) {

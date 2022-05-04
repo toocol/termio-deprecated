@@ -46,8 +46,8 @@ public class MoshPacket {
     }
 
     private byte[] timestampsMerge() {
-        byte[] timestampBytes = ByteOrder.htobe16(timestamp);
-        byte[] timestampReplyBytes = ByteOrder.htobe16(timestampReply);
+        byte[] timestampBytes = ByteOrder.htoBe16(timestamp);
+        byte[] timestampReplyBytes = ByteOrder.htoBe16(timestampReply);
         byte[] target = new byte[4];
         System.arraycopy(timestampBytes, 0, target, 0, 2);
         System.arraycopy(timestampReplyBytes, 0, target, 2, 2);

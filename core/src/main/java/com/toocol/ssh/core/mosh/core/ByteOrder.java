@@ -1,8 +1,6 @@
 package com.toocol.ssh.core.mosh.core;
 
 /**
- * byteorder.h
- *
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/30 18:32
  * @version: 0.0.1
@@ -10,9 +8,9 @@ package com.toocol.ssh.core.mosh.core;
 public class ByteOrder {
 
     /**
-     * maybe, it is not sure whether this is right
+     * transfer little-endian long to big-endian byte[]
      */
-    public static byte[] htobe64(long x) {
+    public static byte[] htoBe64(long x) {
         return new byte[] {
                 (byte) ((x >> 56) & 0xFF),
                 (byte) ((x >> 48) & 0xFF),
@@ -25,11 +23,29 @@ public class ByteOrder {
         };
     }
 
-    public static byte[] htobe16(short x) {
+    /**
+     * transfer little-endian short to big-endian byte[]
+     */
+    public static byte[] htoBe16(short x) {
         return new byte[] {
                 (byte) ((x >> 8) & 0xFF),
                 (byte) ((x) & 0xFF),
         };
+    }
+
+    /**
+     * get long from a big-endian bytes arr
+     */
+    public static long longBe(byte[] bytes) {
+        if (bytes.length != 8) {
+            return -1;
+        }
+        long val = 0;
+        for (int i = 0; i < 8; i++) {
+            int shift = (7 - i) << 3;
+            val |= ((long)0xff<<shift) & ((long)bytes[i] << shift);
+        }
+        return val;
     }
 
 }
