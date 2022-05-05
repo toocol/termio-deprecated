@@ -67,9 +67,10 @@ public class AeOcb {
         }
 
         static Block xorBlock(Block x, Block y) {
-            x.l ^= y.l;
-            x.r ^= y.r;
-            return x;
+            Block b = zeroBlock();
+            b.l = x.l ^ y.l;
+            b.r = x.r ^ y.r;
+            return b;
         }
 
         static Block zeroBlock() {
