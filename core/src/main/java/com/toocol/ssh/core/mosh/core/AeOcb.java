@@ -6,8 +6,7 @@ import com.google.common.primitives.Longs;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-import static com.toocol.ssh.core.mosh.core.AeOcb.Block.swapIfLe;
-import static com.toocol.ssh.core.mosh.core.AeOcb.Block.zeroBlock;
+import static com.toocol.ssh.core.mosh.core.AeOcb.Block.*;
 import static com.toocol.ssh.core.mosh.core.ByteOrder.bswap64;
 
 /**
@@ -22,7 +21,13 @@ public class AeOcb {
     public static final int AE_INVALID = -1;
     public static final int AE_NOT_SUPPORTED = -2;
 
+    private static final int L_TABLE_SIZE = 16;
     private static final int OCB_KEY_LEN = 16;
+    private static final int BPI = 4;
+    private static final int[] TZ_TABLE = new int[]{
+            0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
+            31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
+    };
 
     public static class Block {
         long l;
@@ -105,7 +110,6 @@ public class AeOcb {
     public static class AeCtx {
         static final String ALGORITHM = "AES";
         static final String AES_TYPE = "AES/ECB/NoPadding";
-        static final int L_TABLE_SIZE = 12;
 
         final Block[] l = new Block[L_TABLE_SIZE];
         final long[] ktopStr = new long[3];
@@ -165,7 +169,7 @@ public class AeOcb {
             ctx.ldollor = swapIfLe(tmpBlk);
             tmpBlk.doubleBlock();
             ctx.l[0] = swapIfLe(tmpBlk);
-            for (i = 1; i < AeCtx.L_TABLE_SIZE; i++) {
+            for (i = 1; i < L_TABLE_SIZE; i++) {
                 tmpBlk.doubleBlock();
                 ctx.l[i] = swapIfLe(tmpBlk);
             }
@@ -175,22 +179,138 @@ public class AeOcb {
         return AE_SUCCESS;
     }
 
+    @SuppressWarnings("all")
     public static int aeEncrypt(
             AeCtx ctx,
             byte[] nonce,
-            byte[] plaintext,
-            int plaintextLen,
+            byte[] pt,
+            int ptLen,
             byte[] ad,
-            long adLen,
-            byte[] ciphertext,
+            int adLen,
+            byte[] ct,
             byte[] tag,
             int finalize
     ) {
-        // todo: fulfill
-        return plaintextLen + 16;
+        try {
+            Block[] ptp, ctp;
+            Block offset, checksum;
+            int i, j, k;
+            if (nonce != null && nonce.length > 0) {
+                ctx.offset = genOffsetFromNonce(ctx, nonce);
+                ctx.adOffset = zeroBlock();
+                ctx.checksum = zeroBlock();
+                ctx.adBlocksProcessed = 0;
+                ctx.blocksProcessed = 0;
+                if (adLen > 0) {
+                    ctx.adCheckSum = zeroBlock();
+                }
+            }
+
+            if (adLen > 0) {
+                processAd(ctx, ad, adLen, finalize);
+            }
+
+            offset = ctx.offset;
+            checksum = ctx.checksum;
+            i = ptLen / (BPI * 16);
+
+            ptp = transferBlockArrays(pt, i);
+            ctp = new Block[BPI];
+            for (int idx = 0; idx < BPI; idx++) {
+                ctp[idx] = zeroBlock();
+            }
+
+            if (i > 0) {
+                j = 0;
+                Block[] oa = new Block[BPI];
+                int blockNum = ctx.blocksProcessed;
+                oa[BPI - 1] = offset;
+                do {
+                    Block[] ta = new Block[BPI];
+                    blockNum += BPI;
+
+                    oa[0] = xorBlock(oa[BPI - 1], ctx.l[0]);
+                    ta[0] = xorBlock(oa[0], ptp[j + 0]);
+                    checksum = xorBlock(checksum, ptp[j + 0]);
+
+                    oa[1] = xorBlock(oa[0], ctx.l[1]);
+                    ta[1] = xorBlock(oa[1], ptp[j + 1]);
+                    checksum = xorBlock(checksum, ptp[j + 1]);
+
+                    oa[2] = xorBlock(oa[1], ctx.l[0]);
+                    ta[2] = xorBlock(oa[2], ptp[j + 2]);
+                    checksum = xorBlock(checksum, ptp[j + 2]);
+
+                    oa[3] = xorBlock(oa[2], ctx.l[ntz(blockNum)]);
+                    ta[3] = xorBlock(oa[3], ptp[j + 3]);
+                    checksum = xorBlock(checksum, ptp[j + 3]);
+
+                    byte[] encrypt = ctx.encrypt(getBytesFromBlockArrays(ta));
+                    assert encrypt.length == 16 * BPI;
+                    ta = transferBlockArrays(encrypt, 1);
+
+                    ctp[0] = xorBlock(ta[0], oa[0]);
+                    ctp[1] = xorBlock(ta[1], oa[1]);
+                    ctp[2] = xorBlock(ta[2], oa[2]);
+                    ctp[3] = xorBlock(ta[3], oa[3]);
+                    fillDataFromBlockArrays(ct, ctp, j);
+
+                } while (++j < i);
+
+                offset = oa[BPI - 1];
+                ctx.offset = offset;
+                ctx.blocksProcessed = blockNum;
+                ctx.checksum = checksum;
+            }
+
+            if (finalize > 0) {
+                Block[] ta = new Block[BPI + 1], oa = new Block[BPI];
+                int remaining = ptLen % (BPI * 16);
+                k = 0;
+                // todo: fulfill
+            }
+        } catch (Exception e) {
+            return -1;
+        }
+        return ptLen + 16;
     }
 
-    private static Block genOffsetFromNonce(AeCtx ctx, byte[] nonce) {
+    static int ntz(int x) {
+        return TZ_TABLE[((x & -x) & 0x077CB531) >> 27];
+    }
+
+    static void fillDataFromBlockArrays(byte[] target, Block[] blocks, int round) {
+        for (int idx = 0; idx < blocks.length; idx++) {
+            int destPos = (round * BPI * 16) + (idx * 16);
+            System.arraycopy(blocks[idx].getBytes(), 0, target, destPos, 16);
+        }
+    }
+
+    static Block[] transferBlockArrays(byte[] bytes, int round) {
+        round = round == 0 ? 1 : round;
+        Block[] ptp = new Block[BPI * round];
+        int gap = 16;
+        for (int i = 0; i < BPI * round; i++) {
+            byte[] bytes16 = new byte[gap];
+            for (int j = 0; j < gap; j++) {
+                byte val = i * gap + j >= bytes.length ? 0 : bytes[i * gap + j];
+                bytes16[j] = val;
+            }
+            ptp[i] = zeroBlock();
+            ptp[i].fromBytes(bytes16);
+        }
+        return ptp;
+    }
+
+    static byte[] getBytesFromBlockArrays(Block[] blocks) {
+        byte[] bytes = new byte[16 * BPI];
+        for (int i = 0; i < blocks.length; i++) {
+            System.arraycopy(blocks[i].getBytes(), 0, bytes, i * 16, 16);
+        }
+        return bytes;
+    }
+
+    static Block genOffsetFromNonce(AeCtx ctx, byte[] nonce) throws Exception {
         int idx;
         byte[] bytes16 = new byte[16];
         int[] tmp = new int[4];
@@ -213,9 +333,23 @@ public class AeOcb {
         tmpBlk.fromBytes(bytes16);
 
         if (Block.unequalBlocks(tmpBlk, ctx.cachedTop)) {
-            // todo: fulfill
+            ctx.cachedTop = tmpBlk;
+            byte[] encrypt = ctx.encrypt(tmpBlk.getBytes());
+            assert encrypt.length == 16;
+            Block ktopBlk = zeroBlock();
+            ktopBlk.fromBytes(encrypt);
+            if (ByteOrder.littleEndian()) {
+                ktopBlk = swapIfLe(ktopBlk);
+            }
+            ctx.ktopStr[0] = ktopBlk.l;
+            ctx.ktopStr[1] = ktopBlk.r;
+            ctx.ktopStr[2] = ctx.ktopStr[0] ^ (ctx.ktopStr[0] << 8) ^ (ctx.ktopStr[1] >> 56);
         }
 
         return Block.genOffset(ctx.ktopStr, idx);
+    }
+
+    static void processAd(AeCtx ctx, byte[] ad, int adLen, int finalise) {
+
     }
 }
