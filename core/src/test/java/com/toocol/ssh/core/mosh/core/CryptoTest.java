@@ -1,8 +1,10 @@
 package com.toocol.ssh.core.mosh.core;
 
+import com.google.common.primitives.Longs;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -10,6 +12,46 @@ import static org.junit.jupiter.api.Assertions.*;
  * @version:
  */
 class CryptoTest {
+
+    @Test
+    public void testByteOrder() {
+        long time = System.currentTimeMillis();
+        long beTime = Longs.fromByteArray(Longs.toByteArray(time));
+        long myBeTime = Longs.fromByteArray(ByteOrder.htoBe64(time));
+        assertEquals(time, beTime);
+        assertEquals(time, myBeTime);
+    }
+
+    @Test
+    public void testCipher() {
+        String key = "zr0jtuYVKJnfJHP/XOOsbQ";
+
+        Crypto.Session session =  new Crypto.Session(new Crypto.Base64Key(key));
+        AeOcb.Block blk = AeOcb.Block.zeroBlock();
+        try {
+            byte[] encrypt = session.ctx.encrypt(blk.getBytes());
+            AeOcb.Block encryptBlk = AeOcb.Block.zeroBlock();
+            encryptBlk.fromBytes(encrypt);
+            assertNotEquals(blk.l, encryptBlk.l);
+            assertNotEquals(blk.r, encryptBlk.r);
+
+            System.out.println("encrypt: " + encryptBlk.l + ":" + encryptBlk.r);
+
+            encryptBlk = AeOcb.Block.swapIfLe(encryptBlk);
+            System.out.println("swap: " + encryptBlk.l + ":" + encryptBlk.r);
+
+            encryptBlk.doubleBlock();
+            System.out.println("double: " + encryptBlk.l + ":" + encryptBlk.r);
+
+            encryptBlk = AeOcb.Block.swapIfLe(encryptBlk);
+            System.out.println("swap: " + encryptBlk.l + ":" + encryptBlk.r);
+
+            encryptBlk = AeOcb.Block.swapIfLe(encryptBlk);
+            System.out.println("swap: " + encryptBlk.l + ":" + encryptBlk.r);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @Test
     public void testBase64() {

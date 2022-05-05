@@ -14,6 +14,8 @@ import java.nio.charset.StandardCharsets;
 /**
  * Equivalent to network.h/network.cc
  *
+ * TODO: See: transportsender-impl.h :: 320
+ *
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/28 22:17
  * @version: 0.0.1
@@ -37,6 +39,7 @@ public class MoshOutputStream extends PipedOutputStream {
 
     final DatagramSocket socket;
     final Transport transport;
+    final Crypto.Session session;
     final byte[] buff = new byte[DEFAULT_BUFF_SIZE];
 
     private int curlen = 0;
@@ -53,6 +56,7 @@ public class MoshOutputStream extends PipedOutputStream {
         super(in);
         this.socket = socket;
         this.transport = transport;
+        this.session = new Crypto.Session(new Crypto.Base64Key(transport.key));
     }
 
     public void sendPacket() {
@@ -64,7 +68,7 @@ public class MoshOutputStream extends PipedOutputStream {
         curlen = 0;
 
         MoshPacket packet = newPacket(cutOff);
-        socket.send(Buffer.buffer(packet.getBytes(transport.key)), transport.port, transport.serverHost);
+        socket.send(Buffer.buffer(session.encrypt(packet.toMessage())), transport.port, transport.serverHost);
     }
 
     public void receivePacket(DatagramPacket datagramPacket) {

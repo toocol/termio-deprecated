@@ -1,11 +1,21 @@
 package com.toocol.ssh.core.mosh.core;
 
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Longs;
+
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/30 18:32
  * @version: 0.0.1
  */
 public class ByteOrder {
+
+    /**
+     * whether is the little-endian
+     */
+    public static boolean littleEndian() {
+        return java.nio.ByteOrder.nativeOrder() == java.nio.ByteOrder.LITTLE_ENDIAN;
+    }
 
     /**
      * transfer little-endian long to big-endian byte[]
@@ -33,19 +43,9 @@ public class ByteOrder {
         };
     }
 
-    /**
-     * get long from a big-endian bytes arr
-     */
-    public static long longBe(byte[] bytes) {
-        if (bytes.length != 8) {
-            return -1;
-        }
-        long val = 0;
-        for (int i = 0; i < 8; i++) {
-            int shift = (7 - i) << 3;
-            val |= ((long)0xff<<shift) & ((long)bytes[i] << shift);
-        }
-        return val;
+    public static byte[] bswap64(long x) {
+        byte[] bytes = Longs.toByteArray(x);
+        Bytes.reverse(bytes);
+        return bytes;
     }
-
 }

@@ -33,11 +33,7 @@ public class MoshPacket {
         this.timestampReply = timestampReply;
     }
 
-    public byte[] getBytes(String printableKey) {
-        return Crypto.encrypt(printableKey, toMessage());
-    }
-
-    private Crypto.Message toMessage() {
+    public Crypto.Message toMessage() {
         long directionSeq = (direction.idx << 63) | (seq & SEQUENCE_MASK);
 
         String timestamps = new String(timestampsMerge());

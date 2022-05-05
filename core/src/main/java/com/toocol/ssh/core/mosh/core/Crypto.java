@@ -94,16 +94,16 @@ public class Crypto {
         public static final int RECEIVE_MTU = 2048;
         public static final int ADDED_BYTES = 16;
 
-        private Base64Key key;
-        private AeOcb.AeCtx ctx;
-        private AlignedBuffer ctxBuf;
-        private long blocksEncrypted;
+        Base64Key key;
+        AeOcb.AeCtx ctx;
+        AlignedBuffer ctxBuf;
+        long blocksEncrypted;
 
-        private AlignedBuffer plaintextBuffer;
-        private AlignedBuffer ciphertextBuffer;
-        private AlignedBuffer nonceBuffer;
+        AlignedBuffer plaintextBuffer;
+        AlignedBuffer ciphertextBuffer;
+        AlignedBuffer nonceBuffer;
 
-        public Session(Base64Key key) {
+        Session(Base64Key key) {
             this.key = key;
             this.blocksEncrypted = 0;
             this.plaintextBuffer = new AlignedBuffer(RECEIVE_MTU);
@@ -116,7 +116,7 @@ public class Crypto {
             }
         }
 
-        public byte[] encrypt(Message plainText) {
+        byte[] encrypt(Message plainText) {
             int ptLen = plainText.data().length;
             int ciphertextLen = ptLen + 16;
 
@@ -159,10 +159,6 @@ public class Crypto {
 
     public synchronized static long unique() {
         return ++counter;
-    }
-
-    public static byte[] encrypt(String printableKey, Message message) {
-        return new Session(new Base64Key(printableKey)).encrypt(message);
     }
 
 }
