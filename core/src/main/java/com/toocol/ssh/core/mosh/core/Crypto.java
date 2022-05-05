@@ -120,8 +120,8 @@ public class Crypto {
             int ptLen = plainText.text.length();
             int ciphertextLen = ptLen + 16;
 
-            assert ciphertextLen <= ciphertextBuffer.len;
-            assert ptLen <= plaintextBuffer.len;
+            assert ciphertextLen * 2 <= ciphertextBuffer.len;
+            assert ptLen * 2 <= plaintextBuffer.len;
 
             System.arraycopy(plainText.data(), 0, plaintextBuffer.data, 0, plainText.data().length);
             System.arraycopy(plainText.nonce.data(), 0, nonceBuffer.data, 0, Nonce.NONCE_LEN);
