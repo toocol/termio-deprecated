@@ -149,7 +149,11 @@ public class Crypto {
                 throw new CryptoException("Encrypted 2^47 blocks.");
             }
 
-            String text = new String(ciphertextBuffer.data, 0, ciphertextLen);
+            String text = new String(
+                    ciphertextBuffer.data,
+                    0,
+                    ciphertextLen * 2 /* char to byte */
+            );
 
             return (plainText.nonce.ccStr() + text).getBytes(StandardCharsets.UTF_8);
         }
