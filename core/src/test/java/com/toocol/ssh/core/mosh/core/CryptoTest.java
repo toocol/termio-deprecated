@@ -48,6 +48,22 @@ class CryptoTest {
 
             encryptBlk = AeOcb.Block.swapIfLe(encryptBlk);
             System.out.println("swap: " + encryptBlk.l + ":" + encryptBlk.r);
+
+            AeOcb.Block[] blks = new AeOcb.Block[] {
+                    AeOcb.Block.zeroBlock(),
+                    AeOcb.Block.zeroBlock(),
+                    AeOcb.Block.zeroBlock(),
+                    AeOcb.Block.zeroBlock()
+            };
+            byte[] encryptBlks = session.ctx.encrypt(AeOcb.getBytesFromBlockArrays(blks));
+            assertEquals(encryptBlks.length, 4 * 16);
+
+            encryptBlk.fromBytes(encrypt);
+            blks = AeOcb.transferBlockArrays(encryptBlks, 1);
+            for (AeOcb.Block b : blks) {
+                assertEquals(b.l, encryptBlk.l);
+                assertEquals(b.r, encryptBlk.r);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
