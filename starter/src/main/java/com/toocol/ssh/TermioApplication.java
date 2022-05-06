@@ -11,10 +11,12 @@ import com.toocol.ssh.utilities.annotation.VerticleDeployment;
 import com.toocol.ssh.utilities.jni.JNILoader;
 import com.toocol.ssh.utilities.utils.CastUtil;
 import com.toocol.ssh.utilities.utils.ClassScanner;
+import com.toocol.ssh.utilities.utils.ExitMessage;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import org.apache.commons.lang3.StringUtils;
 import sun.misc.Signal;
 
 import java.util.ArrayList;
@@ -65,6 +67,9 @@ public class TermioApplication {
             try {
                 Printer.clear();
                 StatusCache.STOP_PROGRAM = true;
+                if (StringUtils.isNotEmpty(ExitMessage.getMsg())) {
+                    Printer.printErr(ExitMessage.getMsg());
+                }
                 Printer.println("Termio: shutdown");
                 SshSessionCache.getInstance().stopAll();
                 vertx.close();

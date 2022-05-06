@@ -304,7 +304,7 @@ public class AeOcb {
     }
 
     static byte[] getBytesFromBlockArrays(Block[] blocks) {
-        byte[] bytes = new byte[16 * BPI];
+        byte[] bytes = new byte[16 * blocks.length];
         for (int i = 0; i < blocks.length; i++) {
             System.arraycopy(blocks[i].getBytes(), 0, bytes, i * 16, 16);
         }

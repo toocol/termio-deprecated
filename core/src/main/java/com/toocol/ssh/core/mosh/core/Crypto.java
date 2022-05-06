@@ -96,7 +96,6 @@ public class Crypto {
 
         Base64Key key;
         AeOcb.AeCtx ctx;
-        AlignedBuffer ctxBuf;
         long blocksEncrypted;
 
         AlignedBuffer plaintextBuffer;
