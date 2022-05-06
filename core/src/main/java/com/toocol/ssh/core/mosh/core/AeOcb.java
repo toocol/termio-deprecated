@@ -47,18 +47,6 @@ public class AeOcb {
             return bytes;
         }
 
-        void fromBytes(byte[] bytes) {
-            if (bytes.length != 16) {
-                return;
-            }
-
-            byte[] bytes8 = new byte[8];
-            System.arraycopy(bytes, 0, bytes8, 0, 8);
-            this.l = Longs.fromByteArray(bytes8);
-            System.arraycopy(bytes, 8, bytes8, 0, 8);
-            this.r = Longs.fromByteArray(bytes8);
-        }
-
         void doubleBlock() {
             Block b = this;
             long t = b.l >> 63;
@@ -75,6 +63,20 @@ public class AeOcb {
 
         static Block zeroBlock() {
             return new Block(0, 0);
+        }
+
+        static Block fromBytes(byte[] bytes) {
+            if (bytes.length != 16) {
+                return null;
+            }
+
+            Block block = zeroBlock();
+            byte[] bytes8 = new byte[8];
+            System.arraycopy(bytes, 0, bytes8, 0, 8);
+            block.l = Longs.fromByteArray(bytes8);
+            System.arraycopy(bytes, 8, bytes8, 0, 8);
+            block.r = Longs.fromByteArray(bytes8);
+            return block;
         }
 
         /**
@@ -162,8 +164,7 @@ public class AeOcb {
             ctx.checksum = zeroBlock();
             ctx.adBlocksProcessed = 0;
 
-            ctx.lstar = zeroBlock();
-            ctx.lstar.fromBytes(ctx.encrypt(ctx.cachedTop.getBytes()));
+            ctx.lstar = fromBytes(ctx.encrypt(ctx.cachedTop.getBytes()));
 
             tmpBlk = swapIfLe(ctx.lstar);
             tmpBlk.doubleBlock();
@@ -195,6 +196,8 @@ public class AeOcb {
         try {
             Block[] ptp, ctp;
             Block offset, checksum;
+            byte[] tmp;
+
             int i, j, k;
             if (nonce != null && nonce.length > 0) {
                 ctx.offset = genOffsetFromNonce(ctx, nonce);
@@ -217,9 +220,7 @@ public class AeOcb {
 
             ptp = transferBlockArrays(pt, i);
             ctp = new Block[BPI];
-            for (int idx = 0; idx < BPI; idx++) {
-                ctp[idx] = zeroBlock();
-            }
+            initBlocks(ctp);
 
             if (i > 0) {
                 j = 0;
@@ -246,7 +247,7 @@ public class AeOcb {
                     ta[3] = xorBlock(oa[3], ptp[j + 3]);
                     checksum = xorBlock(checksum, ptp[j + 3]);
 
-                    byte[] encrypt = ctx.encrypt(getBytesFromBlockArrays(ta));
+                    byte[] encrypt = ctx.encrypt(getBytesFromBlockArrays(ta, 0));
                     assert encrypt.length == 16 * BPI;
                     ta = transferBlockArrays(encrypt, 1);
 
@@ -266,9 +267,40 @@ public class AeOcb {
 
             if (finalize > 0) {
                 Block[] ta = new Block[BPI + 1], oa = new Block[BPI];
+                initBlocks(ta);
+                initBlocks(oa);
                 int remaining = ptLen % (BPI * 16);
                 k = 0;
-                // todo: fulfill
+
+                if (remaining > 0) {
+                    if (remaining >= 32) {
+                        oa[k] = xorBlock(offset, ctx.l[0]);
+                        ta[k] = xorBlock(oa[k], ctp[k]);
+                        oa[k + 1] = xorBlock(oa[k], ctx.l[1]);
+                        offset = oa[k + 1];
+                        ta[k + 1] = xorBlock(offset, ctp[k + 1]);
+                        remaining -= 32;
+                        k += 2;
+                    }
+                    if (remaining >= 16) {
+                        oa[k] = xorBlock(offset, ctx.l[0]);
+                        offset = oa[k];
+                        ta[k] = xorBlock(offset, ctp[k]);
+                        remaining -= 16;
+                        ++k;
+                    }
+                    if (remaining > 0) {
+                        Block pad;
+                        offset = xorBlock(offset, ctx.lstar);
+                        tmp = ctx.encrypt(offset.getBytes());
+                        assert tmp.length == 16;
+                        pad = fromBytes(tmp);
+                        byte[] bytesFromBlockArrays = getBytesFromBlockArrays(ctp, k);
+                        System.arraycopy(bytesFromBlockArrays, 0, tmp, 0, remaining);
+                        Block bl = xorBlock(fromBytes(tmp), pad);
+                        // todo: bl.getBytes()[remaining] = (byte) 0x80;
+                    }
+                }
             }
         } catch (Exception e) {
             return -1;
@@ -278,6 +310,12 @@ public class AeOcb {
 
     static int ntz(int x) {
         return TZ_TABLE[((x & -x) & 0x077CB531) >> 27];
+    }
+
+    static void initBlocks(Block[] blocks) {
+        for (int i = 0; i < blocks.length; i++) {
+            blocks[i] = zeroBlock();
+        }
     }
 
     static void fillDataFromBlockArrays(byte[] target, Block[] blocks, int round) {
@@ -297,15 +335,14 @@ public class AeOcb {
                 byte val = i * gap + j >= bytes.length ? 0 : bytes[i * gap + j];
                 bytes16[j] = val;
             }
-            ptp[i] = zeroBlock();
-            ptp[i].fromBytes(bytes16);
+            ptp[i] = fromBytes(bytes16);
         }
         return ptp;
     }
 
-    static byte[] getBytesFromBlockArrays(Block[] blocks) {
+    static byte[] getBytesFromBlockArrays(Block[] blocks, int start) {
         byte[] bytes = new byte[16 * blocks.length];
-        for (int i = 0; i < blocks.length; i++) {
+        for (int i = start; i < blocks.length; i++) {
             System.arraycopy(blocks[i].getBytes(), 0, bytes, i * 16, 16);
         }
         return bytes;
@@ -330,15 +367,15 @@ public class AeOcb {
         idx = bytes16[15] & 0x3f;
         bytes16[15] = (byte) (bytes16[15] & 0xc0);
 
-        Block tmpBlk = zeroBlock();
-        tmpBlk.fromBytes(bytes16);
+        Block tmpBlk = fromBytes(bytes16);
+        assert tmpBlk != null;
 
         if (Block.unequalBlocks(tmpBlk, ctx.cachedTop)) {
             ctx.cachedTop = tmpBlk;
             byte[] encrypt = ctx.encrypt(tmpBlk.getBytes());
             assert encrypt.length == 16;
-            Block ktopBlk = zeroBlock();
-            ktopBlk.fromBytes(encrypt);
+            Block ktopBlk = fromBytes(encrypt);
+            assert ktopBlk != null;
             if (ByteOrder.littleEndian()) {
                 ktopBlk = swapIfLe(ktopBlk);
             }

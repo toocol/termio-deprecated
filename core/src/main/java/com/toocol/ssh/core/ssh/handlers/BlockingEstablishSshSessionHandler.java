@@ -49,45 +49,49 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMe
         SshCredential credential = CredentialCache.getCredential(index);
         assert credential != null;
 
-        long sessionId = sshSessionCache.containSession(credential.getHost());
+        try {
+            long sessionId = sshSessionCache.containSession(credential.getHost());
 
-        if (sessionId == 0) {
-            StatusCache.HANGED_ENTER = false;
-            sessionId = factory.createSession(credential, eventBus);
+            if (sessionId == 0) {
+                StatusCache.HANGED_ENTER = false;
+                sessionId = factory.createSession(credential, eventBus);
 
-            Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
-            shell.setUser(credential.getUser());
-            shell.initialFirstCorrespondence(ShellProtocol.SSH);
-            shellCache.putShell(sessionId, shell);
-        } else {
-            StatusCache.HANGED_ENTER = true;
-            long newSessionId = factory.invokeSession(sessionId, credential, eventBus);
-
-            if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
                 Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
                 shell.setUser(credential.getUser());
                 shell.initialFirstCorrespondence(ShellProtocol.SSH);
                 shellCache.putShell(sessionId, shell);
             } else {
-                shellCache.getShell(newSessionId).resetIO(ShellProtocol.SSH);
+                StatusCache.HANGED_ENTER = true;
+                long newSessionId = factory.invokeSession(sessionId, credential, eventBus);
+
+                if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
+                    Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
+                    shell.setUser(credential.getUser());
+                    shell.initialFirstCorrespondence(ShellProtocol.SSH);
+                    shellCache.putShell(sessionId, shell);
+                } else {
+                    shellCache.getShell(newSessionId).resetIO(ShellProtocol.SSH);
+                }
+                sessionId = newSessionId;
             }
-            sessionId = newSessionId;
-        }
 
 
-        Optional.ofNullable(sshSessionCache.getChannelShell(sessionId)).ifPresent(channelShell -> {
-            int width = Term.getInstance().getWidth();
-            int height = Term.getInstance().getHeight();
-            channelShell.setPtySize(width, height, width, height);
-        });
-        StatusCache.HANGED_QUIT = false;
+            Optional.ofNullable(sshSessionCache.getChannelShell(sessionId)).ifPresent(channelShell -> {
+                int width = Term.getInstance().getWidth();
+                int height = Term.getInstance().getHeight();
+                channelShell.setPtySize(width, height, width, height);
+            });
+            StatusCache.HANGED_QUIT = false;
 
-        // invoke gc() to clean up already un-use object during initial processing. (it's very efficacious :))
-        System.gc();
-        if (sessionId > 0) {
-            promise.complete(sessionId);
-        } else {
-            promise.fail("Session establish failed.");
+            // invoke gc() to clean up already un-use object during initial processing. (it's very efficacious :))
+            System.gc();
+            if (sessionId > 0) {
+                promise.complete(sessionId);
+            } else {
+                promise.fail("Session establish failed.");
+            }
+        } catch (Exception e) {
+            promise.complete(null);
         }
     }
 

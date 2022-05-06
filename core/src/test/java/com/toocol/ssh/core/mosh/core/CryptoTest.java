@@ -3,8 +3,7 @@ package com.toocol.ssh.core.mosh.core;
 import com.google.common.primitives.Longs;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -30,8 +29,8 @@ class CryptoTest {
         AeOcb.Block blk = AeOcb.Block.zeroBlock();
         try {
             byte[] encrypt = session.ctx.encrypt(blk.getBytes());
-            AeOcb.Block encryptBlk = AeOcb.Block.zeroBlock();
-            encryptBlk.fromBytes(encrypt);
+            AeOcb.Block encryptBlk = AeOcb.Block.fromBytes(encrypt);
+            assertNotNull(encryptBlk);
             assertNotEquals(blk.l, encryptBlk.l);
             assertNotEquals(blk.r, encryptBlk.r);
 
@@ -55,10 +54,11 @@ class CryptoTest {
                     AeOcb.Block.zeroBlock(),
                     AeOcb.Block.zeroBlock()
             };
-            byte[] encryptBlks = session.ctx.encrypt(AeOcb.getBytesFromBlockArrays(blks));
+            byte[] encryptBlks = session.ctx.encrypt(AeOcb.getBytesFromBlockArrays(blks, 0));
             assertEquals(encryptBlks.length, 4 * 16);
 
-            encryptBlk.fromBytes(encrypt);
+            encryptBlk = AeOcb.Block.fromBytes(encrypt);
+            assertNotNull(encryptBlk);
             blks = AeOcb.transferBlockArrays(encryptBlks, 1);
             for (AeOcb.Block b : blks) {
                 assertEquals(b.l, encryptBlk.l);

@@ -11,6 +11,7 @@ import com.toocol.ssh.core.ssh.core.SshSessionFactory;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.Vertx;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -46,21 +47,26 @@ public class MoshSessionFactory {
     /**
      * creating udp connection to mosh-server and starting data transport;
      */
+    @Nullable
     public MoshSession getSession(SshCredential credential) {
-        long sessionId = sshSessionCache.containSession(credential.getHost());
-        if (sessionId != 0) {
-            sessionId = sshSessionFactory.invokeSession(sessionId, credential, null);
-        } else {
-            sessionId = sshSessionFactory.createSession(credential, null);
-        }
+        try {
+            long sessionId = sshSessionCache.containSession(credential.getHost());
+            if (sessionId != 0) {
+                sessionId = sshSessionFactory.invokeSession(sessionId, credential, null);
+            } else {
+                sessionId = sshSessionFactory.createSession(credential, null);
+            }
 
-        Tuple2<Integer, String> portKey = sshTouch(sessionId);
-        if (portKey == null) {
+            Tuple2<Integer, String> portKey = sshTouch(sessionId);
+            if (portKey == null) {
+                return null;
+            }
+            MoshSession moshSession = new MoshSession(vertx, sessionId, credential.getHost(), portKey._1(), portKey._2());
+            moshSessionCache.put(moshSession);
+            return moshSession;
+        } catch (Exception e) {
             return null;
         }
-        MoshSession moshSession = new MoshSession(vertx, sessionId, credential.getHost(), portKey._1(), portKey._2());
-        moshSessionCache.put(moshSession);
-        return moshSession;
     }
 
     /**
@@ -68,6 +74,7 @@ public class MoshSessionFactory {
      *
      * @return mosh server port / key
      */
+    @Nullable
     private Tuple2<Integer, String> sshTouch(long sessionId) {
 
         ChannelShell shell = sshSessionCache.getChannelShell(sessionId);

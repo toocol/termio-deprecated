@@ -42,6 +42,11 @@ public class BlockingEstablishMoshSessionHandler extends AbstractBlockingMessage
         int index = cast(message.body());
         SshCredential credential = CredentialCache.getCredential(index);
         MoshSession session = moshSessionFactory.getSession(credential);
+        if (session == null) {
+            promise.complete();
+            return;
+        }
+
         long sessionId = session.getSessionId();
 
         // let event loop thread pool to handler udp packet receive.
