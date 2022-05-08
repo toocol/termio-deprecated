@@ -20,11 +20,16 @@
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!--second party dependency-->
+        <!-- maven plugin version -->
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <maven-shade-plugin.version>3.3.0</maven-shade-plugin.version>
+        <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
+
+        <!-- second party dependency -->
         <termio.utilities.version>0.0.1</termio.utilities.version>
         <termio.core.version>0.0.1</termio.core.version>
 
-        <!--third party dependency-->
+        <!-- third party dependency -->
         <vertx.version>4.2.6</vertx.version>
         <jsch.version>0.1.55</jsch.version>
         <jline.version>2.14.2</jline.version>
@@ -34,7 +39,7 @@
         <jackson.databind.version>2.12.6.1</jackson.databind.version>
         <protobuf.version>3.19.1</protobuf.version>
 
-        <!--test dependency-->
+        <!-- test dependency -->
         <junit.jupiter.version>5.8.2</junit.jupiter.version>
     </properties>
 
@@ -102,9 +107,20 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                </configuration>
+                <inherited>true</inherited>
+            </plugin>
+
+            <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
-                <version>0.6.1</version>
+                <version>${protobuf-maven-plugin.version}</version>
                 <configuration>
                     <!-- the directory of proto file -->
                     <protoSourceRoot>../core/proto</protoSourceRoot>
@@ -119,6 +135,7 @@
                         </goals>
                     </execution>
                 </executions>
+                <inherited>false</inherited>
             </plugin>
         </plugins>
     </build>
