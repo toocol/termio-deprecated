@@ -54,7 +54,7 @@ class CryptoTest {
                     AeOcb.Block.zeroBlock(),
                     AeOcb.Block.zeroBlock()
             };
-            byte[] encryptBlks = session.ctx.encrypt(AeOcb.getBytesFromBlockArrays(blks, 0));
+            byte[] encryptBlks = session.ctx.encrypt(AeOcb.getBytesFromBlockArrays(blks, 0, blks.length));
             assertEquals(encryptBlks.length, 4 * 16);
 
             encryptBlk = AeOcb.Block.fromBytes(encrypt);

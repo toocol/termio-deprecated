@@ -12,9 +12,7 @@ import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Equivalent to network.h/network.cc
- *
- * TODO: See: transportsender-impl.h :: 320
+ * Equivalent to network.h/network.cc/
  *
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/28 22:17
@@ -39,6 +37,7 @@ public class MoshOutputStream extends PipedOutputStream {
 
     final DatagramSocket socket;
     final Transport transport;
+    final TransportSender transportSender;
     final Crypto.Session session;
     final byte[] buff = new byte[DEFAULT_BUFF_SIZE];
 
@@ -56,6 +55,7 @@ public class MoshOutputStream extends PipedOutputStream {
         super(in);
         this.socket = socket;
         this.transport = transport;
+        this.transportSender = new TransportSender();
         this.session = new Crypto.Session(new Crypto.Base64Key(transport.key));
     }
 
@@ -84,7 +84,7 @@ public class MoshOutputStream extends PipedOutputStream {
     @Override
     public void write(@Nonnull byte[] bytes) throws IOException {
         System.arraycopy(bytes, 0, buff, curlen, bytes.length);
-        curlen+=bytes.length;
+        curlen += bytes.length;
     }
 
     @Override
@@ -107,6 +107,7 @@ public class MoshOutputStream extends PipedOutputStream {
         this.socket.close();
     }
 
+
     private MoshPacket newPacket(byte[] bytes) {
         short outgoingTimestampReply = -1;
 
@@ -125,4 +126,5 @@ public class MoshOutputStream extends PipedOutputStream {
                 outgoingTimestampReply
         );
     }
+
 }

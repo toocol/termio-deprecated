@@ -116,7 +116,7 @@ public class Crypto {
         }
 
         byte[] encrypt(Message plainText) {
-            int ptLen = plainText.text.length();
+            int ptLen = plainText.data().length;
             int ciphertextLen = ptLen + 16;
 
             assert ciphertextLen * 2 <= ciphertextBuffer.len;
@@ -151,7 +151,7 @@ public class Crypto {
             String text = new String(
                     ciphertextBuffer.data,
                     0,
-                    ciphertextLen * 2 /* char to byte */
+                    ciphertextLen
             );
 
             return (plainText.nonce.ccStr() + text).getBytes(StandardCharsets.UTF_8);
