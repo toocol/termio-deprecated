@@ -123,9 +123,9 @@
                 <version>${protobuf-maven-plugin.version}</version>
                 <configuration>
                     <!-- the directory of proto file -->
-                    <protoSourceRoot>../core/proto</protoSourceRoot>
+                    <protoSourceRoot>${project.basedir}/proto</protoSourceRoot>
                     <!-- the directory of Java file -->
-                    <outputDirectory>../core/src/main/java/</outputDirectory>
+                    <outputDirectory>${project.basedir}/src/main/java/</outputDirectory>
                     <clearOutputDirectory>false</clearOutputDirectory>
                 </configuration>
                 <executions>
