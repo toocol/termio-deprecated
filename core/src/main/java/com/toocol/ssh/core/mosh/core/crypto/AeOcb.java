@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.mosh.core;
+package com.toocol.ssh.core.mosh.core.crypto;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -6,8 +6,8 @@ import com.google.common.primitives.Longs;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-import static com.toocol.ssh.core.mosh.core.AeOcb.Block.*;
-import static com.toocol.ssh.core.mosh.core.ByteOrder.bswap64;
+import static com.toocol.ssh.core.mosh.core.crypto.AeOcb.Block.*;
+import static com.toocol.ssh.core.mosh.core.crypto.ByteOrder.bswap64;
 
 /**
  * ae.h/ocb.cc

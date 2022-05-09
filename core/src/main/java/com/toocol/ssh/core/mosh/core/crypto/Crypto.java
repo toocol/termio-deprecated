@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.mosh.core;
+package com.toocol.ssh.core.mosh.core.crypto;
 
 import com.toocol.ssh.utilities.execeptions.CryptoException;
 
@@ -102,7 +102,7 @@ public class Crypto {
         AlignedBuffer ciphertextBuffer;
         AlignedBuffer nonceBuffer;
 
-        Session(Base64Key key) {
+        public Session(Base64Key key) {
             this.key = key;
             this.blocksEncrypted = 0;
             this.plaintextBuffer = new AlignedBuffer(RECEIVE_MTU);
@@ -115,7 +115,7 @@ public class Crypto {
             }
         }
 
-        byte[] encrypt(Message plainText) {
+        public byte[] encrypt(Message plainText) {
             int ptLen = plainText.data().length;
             int ciphertextLen = ptLen + 16;
 

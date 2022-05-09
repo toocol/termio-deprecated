@@ -1,14 +1,19 @@
-package com.toocol.ssh.core.mosh.core;
+package com.toocol.ssh.core.mosh.core.network;
 
 import com.google.protobuf.ByteString;
+import com.toocol.ssh.core.mosh.core.Timestamp;
+import com.toocol.ssh.core.mosh.core.crypto.Crypto;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+
+import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
 
 /**
  * transportsender.h/transportsender-impl.h
- *
+ * <p>
  * TODO: See: transportsender-impl.h :: 153
  * TODO: See: transportsender-impl.h :: 239
  * TODO: See: transportsender-impl.h :: 320
@@ -18,26 +23,18 @@ import java.util.List;
  * @version: 0.0.1
  */
 public class TransportSender {
-    private static final int MOSH_PROTOCOL_VERSION = 2;
-
-    private static final double SRIT = 1000;
-    private static final double RTTVAR = 500;
-
-    private static final long MIN_RTO = 50; /* ms */
-    private static final long MAX_RTO = 1000; /* ms */
-
-    private static final int SEND_INTERVAL_MIN = 20; /* ms between frames */
-    private static final int SEND_INTERVAL_MAX = 250; /* ms between frames */
-    private static final int ACK_INTERVAL = 3000; /* ms between empty acks */
-    private static final int ACK_DELAY = 100; /* ms before delayed ack */
-    private static final int SHUTDOWN_RETRIES = 16; /* number of shutdown packets to send before giving up */
-    private static final int ACTIVE_RETRY_TIMEOUT = 10000; /* attempt to resend at frame rate */
 
     private long ackNum;
+    private int shutdownTries;
 
     private final List<TimestampedState> sentStatesType = new ArrayList<>();
+    private final TransportFragment.Fragmenter fragmenter;
+
     private TimestampedState assumedReceiverState;
 
+    public TransportSender() {
+        this.fragmenter = new TransportFragment.Fragmenter();
+    }
 
     private void sendEmptyAck() {
         long now = Timestamp.timestamp();
@@ -52,6 +49,18 @@ public class TransportSender {
         builder.setThrowawayNum(sentStatesType.get(0).num);
         builder.setDiff(ByteString.copyFromUtf8(diff));
         builder.setChaff(ByteString.copyFromUtf8(makeChaff()));
+        InstructionPB.Instruction inst = builder.build();
+
+        if (newNum == -1) {
+            shutdownTries++;
+        }
+
+        Queue<TransportFragment.Fragment> fragments = fragmenter.makeFragments(inst,
+                DEFAULT_SEND_MTU - MoshPacket.ADDED_BYTES - Crypto.Session.ADDED_BYTES);
+        while (!fragments.isEmpty()) {
+            TransportFragment.Fragment fragment = fragments.poll();
+        }
+
     }
 
     private void calculateTimers() {

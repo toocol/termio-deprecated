@@ -1,5 +1,7 @@
 package com.toocol.ssh.core.mosh.core;
 
+import com.toocol.ssh.core.mosh.core.network.MoshInputStream;
+import com.toocol.ssh.core.mosh.core.network.MoshOutputStream;
 import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.Vertx;
 import io.vertx.core.datagram.DatagramSocket;

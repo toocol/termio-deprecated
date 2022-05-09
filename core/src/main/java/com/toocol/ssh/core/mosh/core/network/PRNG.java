@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.mosh.core;
+package com.toocol.ssh.core.mosh.core.network;
 
 import org.apache.commons.lang3.RandomUtils;
 

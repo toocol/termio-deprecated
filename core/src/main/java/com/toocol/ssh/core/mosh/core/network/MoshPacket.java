@@ -1,4 +1,7 @@
-package com.toocol.ssh.core.mosh.core;
+package com.toocol.ssh.core.mosh.core.network;
+
+import com.toocol.ssh.core.mosh.core.crypto.ByteOrder;
+import com.toocol.ssh.core.mosh.core.crypto.Crypto;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -6,6 +9,8 @@ package com.toocol.ssh.core.mosh.core;
  * @version: 0.0.1
  */
 public class MoshPacket {
+    static final int ADDED_BYTES = 8 /* seqno/nonce */ + 4 /* timestamp */;
+
     public enum Direction {
         TO_SERVER(0),
         TO_CLIENT(1)

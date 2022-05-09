@@ -1,5 +1,7 @@
-package com.toocol.ssh.core.mosh.core;
+package com.toocol.ssh.core.mosh.core.network;
 
+import com.toocol.ssh.core.mosh.core.Timestamp;
+import com.toocol.ssh.core.mosh.core.crypto.Crypto;
 import com.toocol.ssh.core.term.core.Printer;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.datagram.DatagramPacket;
@@ -24,9 +26,9 @@ public class MoshOutputStream extends PipedOutputStream {
 
     @SuppressWarnings("all")
     public static class Transport {
-        final String serverHost;
-        final int port;
-        final String key;
+        public final String serverHost;
+        public final int port;
+        public final String key;
 
         public Transport(String serverHost, int port, String key) {
             this.serverHost = serverHost;

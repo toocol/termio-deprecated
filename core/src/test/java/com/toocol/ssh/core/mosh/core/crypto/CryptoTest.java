@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.mosh.core;
+package com.toocol.ssh.core.mosh.core.crypto;
 
 import com.google.common.primitives.Longs;
 import org.junit.jupiter.api.Test;
