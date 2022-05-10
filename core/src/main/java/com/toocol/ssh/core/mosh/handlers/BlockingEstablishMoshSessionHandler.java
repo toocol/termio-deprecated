@@ -7,7 +7,6 @@ import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.mosh.core.MoshSessionFactory;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.ShellProtocol;
-import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
@@ -28,7 +27,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  * @date: 2022/4/28 23:44
  * @version: 0.0.1
  */
-public class BlockingEstablishMoshSessionHandler extends AbstractBlockingMessageHandler<Long> {
+public final class BlockingEstablishMoshSessionHandler extends AbstractBlockingMessageHandler<Long> {
 
     private final MoshSessionFactory moshSessionFactory = MoshSessionFactory.factory(vertx);
     private final ShellCache shellCache = ShellCache.getInstance();

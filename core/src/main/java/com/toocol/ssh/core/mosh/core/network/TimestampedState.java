@@ -9,7 +9,7 @@ import java.util.Objects;
  * @date: 2022/5/8 17:40
  * @version: 0.0.1
  */
-public class TimestampedState {
+public final class TimestampedState {
 
     public long timestamp;
     public long num;

@@ -2,11 +2,8 @@ package com.toocol.ssh.core.mosh.core;
 
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.core.auth.core.SshCredential;
-import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.MoshSessionCache;
-import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.Vertx;
@@ -24,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/25 19:47
  */
-public class MoshSessionFactory {
+public final class MoshSessionFactory {
     private static MoshSessionFactory FACTORY;
 
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();

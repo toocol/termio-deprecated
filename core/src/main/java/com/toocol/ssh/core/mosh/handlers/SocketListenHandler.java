@@ -16,7 +16,7 @@ import static com.toocol.ssh.core.mosh.MoshAddress.LISTEN_LOCAL_SOCKET;
  * @date: 2022/4/30 19:24
  * @version: 0.0.1
  */
-public class SocketListenHandler extends AbstractMessageHandler {
+public final class SocketListenHandler extends AbstractMessageHandler {
 
     private final MoshSessionCache moshSessionCache = MoshSessionCache.getInstance();
 

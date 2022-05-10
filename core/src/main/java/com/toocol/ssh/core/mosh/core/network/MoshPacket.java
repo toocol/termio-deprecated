@@ -8,7 +8,7 @@ import com.toocol.ssh.core.mosh.core.crypto.Crypto;
  * @date: 2022/4/30 17:29
  * @version: 0.0.1
  */
-public class MoshPacket {
+public final class MoshPacket {
     static final int ADDED_BYTES = 8 /* seqno/nonce */ + 4 /* timestamp */;
 
     public enum Direction {

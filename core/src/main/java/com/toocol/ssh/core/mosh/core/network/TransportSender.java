@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.mosh.core.network;
 
 import com.google.protobuf.ByteString;
-import com.toocol.ssh.core.mosh.core.Timestamp;
+import com.toocol.ssh.utilities.utils.Timestamp;
 import com.toocol.ssh.core.mosh.core.crypto.Crypto;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 
@@ -22,7 +22,7 @@ import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
  * @date: 2022/5/8 21:33
  * @version: 0.0.1
  */
-public class TransportSender {
+public final class TransportSender {
 
     private long ackNum;
     private int shutdownTries;

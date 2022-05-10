@@ -1,11 +1,11 @@
-package com.toocol.ssh.core.mosh.core;
+package com.toocol.ssh.utilities.utils;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/5/2 20:23
  * @version: 0.0.1
  */
-public class Timestamp {
+public final class Timestamp {
     public static long timestamp() {
         return System.currentTimeMillis();
     }

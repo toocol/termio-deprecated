@@ -7,7 +7,7 @@ import org.apache.commons.lang3.RandomUtils;
  * @date: 2022/5/8 21:18
  * @version: 0.0.1
  */
-public class PRNG {
+public final class PRNG {
 
     public static byte uint8() {
         byte[] x = new byte[1];

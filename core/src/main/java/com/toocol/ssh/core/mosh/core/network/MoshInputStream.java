@@ -7,7 +7,7 @@ import java.io.PipedInputStream;
  * @date: 2022/4/28 22:17
  * @version: 0.0.1
  */
-public class MoshInputStream extends PipedInputStream {
+public final class MoshInputStream extends PipedInputStream {
 
     private static final int DEFAULT_BUFFER_SIZE = 32768;
 

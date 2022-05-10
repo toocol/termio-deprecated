@@ -13,11 +13,11 @@ import java.util.zip.Inflater;
  * @date: 2022/5/9 23:15
  * @version: 0.0.1
  */
-public class Compressor {
+public final class Compressor {
 
     private static Compressor compressor;
 
-    public static synchronized Compressor get() {
+    static synchronized Compressor get() {
         if (compressor == null) {
             compressor = new Compressor();
         }

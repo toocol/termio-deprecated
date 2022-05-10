@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.mosh.core.network;
 
-import com.toocol.ssh.core.mosh.core.Timestamp;
+import com.toocol.ssh.utilities.utils.Timestamp;
 import com.toocol.ssh.core.mosh.core.crypto.Crypto;
 import com.toocol.ssh.core.term.core.Printer;
 import io.vertx.core.buffer.Buffer;
@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets;
  * @date: 2022/4/28 22:17
  * @version: 0.0.1
  */
-public class MoshOutputStream extends PipedOutputStream {
+public final class MoshOutputStream extends PipedOutputStream {
 
     private static final int DEFAULT_BUFF_SIZE = 1024 * 10;
 

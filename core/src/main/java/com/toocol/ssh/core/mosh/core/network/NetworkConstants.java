@@ -5,7 +5,7 @@ package com.toocol.ssh.core.mosh.core.network;
  * @date: 2022/5/9 23:48
  * @version: 0.0.1
  */
-public class NetworkConstants {
+public final class NetworkConstants {
     public static final int MOSH_PROTOCOL_VERSION = 2;
 
     public static final double SRIT = 1000;

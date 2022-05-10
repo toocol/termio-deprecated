@@ -16,7 +16,7 @@ import static com.toocol.ssh.core.mosh.core.crypto.ByteOrder.bswap64;
  * @date: 2022/5/2 22:28
  * @version: 0.0.1
  */
-public class AeOcb {
+public final class AeOcb {
     public static final int AE_SUCCESS = 0;
     public static final int AE_INVALID = -1;
     public static final int AE_NOT_SUPPORTED = -2;

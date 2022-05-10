@@ -16,7 +16,7 @@ import java.io.OutputStream;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/25 19:58
  */
-public class MoshSession {
+public final class MoshSession {
 
     private static class IO {
         private MoshOutputStream outputStream;

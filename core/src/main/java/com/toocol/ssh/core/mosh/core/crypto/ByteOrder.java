@@ -8,7 +8,7 @@ import com.google.common.primitives.Longs;
  * @date: 2022/4/30 18:32
  * @version: 0.0.1
  */
-public class ByteOrder {
+public final class ByteOrder {
 
     /**
      * whether is the little-endian

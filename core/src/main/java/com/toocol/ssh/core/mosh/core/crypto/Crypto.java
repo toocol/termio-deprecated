@@ -13,7 +13,7 @@ import java.util.Base64;
  * @version: 0.0.1
  */
 @SuppressWarnings("all")
-public class Crypto {
+public final class Crypto {
 
     public static class Nonce {
         public static final int NONCE_LEN = 12;

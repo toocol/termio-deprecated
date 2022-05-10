@@ -17,11 +17,11 @@ import static com.toocol.ssh.core.mosh.MoshAddress.CLOSE_LOCAL_SOCKET;
  * @date: 2022/4/30 20:18
  * @version: 0.0.1
  */
-public class SocketCloseHandler extends AbstractMessageHandler {
+public final class SocketCloseHandler extends AbstractMessageHandler {
 
     private final MoshSessionCache moshSessionCache = MoshSessionCache.getInstance();
 
-    protected SocketCloseHandler(Vertx vertx, Context context) {
+    public SocketCloseHandler(Vertx vertx, Context context) {
         super(vertx, context);
     }
 

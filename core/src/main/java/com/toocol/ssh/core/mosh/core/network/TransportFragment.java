@@ -14,7 +14,7 @@ import java.util.Queue;
  * @date: 2022/5/8 21:24
  * @version: 0.0.1
  */
-public class TransportFragment {
+public final class TransportFragment {
     private static final int FRAG_HEADER_LEN = 10; /* sizeof(long) + sizeof(short) */
 
     public static class Fragment {
