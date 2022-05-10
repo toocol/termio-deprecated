@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.mosh.core.network;
 
+import com.toocol.ssh.core.mosh.core.statesnyc.UserStream;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import com.toocol.ssh.core.mosh.core.crypto.Crypto;
 import com.toocol.ssh.core.term.core.Printer;
@@ -24,22 +25,8 @@ public final class MoshOutputStream extends PipedOutputStream {
 
     private static final int DEFAULT_BUFF_SIZE = 1024 * 10;
 
-    @SuppressWarnings("all")
-    public static class Transport {
-        public final String serverHost;
-        public final int port;
-        public final String key;
-
-        public Transport(String serverHost, int port, String key) {
-            this.serverHost = serverHost;
-            this.port = port;
-            this.key = key;
-        }
-    }
-
     final DatagramSocket socket;
     final Transport transport;
-    final TransportSender transportSender;
     final Crypto.Session session;
     final byte[] buff = new byte[DEFAULT_BUFF_SIZE];
 
@@ -57,7 +44,6 @@ public final class MoshOutputStream extends PipedOutputStream {
         super(in);
         this.socket = socket;
         this.transport = transport;
-        this.transportSender = new TransportSender();
         this.session = new Crypto.Session(new Crypto.Base64Key(transport.key));
     }
 

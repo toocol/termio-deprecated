@@ -2,6 +2,7 @@ package com.toocol.ssh.core.mosh.core;
 
 import com.toocol.ssh.core.mosh.core.network.MoshInputStream;
 import com.toocol.ssh.core.mosh.core.network.MoshOutputStream;
+import com.toocol.ssh.core.mosh.core.network.Transport;
 import com.toocol.ssh.core.term.core.Term;
 import io.vertx.core.Vertx;
 import io.vertx.core.datagram.DatagramSocket;
@@ -25,7 +26,7 @@ public final class MoshSession {
 
     private final IO io;
     private final Vertx vertx;
-    private final MoshOutputStream.Transport transport;
+    private final Transport transport;
     private final long sessionId;
 
     private DatagramSocket socket;
@@ -34,7 +35,7 @@ public final class MoshSession {
     public MoshSession(Vertx vertx, long sessionId, String host, int port, String key) {
         this.vertx = vertx;
         this.io = new IO();
-        this.transport = new MoshOutputStream.Transport(host, port, key);
+        this.transport = new Transport(host, port, key);
         this.sessionId = sessionId;
     }
 
@@ -74,6 +75,10 @@ public final class MoshSession {
             throw new IOException("Mosh session is not connected.");
         }
         return this.io.outputStream;
+    }
+
+    public Transport getTransport() {
+        return transport;
     }
 
     public void close() {
