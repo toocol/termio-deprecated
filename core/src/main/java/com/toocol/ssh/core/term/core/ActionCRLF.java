@@ -20,7 +20,7 @@ public final class ActionCRLF extends TermCharAction {
         term.hideCursor();
         term.setCursorPosition(Term.getPromptLen(), cursorPosition._2());
         term.showCursor();
-        term.historyHelper.push(term.lineBuilder.toString());
+        term.historyCmdHelper.push(term.lineBuilder.toString());
 
         term.executeCursorOldX.set(Term.getPromptLen());
         term.printExecution(StrUtil.EMPTY);

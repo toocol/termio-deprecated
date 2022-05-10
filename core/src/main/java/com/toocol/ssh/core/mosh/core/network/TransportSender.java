@@ -1,9 +1,9 @@
 package com.toocol.ssh.core.mosh.core.network;
 
 import com.google.protobuf.ByteString;
-import com.toocol.ssh.utilities.utils.Timestamp;
 import com.toocol.ssh.core.mosh.core.crypto.Crypto;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
+import com.toocol.ssh.utilities.utils.Timestamp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,12 +28,12 @@ public final class TransportSender {
     private int shutdownTries;
 
     private final List<TimestampedState> sentStatesType = new ArrayList<>();
-    private final TransportFragment.Fragmenter fragmenter;
+    private final TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter();
 
     private TimestampedState assumedReceiverState;
 
     public TransportSender() {
-        this.fragmenter = new TransportFragment.Fragmenter();
+
     }
 
     private void sendEmptyAck() {
@@ -60,7 +60,6 @@ public final class TransportSender {
         while (!fragments.isEmpty()) {
             TransportFragment.Fragment fragment = fragments.poll();
         }
-
     }
 
     private void calculateTimers() {

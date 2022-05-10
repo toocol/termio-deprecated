@@ -1,6 +1,5 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.utilities.action.AbstractCharAction;
 import com.toocol.ssh.utilities.event.CharEvent;
 import com.toocol.ssh.utilities.utils.CharUtil;
 

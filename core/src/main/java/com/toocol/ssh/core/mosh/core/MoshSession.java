@@ -49,9 +49,9 @@ public final class MoshSession {
             socket.listen(transport.port, "127.0.0.1", result -> {
                 if (result.succeeded()) {
                     socket.handler(this.io.outputStream::receivePacket);
-                    term.printDisplay("[" + Thread.currentThread().getName() + "] Mosh success to listened local port: " + transport.port);
+                    term.printDisplay("Mosh success to listened local port: " + transport.port);
                 } else {
-                    term.printDisplay("[" + Thread.currentThread().getName() + "] Mosh fail to listened local port: " + transport.port);
+                    term.printDisplay("Mosh fail to listened local port: " + transport.port);
                 }
                 this.connected = true;
                 message.reply(null);

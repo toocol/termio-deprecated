@@ -54,7 +54,7 @@ public record TermPrinter(Term term) {
         term.setCursorPosition(0, Term.executeLine + 1);
         AnisStringBuilder builder = new AnisStringBuilder()
                 .background(Term.theme.displayBackGroundColor)
-                .append(" ".repeat(term.getWidth() - Term.LEFT_MARGIN * 2));
+                .append(" ".repeat(term.getWidth() - Term.LEFT_MARGIN - Term.LEFT_MARGIN));
         for (int idx = 0; idx < lines + 2; idx++) {
             Printer.println(builder.toString());
         }

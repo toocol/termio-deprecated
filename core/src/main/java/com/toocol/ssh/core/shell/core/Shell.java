@@ -78,7 +78,7 @@ public final class Shell extends AbstractDevice {
     final Term term = Term.getInstance();
     final ShellPrinter shellPrinter;
     final ShellReader shellReader;
-    final HistoryCmdHelper historyCmdHelper;
+    final ShellHistoryCmdHelper historyCmdHelper;
     final MoreHelper moreHelper;
     final EscapeHelper escapeHelper;
     final VimHelper vimHelper;
@@ -149,7 +149,7 @@ public final class Shell extends AbstractDevice {
         this.moshSession = moshSession;
         this.shellPrinter = new ShellPrinter(this);
         this.shellReader = new ShellReader(this, reader);
-        this.historyCmdHelper = new HistoryCmdHelper(this);
+        this.historyCmdHelper = new ShellHistoryCmdHelper(this);
         this.moreHelper = new MoreHelper();
         this.escapeHelper = new EscapeHelper();
         this.vimHelper = new VimHelper();
@@ -165,7 +165,7 @@ public final class Shell extends AbstractDevice {
         this.channelShell = channelShell;
         this.shellPrinter = new ShellPrinter(this);
         this.shellReader = new ShellReader(this, reader);
-        this.historyCmdHelper = new HistoryCmdHelper(this);
+        this.historyCmdHelper = new ShellHistoryCmdHelper(this);
         this.moreHelper = new MoreHelper();
         this.escapeHelper = new EscapeHelper();
         this.vimHelper = new VimHelper();

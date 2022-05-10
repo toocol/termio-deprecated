@@ -11,7 +11,7 @@ import java.util.UUID;
  * @date: 2022/4/18 23:16
  * @version: 0.0.1
  */
-public final class TermHistoryHelper {
+public final class TermHistoryCmdHelper {
     /**
      * The stack storage all the executed cmd.
      */
@@ -36,7 +36,7 @@ public final class TermHistoryHelper {
     private boolean puToDown = false;
     private boolean start = false;
 
-    public TermHistoryHelper() {
+    public TermHistoryCmdHelper() {
     }
 
     public synchronized void push(String cmd) {

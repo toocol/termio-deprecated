@@ -60,7 +60,7 @@ public final class Compressor {
         }
 
         compressor.end();
-        return new String(output);
+        return new String(output, StandardCharsets.UTF_8);
     }
 
     public String uncompressStr(String input) {
@@ -94,7 +94,7 @@ public final class Compressor {
         }
 
         decompressor.end();
-        return new String(output);
+        return new String(output, StandardCharsets.UTF_8);
     }
 
 }

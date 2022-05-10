@@ -1,10 +1,9 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.utilities.action.AbstractCharAction;
+import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.utilities.event.CharEvent;
 import com.toocol.ssh.utilities.utils.CharUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
-import com.toocol.ssh.core.term.core.Printer;
 
 import java.nio.charset.StandardCharsets;
 

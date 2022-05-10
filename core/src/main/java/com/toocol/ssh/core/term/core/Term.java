@@ -27,14 +27,14 @@ public final class Term extends AbstractDevice {
     ConsoleReader reader;
     EventBus eventBus;
     final EscapeHelper escapeHelper;
-    final TermHistoryHelper historyHelper;
+    final TermHistoryCmdHelper historyCmdHelper;
     final TermReader termReader;
     final TermPrinter termPrinter;
     final TermCharEventDispatcher termCharEventDispatcher;
 
     public Term() {
         escapeHelper = new EscapeHelper();
-        historyHelper = new TermHistoryHelper();
+        historyCmdHelper = new TermHistoryCmdHelper();
         termReader  = new TermReader(this);
         termPrinter = new TermPrinter(this);
         termCharEventDispatcher = new TermCharEventDispatcher();

@@ -11,7 +11,7 @@ import java.util.UUID;
  * @date: 2022/4/15 0:26
  * @version: 0.0.1
  */
-public final class HistoryCmdHelper {
+public final class ShellHistoryCmdHelper {
 
     private final Shell shell;
     /**
@@ -38,7 +38,7 @@ public final class HistoryCmdHelper {
     private boolean puToDown = false;
     private boolean start = false;
 
-    public HistoryCmdHelper(Shell shell) {
+    public ShellHistoryCmdHelper(Shell shell) {
         this.shell = shell;
     }
 

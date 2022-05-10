@@ -16,17 +16,17 @@ public final class ActionUpDownArrow extends TermCharAction {
     @Override
     public boolean act(Term term, CharEvent charEvent, char inChar) {
         if (inChar == CharUtil.UP_ARROW) {
-            if (!term.historyHelper.isStart()) {
+            if (!term.historyCmdHelper.isStart()) {
                 if (term.lineBuilder.toString().length() != 0) {
-                    term.historyHelper.pushToDown(term.lineBuilder.toString());
+                    term.historyCmdHelper.pushToDown(term.lineBuilder.toString());
                 }
             }
-            String up = term.historyHelper.up();
+            String up = term.historyCmdHelper.up();
             if (up != null) {
                 term.lineBuilder.delete(0, term.lineBuilder.length()).append(up);
             }
         } else {
-            String down = term.historyHelper.down();
+            String down = term.historyCmdHelper.down();
             if (down != null) {
                 term.lineBuilder.delete(0, term.lineBuilder.length()).append(down);
             }
