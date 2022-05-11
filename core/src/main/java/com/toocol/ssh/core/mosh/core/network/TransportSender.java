@@ -2,9 +2,11 @@ package com.toocol.ssh.core.mosh.core.network;
 
 import com.google.protobuf.ByteString;
 import com.toocol.ssh.core.mosh.core.crypto.Crypto;
+import com.toocol.ssh.core.mosh.core.crypto.Prng;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 import com.toocol.ssh.core.mosh.core.statesnyc.State;
 import com.toocol.ssh.utilities.utils.Timestamp;
+import io.vertx.core.datagram.DatagramSocket;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,11 +26,12 @@ import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
  * @date: 2022/5/8 21:33
  * @version: 0.0.1
  */
-public final class TransportSender<MyState extends State> {
+public final class TransportSender<MyState extends State<MyState>> {
 
     private final MyState currentState;
     private final List<TimestampedState<MyState>> sentStates = new ArrayList<>();
     private final TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter();
+    private final Connection connection;
 
     private TimestampedState<MyState> assumedReceiverState;
 
@@ -49,7 +52,7 @@ public final class TransportSender<MyState extends State> {
 
     private long minDelayClock;
 
-    public TransportSender(MyState initialState) {
+    public TransportSender(MyState initialState, Transport.Addr addr, DatagramSocket socket) {
         this.currentState = initialState;
         this.sentStates.add(new TimestampedState<>(Timestamp.timestamp(), 0, initialState));
         this.assumedReceiverState = sentStates.get(0);
@@ -63,6 +66,8 @@ public final class TransportSender<MyState extends State> {
         this.sendMinDelay = 8;
         this.lastHeard = 0;
         this.minDelayClock = -1;
+
+        this.connection = new Connection(addr, socket);
     }
 
     public void tick() {
@@ -70,11 +75,40 @@ public final class TransportSender<MyState extends State> {
     }
 
     public void sendToReceiver(String diff) {
+        minDelayClock = -1;
         long newNum;
+        TimestampedState<MyState> back = sentStates.get(sentStates.size() - 1);
+        if (currentState.equals(back.state)) {
+            newNum = back.num;
+        } else {
+            newNum = back.num + 1;
+        }
+
+        if (newNum == back.num) {
+            back.timestamp = Timestamp.timestamp();
+        } else {
+            addSentState(Timestamp.timestamp(), newNum, currentState);
+        }
+
+        sendInFragments(diff, newNum);
+
+        assumedReceiverState = back;
+        nextAckTime = Timestamp.timestamp() + ACK_INTERVAL;
+        nextSendTime = -1;
     }
 
     public void sendEmptyAck() {
         long now = Timestamp.timestamp();
+
+        assert now >= nextAckTime;
+
+        long new_num = sentStates.get(sentStates.size() - 1).num + 1;
+
+        addSentState(now, new_num, currentState);
+        sendInFragments("", new_num);
+
+        nextAckTime = now + ACK_INTERVAL;
+        nextSendTime = -1;
     }
 
     private void addSentState(long theTimestamp, long num, MyState state) {
@@ -108,8 +142,13 @@ public final class TransportSender<MyState extends State> {
         Queue<TransportFragment.Fragment> fragments = fragmenter.makeFragments(inst,
                 DEFAULT_SEND_MTU - MoshPacket.ADDED_BYTES - Crypto.Session.ADDED_BYTES);
         while (!fragments.isEmpty()) {
+
             TransportFragment.Fragment fragment = fragments.poll();
+            connection.send(fragment.toString());
+
         }
+
+        pendingDataAck = false;
     }
 
     private void calculateTimers() {
@@ -148,10 +187,10 @@ public final class TransportSender<MyState extends State> {
 
     private String makeChaff() {
         int chaffMax = 16;
-        int chaffLen = PRNG.uint8() % (chaffMax + 1);
+        int chaffLen = Prng.uint8() % (chaffMax + 1);
 
         byte[] chaff = new byte[chaffMax];
-        PRNG.fill(chaff, chaffLen);
+        Prng.fill(chaff, chaffLen);
         return new String(chaff, 0, chaffLen);
     }
 

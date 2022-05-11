@@ -1,20 +1,38 @@
 package com.toocol.ssh.core.mosh.core.network;
 
 import com.toocol.ssh.core.mosh.core.statesnyc.UserStream;
+import io.vertx.core.datagram.DatagramSocket;
 
-@SuppressWarnings("all")
-public class Transport {
+public final class Transport {
 
-    public final String serverHost;
-    public final int port;
-    public final String key;
-    public final TransportSender<UserStream> sender;
+    public record Addr(String serverHost, int port, String key) {
+        public String serverHost() {
+            return serverHost;
+        }
+
+        public int port() {
+            return port;
+        }
+
+        public String key() {
+            return key;
+        }
+    }
+
+    public final Addr addr;
+
+    private TransportSender<UserStream> sender;
 
     public Transport(String serverHost, int port, String key) {
-        this.serverHost = serverHost;
-        this.port = port;
-        this.key = key;
-        this.sender = new TransportSender<>(new UserStream());
+        this.addr = new Addr(serverHost, port, key);
+    }
+
+    public void connect(DatagramSocket socket) {
+        this.sender = new TransportSender<>(new UserStream(), this.addr, socket);
+    }
+
+    public void send(String diff) {
+        sender.sendToReceiver(diff);
     }
 
     public void tick() {

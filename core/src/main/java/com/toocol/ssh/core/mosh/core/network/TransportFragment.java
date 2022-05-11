@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.mosh.core.network;
 
+import com.toocol.ssh.core.mosh.core.crypto.ByteOrder;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -43,15 +44,33 @@ public final class TransportFragment {
             this.initialized = true;
         }
 
+        private String networkOrderString(short hostOrder) {
+            byte[] netInt = ByteOrder.htoBe16(hostOrder);
+            return new String(netInt, StandardCharsets.UTF_8);
+        }
+
+        private String networkOrderString(long hostOrder) {
+            byte[] netInt = ByteOrder.htoBe64(hostOrder);
+            return new String(netInt, StandardCharsets.UTF_8);
+        }
+
         @Override
         public String toString() {
-            return "Fragment{" +
-                    "id=" + id +
-                    ", fragmentNum=" + fragmentNum +
-                    ", finalize=" + finalize +
-                    ", initialized=" + initialized +
-                    ", contents='" + contents + '\'' +
-                    '}';
+            assert initialized;
+
+            StringBuilder ret = new StringBuilder();
+
+            ret.append(networkOrderString(id));
+
+            assert (fragmentNum & 0x8000) > 0;
+            short combinedFragmentNum = (short) (((finalize ? 1 : 0) << 15) | fragmentNum);
+            ret.append(networkOrderString(combinedFragmentNum));
+
+            assert ret.length() == FRAG_HEADER_LEN / 2; // byte -> char
+
+            ret.append(contents);
+
+            return ret.toString();
         }
     }
 

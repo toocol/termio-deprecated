@@ -35,24 +35,25 @@ public final class MoshSession {
     public MoshSession(Vertx vertx, long sessionId, String host, int port, String key) {
         this.vertx = vertx;
         this.io = new IO();
-        this.transport = new Transport(host, port, key);
         this.sessionId = sessionId;
+        this.transport = new Transport(host, port, key);
     }
 
     // handle by event loop.
     public <T> void connect(Message<T> message) {
         try {
             this.socket = vertx.createDatagramSocket(new DatagramSocketOptions());
+            this.transport.connect(socket);
             this.io.inputStream = new MoshInputStream();
-            this.io.outputStream = new MoshOutputStream(this.io.inputStream, socket, transport);
+            this.io.outputStream = new MoshOutputStream(this.io.inputStream, transport);
 
             Term term = Term.getInstance();
-            socket.listen(transport.port, "127.0.0.1", result -> {
+            socket.listen(transport.addr.port(), "127.0.0.1", result -> {
                 if (result.succeeded()) {
                     socket.handler(this.io.outputStream::receivePacket);
-                    term.printDisplay("Mosh success to listened local port: " + transport.port);
+                    term.printDisplay("Mosh success to listened local port: " + transport.addr.port());
                 } else {
-                    term.printDisplay("Mosh fail to listened local port: " + transport.port);
+                    term.printDisplay("Mosh fail to listened local port: " + transport.addr.port());
                 }
                 this.connected = true;
                 message.reply(null);

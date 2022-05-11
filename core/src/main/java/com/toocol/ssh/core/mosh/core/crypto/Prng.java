@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.mosh.core.network;
+package com.toocol.ssh.core.mosh.core.crypto;
 
 import org.apache.commons.lang3.RandomUtils;
 
@@ -7,12 +7,12 @@ import org.apache.commons.lang3.RandomUtils;
  * @date: 2022/5/8 21:18
  * @version: 0.0.1
  */
-public final class PRNG {
+public final class Prng {
 
     public static byte uint8() {
         byte[] x = new byte[1];
         fill(x, 1);
-        return x[0];
+        return x[0] < 0 ? (byte) (x[0] * -1) : x[0];
     }
 
     public static void fill(byte[] dest, int size) {
