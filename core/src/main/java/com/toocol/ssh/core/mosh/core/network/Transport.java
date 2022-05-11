@@ -17,4 +17,7 @@ public class Transport {
         this.sender = new TransportSender<>(new UserStream());
     }
 
+    public void tick() {
+        sender.tick();
+    }
 }

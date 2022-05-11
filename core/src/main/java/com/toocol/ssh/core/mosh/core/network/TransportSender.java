@@ -65,6 +65,10 @@ public final class TransportSender<MyState extends State> {
         this.minDelayClock = -1;
     }
 
+    public void tick() {
+
+    }
+
     public void sendToReceiver(String diff) {
         long newNum;
     }
