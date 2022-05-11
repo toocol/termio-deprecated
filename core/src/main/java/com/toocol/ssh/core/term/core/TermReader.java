@@ -2,6 +2,7 @@ package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.core.term.handlers.DynamicEchoHandler;
 import com.toocol.ssh.utilities.utils.CharUtil;
+import com.toocol.ssh.utilities.utils.ExitMessage;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,7 +39,7 @@ public record TermReader(Term term) {
             }
 
         } catch (Exception e) {
-            Printer.println("\nSomething error.");
+            ExitMessage.setMsg("Term reader error.");
             System.exit(-1);
         }
         return null;

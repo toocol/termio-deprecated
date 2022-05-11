@@ -11,6 +11,7 @@ import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.action.AbstractDevice;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.utilities.utils.CmdUtil;
+import com.toocol.ssh.utilities.utils.ExitMessage;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
@@ -44,7 +45,7 @@ public final class Shell extends AbstractDevice {
         try {
             reader = new ConsoleReader(System.in, null, null);
         } catch (Exception e) {
-            Printer.println("\nCreate console reader failed.");
+            ExitMessage.setMsg("Create console reader failed.");
             System.exit(-1);
         }
     }
@@ -138,7 +139,7 @@ public final class Shell extends AbstractDevice {
                 }
             }
         } catch (Exception e) {
-            Printer.printErr("Reset IO failed: " + e.getMessage());
+            ExitMessage.setMsg("Reset IO failed: " + e.getMessage());
             System.exit(-1);
         }
     }

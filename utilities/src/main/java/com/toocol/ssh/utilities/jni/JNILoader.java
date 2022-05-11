@@ -1,5 +1,6 @@
 package com.toocol.ssh.utilities.jni;
 
+import com.toocol.ssh.utilities.utils.ExitMessage;
 import com.toocol.ssh.utilities.utils.OsUtil;
 import org.apache.commons.io.IOUtils;
 
@@ -39,7 +40,7 @@ public class JNILoader {
 
             System.load(extractPath);//loading goes here
         } catch (Exception e) {
-            System.out.println("Load library failed. message = " + e);
+            ExitMessage.setMsg("Load library failed. message = " + e);
             System.exit(-1);
         }
     }

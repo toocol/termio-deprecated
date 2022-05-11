@@ -1,6 +1,7 @@
 package com.toocol.ssh.utilities.handler;
 
 import com.toocol.ssh.utilities.annotation.RegisterHandler;
+import com.toocol.ssh.utilities.utils.ExitMessage;
 import com.toocol.ssh.utilities.utils.ICastable;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
@@ -50,8 +51,7 @@ public interface IHandlerMounter extends ICastable {
                 }
 
             } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("Assemble handler failed, message = " + e.getMessage());
+                ExitMessage.setMsg("Assemble handler failed, message = " + e.getMessage());
                 System.exit(-1);
             }
         });

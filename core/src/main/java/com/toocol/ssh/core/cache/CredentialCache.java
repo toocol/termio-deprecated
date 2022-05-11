@@ -4,6 +4,7 @@ import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
+import com.toocol.ssh.utilities.utils.ExitMessage;
 import io.vertx.core.json.JsonArray;
 
 import java.util.*;
@@ -27,7 +28,7 @@ public class CredentialCache {
         try {
             return CREDENTIAL_SET.size();
         } catch (Exception e) {
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();
@@ -41,7 +42,7 @@ public class CredentialCache {
         try {
             return new JsonArray(new ArrayList<>(CREDENTIAL_SET)).toString();
         } catch (Exception e) {
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();
@@ -67,7 +68,7 @@ public class CredentialCache {
                 Printer.println(builder.toString());
             });
         } catch (Exception e) {
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();
@@ -85,7 +86,7 @@ public class CredentialCache {
                 }
             }
         } catch (Exception e) {
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();
@@ -99,7 +100,7 @@ public class CredentialCache {
         try {
             return CREDENTIAL_SET.contains(credential);
         } catch (Exception e) {
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();
@@ -113,7 +114,7 @@ public class CredentialCache {
         try {
             CREDENTIAL_SET.add(credential);
         } catch (Exception e) {
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();
@@ -136,7 +137,7 @@ public class CredentialCache {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();

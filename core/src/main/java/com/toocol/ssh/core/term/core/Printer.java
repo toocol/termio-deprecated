@@ -3,6 +3,7 @@ package com.toocol.ssh.core.term.core;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.anis.ColorHelper;
 import com.toocol.ssh.utilities.console.Console;
+import com.toocol.ssh.utilities.utils.ExitMessage;
 import com.toocol.ssh.utilities.utils.PomUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
@@ -159,7 +160,7 @@ public final class Printer {
                     Thread.sleep(200);
                 }
             } catch (InterruptedException e) {
-                print("Start up failed.");
+                ExitMessage.setMsg("Start up failed.");
                 System.exit(-1);
             }
             latch.countDown();

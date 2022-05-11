@@ -42,7 +42,7 @@ public class TermioApplication {
     public static void main(String[] args) {
         JNILoader.load();
         if (args.length != 1) {
-            Printer.printErr("Wrong boot type.");
+            ExitMessage.setMsg("Wrong boot type.");
             System.exit(-1);
         }
         SystemConfig.BOOT_TYPE = args[0];
@@ -102,7 +102,7 @@ public class TermioApplication {
                         if (result.succeeded()) {
                             initialLatch.countDown();
                         } else {
-                            Printer.printErr("Termio start up failed, verticle = " + verticleClass.getSimpleName());
+                            ExitMessage.setMsg("Termio start up failed, verticle = " + verticleClass.getSimpleName());
                             vertx.close();
                             System.exit(-1);
                         }
@@ -126,7 +126,7 @@ public class TermioApplication {
             }
         } catch (Exception e) {
             vertx.close();
-            Printer.printErr("Termio start up error, failed to accept command.");
+            ExitMessage.setMsg("Termio start up error.");
             System.exit(-1);
         }
     }
