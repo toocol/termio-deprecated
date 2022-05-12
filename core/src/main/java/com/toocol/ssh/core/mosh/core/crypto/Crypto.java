@@ -160,7 +160,8 @@ public final class Crypto {
             String text = new String(
                     ciphertextBuffer.data,
                     0,
-                    ciphertextLen
+                    ciphertextLen,
+                    StandardCharsets.UTF_8
             );
 
             return (plainText.nonce.ccStr() + text).getBytes(StandardCharsets.UTF_8);
@@ -186,7 +187,7 @@ public final class Crypto {
             System.arraycopy(str, 8, ciphertextBuffer.data, 0, bodyLen);
             System.arraycopy(nonce.data(), 0, nonceBuffer.data, 0, Nonce.NONCE_LEN);
 
-            if (ptLen != AeOcb.aeDecrypt(ctx,                      /* ctx */
+            if (ptLen != AeOcb.aeDecrypt(ctx, /* ctx */
                     nonceBuffer.data,      /* nonce */
                     ciphertextBuffer.data, /* ct */
                     bodyLen,               /* ct_len */

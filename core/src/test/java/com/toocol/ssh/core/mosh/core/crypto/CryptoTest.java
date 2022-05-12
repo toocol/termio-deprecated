@@ -1,6 +1,5 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
-import com.google.common.primitives.Longs;
 import com.toocol.ssh.core.mosh.core.network.MoshPacket;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import org.junit.jupiter.api.Test;
@@ -17,15 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class CryptoTest {
     private short savedTimestamp;
     private long savedTimestampReceivedAt;
-
-    @Test
-    public void testByteOrder() {
-        long time = System.currentTimeMillis();
-        long beTime = Longs.fromByteArray(Longs.toByteArray(time));
-        long myBeTime = Longs.fromByteArray(ByteOrder.htoBe64(time));
-        assertEquals(time, beTime);
-        assertEquals(time, myBeTime);
-    }
 
     @Test
     public void testCipher() {
@@ -45,7 +35,7 @@ class CryptoTest {
             encryptBlk = AeOcb.Block.swapIfLe(encryptBlk);
             System.out.println("swap: " + encryptBlk.l + ":" + encryptBlk.r);
 
-            encryptBlk.doubleBlock();
+            encryptBlk = AeOcb.Block.doubleBlock(encryptBlk);
             System.out.println("double: " + encryptBlk.l + ":" + encryptBlk.r);
 
             encryptBlk = AeOcb.Block.swapIfLe(encryptBlk);
@@ -88,11 +78,13 @@ class CryptoTest {
     public void testEncrypt() {
         String origin = "Hello World~";
         String key = "zr0jtuYVKJnfJHP/XOOsbQ";
-        Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
+        Crypto.Session encryptSession = new Crypto.Session(new Crypto.Base64Key(key));
+        Crypto.Session decryptSession = new Crypto.Session(new Crypto.Base64Key(key));
 
         MoshPacket moshPacket = newPacket(origin.getBytes(StandardCharsets.UTF_8));
-        byte[] encrypt = session.encrypt(moshPacket.toMessage());
-        Crypto.Message decrypt = session.decrypt(encrypt, encrypt.length);
+        byte[] encrypt = encryptSession.encrypt(moshPacket.toMessage());
+
+        Crypto.Message decrypt = decryptSession.decrypt(encrypt, encrypt.length);
         System.out.println();
     }
 
