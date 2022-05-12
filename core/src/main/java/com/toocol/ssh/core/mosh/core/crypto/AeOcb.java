@@ -277,8 +277,6 @@ public final class AeOcb {
                 ctx.checksum = checksum;
             }
 
-            ctp = new Block[BPI];
-            initBlocks(ctp);
             if (finalize > 0) {
                 Block[] ta = new Block[BPI + 1], oa = new Block[BPI];
                 initBlocks(ta);
@@ -289,17 +287,18 @@ public final class AeOcb {
                 if (remaining > 0) {
                     if (remaining >= 32) {
                         oa[k] = xorBlock(offset, ctx.l[0]);
-                        ta[k] = xorBlock(oa[k], ctp[k]);
-                        oa[k + 1] = xorBlock(oa[k], ctx.l[1]);
-                        offset = oa[k + 1];
-                        ta[k + 1] = xorBlock(offset, ctp[k + 1]);
+                        ta[k] = xorBlock(oa[k], ptp[k]);
+                        checksum = xorBlock(checksum, ptp[k]);
+                        offset = oa[k+1] = xorBlock(oa[k], ctx.l[1]);
+                        ta[k+1] = xorBlock(offset, ptp[k+1]);
+                        checksum = xorBlock(checksum, ptp[k+1]);
                         remaining -= 32;
-                        k += 2;
+                        k+=2;
                     }
                     if (remaining >= 16) {
-                        oa[k] = xorBlock(offset, ctx.l[0]);
-                        offset = oa[k];
-                        ta[k] = xorBlock(offset, ctp[k]);
+                        offset = oa[k] = xorBlock(offset, ctx.l[0]);
+                        ta[k] = xorBlock(offset, ptp[k]);
+                        checksum = xorBlock(checksum, ptp[k]);
                         remaining -= 16;
                         ++k;
                     }
@@ -352,9 +351,182 @@ public final class AeOcb {
                 }
             }
         } catch (Exception e) {
-            return -1;
+            return AE_INVALID;
         }
         return ptLen;
+    }
+
+    public static int aeDecrypt(AeCtx ctx,
+                                byte[] nonce,
+                                byte[] ct,
+                                int ctLen,
+                                byte[] ad,
+                                int adLen,
+                                byte[] pt,
+                                byte[] tag,
+                                int finalize) {
+        try {
+            int i,j,k;
+            byte[] tmpU8 = new byte[16];
+            Block tmpBl;
+
+            Block offset, checksum;
+            Block[] ctp, ptp;
+
+            if (finalize > 0 && (tag == null)) {
+                ctLen -= OCB_TAG_LEN;
+            }
+
+            if (nonce != null) {
+                ctx.offset = genOffsetFromNonce(ctx, nonce);
+                ctx.checksum = zeroBlock();
+                ctx.offset = zeroBlock();
+                ctx.blocksProcessed = 0;
+                ctx.adBlocksProcessed = 0;
+                if (adLen > 0) {
+                    ctx.adCheckSum = zeroBlock();
+                }
+            }
+
+            if (adLen > 0) {
+                processAd(ctx, ad, adLen, finalize);
+            }
+
+            offset = ctx.offset;
+            checksum = ctx.checksum;
+            i = ctLen/(BPI * 16);
+            j = 0;
+
+            ctp = transferBlockArrays(ct, i);
+            ptp = new Block[BPI];
+            initBlocks(ptp);
+
+            if (i > 0) {
+                Block[] oa = new Block[BPI];
+                int blockNum = ctx.blocksProcessed;
+                oa[BPI - 1] = offset;
+                do {
+                    Block[] ta = new Block[BPI];
+                    blockNum += BPI;
+
+                    oa[0] = xorBlock(oa[BPI - 1], ctx.l[0]);
+                    ta[0] = xorBlock(oa[0], ctp[j]);
+
+                    oa[1] = xorBlock(oa[0], ctx.l[1]);
+                    ta[1] = xorBlock(oa[1], ctp[j + 1]);
+
+                    oa[2] = xorBlock(oa[1], ctx.l[0]);
+                    ta[2] = xorBlock(oa[2], ctp[j + 2]);
+
+                    oa[3] = xorBlock(oa[2], ctx.l[ntz(blockNum)]);
+                    ta[3] = xorBlock(oa[3], ctp[j + 3]);
+
+                    ctx.decryptBlock(ta, BPI);
+
+                    ptp[0] = xorBlock(ta[0], oa[0]);
+                    checksum = xorBlock(checksum, ptp[0]);
+                    ptp[1] = xorBlock(ta[1], oa[1]);
+                    checksum = xorBlock(checksum, ptp[1]);
+                    ptp[2] = xorBlock(ta[2], oa[2]);
+                    checksum = xorBlock(checksum, ptp[2]);
+                    ptp[3] = xorBlock(ta[3], oa[3]);
+                    checksum = xorBlock(checksum, ptp[3]);
+                    fillDataFromBlockArrays(pt, ptp, j);
+
+                } while (++j < i);
+
+                offset = oa[BPI - 1];
+                ctx.offset = offset;
+                ctx.blocksProcessed = blockNum;
+                ctx.checksum = checksum;
+            }
+
+            if (finalize > 0) {
+                Block[] ta = new Block[BPI + 1], oa = new Block[BPI];
+                initBlocks(ta);
+                initBlocks(oa);
+                int remaining = ctLen % (BPI * 16);
+                k = 0;
+
+                if (remaining > 0) {
+                    if (remaining >= 32) {
+                        oa[k] = xorBlock(offset, ctx.l[0]);
+                        ta[k] = xorBlock(oa[k], ctp[k]);
+                        offset = oa[k+1] = xorBlock(oa[k], ctx.l[1]);
+                        ta[k+1] = xorBlock(offset, ctp[k+1]);
+                        remaining -= 32;
+                        k+=2;
+                    }
+                    if (remaining >= 16) {
+                        offset = oa[k] = xorBlock(offset, ctx.l[0]);
+                        ta[k] = xorBlock(offset, ctp[k]);
+                        remaining -= 16;
+                        ++k;
+                    }
+                    if (remaining > 0) {
+                        Block pad;
+                        offset = xorBlock(offset, ctx.lstar);
+                        byte[] encrypt = ctx.encrypt(offset.getBytes());
+
+                        System.arraycopy(encrypt, 0, tmpU8, 0 , encrypt.length);
+                        pad = fromBytes(encrypt);
+
+                        byte[] ctpPlusK = getBytesFromBlockArrays(ctp, k, ctp.length);
+                        System.arraycopy(ctpPlusK, 0, tmpU8, 0 , remaining);
+
+                        tmpBl = fromBytes(tmpU8);
+                        tmpBl = xorBlock(tmpBl, pad);
+                        tmpU8 = tmpBl.getBytes();
+
+                        tmpU8[remaining] = (byte) 0x80;
+                        System.arraycopy(tmpU8, 0, pt, j * BPI * 16, remaining);
+                        checksum = xorBlock(checksum, tmpBl);
+                    }
+                }
+
+                ctx.decryptBlock(ta, k);
+                switch (k) {
+                    case 3:
+                        ptp[2] = xorBlock(ta[2], oa[2]);
+                        checksum = xorBlock(checksum, ptp[2]);
+                    case 2:
+                        ptp[1] = xorBlock(ta[1], oa[1]);
+                        checksum = xorBlock(checksum, ptp[1]);
+                    case 1:
+                        ptp[0] = xorBlock(ta[0], oa[0]);
+                        checksum = xorBlock(checksum, ptp[0]);
+                        break;
+                    default:
+                        break;
+                }
+
+                offset = xorBlock(offset, ctx.ldollor);
+                tmpBl = xorBlock(offset, checksum);
+                tmpU8 = tmpBl.getBytes();
+                tmpU8 = ctx.encrypt(tmpU8);
+                tmpBl = fromBytes(tmpU8);
+                tmpBl = xorBlock(tmpBl, ctx.adCheckSum);
+                tmpU8 = tmpBl.getBytes();
+
+                if (OCB_TAG_LEN == 16 && tag != null) {
+                    if (unequalBlocks(tmpBl, fromBytes(tag))) {
+                        ctLen = AE_INVALID;
+                    }
+                } else {
+                    int len = OCB_TAG_LEN;
+
+                    byte[] tmp = new byte[len];
+                    System.arraycopy(ct, ctLen, tmp, 0, len);
+                    if (constantTimeMemcmp(tmp, tmpU8, len) != 0) {
+                        ctLen = AE_INVALID;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            return AE_INVALID;
+        }
+
+        return ctLen;
     }
 
     static int ntz(int x) {
@@ -432,6 +604,16 @@ public final class AeOcb {
         }
 
         return Block.genOffset(ctx.ktopStr, idx);
+    }
+
+    static int constantTimeMemcmp(byte[] av, byte[] bv, int n) {
+        byte result = 0;
+
+        for (int i = 0; i < n; i++) {
+            result |= av[i] ^ bv[i];
+        }
+
+        return result;
     }
 
     static void processAd(AeCtx ctx, byte[] ad, int adLen, int finalise) {

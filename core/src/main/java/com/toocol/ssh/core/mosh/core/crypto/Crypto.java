@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
 import com.toocol.ssh.utilities.execeptions.CryptoException;
+import com.toocol.ssh.utilities.utils.ExitMessage;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -22,6 +23,14 @@ public final class Crypto {
 
         public Nonce(long directionSeq) {
             System.arraycopy(ByteOrder.htoBe64(directionSeq), 0, this.bytes, 4, 8);
+        }
+
+        public Nonce(byte[] bytes, int len) {
+            if (len != 8) {
+                throw new CryptoException("Nonce representation must be 8 octets long.");
+            }
+
+            System.arraycopy(bytes, 0, this.bytes, 4, 8);
         }
 
         public byte[] data() {
@@ -155,6 +164,41 @@ public final class Crypto {
             );
 
             return (plainText.nonce.ccStr() + text).getBytes(StandardCharsets.UTF_8);
+        }
+
+        public Message decrypt(byte[] str, int len) {
+            if (len < 24) {
+                throw new CryptoException("Ciphertext must contain nonce and tag.");
+            }
+
+            int bodyLen = len - 8;
+            int ptLen = bodyLen - 16;
+
+            if (ptLen < 0) {
+                ExitMessage.setMsg("Mosh error, invalid message length.");
+                System.exit(-1);
+            }
+
+            assert bodyLen <= ciphertextBuffer.len;
+            assert ptLen <= plaintextBuffer.len;
+
+            Nonce nonce = new Nonce(str, 8);
+            System.arraycopy(str, 8, ciphertextBuffer.data, 0, bodyLen);
+            System.arraycopy(nonce.data(), 0, nonceBuffer.data, 0, Nonce.NONCE_LEN);
+
+            if (ptLen != AeOcb.aeDecrypt(ctx,                      /* ctx */
+                    nonceBuffer.data,      /* nonce */
+                    ciphertextBuffer.data, /* ct */
+                    bodyLen,               /* ct_len */
+                    null,                  /* ad */
+                    0,                     /* ad_len */
+                    plaintextBuffer.data,  /* pt */
+                    null,                  /* tag */
+                    1)) {                  /* final */
+                throw new CryptoException("Packet failed integrity check.");
+            }
+
+            return new Message(nonce, new String(plaintextBuffer.data, 0, ptLen, StandardCharsets.UTF_8));
         }
     }
 

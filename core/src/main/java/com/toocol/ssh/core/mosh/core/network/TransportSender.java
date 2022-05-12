@@ -151,6 +151,15 @@ public final class TransportSender<MyState extends State<MyState>> {
         pendingDataAck = false;
     }
 
+    private String makeChaff() {
+        int chaffMax = 16;
+        int chaffLen = Prng.uint8() % (chaffMax + 1);
+
+        byte[] chaff = new byte[chaffMax];
+        Prng.fill(chaff, chaffLen);
+        return new String(chaff, 0, chaffLen);
+    }
+
     private void calculateTimers() {
         long now = Timestamp.timestamp();
 
@@ -183,15 +192,6 @@ public final class TransportSender<MyState extends State<MyState>> {
         for (TimestampedState<MyState> sentState : sentStates) {
             sentState.state.subtract(knownReceiverState);
         }
-    }
-
-    private String makeChaff() {
-        int chaffMax = 16;
-        int chaffLen = Prng.uint8() % (chaffMax + 1);
-
-        byte[] chaff = new byte[chaffMax];
-        Prng.fill(chaff, chaffLen);
-        return new String(chaff, 0, chaffLen);
     }
 
     private int sendInterval() {

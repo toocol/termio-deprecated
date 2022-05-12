@@ -1,7 +1,11 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
 import com.google.common.primitives.Longs;
+import com.toocol.ssh.core.mosh.core.network.MoshPacket;
+import com.toocol.ssh.utilities.utils.Timestamp;
 import org.junit.jupiter.api.Test;
+
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -11,6 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * @version:
  */
 class CryptoTest {
+    private short savedTimestamp;
+    private long savedTimestampReceivedAt;
 
     @Test
     public void testByteOrder() {
@@ -80,8 +86,33 @@ class CryptoTest {
 
     @Test
     public void testEncrypt() {
+        String origin = "Hello World~";
         String key = "zr0jtuYVKJnfJHP/XOOsbQ";
         Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
+
+        MoshPacket moshPacket = newPacket(origin.getBytes(StandardCharsets.UTF_8));
+        byte[] encrypt = session.encrypt(moshPacket.toMessage());
+        Crypto.Message decrypt = session.decrypt(encrypt, encrypt.length);
+        System.out.println();
+    }
+
+    private MoshPacket newPacket(byte[] bytes) {
+        short outgoingTimestampReply = -1;
+
+        long now = Timestamp.timestamp();
+
+        if (now - savedTimestampReceivedAt < 1000) {
+            outgoingTimestampReply = (short) (savedTimestamp + (short) (now - savedTimestampReceivedAt));
+            savedTimestamp = -1;
+            savedTimestampReceivedAt = -1;
+        }
+
+        return new MoshPacket(
+                new String(bytes, StandardCharsets.UTF_8),
+                MoshPacket.Direction.TO_SERVER,
+                Timestamp.timestamp16(),
+                outgoingTimestampReply
+        );
     }
 
 }
