@@ -16,7 +16,6 @@ class ByteOrderTest {
     @Test
     void bswap64Test() {
         long x = 123456;
-        byte[] bytes = ByteOrder.longBytes(x);
         x = ByteOrder.toLong(ByteOrder.bswap64(x));
         assertEquals(x, 4675300462675623936L);
     }

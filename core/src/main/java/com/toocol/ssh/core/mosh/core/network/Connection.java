@@ -38,7 +38,11 @@ public final class Connection {
 
     public void send(String msg) {
         MoshPacket packet = newPacket(msg.getBytes(StandardCharsets.UTF_8));
-        socket.send(Buffer.buffer(session.encrypt(packet.toMessage())), addr.port(), addr.serverHost());
+        socket.send(Buffer.buffer(session.encrypt(packet.toMessage())), addr.port(), addr.serverHost(), result -> {
+            if (result.failed()) {
+
+            }
+        });
     }
 
     private MoshPacket newPacket(byte[] bytes) {
