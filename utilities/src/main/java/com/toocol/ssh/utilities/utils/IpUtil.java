@@ -15,29 +15,32 @@ import java.util.Optional;
  */
 public class IpUtil {
     /*
-     * 获取本机所有网卡信息   得到所有IP信息
-     * @return Inet4Address>
+     * Get all network card information of this machine to get all IP information
+     *
+     * @return Inet4Address
      */
     public static List<Inet4Address> getLocalIp4AddressFromNetworkInterface() throws SocketException {
         List<Inet4Address> addresses = new ArrayList<>(1);
 
-        // 所有网络接口信息
+        // All network interface information
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
         if (ObjectUtils.isEmpty(networkInterfaces)) {
             return addresses;
         }
         while (networkInterfaces.hasMoreElements()) {
             NetworkInterface networkInterface = networkInterfaces.nextElement();
-            //滤回环网卡、点对点网卡、非活动网卡、虚拟网卡并要求网卡名字是eth或ens开头
+            /* Filter the ring network card, point-to-point network card, inactive network card and virtual network card,
+             * and require the network card name to start with eth or ens
+             * */
             if (!isValidInterface(networkInterface)) {
                 continue;
             }
 
-            // 所有网络接口的IP地址信息
+            // IP address information of all network interfaces
             Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
             while (inetAddresses.hasMoreElements()) {
                 InetAddress inetAddress = inetAddresses.nextElement();
-                // 判断是否是IPv4，并且内网地址并过滤回环地址.
+                // Judge whether it is IPv4, and the intranet address and filter the loopback address
                 if (isValidAddress(inetAddress)) {
                     addresses.add((Inet4Address) inetAddress);
                 }
@@ -47,10 +50,11 @@ public class IpUtil {
     }
 
     /**
-     * 过滤回环网卡、点对点网卡、非活动网卡、虚拟网卡并要求网卡名字是eth或ens开头
+     * Filter the ring network card, point-to-point network card, inactive network card and virtual network card,
+     * and require the network card name to start with eth or ens
      *
-     * @param ni 网卡
-     * @return 如果满足要求则true，否则false
+     * @param ni network interface
+     * @return true/false
      */
     private static boolean isValidInterface(NetworkInterface ni) throws SocketException {
         return !ni.isLoopback() && !ni.isPointToPoint() && ni.isUp() && !ni.isVirtual()
@@ -58,16 +62,17 @@ public class IpUtil {
     }
 
     /**
-     * 判断是否是IPv4，并且内网地址并过滤回环地址.
+     * Judge whether it is IPv4, and the intranet address and filter the loopback address
      */
     private static boolean isValidAddress(InetAddress address) {
         return address instanceof Inet4Address && address.isSiteLocalAddress() && !address.isLoopbackAddress();
     }
 
     /*
-     * 通过Socket 唯一确定一个IP
-     * 当有多个网卡的时候，使用这种方式一般都可以得到想要的IP。甚至不要求外网地址8.8.8.8是可连通的
-     * @return Inet4Address>
+     * A unique IP is determined through the socket.
+     * When there are multiple network cards, you can generally get the desired IP by using this method.
+     * The Internet address 8.8.8.8 is not even required to be connectable
+     * @return Inet4Address
      */
     private static Optional<Inet4Address> getIpBySocket() throws SocketException {
         try (final DatagramSocket socket = new DatagramSocket()) {
