@@ -1,10 +1,12 @@
 package com.toocol.ssh.core.mosh.core.network;
 
+import com.toocol.ssh.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
@@ -28,14 +30,13 @@ public final class Compressor {
 
     }
 
-    public String compressStr(String input) {
-        if (StringUtils.isEmpty(input)) {
-            return input;
+    public byte[] compress(byte[] bytes) {
+        if (bytes == null || bytes.length == 0) {
+            return new byte[0];
         }
-        byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
         byte[] output;
 
-        Deflater compressor = new Deflater();
+        Deflater compressor = new Deflater(Deflater.DEFAULT_COMPRESSION, true);
         compressor.reset();
         compressor.setInput(bytes);
         compressor.finish();
@@ -60,17 +61,13 @@ public final class Compressor {
         }
 
         compressor.end();
-        return new String(output, StandardCharsets.UTF_8);
+        return output;
     }
 
-    public String uncompressStr(String input) {
-        if (StringUtils.isEmpty(input)) {
-            return input;
-        }
+    public byte[] decompress(byte[] data) {
         byte[] output;
-        byte[] data = input.getBytes(StandardCharsets.UTF_8);
 
-        Inflater decompressor = new Inflater();
+        Inflater decompressor = new Inflater(true);
         decompressor.reset();
         decompressor.setInput(data);
 
@@ -94,7 +91,7 @@ public final class Compressor {
         }
 
         decompressor.end();
-        return new String(output, StandardCharsets.UTF_8);
+        return output;
     }
 
 }

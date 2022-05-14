@@ -7,6 +7,9 @@ import io.vertx.core.datagram.DatagramSocket;
 
 import java.nio.charset.StandardCharsets;
 
+import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
+import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.MAX_RTO;
+
 /**
  * Equivalent to network.h/network.cc/
  *
@@ -37,15 +40,23 @@ public final class Connection {
     }
 
     public void send(String msg) {
-        MoshPacket packet = newPacket(msg.getBytes(StandardCharsets.UTF_8));
+        MoshPacket packet = newPacket(msg);
         socket.send(Buffer.buffer(session.encrypt(packet.toMessage())), addr.port(), addr.serverHost(), result -> {
-            if (result.failed()) {
 
-            }
         });
     }
 
-    private MoshPacket newPacket(byte[] bytes) {
+    public long timeout() {
+        long rto = (long) Math.ceil(SRIT + 4 * RTTVAR);
+        if (rto < MIN_RTO) {
+            rto = MIN_RTO;
+        } else if (rto > MAX_RTO) {
+            rto = MAX_RTO;
+        }
+        return rto;
+    }
+
+    private MoshPacket newPacket(String msg) {
         short outgoingTimestampReply = -1;
 
         long now = Timestamp.timestamp();
@@ -57,11 +68,10 @@ public final class Connection {
         }
 
         return new MoshPacket(
-                new String(bytes, StandardCharsets.UTF_8),
+                msg,
                 MoshPacket.Direction.TO_SERVER,
                 Timestamp.timestamp16(),
                 outgoingTimestampReply
         );
     }
-
 }

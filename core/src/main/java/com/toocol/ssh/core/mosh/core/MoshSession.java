@@ -73,6 +73,10 @@ public final class MoshSession {
         }
     }
 
+    public void tick() {
+        transport.tick();
+    }
+
     public InputStream getInputStream() throws IOException {
         if (!connected) {
             throw new IOException("Mosh session is not connected.");

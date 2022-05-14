@@ -50,8 +50,26 @@ public final class UserStream extends State<UserStream>{
 
     @Override
     public boolean equals(Object obj) {
-        // todo: equals method need to override
-        return super.equals(obj);
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof UserStream us)) {
+            return false;
+        }
+        if (this.actions.size() != us.actions.size()) {
+            return false;
+        }
+
+        Iterator<UserEvent> thisIterator = actions.iterator();
+        Iterator<UserEvent> usIterator = us.actions.iterator();
+        while (thisIterator.hasNext()) {
+            UserEvent thisNext = thisIterator.next();
+            UserEvent usNext = usIterator.next();
+            if (!thisNext.equals(usNext)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

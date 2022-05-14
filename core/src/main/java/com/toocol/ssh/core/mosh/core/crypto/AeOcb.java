@@ -263,7 +263,7 @@ public final class AeOcb {
                     ctp[1] = xorBlock(ta[1], oa[1]);
                     ctp[2] = xorBlock(ta[2], oa[2]);
                     ctp[3] = xorBlock(ta[3], oa[3]);
-                    fillDataFromBlockArrays(ct, ctp, j);
+                    fillDataFromBlockArrays(ct, ctp, j, ctp.length);
 
                 } while (++j < i);
 
@@ -334,9 +334,9 @@ public final class AeOcb {
                     case 1:
                         ctp[0] = xorBlock(ta[0], oa[0]);
                     default:
+                        fillDataFromBlockArrays(ct, ctp, j, k);
                         break;
                 }
-                fillDataFromBlockArrays(ct, ctp, j);
 
                 if (tag != null) {
                     System.arraycopy(offset.getBytes(), 0, tag, 0, OCB_TAG_LEN);
@@ -424,7 +424,7 @@ public final class AeOcb {
                     checksum = xorBlock(checksum, ptp[2]);
                     ptp[3] = xorBlock(ta[3], oa[3]);
                     checksum = xorBlock(checksum, ptp[3]);
-                    fillDataFromBlockArrays(pt, ptp, j);
+                    fillDataFromBlockArrays(pt, ptp, j, ptp.length);
 
                 } while (++j < i);
 
@@ -492,11 +492,10 @@ public final class AeOcb {
                     case 1:
                         ptp[0] = xorBlock(ta[0], oa[0]);
                         checksum = xorBlock(checksum, ptp[0]);
-                        break;
                     default:
+                        fillDataFromBlockArrays(pt, ptp, j, k);
                         break;
                 }
-                fillDataFromBlockArrays(pt, ptp, j);
 
                 offset = xorBlock(offset, ctx.ldollor);
                 tmpBl = xorBlock(offset, checksum);
@@ -537,8 +536,8 @@ public final class AeOcb {
         }
     }
 
-    static void fillDataFromBlockArrays(byte[] target, Block[] blocks, int round) {
-        for (int idx = 0; idx < blocks.length; idx++) {
+    static void fillDataFromBlockArrays(byte[] target, Block[] blocks, int round, int end) {
+        for (int idx = 0; idx < end; idx++) {
             int destPos = (round * BPI * 16) + (idx * 16);
             System.arraycopy(blocks[idx].getBytes(), 0, target, destPos, 16);
         }

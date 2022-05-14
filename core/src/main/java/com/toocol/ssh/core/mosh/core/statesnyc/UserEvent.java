@@ -1,5 +1,7 @@
 package com.toocol.ssh.core.mosh.core.statesnyc;
 
+import java.util.Objects;
+
 /**
  * user.h:UserEvent
  *
@@ -23,13 +25,19 @@ public abstract class UserEvent {
         }
     }
 
-    private final UserEventType type;
+    protected final UserEventType type;
 
     public abstract String name();
 
     public static final class Resize extends UserEvent {
-        public Resize() {
+
+        private final int width;
+        private final int height;
+
+        public Resize(int width, int height) {
             super(UserEventType.RESIZE_TYPE);
+            this.width = width;
+            this.height = height;
         }
 
         @Override
@@ -37,6 +45,33 @@ public abstract class UserEvent {
             return "Resize";
         }
 
+        public int getWidth() {
+            return width;
+        }
+
+        public int getHeight() {
+            return height;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Resize resize = (Resize) o;
+            if (!type.equals(resize.type)) {
+                return false;
+            }
+            return width == resize.width && height == resize.height;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(width, height);
+        }
     }
 
 }

@@ -16,8 +16,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
-import static com.toocol.ssh.core.mosh.MoshAddress.ESTABLISH_MOSH_SESSION;
-import static com.toocol.ssh.core.mosh.MoshAddress.LISTEN_LOCAL_SOCKET;
+import static com.toocol.ssh.core.mosh.MoshAddress.*;
 import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
 import static com.toocol.ssh.core.shell.ShellAddress.RECEIVE_SHELL;
 import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
@@ -49,9 +48,11 @@ public final class BlockingEstablishMoshSessionHandler extends AbstractBlockingM
         long sessionId = session.getSessionId();
 
         // let event loop thread pool to handler udp packet receive.
-        vertx.eventBus().request(LISTEN_LOCAL_SOCKET.address(), sessionId, result -> {
+        eventBus.request(LISTEN_LOCAL_SOCKET.address(), sessionId, result -> {
             if (result.succeeded()) {
                 try {
+                    eventBus.send(MOSH_TICK.address(), sessionId);
+
                     Shell shell = new Shell(sessionId, eventBus, session);
                     shell.setUser(credential.getUser());
                     shell.initialFirstCorrespondence(ShellProtocol.MOSH);
@@ -65,6 +66,7 @@ public final class BlockingEstablishMoshSessionHandler extends AbstractBlockingM
             } else {
                 eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
             }
+            System.gc();
         });
 
         promise.complete();

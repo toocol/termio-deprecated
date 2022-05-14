@@ -37,10 +37,10 @@ public final class Crypto {
             return bytes;
         }
 
-        public String ccStr() {
+        public byte[] ccBytes() {
             byte[] cc = new byte[8];
             System.arraycopy(bytes, 4, cc, 0, 8);
-            return new String(cc);
+            return cc;
         }
     }
 
@@ -164,7 +164,11 @@ public final class Crypto {
                     StandardCharsets.UTF_8
             );
 
-            return (plainText.nonce.ccStr() + text).getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = new byte[8 + ciphertextLen];
+            System.arraycopy(plainText.nonce.ccBytes(), 0, bytes, 0, 8);
+            System.arraycopy(ciphertextBuffer.data, 0, bytes, 8, ciphertextLen);
+
+            return bytes;
         }
 
         public Message decrypt(byte[] str, int len) {
@@ -206,7 +210,7 @@ public final class Crypto {
     private static long counter = 0;
 
     public synchronized static long unique() {
-        return ++counter;
+        return counter++;
     }
 
 }

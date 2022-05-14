@@ -12,6 +12,10 @@ public enum MoshAddress implements IAddress{
      */
     ESTABLISH_MOSH_SESSION("mosh.establish.session"),
     /**
+     * mosh time tick
+     */
+    MOSH_TICK("mosh.tick"),
+    /**
      * mosh listen local udp socket packet receive
      */
     LISTEN_LOCAL_SOCKET("mosh.listen.local.socket"),

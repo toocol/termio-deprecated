@@ -97,21 +97,23 @@ public final class TransportFragment {
             lastInstruction = inst;
             lastMTU = mtu;
 
-            String payload = getCompressor().compressStr(inst.toString());
+            byte[] payload = getCompressor().compress(inst.toByteArray());
+            int remain = payload.length;
+            int deal = 0;
             short fragmentNum = 0;
 
             Queue<Fragment> ret = new ArrayDeque<>();
-            while (StringUtils.isNotEmpty(payload)) {
+            while (remain > 0) {
                 String thisFragment;
                 boolean finalize = false;
 
-                if (payload.length() > mtu) {
-                    byte[] bytes = payload.getBytes(StandardCharsets.UTF_8);
-                    thisFragment = new String(bytes, 0, mtu);
-                    payload = new String(bytes, mtu, bytes.length - mtu);
+                if (remain > mtu) {
+                    thisFragment = new String(payload, deal, mtu, StandardCharsets.UTF_8);
+                    deal += mtu;
+                    remain -= mtu;
                 } else {
-                    thisFragment = payload;
-                    payload = null;
+                    thisFragment = new String(payload, deal, remain, StandardCharsets.UTF_8);
+                    remain = 0;
                     finalize = true;
                 }
 

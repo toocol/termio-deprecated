@@ -7,6 +7,7 @@ import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 import com.toocol.ssh.core.mosh.core.statesnyc.State;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramSocket;
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +72,22 @@ public final class TransportSender<MyState extends State<MyState>> {
     }
 
     public void tick() {
+        calculateTimers();
 
+        long now = Timestamp.timestamp();
+
+        if (now < nextAckTime && now < nextSendTime) {
+            return;
+        }
+
+        if (now >= nextAckTime) {
+            sendEmptyAck();
+            minDelayClock = -1;
+        }
+        if (now >= nextSendTime) {
+            nextSendTime = -1;
+            minDelayClock = -1;
+        }
     }
 
     public void sendToReceiver(String diff) {
@@ -164,6 +180,32 @@ public final class TransportSender<MyState extends State<MyState>> {
         long now = Timestamp.timestamp();
 
         updateAssumedReceiverState();
+
+        rationalizeStates();
+
+        if (pendingDataAck && (nextAckTime > now + ACK_DELAY)) {
+            nextAckTime = now + ACK_DELAY;
+        }
+
+        if (!currentState.equals(sentStates.get(sentStates.size() - 1).state)) {
+            if (minDelayClock == -1) {
+                minDelayClock = now;
+            }
+
+            nextSendTime = Math.max(minDelayClock + sendMinDelay,
+                    sentStates.get(sentStates.size()- 1).timestamp + sendInterval());
+        } else if (!currentState.equals(assumedReceiverState.state)
+                && lastHeard + ACTIVE_RETRY_TIMEOUT > now) {
+            nextSendTime = sentStates.get(sentStates.size()- 1).timestamp + sendInterval();
+            if (minDelayClock != -1) {
+                nextSendTime = Math.max(nextSendTime, minDelayClock + sendMinDelay);
+            }
+        } else if (!currentState.equals(sentStates.get(0).state)
+                && lastHeard + ACTIVE_RETRY_TIMEOUT > now) {
+            nextSendTime = sentStates.get(sentStates.size()- 1).timestamp + connection.timeout() + ACK_DELAY;
+        } else {
+            nextSendTime = -1;
+        }
     }
 
     private void updateAssumedReceiverState() {
@@ -176,7 +218,7 @@ public final class TransportSender<MyState extends State<MyState>> {
             if (state == null) {
                 return;
             }
-            if (now - state.timestamp < timeout() + ACK_DELAY) {
+            if (now - state.timestamp < connection.timeout() + ACK_DELAY) {
                 assumedReceiverState = state;
             } else {
                 return;
@@ -202,15 +244,5 @@ public final class TransportSender<MyState extends State<MyState>> {
             sendInterval = SEND_INTERVAL_MAX;
         }
         return sendInterval;
-    }
-
-    private long timeout() {
-        long rto = (long) Math.ceil(SRIT + 4 * RTTVAR);
-        if (rto < MIN_RTO) {
-            rto = MIN_RTO;
-        } else if (rto > MAX_RTO) {
-            rto = MAX_RTO;
-        }
-        return rto;
     }
 }
