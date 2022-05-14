@@ -2,11 +2,8 @@ package com.toocol.ssh.core.mosh.core.network;
 
 import com.toocol.ssh.core.mosh.core.crypto.ByteOrder;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
-import com.toocol.ssh.utilities.utils.StrUtil;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
@@ -18,24 +15,28 @@ import java.util.Queue;
 public final class TransportFragment {
     private static final int FRAG_HEADER_LEN = 10; /* sizeof(long) + sizeof(short) */
 
+    private static final int FRAGMENT_BUFFER_LEN = NetworkConstants.DEFAULT_SEND_MTU * 2;
+
     public static class Fragment {
+        private static final byte[] BUFFER = new byte[FRAGMENT_BUFFER_LEN];
+
         private final long id;
         private final short fragmentNum;
         private final boolean finalize;
 
         private final boolean initialized;
 
-        private final String contents;
+        private final byte[] contents;
 
         public Fragment() {
             this.id = -1;
             this.fragmentNum = -1;
             this.finalize = false;
             this.initialized = false;
-            this.contents = StrUtil.EMPTY;
+            this.contents = new byte[0];
         }
 
-        public Fragment(long id, short fragmentNum, boolean finalize, String contents) {
+        public Fragment(long id, short fragmentNum, boolean finalize, byte[] contents) {
             this.id = id;
             this.fragmentNum = fragmentNum;
             this.finalize = finalize;
@@ -44,33 +45,37 @@ public final class TransportFragment {
             this.initialized = true;
         }
 
-        private String networkOrderString(short hostOrder) {
-            byte[] netInt = ByteOrder.htoBe16(hostOrder);
-            return new String(netInt, StandardCharsets.UTF_8);
+        private byte[] networkOrderBytes(short hostOrder) {
+            return ByteOrder.htoBe16(hostOrder);
         }
 
-        private String networkOrderString(long hostOrder) {
-            byte[] netInt = ByteOrder.htoBe64(hostOrder);
-            return new String(netInt, StandardCharsets.UTF_8);
+        private byte[] networkOrderBytes(long hostOrder) {
+            return ByteOrder.htoBe64(hostOrder);
         }
 
-        @Override
-        public String toString() {
+        public byte[] toBytes() {
             assert initialized;
 
-            StringBuilder ret = new StringBuilder();
+            int proceed = 0;
 
-            ret.append(networkOrderString(id));
+            byte[] nob = networkOrderBytes(id);
+            System.arraycopy(nob, 0, BUFFER, proceed, nob.length);
+            proceed += nob.length;
 
             assert (fragmentNum & 0x8000) > 0;
             short combinedFragmentNum = (short) (((finalize ? 1 : 0) << 15) | fragmentNum);
-            ret.append(networkOrderString(combinedFragmentNum));
+            nob = networkOrderBytes(combinedFragmentNum);
+            System.arraycopy(nob, 0, BUFFER, proceed, nob.length);
+            proceed += nob.length;
 
-            assert ret.length() == FRAG_HEADER_LEN / 2; // byte -> char
+            assert proceed == FRAG_HEADER_LEN;
 
-            ret.append(contents);
+            System.arraycopy(contents, 0, BUFFER, proceed, contents.length);
+            proceed += contents.length;
 
-            return ret.toString();
+            byte[] ret = new byte[proceed];
+            System.arraycopy(BUFFER, 0, ret, 0, proceed);
+            return ret;
         }
     }
 
@@ -104,15 +109,17 @@ public final class TransportFragment {
 
             Queue<Fragment> ret = new ArrayDeque<>();
             while (remain > 0) {
-                String thisFragment;
+                byte[] thisFragment;
                 boolean finalize = false;
 
                 if (remain > mtu) {
-                    thisFragment = new String(payload, deal, mtu, StandardCharsets.UTF_8);
+                    thisFragment = new byte[mtu];
+                    System.arraycopy(payload, deal, thisFragment, 0, mtu);
                     deal += mtu;
                     remain -= mtu;
                 } else {
-                    thisFragment = new String(payload, deal, remain, StandardCharsets.UTF_8);
+                    thisFragment = new byte[remain];
+                    System.arraycopy(payload, deal, thisFragment, 0, remain);
                     remain = 0;
                     finalize = true;
                 }

@@ -27,11 +27,11 @@ public final class MoshPacket {
 
     private final long seq = Crypto.unique();
     private final Direction direction;
-    private final String payload;
+    private final byte[] payload;
     private final short timestamp;
     private final short timestampReply;
 
-    public MoshPacket(String payload, Direction direction, short timestamp, short timestampReply) {
+    public MoshPacket(byte[] payload, Direction direction, short timestamp, short timestampReply) {
         this.payload = payload;
         this.direction = direction;
         this.timestamp = timestamp;
@@ -41,9 +41,11 @@ public final class MoshPacket {
     public Crypto.Message toMessage() {
         long directionSeq = (direction.idx << 63) | (seq & SEQUENCE_MASK);
 
-        String timestamps = new String(timestampsMerge());
+        byte[] text = new byte[4 + payload.length];
+        System.arraycopy(timestampsMerge(), 0, text, 0, 4);
+        System.arraycopy(payload, 0, text, 4, payload.length);
 
-        return new Crypto.Message(new Crypto.Nonce(directionSeq), timestamps + payload);
+        return new Crypto.Message(new Crypto.Nonce(directionSeq), text);
     }
 
     private byte[] timestampsMerge() {

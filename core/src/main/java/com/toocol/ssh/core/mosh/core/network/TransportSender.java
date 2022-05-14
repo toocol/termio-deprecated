@@ -9,6 +9,7 @@ import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramSocket;
 import org.checkerframework.checker.units.qual.A;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
@@ -160,7 +161,7 @@ public final class TransportSender<MyState extends State<MyState>> {
         while (!fragments.isEmpty()) {
 
             TransportFragment.Fragment fragment = fragments.poll();
-            connection.send(fragment.toString());
+            connection.send(fragment.toBytes());
 
         }
 

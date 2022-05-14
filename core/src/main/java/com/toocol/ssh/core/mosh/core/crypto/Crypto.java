@@ -46,15 +46,11 @@ public final class Crypto {
 
     public static class Message {
         public final Nonce nonce;
-        public final String text;
+        public final byte[] text;
 
-        public Message(Nonce nonce, String text) {
+        public Message(Nonce nonce, byte[] text) {
             this.nonce = nonce;
             this.text = text;
-        }
-
-        public byte[] data() {
-            return text.getBytes(StandardCharsets.UTF_8);
         }
     }
 
@@ -125,13 +121,13 @@ public final class Crypto {
         }
 
         public byte[] encrypt(Message plainText) {
-            int ptLen = plainText.data().length;
+            int ptLen = plainText.text.length;
             int ciphertextLen = ptLen + 16;
 
             assert ciphertextLen * 2 <= ciphertextBuffer.len;
             assert ptLen * 2 <= plaintextBuffer.len;
 
-            System.arraycopy(plainText.data(), 0, plaintextBuffer.data, 0, plainText.data().length);
+            System.arraycopy(plainText.text, 0, plaintextBuffer.data, 0, plainText.text.length);
             System.arraycopy(plainText.nonce.data(), 0, nonceBuffer.data, 0, Nonce.NONCE_LEN);
 
             if (ciphertextLen != AeOcb.aeEncrypt(
@@ -203,7 +199,9 @@ public final class Crypto {
                 throw new CryptoException("Packet failed integrity check.");
             }
 
-            return new Message(nonce, new String(plaintextBuffer.data, 0, ptLen, StandardCharsets.UTF_8));
+            byte[] text = new byte[ptLen];
+            System.arraycopy(plaintextBuffer.data, 0, text, 0, ptLen);
+            return new Message(nonce, text);
         }
     }
 

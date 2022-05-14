@@ -100,7 +100,7 @@ class CryptoTest {
         }
 
         return new MoshPacket(
-                new String(bytes, StandardCharsets.UTF_8),
+                bytes,
                 MoshPacket.Direction.TO_SERVER,
                 Timestamp.timestamp16(),
                 outgoingTimestampReply

@@ -5,8 +5,6 @@ import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.datagram.DatagramSocket;
 
-import java.nio.charset.StandardCharsets;
-
 import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
 import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.MAX_RTO;
 
@@ -39,7 +37,7 @@ public final class Connection {
         this.session = new Crypto.Session(new Crypto.Base64Key(addr.key()));
     }
 
-    public void send(String msg) {
+    public void send(byte[] msg) {
         MoshPacket packet = newPacket(msg);
         socket.send(Buffer.buffer(session.encrypt(packet.toMessage())), addr.port(), addr.serverHost(), result -> {
 
@@ -56,7 +54,7 @@ public final class Connection {
         return rto;
     }
 
-    private MoshPacket newPacket(String msg) {
+    private MoshPacket newPacket(byte[] msg) {
         short outgoingTimestampReply = -1;
 
         long now = Timestamp.timestamp();

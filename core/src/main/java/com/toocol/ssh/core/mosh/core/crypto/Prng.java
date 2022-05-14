@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
+import com.toocol.ssh.utilities.execeptions.CryptoException;
 import org.apache.commons.lang3.RandomUtils;
 
 /**
@@ -8,11 +9,15 @@ import org.apache.commons.lang3.RandomUtils;
  * @version: 0.0.1
  */
 public final class Prng {
+    public static void main(String[] args) {
+        byte b = (byte) (-128 * -1);
+        System.out.println(b);
+    }
 
     public static byte uint8() {
         byte[] x = new byte[1];
         fill(x, 1);
-        return x[0] < 0 ? (byte) (x[0] * -1) : x[0];
+        return x[0];
     }
 
     public static void fill(byte[] dest, int size) {
@@ -20,7 +25,19 @@ public final class Prng {
             return;
         }
 
-        byte[] random = RandomUtils.nextBytes(size);
+        byte[] random = nextBytes(size);
         System.arraycopy(random, 0, dest, 0, size);
+    }
+
+    private static byte[] nextBytes(int count) {
+        if (count < 0) {
+            throw new CryptoException("Count is negative.");
+        }
+
+        byte[] bytes = new byte[count];
+        for (int i = 0; i < count; i++) {
+            bytes[i] = (byte) RandomUtils.nextInt(0, Byte.MAX_VALUE + 1);
+        }
+        return bytes;
     }
 }
