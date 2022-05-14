@@ -49,16 +49,20 @@ public final class BlockingEstablishMoshSessionHandler extends AbstractBlockingM
         long sessionId = session.getSessionId();
 
         // let event loop thread pool to handler udp packet receive.
-        vertx.eventBus().request(LISTEN_LOCAL_SOCKET.address(), sessionId, messageAsyncResult -> {
-            try {
-                Shell shell = new Shell(sessionId, eventBus, session);
-                shell.setUser(credential.getUser());
-                shell.initialFirstCorrespondence(ShellProtocol.MOSH);
-                shellCache.putShell(sessionId, shell);
+        vertx.eventBus().request(LISTEN_LOCAL_SOCKET.address(), sessionId, result -> {
+            if (result.succeeded()) {
+                try {
+                    Shell shell = new Shell(sessionId, eventBus, session);
+                    shell.setUser(credential.getUser());
+                    shell.initialFirstCorrespondence(ShellProtocol.MOSH);
+                    shellCache.putShell(sessionId, shell);
 
-                eventBus.send(DISPLAY_SHELL.address(), sessionId);
-                eventBus.send(RECEIVE_SHELL.address(), sessionId);
-            } catch (Exception e) {
+                    eventBus.send(DISPLAY_SHELL.address(), sessionId);
+                    eventBus.send(RECEIVE_SHELL.address(), sessionId);
+                } catch (Exception e) {
+                    eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
+                }
+            } else {
                 eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
             }
         });

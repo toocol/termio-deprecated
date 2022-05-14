@@ -4,6 +4,7 @@ import com.toocol.ssh.core.mosh.core.network.MoshInputStream;
 import com.toocol.ssh.core.mosh.core.network.MoshOutputStream;
 import com.toocol.ssh.core.mosh.core.network.Transport;
 import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.utilities.utils.IpUtil;
 import io.vertx.core.Vertx;
 import io.vertx.core.datagram.DatagramSocket;
 import io.vertx.core.datagram.DatagramSocketOptions;
@@ -12,6 +13,7 @@ import io.vertx.core.eventbus.Message;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.SocketException;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -42,25 +44,32 @@ public final class MoshSession {
     // handle by event loop.
     public <T> void connect(Message<T> message) {
         try {
-            this.socket = vertx.createDatagramSocket(new DatagramSocketOptions());
-            this.transport.connect(socket);
-            this.io.inputStream = new MoshInputStream();
-            this.io.outputStream = new MoshOutputStream(this.io.inputStream, transport);
+            IpUtil.getLocalIp4Address().ifPresent(localIpv4 -> {
+                try {
+                    this.socket = vertx.createDatagramSocket(new DatagramSocketOptions());
+                    this.transport.connect(socket);
+                    this.io.inputStream = new MoshInputStream();
+                    this.io.outputStream = new MoshOutputStream(this.io.inputStream, transport);
 
-            Term term = Term.getInstance();
-            socket.listen(transport.addr.port(), "127.0.0.1", result -> {
-                if (result.succeeded()) {
-                    socket.handler(this.io.outputStream::receivePacket);
-                    term.printDisplay("Mosh success to listened local port: " + transport.addr.port());
-                } else {
-                    term.printDisplay("Mosh fail to listened local port: " + transport.addr.port());
+                    Term term = Term.getInstance();
+                    socket.listen(transport.addr.port(), localIpv4.toString().replaceFirst("/", ""), result -> {
+                        if (result.succeeded()) {
+                            socket.handler(this.io.outputStream::receivePacket);
+                            term.printDisplay("Mosh success to listened local port: " + transport.addr.port());
+                            this.connected = true;
+                            message.reply(null);
+                        } else {
+                            term.printDisplay("Mosh fail to listened local port: " + transport.addr.port());
+                            message.fail(-1, "Mosh fail to listened local port" + transport.addr.port());
+                        }
+                    });
+
+                } catch (Exception e) {
+                    message.fail(-1, e.getMessage());
                 }
-                this.connected = true;
-                message.reply(null);
             });
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SocketException e) {
+            message.fail(-1, e.getMessage());
         }
     }
 
