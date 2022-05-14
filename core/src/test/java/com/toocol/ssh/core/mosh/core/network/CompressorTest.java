@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.MOSH_PROTOCOL_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -34,6 +35,7 @@ class CompressorTest {
 
         byte[] bytes = inst.toByteArray();
         byte[] compress = compressor.compress(bytes);
+        assertTrue(bytes.length > compress.length);
 
         byte[] origin = compressor.decompress(compress);
 
