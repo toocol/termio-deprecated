@@ -322,9 +322,9 @@ public final class AeOcb {
                     --k;
                     tmpBl = xorBlock(tmpBl, ta[k]);
                     tmpU8 = tmpBl.getBytes();
-                    byte[] bytes = getBytesFromBlockArrays(ctp, 0, ctp.length);
-                    System.arraycopy(tmpU8, 0, bytes, 16 * k, remaining);
-                    ctp = transferBlockArrays(bytes, 0);
+                    byte[] bytes = new byte[16];
+                    System.arraycopy(tmpU8, 0, bytes, 0, remaining);
+                    ctp[k] = fromBytes(bytes);
                 }
 
                 switch (k) {
