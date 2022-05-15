@@ -16,6 +16,8 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
+import java.util.concurrent.CountDownLatch;
+
 import static com.toocol.ssh.core.mosh.MoshAddress.*;
 import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
 import static com.toocol.ssh.core.shell.ShellAddress.RECEIVE_SHELL;
@@ -55,6 +57,7 @@ public final class BlockingEstablishMoshSessionHandler extends AbstractBlockingM
 
                     Shell shell = new Shell(sessionId, eventBus, session);
                     shell.setUser(credential.getUser());
+                    new CountDownLatch(1).await();
                     shell.initialFirstCorrespondence(ShellProtocol.MOSH);
                     shellCache.putShell(sessionId, shell);
 

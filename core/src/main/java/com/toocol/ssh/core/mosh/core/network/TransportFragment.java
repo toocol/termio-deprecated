@@ -15,10 +15,8 @@ import java.util.Queue;
 public final class TransportFragment {
     private static final int FRAG_HEADER_LEN = 10; /* sizeof(long) + sizeof(short) */
 
-    private static final int FRAGMENT_BUFFER_LEN = NetworkConstants.DEFAULT_SEND_MTU * 2;
-
     public static class Fragment {
-        private static final byte[] BUFFER = new byte[FRAGMENT_BUFFER_LEN];
+        private static final byte[] BUFFER = new byte[NetworkConstants.DEFAULT_SEND_MTU];
 
         private final long id;
         private final short fragmentNum;

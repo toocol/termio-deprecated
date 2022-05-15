@@ -2,8 +2,6 @@ package com.toocol.ssh.core.mosh.core.crypto;
 
 import org.junit.jupiter.api.Test;
 
-import java.nio.ByteBuffer;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -20,4 +18,10 @@ class ByteOrderTest {
         assertEquals(x, 4675300462675623936L);
     }
 
+    @Test
+    void intBytesTest() {
+        int x = 0x01000000;
+        int y = ByteOrder.toInt(ByteOrder.intBytes(x));
+        assertEquals(x, y);
+    }
 }

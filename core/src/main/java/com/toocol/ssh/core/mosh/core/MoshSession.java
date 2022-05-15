@@ -32,7 +32,7 @@ public final class MoshSession {
     private final long sessionId;
 
     private DatagramSocket socket;
-    private boolean connected = false;
+    private volatile boolean connected = false;
 
     public MoshSession(Vertx vertx, long sessionId, String host, int port, String key) {
         this.vertx = vertx;

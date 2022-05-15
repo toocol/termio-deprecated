@@ -149,7 +149,7 @@ public final class TransportSender<MyState extends State<MyState>> {
         builder.setAckNum(ackNum);
         builder.setThrowawayNum(sentStates.get(0).num);
         builder.setDiff(ByteString.copyFromUtf8(diff));
-        builder.setChaff(ByteString.copyFromUtf8(makeChaff()));
+        builder.setChaff(ByteString.copyFrom(makeChaff()));
         InstructionPB.Instruction inst = builder.build();
 
         if (newNum == -1) {
@@ -168,13 +168,13 @@ public final class TransportSender<MyState extends State<MyState>> {
         pendingDataAck = false;
     }
 
-    private String makeChaff() {
+    private byte[] makeChaff() {
         int chaffMax = 16;
         int chaffLen = Prng.uint8() % (chaffMax + 1);
 
-        byte[] chaff = new byte[chaffMax];
+        byte[] chaff = new byte[chaffLen];
         Prng.fill(chaff, chaffLen);
-        return new String(chaff, 0, chaffLen);
+        return chaff;
     }
 
     private void calculateTimers() {

@@ -1,5 +1,7 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
+import com.google.common.primitives.Bytes;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -47,27 +49,9 @@ public final class ByteOrder {
     }
 
     public static byte[] bswap64(long x) {
-        byte[] bytes = longBytes(x);
-        byte[] u32_1 = new byte[4];
-        byte[] u32_2 = new byte[4];
-        System.arraycopy(bytes, 0, u32_1, 0, 4);
-        System.arraycopy(bytes, 4, u32_2, 0, 4);
-
-        int swap1 = bswap32(toInt(u32_1));
-        int swap2 = bswap32(toInt(u32_2));
-
-        u32_1 = intBytes(swap1);
-        u32_2 = intBytes(swap2);
-
-        System.arraycopy(u32_2, 0, bytes, 0, 4);
-        System.arraycopy(u32_1, 0, bytes, 4, 4);
-
-        return bytes;
-    }
-
-    public static int bswap32(int x) {
-        return (((x) & 0xff000000) >> 24) | (((x) & 0x00ff0000) >>  8) |
-                (((x) & 0x0000ff00) <<  8) | (((x) & 0x000000ff) << 24);
+        byte[] array = longBytes(x);
+        Bytes.reverse(array);
+        return  array;
     }
 
     public static byte[] longBytes(long x) {
