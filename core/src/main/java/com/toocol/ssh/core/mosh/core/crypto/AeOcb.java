@@ -171,8 +171,7 @@ public final class AeOcb {
 
             ctx.setCipher(key);
 
-            ctx.cachedTop = zeroBlock();
-            ctx.adCheckSum = ctx.cachedTop;
+            ctx.cachedTop = ctx.adCheckSum = zeroBlock();
             ctx.adBlocksProcessed = 0;
 
             ctx.lstar = fromBytes(ctx.encrypt(ctx.cachedTop.getBytes()));
@@ -271,7 +270,6 @@ public final class AeOcb {
                 ctx.blocksProcessed = blockNum;
                 ctx.checksum = checksum;
             }
-            ctp = new Block[BPI];
             initBlocks(ctp);
 
             if (finalize > 0) {
@@ -300,12 +298,14 @@ public final class AeOcb {
                         ++k;
                     }
                     if (remaining > 0) {
+                        //memcpy(tmp.u8, ptp+k, remaining);
                         tmpU8 = new byte[16];
                         System.arraycopy(
-                                getBytesFromBlockArrays(ptp, 0, ptp.length), j * BPI * 16 + k * 16,
+                                pt, j * BPI * 16 + k * 16,
                                 tmpU8, 0,
                                 remaining
                         );
+
                         tmpU8[remaining] = (byte) 0x80;
                         tmpBl = fromBytes(tmpU8);
                         checksum = xorBlock(checksum, tmpBl);
@@ -322,6 +322,8 @@ public final class AeOcb {
                     --k;
                     tmpBl = xorBlock(tmpBl, ta[k]);
                     tmpU8 = tmpBl.getBytes();
+
+                    // memcpy(ctp+k, tmp.u8, remaining);
                     byte[] bytes = new byte[16];
                     System.arraycopy(tmpU8, 0, bytes, 0, remaining);
                     ctp[k] = fromBytes(bytes);
@@ -335,7 +337,7 @@ public final class AeOcb {
                     case 1:
                         ctp[0] = xorBlock(ta[0], oa[0]);
                     default:
-                        fillDataFromBlockArrays(ct, ctp, j, k + 1);
+                        fillDataFromBlockArrays(ct, ctp, j, ctp.length);
                         break;
                 }
 
@@ -433,7 +435,6 @@ public final class AeOcb {
                 ctx.blocksProcessed = blockNum;
                 ctx.checksum = checksum;
             }
-            ptp = new Block[BPI];
             initBlocks(ptp);
 
             if (finalize > 0) {
@@ -498,7 +499,7 @@ public final class AeOcb {
                         ptp[0] = xorBlock(ta[0], oa[0]);
                         checksum = xorBlock(checksum, ptp[0]);
                     default:
-                        fillDataFromBlockArrays(pt, ptp, j, k + 1);
+                        fillDataFromBlockArrays(pt, ptp, j, ptp.length);
                         break;
                 }
 
