@@ -57,7 +57,6 @@ public final class BlockingEstablishMoshSessionHandler extends AbstractBlockingM
 
                     Shell shell = new Shell(sessionId, eventBus, session);
                     shell.setUser(credential.getUser());
-                    new CountDownLatch(1).await();
                     shell.initialFirstCorrespondence(ShellProtocol.MOSH);
                     shellCache.putShell(sessionId, shell);
 

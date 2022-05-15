@@ -324,7 +324,7 @@ public final class AeOcb {
                     tmpU8 = tmpBl.getBytes();
                     byte[] bytes = getBytesFromBlockArrays(ctp, 0, ctp.length);
                     System.arraycopy(tmpU8, 0, bytes, 16 * k, remaining);
-                    ctp = transferBlockArrays(bytes, 1);
+                    ctp = transferBlockArrays(bytes, 0);
                 }
 
                 switch (k) {
@@ -549,7 +549,7 @@ public final class AeOcb {
     }
 
     static Block[] transferBlockArrays(byte[] bytes, int round) {
-        round = round == 0 ? 1 : round;
+        round = round == 0 ? 1 : round + 1;
         Block[] blks = new Block[BPI * round];
         int gap = 16;
         for (int i = 0; i < BPI * round; i++) {

@@ -1,8 +1,10 @@
 package com.toocol.ssh;
 
+import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.config.SystemConfig;
+import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.shell.core.ShellCharEventDispatcher;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.TermCharEventDispatcher;
@@ -72,6 +74,7 @@ public class TermioApplication {
                 }
                 Printer.println("Termio: shutdown");
                 SshSessionCache.getInstance().stopAll();
+                MoshSessionCache.getInstance().stopAll();
                 vertx.close();
             } catch (Exception e) {
                 Printer.println("Failed to execute shutdown hook.");

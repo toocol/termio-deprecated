@@ -38,4 +38,7 @@ public class MoshSessionCache {
         return moshSessionMap.containsKey(sessionId);
     }
 
+    public void stopAll() {
+        moshSessionMap.forEach((aLong, moshSession) -> moshSession.close());
+    }
 }

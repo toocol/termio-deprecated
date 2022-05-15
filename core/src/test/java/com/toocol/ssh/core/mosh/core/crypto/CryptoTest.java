@@ -64,7 +64,7 @@ class CryptoTest implements ICompressorAcquirer {
 
             encryptBlk = AeOcb.Block.fromBytes(encrypt);
             assertNotNull(encryptBlk);
-            blks = AeOcb.transferBlockArrays(encryptBlks, 1);
+            blks = AeOcb.transferBlockArrays(encryptBlks, 0);
             for (AeOcb.Block b : blks) {
                 assertEquals(b.l, encryptBlk.l);
                 assertEquals(b.r, encryptBlk.r);
@@ -93,19 +93,18 @@ class CryptoTest implements ICompressorAcquirer {
         builder.setNewNum(1);
         builder.setAckNum(0);
         builder.setThrowawayNum(0);
-        builder.setDiff(ByteString.copyFromUtf8(UUID.randomUUID().toString() + UUID.randomUUID()));
-        builder.setChaff(ByteString.copyFromUtf8("CHAFF"));
+        builder.setDiff(ByteString.copyFromUtf8(""));
+        builder.setChaff(ByteString.copyFrom(makeChaff()));
         InstructionPB.Instruction inst = builder.build();
 
         byte[] bytes = inst.toByteArray();
         byte[] compress = compressor.compress(bytes);
 
-        String data = "Hello World~d";
         String key = "zr0jtuYVKJnfJHP/XOOsbQ";
         Crypto.Session encryptSession = new Crypto.Session(new Crypto.Base64Key(key));
         Crypto.Session decryptSession = new Crypto.Session(new Crypto.Base64Key(key));
 
-        MoshPacket moshPacket = newPacket(data.getBytes(StandardCharsets.UTF_8));
+        MoshPacket moshPacket = newPacket(compress);
         Crypto.Message origin = moshPacket.toMessage();
 
         byte[] encrypt = encryptSession.encrypt(origin);
@@ -132,6 +131,15 @@ class CryptoTest implements ICompressorAcquirer {
                 Timestamp.timestamp16(),
                 outgoingTimestampReply
         );
+    }
+
+    private byte[] makeChaff() {
+        int chaffMax = 16;
+        int chaffLen = Prng.uint8() % (chaffMax + 1);
+
+        byte[] chaff = new byte[chaffLen];
+        Prng.fill(chaff, chaffLen);
+        return chaff;
     }
 
 }
