@@ -9,11 +9,6 @@ import org.apache.commons.lang3.RandomUtils;
  * @version: 0.0.1
  */
 public final class Prng {
-    public static void main(String[] args) {
-        byte b = (byte) (-128 * -1);
-        System.out.println(b);
-    }
-
     public static byte uint8() {
         byte[] x = new byte[1];
         fill(x, 1);

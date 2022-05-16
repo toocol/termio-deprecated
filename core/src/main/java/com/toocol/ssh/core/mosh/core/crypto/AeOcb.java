@@ -47,7 +47,7 @@ public final class AeOcb {
 
         static Block doubleBlock(Block bl) {
             Block b = zeroBlock();
-            long t = bl.l >>> 63;
+            long t = bl.l >> 63;
             b.l = (bl.l + bl.l) ^ (bl.r >>> 63);
             b.r = (bl.r + bl.r) ^ (t & 135);
             return b;
