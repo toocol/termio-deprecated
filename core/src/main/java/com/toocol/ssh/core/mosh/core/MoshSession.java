@@ -91,10 +91,6 @@ public final class MoshSession {
         return this.io.outputStream;
     }
 
-    public Transport getTransport() {
-        return transport;
-    }
-
     public void close() {
         try {
             this.connected = false;
