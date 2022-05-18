@@ -3,6 +3,9 @@ package com.toocol.ssh.core.mosh.core.network;
 import com.toocol.ssh.core.mosh.core.crypto.ByteOrder;
 import com.toocol.ssh.core.mosh.core.crypto.Crypto;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/30 17:29
@@ -13,8 +16,7 @@ public final class MoshPacket {
 
     public enum Direction {
         TO_SERVER(0),
-        TO_CLIENT(1)
-        ;
+        TO_CLIENT(1);
         private final long idx;
 
         Direction(long idx) {
@@ -25,17 +27,27 @@ public final class MoshPacket {
     private static final long DIRECTION_MASK = 1L << 63;
     private static final long SEQUENCE_MASK = ~DIRECTION_MASK;
 
-    private final long seq = Crypto.unique();
+    private final long seq;
     private final Direction direction;
     private final byte[] payload;
     private final short timestamp;
     private final short timestampReply;
 
     public MoshPacket(byte[] payload, Direction direction, short timestamp, short timestampReply) {
+        this.seq = Crypto.unique();
         this.payload = payload;
         this.direction = direction;
         this.timestamp = timestamp;
         this.timestampReply = timestampReply;
+    }
+
+    public MoshPacket(Crypto.Message message) {
+        this.seq = message.nonce.val() & SEQUENCE_MASK;
+        this.direction = ((message.nonce.val() & DIRECTION_MASK) == 0) ? Direction.TO_SERVER : Direction.TO_CLIENT;
+        this.timestamp = message.getTimestamp();
+        this.timestampReply = message.getTimestampReply();
+        this.payload = new byte[message.text.length - 4];
+        System.arraycopy(message.text, 4, payload, 0, message.text.length - 4);
     }
 
     public Crypto.Message toMessage() {
@@ -55,5 +67,20 @@ public final class MoshPacket {
         System.arraycopy(timestampBytes, 0, target, 0, 2);
         System.arraycopy(timestampReplyBytes, 0, target, 2, 2);
         return target;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MoshPacket packet = (MoshPacket) o;
+        return seq == packet.seq && timestamp == packet.timestamp && timestampReply == packet.timestampReply && direction == packet.direction && Arrays.equals(payload, packet.payload);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(seq, direction, timestamp, timestampReply);
+        result = 31 * result + Arrays.hashCode(payload);
+        return result;
     }
 }

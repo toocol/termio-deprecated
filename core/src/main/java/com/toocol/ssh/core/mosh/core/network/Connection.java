@@ -43,6 +43,12 @@ public final class Connection {
         });
     }
 
+    public byte[] recvOne(byte[] recv) {
+        Crypto.Message decryptMessage = session.decrypt(recv, recv.length);
+        MoshPacket packet = new MoshPacket(decryptMessage);
+        return null;
+    }
+
     public long timeout() {
         long rto = (long) Math.ceil(SRIT + 4 * RTTVAR);
         if (rto < MIN_RTO) {

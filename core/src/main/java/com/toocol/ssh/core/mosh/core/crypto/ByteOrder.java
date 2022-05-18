@@ -1,6 +1,8 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
 import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Longs;
+import com.google.common.primitives.Shorts;
 
 import java.nio.ByteBuffer;
 
@@ -16,17 +18,17 @@ public final class ByteOrder {
     }
 
     /**
-     * whether is the little-endian
+     * whether is the little-endian.
      */
     public static boolean littleEndian() {
         return nativeOrder() == java.nio.ByteOrder.LITTLE_ENDIAN;
     }
 
     /**
-     * transfer little-endian long to big-endian byte[]
+     * transfer little-endian long to big-endian byte[].
      */
     public static byte[] htoBe64(long x) {
-        return new byte[] {
+        return new byte[]{
                 (byte) ((x >> 56) & 0xFF),
                 (byte) ((x >> 48) & 0xFF),
                 (byte) ((x >> 40) & 0xFF),
@@ -39,19 +41,33 @@ public final class ByteOrder {
     }
 
     /**
-     * transfer little-endian short to big-endian byte[]
+     * transfer big-endian bytes to long.
+     */
+    public static long be64toh(byte[] bytes) {
+        return Longs.fromByteArray(bytes);
+    }
+
+    /**
+     * transfer little-endian short to big-endian byte[].
      */
     public static byte[] htoBe16(short x) {
-        return new byte[] {
+        return new byte[]{
                 (byte) ((x >> 8) & 0xFF),
                 (byte) ((x) & 0xFF),
         };
     }
 
+    /**
+     * transfer big-endian bytes to short.
+     */
+    public static short be16toh(byte[] bytes) {
+        return Shorts.fromByteArray(bytes);
+    }
+
     public static byte[] bswap64(long x) {
         byte[] array = longBytes(x);
         Bytes.reverse(array);
-        return  array;
+        return array;
     }
 
     public static byte[] longBytes(long x) {

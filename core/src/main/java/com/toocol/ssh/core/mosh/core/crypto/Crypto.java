@@ -1,12 +1,10 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
-import com.google.common.collect.Lists;
 import com.toocol.ssh.utilities.execeptions.CryptoException;
 import com.toocol.ssh.utilities.utils.ExitMessage;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.List;
 
 /**
  * crypto.cc
@@ -35,6 +33,12 @@ public final class Crypto {
             System.arraycopy(bytes, 0, this.bytes, 4, 8);
         }
 
+        public long val() {
+            byte[] longBytes = new byte[8];
+            System.arraycopy(this.bytes, 4, longBytes, 0, 8);
+            return ByteOrder.be64toh(longBytes);
+        }
+
         public byte[] data() {
             return bytes;
         }
@@ -53,6 +57,14 @@ public final class Crypto {
         public Message(Nonce nonce, byte[] text) {
             this.nonce = nonce;
             this.text = text;
+        }
+
+        public short getTimestamp() {
+            return ByteOrder.be16toh(new byte[]{text[0], text[1]});
+        }
+
+        public short getTimestampReply() {
+            return ByteOrder.be16toh(new byte[]{text[2], text[3]});
         }
     }
 

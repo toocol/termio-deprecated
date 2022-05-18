@@ -467,8 +467,7 @@ public final class AeOcb {
                         pad = fromBytes(tmpU8);
 
                         // memcpy(tmp.u8,ctp+k,remaining);
-                        byte[] ctpPlusK = getBytesFromBlockArrays(ctp, k + j * BPI, ctp.length);
-                        System.arraycopy(ctpPlusK, 0, tmpU8, 0, remaining);
+                        System.arraycopy(ct, k * 16 + j * BPI * 16, tmpU8, 0, remaining);
 
                         tmpBl = fromBytes(tmpU8);
                         tmpBl = xorBlock(tmpBl, pad);

@@ -1,17 +1,15 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
-import com.google.common.primitives.Bytes;
 import com.google.protobuf.ByteString;
 import com.toocol.ssh.core.mosh.core.network.Compressor;
 import com.toocol.ssh.core.mosh.core.network.ICompressorAcquirer;
 import com.toocol.ssh.core.mosh.core.network.MoshPacket;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
-import com.toocol.ssh.utilities.utils.ByteUtil;
 import com.toocol.ssh.utilities.utils.Timestamp;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
+import java.util.Arrays;
 
 import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.MOSH_PROTOCOL_VERSION;
 import static org.junit.jupiter.api.Assertions.*;
@@ -86,32 +84,47 @@ class CryptoTest implements ICompressorAcquirer {
     @Test
     public void testEncrypt() {
         Compressor compressor = getCompressor();
+        for (int i = 0; i < 1000; i++) {
+            InstructionPB.Instruction.Builder builder = InstructionPB.Instruction.newBuilder();
+            builder.setProtocolVersion(MOSH_PROTOCOL_VERSION);
+            builder.setOldNum(0);
+            builder.setNewNum(1);
+            builder.setAckNum(0);
+            builder.setThrowawayNum(0);
+            builder.setDiff(ByteString.copyFromUtf8(randomString()));
+            builder.setChaff(ByteString.copyFrom(makeChaff()));
+            InstructionPB.Instruction inst = builder.build();
 
-        InstructionPB.Instruction.Builder builder = InstructionPB.Instruction.newBuilder();
-        builder.setProtocolVersion(MOSH_PROTOCOL_VERSION);
-        builder.setOldNum(0);
-        builder.setNewNum(1);
-        builder.setAckNum(0);
-        builder.setThrowawayNum(0);
-        builder.setDiff(ByteString.copyFromUtf8(""));
-        builder.setChaff(ByteString.copyFrom(makeChaff()));
-        InstructionPB.Instruction inst = builder.build();
+            byte[] bytes = inst.toByteArray();
+            byte[] compress = compressor.compress(bytes);
 
-        byte[] bytes = inst.toByteArray();
-        byte[] compress = compressor.compress(bytes);
+            String key = "zr0jtuYVKJnfJHP/XOOsbQ";
+            Crypto.Session encryptSession = new Crypto.Session(new Crypto.Base64Key(key));
+            Crypto.Session decryptSession = new Crypto.Session(new Crypto.Base64Key(key));
 
-        String key = "zr0jtuYVKJnfJHP/XOOsbQ";
-        Crypto.Session encryptSession = new Crypto.Session(new Crypto.Base64Key(key));
-        Crypto.Session decryptSession = new Crypto.Session(new Crypto.Base64Key(key));
+            MoshPacket sendPacket = newPacket(compress);
+            Crypto.Message origin = sendPacket.toMessage();
 
-        MoshPacket moshPacket = newPacket(compress);
-        Crypto.Message origin = moshPacket.toMessage();
+            byte[] encrypt = encryptSession.encrypt(origin);
+            Crypto.Message decrypt = decryptSession.decrypt(encrypt, encrypt.length);
+            MoshPacket recvPacket = new MoshPacket(decrypt);
 
-        byte[] encrypt = encryptSession.encrypt(origin);
-        Crypto.Message decrypt = decryptSession.decrypt(encrypt, encrypt.length);
+            assertTrue(sendPacket.equals(recvPacket));
+            assertTrue(Arrays.equals(origin.text, decrypt.text));
+            assertTrue(Arrays.equals(origin.nonce.ccBytes(), decrypt.nonce.ccBytes()));
+        }
+    }
 
-        assertTrue(ByteUtil.equals(origin.text, decrypt.text));
-        assertTrue(ByteUtil.equals(origin.nonce.ccBytes(), decrypt.nonce.ccBytes()));
+    private String randomString() {
+        int low = 0, high = 450;
+        int len = RandomUtils.nextInt(low, high + 1);
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < len; i++) {
+            int r = RandomUtils.nextInt();
+            char ch = (char) (r % (127 - 32) + 32);
+            builder.append(ch);
+        }
+        return builder.toString();
     }
 
     private MoshPacket newPacket(byte[] bytes) {
