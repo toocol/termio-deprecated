@@ -83,7 +83,11 @@ class CryptoTest implements ICompressorAcquirer {
 
     @Test
     public void testEncrypt() {
+        String key = "zr0jtuYVKJnfJHP/XOOsbQ";
+        Crypto.Session encryptSession = new Crypto.Session(new Crypto.Base64Key(key));
+        Crypto.Session decryptSession = new Crypto.Session(new Crypto.Base64Key(key));
         Compressor compressor = getCompressor();
+
         for (int i = 0; i < 1000; i++) {
             InstructionPB.Instruction.Builder builder = InstructionPB.Instruction.newBuilder();
             builder.setProtocolVersion(MOSH_PROTOCOL_VERSION);
@@ -97,10 +101,6 @@ class CryptoTest implements ICompressorAcquirer {
 
             byte[] bytes = inst.toByteArray();
             byte[] compress = compressor.compress(bytes);
-
-            String key = "zr0jtuYVKJnfJHP/XOOsbQ";
-            Crypto.Session encryptSession = new Crypto.Session(new Crypto.Base64Key(key));
-            Crypto.Session decryptSession = new Crypto.Session(new Crypto.Base64Key(key));
 
             MoshPacket sendPacket = newPacket(compress);
             Crypto.Message origin = sendPacket.toMessage();
