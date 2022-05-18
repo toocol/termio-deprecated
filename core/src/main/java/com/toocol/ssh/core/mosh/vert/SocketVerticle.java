@@ -19,7 +19,7 @@ import io.vertx.core.AbstractVerticle;
         SocketListenHandler.class,
         SocketCloseHandler.class
 })
-public class SocketVerticle extends AbstractVerticle implements IHandlerMounter {
+public final class SocketVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {

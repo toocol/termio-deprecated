@@ -20,7 +20,7 @@ import io.vertx.core.AbstractVerticle;
         BlockingDfHandler.class,
         BlockingUfHandler.class
 })
-public class ShellVerticle extends AbstractVerticle implements IHandlerMounter {
+public final class ShellVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {

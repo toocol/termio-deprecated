@@ -1,12 +1,7 @@
 package com.toocol.ssh.core.mosh.core.network;
 
-import com.toocol.ssh.utilities.utils.StrUtil;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 

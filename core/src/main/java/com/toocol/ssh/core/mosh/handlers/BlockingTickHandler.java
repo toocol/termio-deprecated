@@ -18,7 +18,7 @@ import static com.toocol.ssh.core.mosh.MoshAddress.MOSH_TICK;
  * @version: 0.0.1
  */
 @SuppressWarnings("all")
-public class BlockingTickHandler extends AbstractBlockingMessageHandler<Void> {
+public final class BlockingTickHandler extends AbstractBlockingMessageHandler<Void> {
 
     private final MoshSessionCache moshSessionCache = MoshSessionCache.getInstance();
 

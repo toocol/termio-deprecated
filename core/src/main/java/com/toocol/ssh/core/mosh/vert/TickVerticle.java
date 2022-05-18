@@ -1,8 +1,6 @@
 package com.toocol.ssh.core.mosh.vert;
 
 import com.toocol.ssh.core.mosh.handlers.BlockingTickHandler;
-import com.toocol.ssh.core.mosh.handlers.SocketCloseHandler;
-import com.toocol.ssh.core.mosh.handlers.SocketListenHandler;
 import com.toocol.ssh.utilities.annotation.RegisterHandler;
 import com.toocol.ssh.utilities.annotation.VerticleDeployment;
 import com.toocol.ssh.utilities.handler.IHandlerMounter;
@@ -19,7 +17,7 @@ import io.vertx.core.AbstractVerticle;
 @RegisterHandler(handlers = {
         BlockingTickHandler.class
 })
-public class TickVerticle extends AbstractVerticle implements IHandlerMounter {
+public final class TickVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {

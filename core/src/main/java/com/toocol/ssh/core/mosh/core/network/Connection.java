@@ -6,7 +6,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.datagram.DatagramSocket;
 
 import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
-import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.MAX_RTO;
 
 /**
  * Equivalent to network.h/network.cc/

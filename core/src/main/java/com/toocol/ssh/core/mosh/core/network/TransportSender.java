@@ -17,10 +17,6 @@ import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
 
 /**
  * transportsender.h/transportsender-impl.h
- * <p>
- * TODO: See: transportsender-impl.h :: 153
- * TODO: See: transportsender-impl.h :: 239
- * TODO: See: transportsender-impl.h :: 320
  *
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/5/8 21:33
