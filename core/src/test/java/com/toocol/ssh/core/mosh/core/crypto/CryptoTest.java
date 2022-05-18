@@ -109,14 +109,14 @@ class CryptoTest implements ICompressorAcquirer {
             Crypto.Message decrypt = decryptSession.decrypt(encrypt, encrypt.length);
             MoshPacket recvPacket = new MoshPacket(decrypt);
 
-            assertTrue(sendPacket.equals(recvPacket));
-            assertTrue(Arrays.equals(origin.text, decrypt.text));
-            assertTrue(Arrays.equals(origin.nonce.ccBytes(), decrypt.nonce.ccBytes()));
+            assertArrayEquals(origin.nonce.ccBytes(), decrypt.nonce.ccBytes());
+            assertArrayEquals(origin.text, decrypt.text);
+            assertEquals(sendPacket, recvPacket);
         }
     }
 
     private String randomString() {
-        int low = 0, high = 450;
+        int low = 0, high = 500;
         int len = RandomUtils.nextInt(low, high + 1);
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < len; i++) {
