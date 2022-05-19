@@ -1,15 +1,13 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
 import com.google.protobuf.ByteString;
-import com.toocol.ssh.core.mosh.core.network.Compressor;
 import com.toocol.ssh.core.mosh.core.network.ICompressorAcquirer;
 import com.toocol.ssh.core.mosh.core.network.MoshPacket;
+import com.toocol.ssh.core.mosh.core.network.TransportFragment;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
 
 import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.MOSH_PROTOCOL_VERSION;
 import static org.junit.jupiter.api.Assertions.*;
@@ -86,32 +84,43 @@ class CryptoTest implements ICompressorAcquirer {
         String key = "zr0jtuYVKJnfJHP/XOOsbQ";
         Crypto.Session encryptSession = new Crypto.Session(new Crypto.Base64Key(key));
         Crypto.Session decryptSession = new Crypto.Session(new Crypto.Base64Key(key));
-        Compressor compressor = getCompressor();
+        TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter();
+        TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly();
 
+        int oldNum = 0;
+        int newNum = 0;
         for (int i = 0; i < 1000; i++) {
             InstructionPB.Instruction.Builder builder = InstructionPB.Instruction.newBuilder();
             builder.setProtocolVersion(MOSH_PROTOCOL_VERSION);
-            builder.setOldNum(0);
-            builder.setNewNum(1);
+            builder.setOldNum(oldNum++);
+            builder.setNewNum(newNum++);
             builder.setAckNum(0);
             builder.setThrowawayNum(0);
             builder.setDiff(ByteString.copyFromUtf8(randomString()));
             builder.setChaff(ByteString.copyFrom(makeChaff()));
             InstructionPB.Instruction inst = builder.build();
 
-            byte[] bytes = inst.toByteArray();
-            byte[] compress = compressor.compress(bytes);
+            fragmenter.makeFragments(inst, 500).forEach(fragment -> {
+                byte[] bytes = fragment.toBytes();
 
-            MoshPacket sendPacket = newPacket(compress);
-            Crypto.Message origin = sendPacket.toMessage();
+                MoshPacket sendPacket = newPacket(bytes);
+                Crypto.Message origin = sendPacket.toMessage();
 
-            byte[] encrypt = encryptSession.encrypt(origin);
-            Crypto.Message decrypt = decryptSession.decrypt(encrypt, encrypt.length);
-            MoshPacket recvPacket = new MoshPacket(decrypt);
+                byte[] encrypt = encryptSession.encrypt(origin);
+                Crypto.Message decrypt = decryptSession.decrypt(encrypt, encrypt.length);
+                MoshPacket recvPacket = new MoshPacket(decrypt);
+                TransportFragment.Fragment frag = new TransportFragment.Fragment(recvPacket.getPayload());
 
-            assertArrayEquals(origin.nonce.ccBytes(), decrypt.nonce.ccBytes());
-            assertArrayEquals(origin.text, decrypt.text);
-            assertEquals(sendPacket, recvPacket);
+                if (fragments.addFragment(frag)) {
+                    InstructionPB.Instruction recvInst = fragments.getAssembly();
+                    assertEquals(inst, recvInst);
+                }
+
+                assertArrayEquals(origin.nonce.ccBytes(), decrypt.nonce.ccBytes());
+                assertArrayEquals(origin.text, decrypt.text);
+                assertEquals(sendPacket, recvPacket);
+            });
+
         }
     }
 

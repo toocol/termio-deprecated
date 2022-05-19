@@ -240,4 +240,8 @@ public final class TransportSender<MyState extends State<MyState>> {
         }
         return sendInterval;
     }
+
+    public Connection getConnection() {
+        return connection;
+    }
 }

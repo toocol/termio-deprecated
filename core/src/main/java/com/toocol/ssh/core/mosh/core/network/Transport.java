@@ -1,6 +1,8 @@
 package com.toocol.ssh.core.mosh.core.network;
 
+import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserStream;
+import com.toocol.ssh.utilities.execeptions.NetworkException;
 import io.vertx.core.datagram.DatagramSocket;
 
 public final class Transport {
@@ -20,6 +22,7 @@ public final class Transport {
     }
 
     public final Addr addr;
+    private final TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly();
 
     private TransportSender<UserStream> sender;
 
@@ -33,6 +36,18 @@ public final class Transport {
 
     public void send(String diff) {
         sender.sendToReceiver(diff);
+    }
+
+    public byte[] recv(byte[] recv) {
+        byte[] bytes = sender.getConnection().recvOne(recv);
+        TransportFragment.Fragment fragment = new TransportFragment.Fragment(bytes);
+        if (fragments.addFragment(fragment)) {
+            InstructionPB.Instruction inst = fragments.getAssembly();
+            if (inst.getProtocolVersion() != NetworkConstants.MOSH_PROTOCOL_VERSION) {
+                throw new NetworkException("mosh protocol version mismatch");
+            }
+        }
+        return null;
     }
 
     public void tick() {

@@ -83,4 +83,24 @@ public final class MoshPacket {
         result = 31 * result + Arrays.hashCode(payload);
         return result;
     }
+
+    public long getSeq() {
+        return seq;
+    }
+
+    public Direction getDirection() {
+        return direction;
+    }
+
+    public byte[] getPayload() {
+        return payload;
+    }
+
+    public short getTimestamp() {
+        return timestamp;
+    }
+
+    public short getTimestampReply() {
+        return timestampReply;
+    }
 }

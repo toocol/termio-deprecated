@@ -46,7 +46,12 @@ public final class Connection {
     public byte[] recvOne(byte[] recv) {
         Crypto.Message decryptMessage = session.decrypt(recv, recv.length);
         MoshPacket packet = new MoshPacket(decryptMessage);
-        return null;
+        expectedReceiverSeq = packet.getSeq() + 1;
+        if (packet.getTimestamp() != -1) {
+            savedTimestamp = packet.getTimestamp();
+            savedTimestampReceivedAt = Timestamp.timestamp();
+        }
+        return packet.getPayload();
     }
 
     public long timeout() {
