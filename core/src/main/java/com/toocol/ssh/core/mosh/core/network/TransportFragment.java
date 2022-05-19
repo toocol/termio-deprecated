@@ -77,7 +77,6 @@ public final class TransportFragment {
             System.arraycopy(nob, 0, BUFFER, proceed, nob.length);
             proceed += nob.length;
 
-//            assert (fragmentNum & 0x8000) > 0;
             short combinedFragmentNum = (short) (((finalize ? 1 : 0) << 15) | fragmentNum);
             nob = networkOrderBytes(combinedFragmentNum);
             System.arraycopy(nob, 0, BUFFER, proceed, nob.length);
