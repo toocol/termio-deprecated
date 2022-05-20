@@ -74,7 +74,8 @@ public final class MoshPacket {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MoshPacket packet = (MoshPacket) o;
-        return seq == packet.seq && timestamp == packet.timestamp && timestampReply == packet.timestampReply && direction == packet.direction && Arrays.equals(payload, packet.payload);
+        return seq == packet.seq && timestamp == packet.timestamp && timestampReply == packet.timestampReply
+                && direction == packet.direction && Arrays.equals(payload, packet.payload);
     }
 
     @Override

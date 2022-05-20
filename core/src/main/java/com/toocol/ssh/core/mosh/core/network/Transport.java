@@ -46,6 +46,7 @@ public final class Transport {
             if (inst.getProtocolVersion() != NetworkConstants.MOSH_PROTOCOL_VERSION) {
                 throw new NetworkException("mosh protocol version mismatch");
             }
+            return inst.getDiff().toByteArray();
         }
         return null;
     }

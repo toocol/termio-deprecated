@@ -9,6 +9,8 @@ import com.toocol.ssh.utilities.utils.Timestamp;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.MOSH_PROTOCOL_VERSION;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -100,6 +102,7 @@ class CryptoTest implements ICompressorAcquirer {
             builder.setChaff(ByteString.copyFrom(makeChaff()));
             InstructionPB.Instruction inst = builder.build();
 
+            AtomicBoolean assembleFlag = new AtomicBoolean();
             fragmenter.makeFragments(inst, 500).forEach(fragment -> {
                 byte[] bytes = fragment.toBytes();
 
@@ -113,6 +116,7 @@ class CryptoTest implements ICompressorAcquirer {
 
                 if (fragments.addFragment(frag)) {
                     InstructionPB.Instruction recvInst = fragments.getAssembly();
+                    assembleFlag.set(true);
                     assertEquals(inst, recvInst);
                 }
 
@@ -121,6 +125,7 @@ class CryptoTest implements ICompressorAcquirer {
                 assertEquals(sendPacket, recvPacket);
             });
 
+            assertTrue(assembleFlag.get());
         }
     }
 
