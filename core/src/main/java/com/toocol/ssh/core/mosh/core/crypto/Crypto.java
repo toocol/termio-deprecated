@@ -113,7 +113,6 @@ public final class Crypto {
         public static final int RECEIVE_MTU = 2048;
         public static final int ADDED_BYTES = 16;
 
-        Base64Key key;
         AeOcb.AeCtx ctx;
         long blocksEncrypted;
 
@@ -122,7 +121,6 @@ public final class Crypto {
         AlignedBuffer nonceBuffer;
 
         public Session(Base64Key key) {
-            this.key = key;
             this.blocksEncrypted = 0;
             this.plaintextBuffer = new AlignedBuffer(RECEIVE_MTU);
             this.ciphertextBuffer = new AlignedBuffer(RECEIVE_MTU);
@@ -141,8 +139,6 @@ public final class Crypto {
             assert ciphertextLen * 2 <= ciphertextBuffer.len;
             assert ptLen * 2 <= plaintextBuffer.len;
 
-            zeroBuffer(plaintextBuffer.data);
-            zeroBuffer(ciphertextBuffer.data);
             System.arraycopy(plainText.text, 0, plaintextBuffer.data, 0, plainText.text.length);
             System.arraycopy(plainText.nonce.data(), 0, nonceBuffer.data, 0, Nonce.NONCE_LEN);
 
@@ -199,8 +195,6 @@ public final class Crypto {
             assert bodyLen <= ciphertextBuffer.len;
             assert ptLen <= plaintextBuffer.len;
 
-            zeroBuffer(plaintextBuffer.data);
-            zeroBuffer(ciphertextBuffer.data);
             Nonce nonce = new Nonce(str, 8);
             System.arraycopy(str, 8, ciphertextBuffer.data, 0, bodyLen);
             System.arraycopy(nonce.data(), 0, nonceBuffer.data, 0, Nonce.NONCE_LEN);
@@ -221,16 +215,6 @@ public final class Crypto {
             System.arraycopy(plaintextBuffer.data, 0, text, 0, ptLen);
             return new Message(nonce, text);
         }
-
-        private void zeroBuffer(byte[] buffer) {
-            int l = 0, r = buffer.length - 1;
-            for (; l < r; l++,r--) {
-                buffer[l] = 0;
-                buffer[r] = 0;
-            }
-            buffer[l] = 0;
-        }
-
     }
 
     private static long counter = 0;

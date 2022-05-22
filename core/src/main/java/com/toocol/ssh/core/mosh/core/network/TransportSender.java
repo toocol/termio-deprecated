@@ -113,7 +113,7 @@ public final class TransportSender<MyState extends State<MyState>> {
         long new_num = sentStates.get(sentStates.size() - 1).num + 1;
 
         addSentState(now, new_num, currentState);
-        sendInFragments(UUID.randomUUID().toString() + UUID.randomUUID(), new_num);
+        sendInFragments("", new_num);
 
         nextAckTime = now + ACK_INTERVAL;
         nextSendTime = -1;

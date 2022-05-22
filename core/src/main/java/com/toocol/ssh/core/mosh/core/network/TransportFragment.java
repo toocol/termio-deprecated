@@ -204,8 +204,9 @@ public final class TransportFragment {
 
             byte[] decompress = getCompressor().decompress(contents);
             try {
-                InstructionPB.Instruction instruction = InstructionPB.Instruction.parseFrom(decompress);
                 fragments.clear();
+
+                InstructionPB.Instruction instruction = InstructionPB.Instruction.parseFrom(decompress);
                 fragmentsArrived = 0;
                 fragmentsTotal = -1;
                 contentsLength = 0;

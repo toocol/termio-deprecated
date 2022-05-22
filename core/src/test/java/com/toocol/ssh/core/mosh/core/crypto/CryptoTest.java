@@ -90,13 +90,15 @@ class CryptoTest implements ICompressorAcquirer {
 
         int oldNum = 0;
         int newNum = 0;
+        int ackNum = 0;
+        int tNum = 0;
         for (int i = 0; i < 1000; i++) {
             InstructionPB.Instruction.Builder builder = InstructionPB.Instruction.newBuilder();
             builder.setProtocolVersion(MOSH_PROTOCOL_VERSION);
             builder.setOldNum(oldNum++);
             builder.setNewNum(newNum++);
-            builder.setAckNum(0);
-            builder.setThrowawayNum(0);
+            builder.setAckNum(ackNum++);
+            builder.setThrowawayNum(tNum++);
             builder.setDiff(ByteString.copyFromUtf8(randomString()));
             builder.setChaff(ByteString.copyFrom(makeChaff()));
             InstructionPB.Instruction inst = builder.build();
