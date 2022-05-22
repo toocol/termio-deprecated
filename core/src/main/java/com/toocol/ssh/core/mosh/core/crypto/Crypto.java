@@ -144,6 +144,8 @@ public final class Crypto {
             System.arraycopy(plainText.text, 0, plaintextBuffer.data, 0, plainText.text.length);
             System.arraycopy(plainText.nonce.data(), 0, nonceBuffer.data, 0, Nonce.NONCE_LEN);
 
+            zeroBuffer(plaintextBuffer.data);
+            zeroBuffer(ciphertextBuffer.data);
             if (ciphertextLen != AeOcb.aeEncrypt(
                     ctx,
                     nonceBuffer.data,
@@ -201,6 +203,9 @@ public final class Crypto {
             System.arraycopy(str, 8, ciphertextBuffer.data, 0, bodyLen);
             System.arraycopy(nonce.data(), 0, nonceBuffer.data, 0, Nonce.NONCE_LEN);
 
+
+            zeroBuffer(ciphertextBuffer.data);
+            zeroBuffer(plaintextBuffer.data);
             if (ptLen != AeOcb.aeDecrypt(ctx, /* ctx */
                     nonceBuffer.data,      /* nonce */
                     ciphertextBuffer.data, /* ct */
@@ -217,6 +222,16 @@ public final class Crypto {
             System.arraycopy(plaintextBuffer.data, 0, text, 0, ptLen);
             return new Message(nonce, text);
         }
+
+        private void zeroBuffer(byte[] buffer) {
+            int l = 0, r = buffer.length - 1;
+            for (; l < r; l++,r--) {
+                buffer[l] = 0;
+                buffer[r] = 0;
+            }
+            buffer[l] = 0;
+        }
+
     }
 
     private static long counter = 0;
