@@ -84,8 +84,7 @@ class CryptoTest implements ICompressorAcquirer {
     @Test
     public void testEncrypt() {
         String key = "zr0jtuYVKJnfJHP/XOOsbQ";
-        Crypto.Session encryptSession = new Crypto.Session(new Crypto.Base64Key(key));
-        Crypto.Session decryptSession = new Crypto.Session(new Crypto.Base64Key(key));
+        Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
         TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter();
         TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly();
 
@@ -109,8 +108,8 @@ class CryptoTest implements ICompressorAcquirer {
                 MoshPacket sendPacket = newPacket(bytes);
                 Crypto.Message origin = sendPacket.toMessage();
 
-                byte[] encrypt = encryptSession.encrypt(origin);
-                Crypto.Message decrypt = decryptSession.decrypt(encrypt, encrypt.length);
+                byte[] encrypt = session.encrypt(origin);
+                Crypto.Message decrypt = session.decrypt(encrypt, encrypt.length);
                 MoshPacket recvPacket = new MoshPacket(decrypt);
                 TransportFragment.Fragment frag = new TransportFragment.Fragment(recvPacket.getPayload());
 
@@ -130,7 +129,7 @@ class CryptoTest implements ICompressorAcquirer {
     }
 
     private String randomString() {
-        int low = 0, high = 500;
+        int low = 0, high = 5000;
         int len = RandomUtils.nextInt(low, high + 1);
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < len; i++) {

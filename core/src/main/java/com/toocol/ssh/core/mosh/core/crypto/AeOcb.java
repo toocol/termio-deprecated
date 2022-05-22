@@ -532,7 +532,7 @@ public final class AeOcb {
     }
 
     static int ntz(int x) {
-        return TZ_TABLE[((x & -x) & 0x077CB531) >>> 27];
+        return TZ_TABLE[((x & -x) * 0x077CB531) >>> 27];
     }
 
     static void initBlocks(Block[] blocks) {

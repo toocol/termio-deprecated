@@ -29,4 +29,14 @@ class AeOcbTest {
             System.out.print(b + " ");
         }
     }
+
+    @Test
+    void ntzTest() {
+        int bpi = 4;
+        int blockNum = 0;
+        for (int i = 0; i < 5; i++) {
+            blockNum += bpi;
+            System.out.println(AeOcb.ntz(blockNum));
+        }
+    }
 }

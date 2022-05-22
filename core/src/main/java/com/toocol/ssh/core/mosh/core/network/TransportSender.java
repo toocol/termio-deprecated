@@ -8,10 +8,7 @@ import com.toocol.ssh.core.mosh.core.statesnyc.State;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramSocket;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Queue;
+import java.util.*;
 
 import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
 
@@ -116,7 +113,7 @@ public final class TransportSender<MyState extends State<MyState>> {
         long new_num = sentStates.get(sentStates.size() - 1).num + 1;
 
         addSentState(now, new_num, currentState);
-        sendInFragments("", new_num);
+        sendInFragments(UUID.randomUUID().toString() + UUID.randomUUID(), new_num);
 
         nextAckTime = now + ACK_INTERVAL;
         nextSendTime = -1;
