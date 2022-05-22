@@ -141,11 +141,11 @@ public final class Crypto {
             assert ciphertextLen * 2 <= ciphertextBuffer.len;
             assert ptLen * 2 <= plaintextBuffer.len;
 
+            zeroBuffer(plaintextBuffer.data);
+            zeroBuffer(ciphertextBuffer.data);
             System.arraycopy(plainText.text, 0, plaintextBuffer.data, 0, plainText.text.length);
             System.arraycopy(plainText.nonce.data(), 0, nonceBuffer.data, 0, Nonce.NONCE_LEN);
 
-            zeroBuffer(plaintextBuffer.data);
-            zeroBuffer(ciphertextBuffer.data);
             if (ciphertextLen != AeOcb.aeEncrypt(
                     ctx,
                     nonceBuffer.data,
@@ -199,13 +199,12 @@ public final class Crypto {
             assert bodyLen <= ciphertextBuffer.len;
             assert ptLen <= plaintextBuffer.len;
 
+            zeroBuffer(plaintextBuffer.data);
+            zeroBuffer(ciphertextBuffer.data);
             Nonce nonce = new Nonce(str, 8);
             System.arraycopy(str, 8, ciphertextBuffer.data, 0, bodyLen);
             System.arraycopy(nonce.data(), 0, nonceBuffer.data, 0, Nonce.NONCE_LEN);
 
-
-            zeroBuffer(ciphertextBuffer.data);
-            zeroBuffer(plaintextBuffer.data);
             if (ptLen != AeOcb.aeDecrypt(ctx, /* ctx */
                     nonceBuffer.data,      /* nonce */
                     ciphertextBuffer.data, /* ct */

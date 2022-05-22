@@ -39,7 +39,7 @@ public final class MoshOutputStream extends PipedOutputStream {
         transport.send(new String(cutOff, StandardCharsets.UTF_8));
     }
 
-    public void receivePacket(DatagramPacket datagramPacket) {
+    public synchronized void receivePacket(DatagramPacket datagramPacket) {
         try {
             byte[] bytes = datagramPacket.data().getBytes();
             bytes = transport.recv(bytes);
