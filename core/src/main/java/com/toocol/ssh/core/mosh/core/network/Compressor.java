@@ -14,6 +14,13 @@ public final class Compressor {
 
     private static Compressor compressor;
 
+    /**
+     * There are some problems:
+     * 1. When we send packet to mosh-server, we have to set the nowrap to true;
+     * 2. But we should set the nowrap to false when we receive packet from mosh-server.
+     */
+    private static boolean testMode = false;
+
     static synchronized Compressor get() {
         if (compressor == null) {
             compressor = new Compressor();
@@ -25,13 +32,13 @@ public final class Compressor {
 
     }
 
-    public byte[] compress(byte[] bytes) {
+    public byte[] compress(byte[] bytes, boolean nowrap) {
         if (bytes == null || bytes.length == 0) {
             return new byte[0];
         }
         byte[] output;
 
-        Deflater compressor = new Deflater(Deflater.DEFAULT_COMPRESSION, true);
+        Deflater compressor = new Deflater(Deflater.DEFAULT_COMPRESSION, testMode || nowrap);
         compressor.reset();
         compressor.setInput(bytes);
         compressor.finish();
@@ -59,10 +66,10 @@ public final class Compressor {
         return output;
     }
 
-    public byte[] decompress(byte[] data) {
+    public byte[] decompress(byte[] data, boolean nowrap) {
         byte[] output;
 
-        Inflater decompressor = new Inflater(true);
+        Inflater decompressor = new Inflater(testMode || nowrap);
         decompressor.reset();
         decompressor.setInput(data);
 
@@ -87,6 +94,10 @@ public final class Compressor {
 
         decompressor.end();
         return output;
+    }
+
+    public static void testMode() {
+        testMode = true;
     }
 
 }

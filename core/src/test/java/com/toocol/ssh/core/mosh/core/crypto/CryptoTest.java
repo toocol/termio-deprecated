@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
 import com.google.protobuf.ByteString;
+import com.toocol.ssh.core.mosh.core.network.Compressor;
 import com.toocol.ssh.core.mosh.core.network.ICompressorAcquirer;
 import com.toocol.ssh.core.mosh.core.network.MoshPacket;
 import com.toocol.ssh.core.mosh.core.network.TransportFragment;
@@ -83,6 +84,7 @@ class CryptoTest implements ICompressorAcquirer {
 
     @Test
     public void testEncrypt() {
+        Compressor.testMode();
         String key = "zr0jtuYVKJnfJHP/XOOsbQ";
         Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
         TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter();
