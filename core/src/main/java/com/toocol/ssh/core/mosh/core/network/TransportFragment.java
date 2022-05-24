@@ -116,7 +116,7 @@ public final class TransportFragment {
             lastInstruction = inst;
             lastMTU = mtu;
 
-            byte[] payload = getCompressor().compress(inst.toByteArray(), true);
+            byte[] payload = getCompressor().compress(inst.toByteArray());
             int remain = payload.length;
             int deal = 0;
             short fragmentNum = 0;
@@ -202,7 +202,7 @@ public final class TransportFragment {
                 proceed.set(proceed.get() + fragment.contents.length);
             });
 
-            byte[] decompress = getCompressor().decompress(contents, false);
+            byte[] decompress = getCompressor().decompress(contents);
             try {
                 fragments.clear();
 

@@ -84,7 +84,7 @@ class CryptoTest implements ICompressorAcquirer {
 
     @Test
     public void testEncrypt() {
-        Compressor.testMode();
+        Compressor.debugMode();
         String key = "zr0jtuYVKJnfJHP/XOOsbQ";
         Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
         TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter();

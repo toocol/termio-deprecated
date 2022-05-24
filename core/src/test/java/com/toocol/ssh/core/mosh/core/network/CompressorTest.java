@@ -35,10 +35,10 @@ class CompressorTest {
         InstructionPB.Instruction inst = builder.build();
 
         byte[] bytes = inst.toByteArray();
-        byte[] compress = compressor.compress(bytes, true);
+        byte[] compress = compressor.compress(bytes);
         assertTrue(bytes.length > compress.length);
 
-        byte[] origin = compressor.decompress(compress, true);
+        byte[] origin = compressor.decompress(compress);
 
         assertEquals(new String(origin, StandardCharsets.UTF_8), new String(bytes, StandardCharsets.UTF_8));
         try {
@@ -55,7 +55,7 @@ class CompressorTest {
         byte[] decode = Base64.getDecoder().decode(src);
 
         Compressor compressor = Compressor.get();
-        byte[] decompress = compressor.decompress(decode, false);
+        byte[] decompress = compressor.decompress(decode);
         System.out.println(new String(decompress));
     }
 }
