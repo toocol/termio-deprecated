@@ -4,12 +4,9 @@ import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import static com.toocol.ssh.core.mosh.core.crypto.ByteOrder.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -36,11 +33,11 @@ class ByteOrderTest {
     public void byteOrderTest() {
         long x = 213123;
         assertEquals(x, be64toh(htoBe64(x)));
-        assertTrue(Arrays.equals(htoBe64(x), Longs.toByteArray(x)));
+        assertArrayEquals(htoBe64(x), Longs.toByteArray(x));
 
         short y = 123;
         assertEquals(y, be16toh(htoBe16(y)));
-        assertTrue(Arrays.equals(htoBe16(y), Shorts.toByteArray(y)));
+        assertArrayEquals(htoBe16(y), Shorts.toByteArray(y));
     }
 
 }
