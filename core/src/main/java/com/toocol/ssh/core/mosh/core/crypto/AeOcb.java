@@ -527,7 +527,6 @@ public final class AeOcb {
         } catch (Exception e) {
             return AE_INVALID;
         }
-
         return ctLen;
     }
 
@@ -590,7 +589,7 @@ public final class AeOcb {
         // Get low 6 bits of nonce
         idx = bytes16[15] & 0x3f;
         // Zero low 6 bits of nonce
-        bytes16[15] = (byte) (bytes16[15] & 0xc);
+        bytes16[15] = (byte) (bytes16[15] & 0xc0);
 
         Block tmpBlk = fromBytes(bytes16);
 

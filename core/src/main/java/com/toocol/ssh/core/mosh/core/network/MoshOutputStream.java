@@ -47,7 +47,7 @@ public final class MoshOutputStream extends PipedOutputStream {
                 this.write(bytes, 0, bytes.length);
                 super.flush();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             Printer.printErr(e.getMessage());
         }
     }
