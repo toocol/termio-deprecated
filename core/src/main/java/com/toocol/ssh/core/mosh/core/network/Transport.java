@@ -35,7 +35,7 @@ public final class Transport {
         this.sender = new TransportSender<>(new UserStream(), this.addr, socket);
     }
 
-    public void send(String diff) {
+    public void send(byte[] diff) {
         sender.sendToReceiver(diff);
     }
 

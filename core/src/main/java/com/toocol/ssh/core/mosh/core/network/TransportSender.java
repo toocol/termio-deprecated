@@ -76,9 +76,9 @@ public final class TransportSender<MyState extends State<MyState>> {
             return;
         }
 
-        String diff = currentState.diffFrom(assumedReceiverState.state);
+        byte[] diff = currentState.diffFrom(assumedReceiverState.state);
 
-        if (StringUtils.isEmpty(diff)) {
+        if (diff == null || diff.length == 0) {
             if (now >= nextAckTime) {
                 sendEmptyAck();
                 minDelayClock = -1;
@@ -93,7 +93,7 @@ public final class TransportSender<MyState extends State<MyState>> {
         }
     }
 
-    public void sendToReceiver(String diff) {
+    public void sendToReceiver(byte[] diff) {
         minDelayClock = -1;
         long newNum;
         TimestampedState<MyState> back = sentStates.get(sentStates.size() - 1);
@@ -124,7 +124,7 @@ public final class TransportSender<MyState extends State<MyState>> {
         long new_num = sentStates.get(sentStates.size() - 1).num + 1;
 
         addSentState(now, new_num, currentState);
-        sendInFragments("", new_num);
+        sendInFragments(new byte[0], new_num);
 
         nextAckTime = now + ACK_INTERVAL;
         nextSendTime = -1;
@@ -143,14 +143,14 @@ public final class TransportSender<MyState extends State<MyState>> {
         }
     }
 
-    private void sendInFragments(String diff, long newNum) {
+    private void sendInFragments(byte[] diff, long newNum) {
         InstructionPB.Instruction.Builder builder = InstructionPB.Instruction.newBuilder();
         builder.setProtocolVersion(MOSH_PROTOCOL_VERSION);
         builder.setOldNum(assumedReceiverState.num);
         builder.setNewNum(newNum);
         builder.setAckNum(ackNum);
         builder.setThrowawayNum(sentStates.get(0).num);
-        builder.setDiff(ByteString.copyFromUtf8(diff));
+        builder.setDiff(ByteString.copyFrom(diff));
         builder.setChaff(ByteString.copyFrom(makeChaff()));
         InstructionPB.Instruction inst = builder.build();
 

@@ -32,7 +32,7 @@ public final class UserStream extends State<UserStream>{
     }
 
     @Override
-    public String diffFrom(UserStream existing) {
+    public byte[] diffFrom(UserStream existing) {
         Iterator<UserEvent> iterator = existing.actions.iterator();
         Iterator<UserEvent> myIt = actions.iterator();
         while (iterator.hasNext()) {
@@ -51,13 +51,15 @@ public final class UserStream extends State<UserStream>{
                     UserInputPB.ResizeMessage.Builder resizeBuilder = UserInputPB.ResizeMessage.newBuilder();
                     resizeBuilder.setWidth(resizeEvent.getWidth());
                     resizeBuilder.setHeight(resizeEvent.getHeight());
+                    instructionBuilder.setExtension(UserInputPB.resize, resizeBuilder.build());
+                    output.addInstruction(instructionBuilder);
                 }
                 case INITIALISE_TYPE -> {
 
                 }
             }
         }
-        return null;
+        return output.build().toByteArray();
     }
 
     @Override
