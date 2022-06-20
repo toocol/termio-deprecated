@@ -7,6 +7,7 @@ import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 import com.toocol.ssh.core.mosh.core.statesnyc.State;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramSocket;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,12 +76,19 @@ public final class TransportSender<MyState extends State<MyState>> {
             return;
         }
 
-        if (now >= nextAckTime) {
-            sendEmptyAck();
-            minDelayClock = -1;
-        }
-        if (now >= nextSendTime) {
-            nextSendTime = -1;
+        String diff = currentState.diffFrom(assumedReceiverState.state);
+
+        if (StringUtils.isEmpty(diff)) {
+            if (now >= nextAckTime) {
+                sendEmptyAck();
+                minDelayClock = -1;
+            }
+            if (now >= nextSendTime) {
+                nextSendTime = -1;
+                minDelayClock = -1;
+            }
+        } else {
+            sendToReceiver(diff);
             minDelayClock = -1;
         }
     }
@@ -239,6 +247,10 @@ public final class TransportSender<MyState extends State<MyState>> {
             sendInterval = SEND_INTERVAL_MAX;
         }
         return sendInterval;
+    }
+
+    public MyState getCurrentState() {
+        return currentState;
     }
 
     public Connection getConnection() {

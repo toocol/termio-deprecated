@@ -1,5 +1,7 @@
 package com.toocol.ssh.core.mosh.core.statesnyc;
 
+import com.toocol.ssh.utilities.annotation.Asable;
+
 import java.util.Objects;
 
 /**
@@ -9,14 +11,15 @@ import java.util.Objects;
  * @date: 2022/5/11 0:29
  * @version: 0.0.1
  */
-public abstract class UserEvent {
+public abstract class UserEvent implements Asable {
     public UserEvent(UserEventType type) {
         this.type = type;
     }
 
     public enum UserEventType {
         USER_BYTE_TYPE(0),
-        RESIZE_TYPE(1)
+        RESIZE_TYPE(1),
+        INITIALISE_TYPE(2),
         ;
         public final int idx;
 
@@ -28,6 +31,22 @@ public abstract class UserEvent {
     protected final UserEventType type;
 
     public abstract String name();
+
+    public UserEventType type() {
+        return type;
+    }
+
+    public static final class Initialise extends UserEvent {
+
+        public Initialise() {
+            super(UserEventType.INITIALISE_TYPE);
+        }
+
+        @Override
+        public String name() {
+            return "Initialise";
+        }
+    }
 
     public static final class Resize extends UserEvent {
 

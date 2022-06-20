@@ -4,7 +4,9 @@ import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
+import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
+import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.Vertx;
 
@@ -60,6 +62,8 @@ public final class MoshSessionFactory {
             }
             MoshSession moshSession = new MoshSession(vertx, sessionId, credential.getHost(), portKey._1(), portKey._2());
             moshSessionCache.put(moshSession);
+            // tell the server the size of the terminal
+            moshSession.pushBackEvent(new UserEvent.Resize(Term.WIDTH, Term.HEIGHT));
             return moshSession;
         } catch (Exception e) {
             return null;

@@ -11,4 +11,6 @@ public abstract class State<T extends State<?>> {
 
     public abstract String diffFrom(T existing);
 
+    public abstract void pushBack(UserEvent event);
+
 }

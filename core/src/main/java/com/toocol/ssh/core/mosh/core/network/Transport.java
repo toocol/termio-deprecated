@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.mosh.core.network;
 
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
+import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserStream;
 import com.toocol.ssh.utilities.execeptions.NetworkException;
 import io.vertx.core.datagram.DatagramSocket;
@@ -53,5 +54,9 @@ public final class Transport {
 
     public void tick() {
         sender.tick();
+    }
+
+    public void pushBackEvent(UserEvent event) {
+        sender.getCurrentState().pushBack(event);
     }
 }

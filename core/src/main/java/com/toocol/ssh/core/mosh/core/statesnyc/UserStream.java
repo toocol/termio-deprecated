@@ -44,8 +44,25 @@ public final class UserStream extends State<UserStream>{
 
         while (myIt.hasNext()) {
             UserEvent next = myIt.next();
+            switch (next.type()) {
+                case RESIZE_TYPE -> {
+                    UserEvent.Resize resizeEvent = next.as();
+                    UserInputPB.Instruction.Builder instructionBuilder = UserInputPB.Instruction.newBuilder();
+                    UserInputPB.ResizeMessage.Builder resizeBuilder = UserInputPB.ResizeMessage.newBuilder();
+                    resizeBuilder.setWidth(resizeEvent.getWidth());
+                    resizeBuilder.setHeight(resizeEvent.getHeight());
+                }
+                case INITIALISE_TYPE -> {
+
+                }
+            }
         }
         return null;
+    }
+
+    @Override
+    public void pushBack(UserEvent event) {
+        actions.offer(event);
     }
 
     @Override

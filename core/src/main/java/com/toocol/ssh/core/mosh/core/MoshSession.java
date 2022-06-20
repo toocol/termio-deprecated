@@ -3,6 +3,7 @@ package com.toocol.ssh.core.mosh.core;
 import com.toocol.ssh.core.mosh.core.network.MoshInputStream;
 import com.toocol.ssh.core.mosh.core.network.MoshOutputStream;
 import com.toocol.ssh.core.mosh.core.network.Transport;
+import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.utils.IpUtil;
 import io.vertx.core.Vertx;
@@ -75,6 +76,10 @@ public final class MoshSession {
 
     public void tick() {
         transport.tick();
+    }
+
+    public void pushBackEvent(UserEvent userEvent) {
+        transport.pushBackEvent(userEvent);
     }
 
     public InputStream getInputStream() throws IOException {
