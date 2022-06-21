@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.mosh.core.network;
 
+import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.term.core.Printer;
 import io.vertx.core.datagram.DatagramPacket;
 
@@ -27,7 +28,7 @@ public final class MoshOutputStream extends PipedOutputStream {
         this.transport = transport;
     }
 
-    public void sendPacket() {
+    public void pushBackUserBytesEvent() {
         if (curlen == 0) {
             return;
         }
@@ -35,7 +36,7 @@ public final class MoshOutputStream extends PipedOutputStream {
         System.arraycopy(buff, 0, cutOff, 0, curlen);
         curlen = 0;
 
-        transport.send(cutOff);
+        transport.pushBackEvent(new UserEvent.UserBytes(cutOff));
     }
 
     public synchronized void receivePacket(DatagramPacket datagramPacket) {
@@ -65,7 +66,7 @@ public final class MoshOutputStream extends PipedOutputStream {
     @Override
     public synchronized void flush() throws IOException {
         try {
-            sendPacket();
+            pushBackUserBytesEvent();
         } catch (Exception e) {
             throw new IOException("Send packet failed");
         }

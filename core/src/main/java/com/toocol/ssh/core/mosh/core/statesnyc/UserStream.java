@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.mosh.core.statesnyc;
 
+import com.google.protobuf.ByteString;
 import com.toocol.ssh.core.mosh.core.proto.UserInputPB;
 
 import java.util.ArrayDeque;
@@ -36,8 +37,10 @@ public final class UserStream extends State<UserStream>{
         Iterator<UserEvent> iterator = existing.actions.iterator();
         Iterator<UserEvent> myIt = actions.iterator();
         while (iterator.hasNext()) {
-            iterator.next();
-            myIt.next();
+            UserEvent next = iterator.next();
+            if (next != existing.actions.getLast()) {
+                myIt.next();
+            }
         }
 
         UserInputPB.UserMessage.Builder output = UserInputPB.UserMessage.newBuilder();
@@ -54,8 +57,13 @@ public final class UserStream extends State<UserStream>{
                     instructionBuilder.setExtension(UserInputPB.resize, resizeBuilder.build());
                     output.addInstruction(instructionBuilder);
                 }
-                case INITIALISE_TYPE -> {
-
+                case USER_BYTE_TYPE -> {
+                    UserEvent.UserBytes userBytesEvent = next.as();
+                    UserInputPB.Instruction.Builder instructionBuilder = UserInputPB.Instruction.newBuilder();
+                    UserInputPB.Keystroke.Builder keystrokeBuilder = UserInputPB.Keystroke.newBuilder();
+                    keystrokeBuilder.setKeys(ByteString.copyFrom(userBytesEvent.bytes));
+                    instructionBuilder.setExtension(UserInputPB.keystroke, keystrokeBuilder.build());
+                    output.addInstruction(instructionBuilder);
                 }
             }
         }

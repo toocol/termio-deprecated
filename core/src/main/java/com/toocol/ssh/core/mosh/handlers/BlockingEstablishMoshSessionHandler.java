@@ -5,8 +5,10 @@ import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.mosh.core.MoshSessionFactory;
+import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.ShellProtocol;
+import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
@@ -53,6 +55,9 @@ public final class BlockingEstablishMoshSessionHandler extends AbstractBlockingM
         eventBus.request(LISTEN_LOCAL_SOCKET.address(), sessionId, result -> {
             if (result.succeeded()) {
                 try {
+                    // tell the server the size of the terminal
+                    session.pushBackEvent(new UserEvent.Resize(Term.WIDTH, Term.HEIGHT));
+
                     eventBus.send(MOSH_TICK.address(), sessionId);
 
                     Shell shell = new Shell(sessionId, eventBus, session);

@@ -62,8 +62,6 @@ public final class MoshSessionFactory {
             }
             MoshSession moshSession = new MoshSession(vertx, sessionId, credential.getHost(), portKey._1(), portKey._2());
             moshSessionCache.put(moshSession);
-            // tell the server the size of the terminal
-            moshSession.pushBackEvent(new UserEvent.Resize(Term.WIDTH, Term.HEIGHT));
             return moshSession;
         } catch (Exception e) {
             return null;

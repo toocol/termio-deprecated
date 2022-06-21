@@ -18,8 +18,7 @@ public abstract class UserEvent implements Asable {
 
     public enum UserEventType {
         USER_BYTE_TYPE(0),
-        RESIZE_TYPE(1),
-        INITIALISE_TYPE(2),
+        RESIZE_TYPE(1)
         ;
         public final int idx;
 
@@ -36,15 +35,18 @@ public abstract class UserEvent implements Asable {
         return type;
     }
 
-    public static final class Initialise extends UserEvent {
+    public static final class UserBytes extends UserEvent {
 
-        public Initialise() {
-            super(UserEventType.INITIALISE_TYPE);
+        public final byte[] bytes;
+
+        public UserBytes(byte[] bytes) {
+            super(UserEventType.USER_BYTE_TYPE);
+            this.bytes = bytes;
         }
 
         @Override
         public String name() {
-            return "Initialise";
+            return null;
         }
     }
 
