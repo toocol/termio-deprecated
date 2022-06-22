@@ -111,7 +111,7 @@ public final class TransportSender<MyState extends State<MyState>> {
 
         sendInFragments(diff, newNum);
 
-        assumedReceiverState = back;
+        assumedReceiverState = sentStates.get(sentStates.size() - 1);
         nextAckTime = Timestamp.timestamp() + ACK_INTERVAL;
         nextSendTime = -1;
     }

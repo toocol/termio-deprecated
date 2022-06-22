@@ -2,6 +2,7 @@ package com.toocol.ssh.core.mosh.core.statesnyc;
 
 import com.toocol.ssh.utilities.annotation.Asable;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -42,6 +43,19 @@ public abstract class UserEvent implements Asable {
         public UserBytes(byte[] bytes) {
             super(UserEventType.USER_BYTE_TYPE);
             this.bytes = bytes;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            UserBytes userBytes = (UserBytes) o;
+            return Arrays.equals(bytes, userBytes.bytes);
+        }
+
+        @Override
+        public int hashCode() {
+            return Arrays.hashCode(bytes);
         }
 
         @Override
