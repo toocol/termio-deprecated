@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.UnknownFieldSet;
 import com.toocol.ssh.core.mosh.core.network.Compressor;
@@ -192,7 +193,9 @@ class CryptoTest implements ICompressorAcquirer {
             System.out.println(recvInst.toString());
 
             try {
-                System.out.println(UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray()).toString());
+                ExtensionRegistry registry = ExtensionRegistry.newInstance();
+                registry.add(UserInputPB.resize);
+                System.out.println(UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray(), registry).toString());
             } catch (InvalidProtocolBufferException e) {
                 e.printStackTrace();
             }
@@ -255,7 +258,9 @@ class CryptoTest implements ICompressorAcquirer {
             System.out.println(recvInst.toString());
 
             try {
-                UserInputPB.UserMessage userMessage = UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray());
+                ExtensionRegistry registry = ExtensionRegistry.newInstance();
+                registry.add(UserInputPB.keystroke);
+                UserInputPB.UserMessage userMessage = UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray(), registry);
                 System.out.println(userMessage);
             } catch (InvalidProtocolBufferException e) {
                 e.printStackTrace();

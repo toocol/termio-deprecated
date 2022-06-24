@@ -1,5 +1,7 @@
 package com.toocol.ssh.core.mosh.core.statesnyc;
 
+import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.toocol.ssh.core.mosh.core.proto.UserInputPB;
 import org.junit.jupiter.api.Test;
@@ -26,8 +28,9 @@ class UserStreamTest {
 
         byte[] bytes = output.build().toByteArray();
         try {
-            UserInputPB.UserMessage userMessage = UserInputPB.UserMessage.parseFrom(bytes);
-            System.out.println(userMessage.toString());
+            ExtensionRegistry registry = ExtensionRegistry.newInstance();
+            registry.add(UserInputPB.resize);
+            UserInputPB.UserMessage userMessage = UserInputPB.UserMessage.parseFrom(bytes, registry);
             UserInputPB.Instruction instruction = userMessage.getInstruction(0);
             UserInputPB.ResizeMessage resizeMessage = instruction.getExtension(UserInputPB.resize);
             assertEquals(resizeMessage.getWidth(), 60);
