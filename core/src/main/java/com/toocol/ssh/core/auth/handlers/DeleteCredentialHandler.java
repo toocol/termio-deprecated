@@ -38,7 +38,7 @@ public final class DeleteCredentialHandler extends AbstractMessageHandler {
             SshSessionCache.getInstance().stop(host);
         }
 
-        String filePath = FileUtil.relativeToFixed("./credentials.tsh");
+        String filePath = FileUtil.relativeToFixed("./.credentials");
         String credentialsJson = CredentialCache.getCredentialsJson();
 
         SecurityCoder coder = SecurityCoder.get();

@@ -34,7 +34,7 @@ public final class AddCredentialHandler extends AbstractMessageHandler {
         SshCredential credential = SshCredential.transFromJson(cast(message.body()));
         CredentialCache.addCredential(credential);
 
-        String filePath = FileUtil.relativeToFixed("./credentials.tsh");
+        String filePath = FileUtil.relativeToFixed("./.credentials");
         String credentialsJson = CredentialCache.getCredentialsJson();
 
         SecurityCoder coder = SecurityCoder.get();
