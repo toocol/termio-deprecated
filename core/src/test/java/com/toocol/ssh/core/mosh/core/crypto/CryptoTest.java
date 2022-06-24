@@ -1,11 +1,14 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.UnknownFieldSet;
 import com.toocol.ssh.core.mosh.core.network.Compressor;
 import com.toocol.ssh.core.mosh.core.network.ICompressorAcquirer;
 import com.toocol.ssh.core.mosh.core.network.MoshPacket;
 import com.toocol.ssh.core.mosh.core.network.TransportFragment;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
+import com.toocol.ssh.core.mosh.core.proto.UserInputPB;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -13,6 +16,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.MOSH_PROTOCOL_VERSION;
@@ -31,7 +35,7 @@ class CryptoTest implements ICompressorAcquirer {
     public void testCipher() {
         String key = "zr0jtuYVKJnfJHP/XOOsbQ";
 
-        Crypto.Session session =  new Crypto.Session(new Crypto.Base64Key(key));
+        Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
         System.out.println(session.ctx.encryptCipher.getBlockSize());
         AeOcb.Block blk = AeOcb.Block.zeroBlock();
         try {
@@ -55,7 +59,7 @@ class CryptoTest implements ICompressorAcquirer {
             encryptBlk = AeOcb.Block.swapIfLe(encryptBlk);
             System.out.println("swap: " + encryptBlk.l + ":" + encryptBlk.r);
 
-            AeOcb.Block[] blks = new AeOcb.Block[] {
+            AeOcb.Block[] blks = new AeOcb.Block[]{
                     AeOcb.Block.zeroBlock(),
                     AeOcb.Block.zeroBlock(),
                     AeOcb.Block.zeroBlock(),
@@ -138,29 +142,184 @@ class CryptoTest implements ICompressorAcquirer {
 
     @Test
     public void testDecrypt() throws DecoderException {
-        String wiresharkHex = "80 00 00 00 00 00 00 00 35 56 20 3d 78 72 42 34 26 e7 34 31 4f 41 d4 57 6b e2 f7 d2 bf 39 09 95 f2 af 56 b1 bf 1f 46 c4 d7 18 0f 4e 9d c9 4f 07 51 39 02 c8 04 95 78 09 6d 8b 34 2f 36 aa 46 50 1e 3a 0c f2 12 a6 32 73 18 a4 f1 c7 36 f4 32 9c ab b9 2c d9 cd d4 34 22 52 c0 e5 48 08 31 0f d9 c6 24 c3 fd a2 06 da fd ce 24 b9 8c 0d 8f b2 34 fa e0 23 a6 ad 6d 8e 4b 9b de 66 29 28 67 45 20 b0 a4 ac f3 19 95 72 14 5c ad 14 45 b5 b9 0f 33 20 1e";
-        System.out.println("Wireshark hex: " + wiresharkHex.replaceAll(" ", ""));
+        String key = "H8czB7uE1l1oy6/Nn+elkw";
 
-        String bytesStr = "-128, 0, 0, 0, 0, 0, 0, 0, 53, 86, 32, 61, 120, 114, 66, 52, 38, -25, 52, 49, 79, 65, -44, 87, 107, -30, -9, -46, -65, 57, 9, -107, -14, -81, 86, -79, -65, 31, 70, -60, -41, 24, 15, 78, -99, -55, 79, 7, 81, 57, 2, -56, 4, -107, 120, 9, 109, -117, 52, 47, 54, -86, 70, 80, 30, 58, 12, -14, 18, -90, 50, 115, 24, -92, -15, -57, 54, -12, 50, -100, -85, -71, 44, -39, -51, -44, 52, 34, 82, -64, -27, 72, 8, 49, 15, -39, -58, 36, -61, -3, -94, 6, -38, -3, -50, 36, -71, -116, 13, -113, -78, 52, -6, -32, 35, -90, -83, 109, -114, 75, -101, -34, 102, 41, 40, 103, 69, 32, -80, -92, -84, -13, 25, -107, 114, 20, 92, -83, 20, 69, -75, -71, 15, 51, 32, 30";
-        String[] split = bytesStr.split(", ");
-        byte[] wiresharkBytes = new byte[split.length];
-        for (int idx = 0; idx < split.length; idx++) {
-            wiresharkBytes[idx] = Byte.parseByte(split[idx]);
+        String req1 = "00 00 00 00 00 00 00 00 72 f9 6a 80 d9 03 c3 e6 81 63 30 6b cd 28 c3 e4 2d 28 79 01 18 8f 53 56 a5 e8 58 0f 0f 2c 05 a9 cb f1 f3 dc ad 78 a3 67 5f b7 d8 ca aa a9 0a cc f6 72 4e aa 3d c5 de c8 77 8a 9c e2 ea 18 ea d1 4b 84 e0";
+        String req2 = "00 00 00 00 00 00 00 01 9d 3f b3 e3 d3 b6 39 6b 18 4e 24 c3 81 84 ef 44 10 46 d6 f1 7a 51 8d cc 71 20 e3 d6 c9 b9 ce 03 2f 67 a8 fc 91 d8 67 82 98 f0 e1 15 cb 36 0f 2a 50 78 ea df 8c 3b dd ea 88 e3 57 2a c5";
+        String req3 = "00 00 00 00 00 00 00 02 c6 17 c4 94 7c fd a1 fb a9 3d da 6c 74 22 94 86 fe 45 76 4b f2 02 29 2f cf ab 04 c6 21 63 9a 21 b5 d1 ae 0c 27 38 af ea 4e 60 39 0c f7 9c 6d 43 7f 55 2a 29 12 64 d5 31 61 c8 f5 24 f4 7d 85 64 ce e1 f3 d3 b7";
+
+        String resp1 = "80 00 00 00 00 00 00 00 45 f5 ad 51 7f 66 06 ff d2 fa cf 94 a4 4d 9d 4c 2a 97 7c 34 72 44 ea 98 2d c1 5a b1 16 e8 a1 31 68 27 ec fc 17 7a c1 79 da 0e 28 02 04 2f b3 7a db f8 d2 15 59 0a 79 15 16 63 7a 6e 85 c7 76 af bc 6e 51 a6 d5 2e b5 a3 44 d1 cc c0 3d 7e b7 e6 bd 2e 3d 1e ac b0 9d f7 9f 2e 8f 53 54 e2 8c 5f e9 2c 16 eb dd 73 dd 99 14 7a e8 c1 ec b6 fc 3e 57 ea cc e7 52 13 e3 d2 4b 56 49 cf 25 f2 e1 85 b7 63 ab 6e 55 29 67 9f d3 fb 2d f4 21 8b 06 25 a7 33 1f 70 06 98 82 f5 e0 11 a1 11";
+        String resp2 = "80 00 00 00 00 00 00 01 4a c5 dc e8 e4 ba e3 4f 55 26 7b 47 a4 d4 81 31 9e a0 62 78 5d d8 a6 44 35 0d 19 15 59 b3 69 1f 77 35 21 8f c5 8f 1a 7f b9 64 d3 65 a1 1f 88 b1 0d 2f fd db 5a 7e 25 7f 00 45 5d 7b 51 50 20 3f 22 d5 cf c1 d5 53 41 8c 96 5c e2 d6 de 6a e0 2a f2 f2 db 09 fb 40 12 1f f6 99 9e 19 af 26 f1 c8 9f f9 1d 9d 5a b8 71 04 19 24 4b c7 60 99 63 5a 48 e6 52 6c f2 30 67 c7 46 14 39 74 96 6b 2a 14 84 81 08 e5 79 3e d7 a1 c7 5f 88 c4 bf a1 dd 53 b4 6c 9d da 30 99 b3 ae 1c a4 e8 61 ff 63 49 86 ac 06 8d 19 06 de f1 f5 8f 3d b8 50 61 0a 24 fb 08 60 f2 db 7e 82 8b 6e 9a f0 32 c7 e6 b5 dd 1c 29 cf 74 2a 71 de 72 ff 77";
+        String resp3 = "80 00 00 00 00 00 00 03 7f f3 27 eb c5 1f ea ed a3 07 2e 35 9c 96 c2 56 df 0a 22 05 d6 5c 78 cd 23 44 30 d8 69 06 17 bd 78 af 05 a9 cc 82 38 1d 79 a9 d3 2e b2 a9 fd d9 e6 84 f7 99 d6 f8 80 2b 31 c3 d3";
+
+        String input1 = "00 00 00 00 00 00 02 09 63 50 2b 87 4d 46 23 af 4a 3b 83 2c e2 91 74 30 80 0c 8e 71 4b d5 ea 43 de a8 63 5c 5a 8c f0 b9 71 97 b1 d0 74 2c 5b 7a a9 47 e1 4b 9d 57 4e f9 14 04 89 ab d8 c4 22 49 ae c5 77 c5 6d 80 33 8f 66 ba ec f2 64 f3 ee fa 97 7b 69";
+        String input2 = "00 00 00 00 00 00 02 0a 19 9c 18 ab c0 d9 eb 43 18 16 bc ae f9 64 8c 31 86 65 d1 86 6f 2f 2c c3 30 61 8a 16 06 49 9a b2 4a 6c f2 5d 0f 58 9f 9b b8 14 0e ba 84 fd 8e bf b4 e8 76 51 c1 e3 8e ce d1 59 91 58 dd ba bb 36 3f 89 94 2d 98 d1 37 da";
+        String input3 = "00 00 00 00 00 00 02 0b a8 8f 4c 3c e7 38 6d 62 9d 43 0f 4b 4b d4 81 3b 1d aa bd 55 ef b1 49 47 19 da 54 ff 11 63 e3 36 13 8c 63 45 97 86 c1 34 b1 48 7a 22 60 e3 3c d6 32 af b6 ee 89 ce 68 cc 1c 98 ac 66 09 80 46 a6 cf eb c3 41";
+
+        String respIn1 = "80 00 00 00 00 00 01 fb 65 d8 6a ce 15 80 82 79 8a 6d 20 00 5d a5 78 e0 30 3a 3a 1f 4a 12 93 77 05 00 89 e4 3b e0 3c d3 bb 00 cb fc 97 e9 4b 2d 66 4e f8 4b b3 7a 06 7c 11 87 8d 14 1e 9d 24 1d 25 87 9b e5 eb 73 a1 3a 48 f5 f9 88";
+        String respIn2 = "80 00 00 00 00 00 01 fc c8 5a f5 c4 ba cd d5 8a f7 03 72 99 e5 d5 e3 71 32 96 48 c7 25 7f 01 49 14 be 0f 03 ca 67 1d 0d b8 94 0d 22 b8 1f f0 08 c5 ee 27 1f 93 49 35 ac a9 7e ec 54 7b 25 61 32 55 4a 98 c0 05 a9 b2 dc 16 0a 75 b0 50 98 67 ff 50 11 a9 0c 0d 55 42 38 35 b6 9c 83 a1 2d 24";
+        String respIn3 = "80 00 00 00 00 00 01 fd d4 f9 37 4e 4a 3d 15 3f 8f ae 09 1b 01 bb 32 61 a0 36 92 d2 14 56 2b 9a 03 7f 94 46 f4 cb de 7c 0a 4f 58 86 98 4d eb a7 1c cf 3b b8 50 f0 b2 87 bf 7f 40 d2 ff 3a e3 66 87 aa 96 d6 28 c6 80 67 82 39 09 38 11 59 f7 7c 26 a7 55 50 e6 e8 7d a4 08 b8 55 09 49 f5 97 da be e8 d3 7e 4b a7 16 e6 69 cd 64 bf 6c 61 fb ad b6 7e f6 14 77 35 09 79 44 9a 25 36 97 5e d4 0a fd f3 47 5f 9f a7 25 09 5e f7 ca c4 1c 37 55 b1 63 21 a8 02 76 97 d5 2c 1d 58 e0 7b a6 bc e2 b1 e7 58 fd 6b ed 3e c9 08 28 0d 2f 63 b0 04 ce 79 13 e8 0a 67 1a a8 ed fe 84 3e eb 6e 84 45 22 ba fc 8f e1 a7 3f 11 c3 a1 0d 66 3a 24 70 f2 e8 b7 21 6b 18 ed 15 20 45 ce 3d f7 42 45 6d eb 1a d0 aa 61 65 a3 28 4c a9 4f e1 a4 38 b9 0b 40 6c c5 f8 60 94 f2 52 71 6e 6e d5 1a ba 5c 87 0d bd";
+
+        byte[] req1Bytes = Hex.decodeHex(req1.replaceAll(" ", ""));
+        byte[] req2Bytes = Hex.decodeHex(req2.replaceAll(" ", ""));
+        byte[] req3Bytes = Hex.decodeHex(req3.replaceAll(" ", ""));
+
+        byte[] resp1Bytes = Hex.decodeHex(resp1.replaceAll(" ", ""));
+        byte[] resp2Bytes = Hex.decodeHex(resp2.replaceAll(" ", ""));
+        byte[] resp3Bytes = Hex.decodeHex(resp3.replaceAll(" ", ""));
+
+        byte[] input1Bytes = Hex.decodeHex(input1.replaceAll(" ", ""));
+        byte[] input2Bytes = Hex.decodeHex(input2.replaceAll(" ", ""));
+        byte[] input3Bytes = Hex.decodeHex(input3.replaceAll(" ", ""));
+
+        byte[] respIn1Bytes = Hex.decodeHex(respIn1.replaceAll(" ", ""));
+        byte[] respIn2Bytes = Hex.decodeHex(respIn2.replaceAll(" ", ""));
+        byte[] respIn3Bytes = Hex.decodeHex(respIn3.replaceAll(" ", ""));
+
+        Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
+        TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly();
+        MoshPacket recvPacket;
+        Crypto.Message message;
+        TransportFragment.Fragment frag;
+
+        message = session.decrypt(req1Bytes, req1Bytes.length);
+        recvPacket = new MoshPacket(message);
+        frag = new TransportFragment.Fragment(recvPacket.getPayload());
+        if (fragments.addFragment(frag)) {
+            InstructionPB.Instruction recvInst = fragments.getAssembly();
+            System.out.println("req 1 : ");
+            System.out.println("---");
+            System.out.println(recvInst.toString());
+
+            try {
+                System.out.println(UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray()).toString());
+            } catch (InvalidProtocolBufferException e) {
+                e.printStackTrace();
+            }
+        }
+        message = session.decrypt(resp1Bytes, resp1Bytes.length);
+        recvPacket = new MoshPacket(message);
+        frag = new TransportFragment.Fragment(recvPacket.getPayload());
+        if (fragments.addFragment(frag)) {
+            InstructionPB.Instruction recvInst = fragments.getAssembly();
+            System.out.println("resp 1 : ");
+            System.out.println("---");
+            System.out.println(recvInst.toString());
         }
 
-        String aeStr = "d997054438be3ebbd6001544e77a211fcba6cc34d5839a53202e92186749360786bd2f618b60477400f62c9c3dd638f9751173fc5084ddbe40058a60ad73d36363db78715b76025887d07aadc8dfbe104d5ca4f7afd45eed3cef4d1c1da6a32de1a6c10d347b18ba0baaea1f5146a1d224f222010a932c3f07676d282b6ffb1c21b6e04f434b00c9a459befa8fbf406e929e495ff2ee3e9f9ef60133cb9554381a364b72a207d3f3007ba3c542a434d724aacf485c085f8f05f9b153263a156fa2f43737e38eeda6380db90317458ce2bc23478d421c5aed692fa9f59f227a12e6db421e87a3014ed7cfa6078b415c8fb930199e48e2afe4965998b3b2dad5332cdd0baae9e502c82dbe3ae45db826b9dfbe9667ba9859250874c9bf68286313d03b0acf64afcc4a3af5593056bff83318149422b70d897b3ddbdb599a39da0cf45a50608a1273c4e879f8e306a01d8af4997f0e8acc86ec4367eef16bba3a85d123412aa0ed7ac27f59cca6c3258f5793a2f5214f068baa714ec0cd502996fc237e68a7eb499ccaa7018f4c7aa0e1c3a454c44dd4f1cb9f09a995bfdc6fb45748a2656658e51f8402e94e0c515fdee99cd5c7ba616b91f8784a579dcfd5f105d7096f704c225f66b0bc8acd5b064349974912637d0e768e29de8c1dcd3be8538abc184301354aac4652256cc187961bc769d17f339f5ddaeb6584ab1b13ec8d69fbed27fb16d06e223644988c0ca565ce218d4931573c665e26fdafc27887d2457c102f70105e57faa4af9d3c3c901f128d6c035ad78cab848f223045a8fa07361436344a04bd6210d7c6290e23e2da6301612fce86143f9cfc375ad462202c7146aac78971fe1a97cb6fce7ac06161eff2e1cb2fd1d856108b8c9de6a71e6b6dafd011178c45b720666ca9cad3dd29d8e6b3b9206a426c38d2775a90c831a60d0d0a405e29e3d68b544faac7abcf4118204984499d03c8fa31eae6e48ba68c84728aae29da8b9e6d975252eaf19c35e9751669c22fac93717f5a9f30d44ec11164f5c9ec7c428aabb71e78dd8e64cd83e8f423db20a7aa80eaa76aba1469bb735cd87c7e315aab0b936fe5559dd02e40723530150f22e64ce3d9f5fdae463b29c831e9e3228f78fa9a41ad1a1f79f25fc1b52080307eb32a5012942a64cb869093f332e7df2d0da2d41af5e1ce67d21252fe11f117cf1c75fe59bb8dcb3da1f958735d5fea956e407db033940618bfef46bd88b4d9cfc8850e0d119dca3ce545509e4d5ea11d42ba89176c53227ac9ce33a61f940477fbc012b7ca506d18dd5e0fc9307475acecec974886ebf9d0f76f956522aecbb15b34e9edad3f959f6ea14a26bbf96b8c70648d45190ed8113a4947fcaa743a3e5ef36a5d55bddeae8b909a696b4c1076fe07c95170cfdc519d7530a875d96611418a2ce6683fc6df93f5ef790df5fd5a4417171c6d093ec17aaef5975990fc9e9bdc9f8e1479cfa3ea99c44a484ee53de3fcc6e6ef788906199d832d103b085457526ad7d11b73b1d26e5729";
-        byte[] aeBytes = Hex.decodeHex(aeStr);
+        message = session.decrypt(req2Bytes, req2Bytes.length);
+        recvPacket = new MoshPacket(message);
+        frag = new TransportFragment.Fragment(recvPacket.getPayload());
+        if (fragments.addFragment(frag)) {
+            InstructionPB.Instruction recvInst = fragments.getAssembly();
+            System.out.println("req 2 : ");
+            System.out.println("---");
+            System.out.println(recvInst.toString());
+        }
+        message = session.decrypt(resp2Bytes, resp2Bytes.length);
+        recvPacket = new MoshPacket(message);
+        frag = new TransportFragment.Fragment(recvPacket.getPayload());
+        if (fragments.addFragment(frag)) {
+            InstructionPB.Instruction recvInst = fragments.getAssembly();
+            System.out.println("resp 2 : ");
+            System.out.println("---");
+            System.out.println(recvInst.toString());
+        }
 
-        System.out.println("AE bytes: " + Arrays.toString(aeBytes));
-        System.out.println("AE bytes length: " + aeBytes.length);
-        System.out.println("Wireshark bytes: " + Arrays.toString(wiresharkBytes));
-        System.out.println("Wireshark bytes length: " + wiresharkBytes.length);
+        message = session.decrypt(req3Bytes, req3Bytes.length);
+        recvPacket = new MoshPacket(message);
+        frag = new TransportFragment.Fragment(recvPacket.getPayload());
+        if (fragments.addFragment(frag)) {
+            InstructionPB.Instruction recvInst = fragments.getAssembly();
+            System.out.println("req 3 : ");
+            System.out.println("---");
+            System.out.println(recvInst.toString());
+        }
+        message = session.decrypt(resp3Bytes, resp3Bytes.length);
+        recvPacket = new MoshPacket(message);
+        frag = new TransportFragment.Fragment(recvPacket.getPayload());
+        if (fragments.addFragment(frag)) {
+            InstructionPB.Instruction recvInst = fragments.getAssembly();
+            System.out.println("resp 3 : ");
+            System.out.println("---");
+            System.out.println(recvInst.toString());
+        }
 
-        String key = "fDSpx96gmdY+CPPiINZKNQ";
-        Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
+        message = session.decrypt(input1Bytes, input1Bytes.length);
+        recvPacket = new MoshPacket(message);
+        frag = new TransportFragment.Fragment(recvPacket.getPayload());
+        if (fragments.addFragment(frag)) {
+            InstructionPB.Instruction recvInst = fragments.getAssembly();
+            System.out.println("input 1 : ");
+            System.out.println("---");
+            System.out.println(recvInst.toString());
 
-        Crypto.Message message = session.decrypt(wiresharkBytes, wiresharkBytes.length);
-        Crypto.Message aeMessage = session.decrypt(aeBytes, aeBytes.length);
+            try {
+                UserInputPB.UserMessage userMessage = UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray());
+                System.out.println(userMessage);
+            } catch (InvalidProtocolBufferException e) {
+                e.printStackTrace();
+            }
+        }
+        message = session.decrypt(respIn1Bytes, respIn1Bytes.length);
+        recvPacket = new MoshPacket(message);
+        frag = new TransportFragment.Fragment(recvPacket.getPayload());
+        if (fragments.addFragment(frag)) {
+            InstructionPB.Instruction recvInst = fragments.getAssembly();
+            System.out.println("resp input 1 : ");
+            System.out.println("---");
+            System.out.println(recvInst.toString());
+        }
+
+        message = session.decrypt(input2Bytes, input2Bytes.length);
+        recvPacket = new MoshPacket(message);
+        frag = new TransportFragment.Fragment(recvPacket.getPayload());
+        if (fragments.addFragment(frag)) {
+            InstructionPB.Instruction recvInst = fragments.getAssembly();
+            System.out.println("input 2 : ");
+            System.out.println("---");
+            System.out.println(recvInst.toString());
+
+            try {
+                UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray());
+            } catch (InvalidProtocolBufferException e) {
+                e.printStackTrace();
+            }
+        }
+        message = session.decrypt(respIn2Bytes, respIn2Bytes.length);
+        recvPacket = new MoshPacket(message);
+        frag = new TransportFragment.Fragment(recvPacket.getPayload());
+        if (fragments.addFragment(frag)) {
+            InstructionPB.Instruction recvInst = fragments.getAssembly();
+            System.out.println("resp input 2 : ");
+            System.out.println("---");
+            System.out.println(recvInst.toString());
+        }
+
+        message = session.decrypt(input3Bytes, input3Bytes.length);
+        recvPacket = new MoshPacket(message);
+        frag = new TransportFragment.Fragment(recvPacket.getPayload());
+        if (fragments.addFragment(frag)) {
+            InstructionPB.Instruction recvInst = fragments.getAssembly();
+            System.out.println("input 2 : ");
+            System.out.println("---");
+            System.out.println(recvInst.toString());
+
+            try {
+                UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray());
+            } catch (InvalidProtocolBufferException e) {
+                e.printStackTrace();
+            }
+        }
+        message = session.decrypt(respIn3Bytes, respIn3Bytes.length);
+        recvPacket = new MoshPacket(message);
+        frag = new TransportFragment.Fragment(recvPacket.getPayload());
+        if (fragments.addFragment(frag)) {
+            InstructionPB.Instruction recvInst = fragments.getAssembly();
+            System.out.println("resp input 3 : ");
+            System.out.println("---");
+            System.out.println(recvInst.toString());
+        }
     }
 
     private String randomString() {

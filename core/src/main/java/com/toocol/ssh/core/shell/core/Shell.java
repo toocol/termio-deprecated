@@ -284,7 +284,7 @@ public final class Shell extends AbstractDevice {
                     } while (!promptNow);
 
                     outputStream.write(StrUtil.LF.getBytes(StandardCharsets.UTF_8));
-                    outputStream.flush();
+//                    outputStream.flush();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
