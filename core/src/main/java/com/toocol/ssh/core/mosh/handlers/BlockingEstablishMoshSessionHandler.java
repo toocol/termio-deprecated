@@ -18,8 +18,6 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
-import java.util.concurrent.CountDownLatch;
-
 import static com.toocol.ssh.core.mosh.MoshAddress.*;
 import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
 import static com.toocol.ssh.core.shell.ShellAddress.RECEIVE_SHELL;
@@ -56,7 +54,7 @@ public final class BlockingEstablishMoshSessionHandler extends AbstractBlockingM
             if (result.succeeded()) {
                 try {
                     // tell the server the size of the terminal
-                    session.pushBackEvent(new UserEvent.Resize(Term.WIDTH, Term.HEIGHT));
+                    session.resize(new UserEvent.Resize(Term.WIDTH, Term.HEIGHT));
 
                     eventBus.send(MOSH_TICK.address(), sessionId);
 

@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.mosh.core.statesnyc;
 
-import com.toocol.ssh.utilities.annotation.Asable;
+import com.toocol.ssh.utilities.utils.Asable;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -60,7 +60,7 @@ public abstract class UserEvent implements Asable {
 
         @Override
         public String name() {
-            return null;
+            return "UserBytes";
         }
     }
 

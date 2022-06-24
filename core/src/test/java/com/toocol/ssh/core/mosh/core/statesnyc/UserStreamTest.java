@@ -1,12 +1,11 @@
 package com.toocol.ssh.core.mosh.core.statesnyc;
 
 import com.google.protobuf.ExtensionRegistry;
-import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.toocol.ssh.core.mosh.core.proto.UserInputPB;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)

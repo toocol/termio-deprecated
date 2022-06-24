@@ -1,4 +1,4 @@
-package com.toocol.ssh.utilities.annotation;
+package com.toocol.ssh.utilities.utils;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)

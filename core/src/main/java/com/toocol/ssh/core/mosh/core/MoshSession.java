@@ -78,8 +78,8 @@ public final class MoshSession {
         transport.tick();
     }
 
-    public void pushBackEvent(UserEvent userEvent) {
-        transport.pushBackEvent(userEvent);
+    public void resize(UserEvent.Resize resizeEvent) {
+        transport.pushBackEvent(resizeEvent);
     }
 
     public InputStream getInputStream() throws IOException {
