@@ -32,7 +32,7 @@ public final class AuthVerticle extends AbstractVerticle implements IHandlerMoun
 
     @Override
     public void start() throws Exception {
-        String filePath = FileUtil.relativeToFixed("./credentials.tsh");
+        String filePath = FileUtil.relativeToFixed("./.credentials");
 
         mountHandler(vertx, context);
 
@@ -48,7 +48,7 @@ public final class AuthVerticle extends AbstractVerticle implements IHandlerMoun
 
                     if (sshCredentialsStr == null) {
                         ExitMessage.setMsg("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
-                                ", and try to delete unsafe credentials.tsh at program's home folder.");
+                                ", and try to delete unsafe .credentials at program's home folder.");
                         System.exit(-1);
                     }
                 }
@@ -58,7 +58,7 @@ public final class AuthVerticle extends AbstractVerticle implements IHandlerMoun
                     sshCredentials = StringUtils.isEmpty(sshCredentialsStr) ? new JsonArray() : new JsonArray(sshCredentialsStr);
                 } catch (Exception e) {
                     ExitMessage.setMsg("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
-                            ", and try to delete unsafe credentials.tsh at program's home folder.");
+                            ", and try to delete unsafe .credentials at program's home folder.");
                     System.exit(-1);
                 }
 

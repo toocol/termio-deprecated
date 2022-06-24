@@ -13,7 +13,7 @@ public enum FileAddress implements IAddress {
      */
     CHECK_FILE_EXIST("terminal.file.check.exist"),
     /**
-     * read the credential file(credentials.tsh)
+     * read the credential file(.credentials)
      */
     READ_FILE("terminal.file.read.file"),
     /**

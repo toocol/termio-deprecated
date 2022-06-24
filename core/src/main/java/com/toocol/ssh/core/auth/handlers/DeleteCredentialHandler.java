@@ -47,7 +47,7 @@ public final class DeleteCredentialHandler extends AbstractMessageHandler {
 
             if (credentialsJson == null) {
                 ExitMessage.setMsg("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
-                        ", and try to delete unsafe credentials.tsh at program's home folder.");
+                        ", and try to delete unsafe .credentials at program's home folder.");
                 System.exit(-1);
             }
         }

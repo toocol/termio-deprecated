@@ -4,7 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .credentials
-starter/credentials.tsh
+starter/.credentials
 starter/.vertx/
 starter/arthas-output
 
