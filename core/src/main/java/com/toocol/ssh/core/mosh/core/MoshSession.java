@@ -60,7 +60,7 @@ public final class MoshSession {
                             this.connected = true;
                             message.reply(null);
                         } else {
-                            term.printDisplay("Mosh fail to listened local port: " + transport.addr.port());
+                            term.printErr("Mosh fail to listened local port: " + transport.addr.port());
                             message.fail(-1, "Mosh fail to listened local port" + transport.addr.port());
                         }
                     });

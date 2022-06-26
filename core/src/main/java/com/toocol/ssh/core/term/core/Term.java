@@ -78,7 +78,8 @@ public final class Term extends AbstractDevice {
         termPrinter.printDisplay(
                 new AnisStringBuilder()
                         .front(theme.errorMsgColor)
-                        .append("Can't touch the mosh-server.")
+                        .background(theme.displayBackGroundColor)
+                        .append(msg)
                         .toString()
         );
     }
