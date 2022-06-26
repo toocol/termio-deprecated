@@ -5,7 +5,6 @@ import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.mosh.core.MoshSessionFactory;
-import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.core.term.core.Term;
@@ -43,7 +42,7 @@ public final class BlockingEstablishMoshSessionHandler extends AbstractBlockingM
         SshCredential credential = CredentialCache.getCredential(index);
         MoshSession session = moshSessionFactory.getSession(credential);
         if (session == null) {
-            promise.complete();
+            promise.fail("Can't touch the mosh-server.");
             return;
         }
 
@@ -76,7 +75,9 @@ public final class BlockingEstablishMoshSessionHandler extends AbstractBlockingM
 
     @Override
     protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
-
+        if (!asyncResult.succeeded()) {
+            Term.getInstance().printErr("Can't touch the mosh-server.");
+        }
     }
 
     @Override

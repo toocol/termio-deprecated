@@ -1,7 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
-import com.toocol.ssh.utilities.anis.ColorHelper;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.utils.ExitMessage;
 import com.toocol.ssh.utilities.utils.PomUtil;
@@ -66,7 +65,12 @@ public final class Printer {
     }
 
     public static void printErr(String msg) {
-        println(ColorHelper.front(msg, 167));
+        println(
+                new AnisStringBuilder()
+                        .front(Term.theme.errorMsgColor)
+                        .append(msg)
+                        .toString()
+        );
     }
 
     public static void virtualBackspace() {
@@ -132,8 +136,8 @@ public final class Printer {
         }
 
         AnisStringBuilder builder = new AnisStringBuilder()
-                .background(Term.theme.infoBarBackground)
-                .front(Term.theme.infoBarFront)
+                .background(Term.theme.infoBarBackgroundColor)
+                .front(Term.theme.infoBarFrontColor)
                 .append(merge);
         println(builder.toString());
         println();

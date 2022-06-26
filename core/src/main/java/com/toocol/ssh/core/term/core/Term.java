@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.utilities.action.AbstractDevice;
+import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.utils.ExitMessage;
 import com.toocol.ssh.utilities.utils.Tuple2;
@@ -36,10 +37,11 @@ public final class Term extends AbstractDevice {
     public Term() {
         escapeHelper = new EscapeHelper();
         historyCmdHelper = new TermHistoryCmdHelper();
-        termReader  = new TermReader(this);
+        termReader = new TermReader(this);
         termPrinter = new TermPrinter(this);
         termCharEventDispatcher = new TermCharEventDispatcher();
     }
+
     {
         try {
             reader = new ConsoleReader();
@@ -50,6 +52,7 @@ public final class Term extends AbstractDevice {
     }
 
     private static final Term INSTANCE = new Term();
+
     public static void setEventBus(EventBus eventBus) {
         INSTANCE.eventBus = eventBus;
     }
@@ -69,6 +72,15 @@ public final class Term extends AbstractDevice {
 
     public void printDisplay(String msg) {
         termPrinter.printDisplay(msg);
+    }
+
+    public void printErr(String msg) {
+        termPrinter.printDisplay(
+                new AnisStringBuilder()
+                        .front(theme.errorMsgColor)
+                        .append("Can't touch the mosh-server.")
+                        .toString()
+        );
     }
 
     public void printDisplayBuffer() {

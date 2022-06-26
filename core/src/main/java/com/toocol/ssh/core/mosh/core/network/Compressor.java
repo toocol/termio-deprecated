@@ -15,10 +15,7 @@ public final class Compressor {
     private static Compressor compressor;
 
     /**
-     * There are some problems:
-     * 1. When we send packet to mosh-server, we have to set the nowrap to false,
-     *    and we should set the nowrap to false when we receive packet from mosh-server.
-     * 2. When we debug the
+     * When we send packet to mosh-server and receive packet from mosh-server, we have to set the nowrap to false.
      */
     public enum Mode {
         WRAP(true, true),
