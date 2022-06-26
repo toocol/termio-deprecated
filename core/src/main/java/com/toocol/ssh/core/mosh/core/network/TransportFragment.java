@@ -91,6 +91,10 @@ public final class TransportFragment {
             System.arraycopy(BUFFER, 0, ret, 0, proceed);
             return ret;
         }
+
+        public long getId() {
+            return id;
+        }
     }
 
     public static class Fragmenter implements ICompressorAcquirer {

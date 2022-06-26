@@ -14,6 +14,7 @@ import com.toocol.ssh.utilities.utils.Timestamp;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -90,7 +91,6 @@ class CryptoTest implements ICompressorAcquirer {
 
     @Test
     public void testEncrypt() {
-        Compressor.debugMode();
         String key = "zr0jtuYVKJnfJHP/XOOsbQ";
         Crypto.Session encryptSession = new Crypto.Session(new Crypto.Base64Key(key));
         Crypto.Session decryptSession = new Crypto.Session(new Crypto.Base64Key(key));
@@ -173,43 +173,101 @@ class CryptoTest implements ICompressorAcquirer {
         printParseMessage(input3, respIn3, 6, session, UserInputPB.keystroke);
     }
 
+    @Test
+    public void wiresharkDump2() throws DecoderException {
+        String key = "onKHXfA3uWhXCSYb0aePOQ";
+
+        /*
+         * Those hex dump were coming from actual mosh connection.
+         * */
+        String req1 = "00 00 00 00 00 00 00 00 11 e4 3e c6 f5 ab 10 4e 35 0e 32 e7 41 4e c7 90 65 89 05 2a bb 6c f6 aa 8e 70 96 fe 64 b6 f5 f5 06 0b 7f 49 2e 67 b4 77 cc 8a 2e 5c 7c a1 9a e5 be 72 19 d7 20 69 1d 5c 9b c0 f9 dc 89 2e f4 f8 7c ea 7a b3";
+        String req2 = "00 00 00 00 00 00 00 01 dc ac c0 af bb 2d 87 35 45 64 89 62 d2 37 dc 08 e0 6f f5 6e 1d 72 1e 7c 5d 55 b4 3a 06 51 2f af 0c 18 19 cb b8 c2 4c 35 bd a7 46 85 2e 55 5f 52 78 31 26 db f9 32 64 72 ba cf 34 91 97 2d 02 1e 97 03 e4 10 6a 14 99 4f 3b 4d a2 66 af ae c1 34 5f b7 3c d3 79";
+        String req3 = "00 00 00 00 00 00 00 02 e9 f3 39 51 2d 37 88 ae dc 1c 51 2e 49 9b 34 0d 32 8f 81 12 6b 69 f6 d0 ae a8 04 44 78 eb f0 11 29 1f 01 3d 56 29 c3 77 37 a4 10 d6 5d 26 d7 9b 33 1f b6 f7 f8 c6 6c 81 09 5b ed 0e 5b 1f d6 99 60 d1 5c a9 c5";
+        String req4 = "00 00 00 00 00 00 00 03 4e 5c 20 0b c3 9b 4d e8 81 ec 70 d7 ae 3a 42 42 aa 5e c0 15 2e 62 ce 04 01 18 05 c8 1e a5 fc 99 ca 10 72 65 2f 28 39 ec 98 65 bb 2b c2 80 e8 cd d3 f5 46 b9 79 5e 3c 44 87 1f 6e 05 ec 29 0d 99 29 f9 6a 71 d8 94 7e 7e 03 14 e1 32 cd b6 2c 79";
+
+
+        Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
+
+        printParseMessage(req1, null, 1, session, UserInputPB.resize);
+        printParseMessage(req2, null, 2, session, UserInputPB.resize);
+        printParseMessage(req3, null, 3, session, UserInputPB.resize);
+        printParseMessage(req4, null, 4, session, UserInputPB.resize);
+    }
+
+    @Test
+    public void wiresharkDump3() throws DecoderException {
+        String key = "DLEV/svKCu8IJKYkRMby1A";
+
+        /*
+         * Those hex dump were coming from actual mosh connection.
+         * */
+        String req1 = "00 00 00 00 00 00 00 00 0d a3 70 a7 4b 7f 19 5f e4 18 98 f4 2b a7 89 d5 6f 3f 8a 2f c8 96 e6 4e 63 2a b5 02 9b a8 9d ae 66 e3 8a 01 02 1d ee 5c e7 c1 06 bc 94 05 c4 14 a0 f3 31 9c 6c c9 c1 12 19 cb f1 84 89 71";
+        String req2 = "00 00 00 00 00 00 00 01 8a 18 6e 6c d6 61 fb 83 f3 25 39 35 2d 24 4c fb 81 64 7b 3d a2 75 ef 53 5f da 30 31 f3 e4 f0 14 4b c4 89 5e 56 bf 12 54 d5 ca ef 6d 0d 89 3f a1 dc 53 7b a9 0e 9e cd 36 be 61 9f 8a f8 47";
+        String req3 = "00 00 00 00 00 00 00 02 91 a9 38 56 12 75 7a e3 f1 37 41 08 b1 af d3 6b df a9 6f ac fe 12 08 69 83 4b c1 50 8f 49 17 02 b5 af 42 7a d6 02 df 8c 57 8c 26 24 0b 22 62 7b 7e f0 40 58 3f 41 7f a9 b3 c2 b0 61 07 51 a1 52 63 7a df 4d";
+        String req4 = "00 00 00 00 00 00 00 03 cb de cb f8 14 a8 dd 5a 30 ec 2a 8e dd b3 5d 94 a5 43 f7 b8 58 9b b1 8a 3b 6e c9 f6 00 68 ed 4e df 22 67 72 94 1c f5 2e 46 85 79 b7 10 b4 34 c9 4d 89 d2 f5 91 74 85 58 b7 56 e3 82 a4";
+        String req5 = "00 00 00 00 00 00 00 04 f2 8c bf 84 18 f0 33 81 eb 33 64 b0 e8 41 8d 5f d2 77 8f bb d2 1c de 1a c8 05 93 15 20 1d c4 36 b9 55 50 e4 c7 74 a1 71 6b 3f 3d ac 2b a3 25 54 76 85 d2 3b fb 48 92 78 15 6f";
+
+        String resp1 = "80 00 00 00 00 00 00 00 79 b4 c4 90 13 75 ea f8 a0 91 97 b3 61 85 1e 30 b2 81 45 6a f7 cb fb 33 9c a7 8d 5b 74 04 18 07 9a c3 ed f5 f2 6e c4 45 73 33 db ca 23 9b bc bb bb 32 11 14 ed e7 c5 fa 0c c9 15 66 8f a3 63 1f b8 95 73 fd 6f a8 8b 5d 46 e7 b0 d2 9a 00 69 46 a3 84 bd 60 4f 27 8b c7 56 fd 45 66 46 90 c2 87 f7 a3 1d 7b 4d 1e f8 d7 70 32 ff 43 15 32 6d 5a df 4e 4e 43 c8 00 35 fb 11 af eb 9c b3 6f 51 52 e6 9a 92 95 7e 24 8e 6e d1 10 b3 b9 6f a4 b4 a4 7b c6 5d 1d 37 04 73 df 90 19 ce 60 75";
+        String resp2 = "80 00 00 00 00 00 00 01 e4 a2 cd 09 03 f6 c0 b2 c5 f6 3d 6a 88 a0 2e f6 37 e8 6d ac f5 c8 37 07 65 2d d8 b2 dd d4 b3 8f c1 63 66 d8 22 12 ac 20 77 f5 2f f2 dc ad 4d 6c 54 35 6e 6f f3 95 a7 86 81 30 56 da eb 58 23 89 ca 63 15 8e 96 b8 33 b9 ba 09 3b 1e 9b 15 ee 36 62 72 76 ac 17 1e 8f 51 43 7d 61 0a a1 a0 a1 63 92 ea b0 61 ee fc 27 1d 78 05 62 2d e3 f4 bd e9 9d db fe 03 93 63 55 3a c8 17 76 59 ee 37 22 27 86 fb d2 a7 f9 e0 e2 d9 41 52 c8 53 44 7a c5 6d a5 b3 62 57 d7 e4 6b be d9 24 73 37 a7 e9 7f 75 20 80 e8 0c 37 b5 f8 9d ff fa 8c 2a e5 34 8a d4 a2 94 99 24 6b 81 8d 0c 4f da 0a 28 60 7e 11 aa";
+        String resp3 = "80 00 00 00 00 00 00 02 97 bd a3 b9 9c a8 01 c6 4c 08 07 d7 c4 7c db 07 41 24 be 2f 8f e4 e6 8d 2a 51 6f b5 a9 fc 44 0f ce 9b 8f ba ea 08 8b d7 8b 19 71 9f 5b b3 66 be 41 26 7e 00 e8 b8 d8 7a 91 3d c5 ac 31 0c 9d f4 f5 c2 bc f5";
+        String resp4 = "80 00 00 00 00 00 00 04 c4 cc 88 cf dc 9d 66 9c 9a ba 5a 94 9a 38 d6 55 77 d8 06 95 68 84 d9 ca 80 66 e7 4d 2a 62 b8 bd f5 c9 09 00 5f fe 72 a1 a7 8e ec e7 5c 0f d6 bf e2 3f 41 22 94 5d a3 58 71 5d 6c d6 b4 aa 13 e6 84";
+        String resp5 = "80 00 00 00 00 00 00 06 8e 92 9b 5b 2a 33 10 e5 6f dc fa 3e ad 97 7e 6f 77 7a d7 b8 51 07 de 4d 45 73 80 96 3a 69 3d f7 e5 78 b2 d6 3a 70 b4 b3 d2 e5 24 ee f0 1f 32 48 38 ed 9d 24 9c 2c 88 fc 28";
+
+        Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
+
+        printParseMessage(req1, resp1, 1, session, UserInputPB.resize);
+        printParseMessage(req2, resp2, 2, session, UserInputPB.resize);
+        printParseMessage(req3, resp3, 3, session, null);
+        printParseMessage(req4, resp4, 4, session, null);
+        printParseMessage(req5, resp5, 5, session, null);
+    }
+
     private void printParseMessage(String reqHex, String respHex, int idx, Crypto.Session session, GeneratedMessage.GeneratedExtension<?, ?> extension) throws DecoderException {
-        byte[] reqBytes = Hex.decodeHex(reqHex.replaceAll(" ", ""));
-        byte[] respBytes = Hex.decodeHex(respHex.replaceAll(" ", ""));
+        byte[] reqBytes = null;
+        byte[] respBytes = null;
+        if (StringUtils.isNotEmpty(reqHex))
+            reqBytes = Hex.decodeHex(reqHex.replaceAll(" ", ""));
+        if (StringUtils.isNotEmpty(respHex))
+            respBytes = Hex.decodeHex(respHex.replaceAll(" ", ""));
 
         TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly();
         MoshPacket packet;
         Crypto.Message message;
         TransportFragment.Fragment frag;
 
-        message = session.decrypt(reqBytes, reqBytes.length);
-        packet = new MoshPacket(message);
-        frag = new TransportFragment.Fragment(packet.getPayload());
-        if (fragments.addFragment(frag)) {
-            InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("req " + idx + " : ");
-            System.out.println("---");
-            System.out.println(recvInst.toString());
+        if (reqBytes != null) {
+            message = session.decrypt(reqBytes, reqBytes.length);
+            packet = new MoshPacket(message);
+            frag = new TransportFragment.Fragment(packet.getPayload());
+            if (fragments.addFragment(frag)) {
+                InstructionPB.Instruction recvInst = fragments.getAssembly();
+                System.out.println("req " + idx + " : ");
+                System.out.println("---");
+                System.out.println(recvInst.toString());
 
-            if (extension != null) {
-                try {
-                    ExtensionRegistry registry = ExtensionRegistry.newInstance();
-                    registry.add(extension);
-                    System.out.println(UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray(), registry).toString());
-                } catch (InvalidProtocolBufferException e) {
-                    e.printStackTrace();
+                if (extension != null) {
+                    try {
+                        ExtensionRegistry registry = ExtensionRegistry.newInstance();
+                        registry.add(extension);
+                        System.out.println(UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray(), registry).toString());
+                    } catch (InvalidProtocolBufferException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
 
-        message = session.decrypt(respBytes, respBytes.length);
-        packet = new MoshPacket(message);
-        frag = new TransportFragment.Fragment(packet.getPayload());
-        if (fragments.addFragment(frag)) {
-            InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("resp " + idx + " : ");
-            System.out.println("---");
-            System.out.println(recvInst.toString());
+        if (respBytes != null) {
+            message = session.decrypt(respBytes, respBytes.length);
+            packet = new MoshPacket(message);
+            frag = new TransportFragment.Fragment(packet.getPayload());
+            if (fragments.addFragment(frag)) {
+                InstructionPB.Instruction recvInst = fragments.getAssembly();
+                System.out.println("resp " + idx + " : ");
+                System.out.println("fragmentId : " + frag.getId());
+                System.out.println("---");
+                System.out.println(recvInst.toString());
+            }
         }
     }
 

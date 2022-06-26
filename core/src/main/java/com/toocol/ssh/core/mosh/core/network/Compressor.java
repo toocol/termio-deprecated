@@ -16,12 +16,13 @@ public final class Compressor {
 
     /**
      * There are some problems:
-     * 1. When we send packet to mosh-server, we have to set the nowrap to true;
-     * 2. But we should set the nowrap to false when we receive packet from mosh-server.
+     * 1. When we send packet to mosh-server, we have to set the nowrap to false,
+     *    and we should set the nowrap to false when we receive packet from mosh-server.
+     * 2. When we debug the
      */
     public enum Mode {
-        DEBUG(true, true),
-        PRODUCT(true, false)
+        WRAP(true, true),
+        NO_WRAP(false, false)
         ;
         private final boolean compressNowrap;
         private final boolean decompressNowrap;
@@ -32,7 +33,7 @@ public final class Compressor {
         }
     }
 
-    private static Mode mode = Mode.PRODUCT;
+    private static Mode mode = Mode.NO_WRAP;
 
     static synchronized Compressor get() {
         if (compressor == null) {
@@ -109,8 +110,12 @@ public final class Compressor {
         return output;
     }
 
-    public static void debugMode() {
-        mode = Mode.DEBUG;
+    public static void wrap() {
+        mode = Mode.WRAP;
+    }
+
+    public static void noWrap() {
+        mode = Mode.NO_WRAP;
     }
 
 }
