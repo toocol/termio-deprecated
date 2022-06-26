@@ -2,6 +2,7 @@ package com.toocol.ssh.core.mosh.core.crypto;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.toocol.ssh.core.mosh.core.network.Compressor;
 import com.toocol.ssh.core.mosh.core.network.ICompressorAcquirer;
@@ -139,7 +140,7 @@ class CryptoTest implements ICompressorAcquirer {
     }
 
     @Test
-    public void testDecrypt() throws DecoderException {
+    public void wiresharkDump1() throws DecoderException {
         String key = "H8czB7uE1l1oy6/Nn+elkw";
 
         /*
@@ -161,167 +162,52 @@ class CryptoTest implements ICompressorAcquirer {
         String respIn2 = "80 00 00 00 00 00 01 fc c8 5a f5 c4 ba cd d5 8a f7 03 72 99 e5 d5 e3 71 32 96 48 c7 25 7f 01 49 14 be 0f 03 ca 67 1d 0d b8 94 0d 22 b8 1f f0 08 c5 ee 27 1f 93 49 35 ac a9 7e ec 54 7b 25 61 32 55 4a 98 c0 05 a9 b2 dc 16 0a 75 b0 50 98 67 ff 50 11 a9 0c 0d 55 42 38 35 b6 9c 83 a1 2d 24";
         String respIn3 = "80 00 00 00 00 00 01 fd d4 f9 37 4e 4a 3d 15 3f 8f ae 09 1b 01 bb 32 61 a0 36 92 d2 14 56 2b 9a 03 7f 94 46 f4 cb de 7c 0a 4f 58 86 98 4d eb a7 1c cf 3b b8 50 f0 b2 87 bf 7f 40 d2 ff 3a e3 66 87 aa 96 d6 28 c6 80 67 82 39 09 38 11 59 f7 7c 26 a7 55 50 e6 e8 7d a4 08 b8 55 09 49 f5 97 da be e8 d3 7e 4b a7 16 e6 69 cd 64 bf 6c 61 fb ad b6 7e f6 14 77 35 09 79 44 9a 25 36 97 5e d4 0a fd f3 47 5f 9f a7 25 09 5e f7 ca c4 1c 37 55 b1 63 21 a8 02 76 97 d5 2c 1d 58 e0 7b a6 bc e2 b1 e7 58 fd 6b ed 3e c9 08 28 0d 2f 63 b0 04 ce 79 13 e8 0a 67 1a a8 ed fe 84 3e eb 6e 84 45 22 ba fc 8f e1 a7 3f 11 c3 a1 0d 66 3a 24 70 f2 e8 b7 21 6b 18 ed 15 20 45 ce 3d f7 42 45 6d eb 1a d0 aa 61 65 a3 28 4c a9 4f e1 a4 38 b9 0b 40 6c c5 f8 60 94 f2 52 71 6e 6e d5 1a ba 5c 87 0d bd";
 
-        byte[] req1Bytes = Hex.decodeHex(req1.replaceAll(" ", ""));
-        byte[] req2Bytes = Hex.decodeHex(req2.replaceAll(" ", ""));
-        byte[] req3Bytes = Hex.decodeHex(req3.replaceAll(" ", ""));
-
-        byte[] resp1Bytes = Hex.decodeHex(resp1.replaceAll(" ", ""));
-        byte[] resp2Bytes = Hex.decodeHex(resp2.replaceAll(" ", ""));
-        byte[] resp3Bytes = Hex.decodeHex(resp3.replaceAll(" ", ""));
-
-        byte[] input1Bytes = Hex.decodeHex(input1.replaceAll(" ", ""));
-        byte[] input2Bytes = Hex.decodeHex(input2.replaceAll(" ", ""));
-        byte[] input3Bytes = Hex.decodeHex(input3.replaceAll(" ", ""));
-
-        byte[] respIn1Bytes = Hex.decodeHex(respIn1.replaceAll(" ", ""));
-        byte[] respIn2Bytes = Hex.decodeHex(respIn2.replaceAll(" ", ""));
-        byte[] respIn3Bytes = Hex.decodeHex(respIn3.replaceAll(" ", ""));
-
         Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
+
+        printParseMessage(req1, resp1, 1, session, UserInputPB.resize);
+        printParseMessage(req2, resp2, 2, session, UserInputPB.resize);
+        printParseMessage(req3, resp3, 3, session, null);
+
+        printParseMessage(input1, respIn1, 4, session, UserInputPB.keystroke);
+        printParseMessage(input2, respIn2, 5, session, UserInputPB.keystroke);
+        printParseMessage(input3, respIn3, 6, session, UserInputPB.keystroke);
+    }
+
+    private void printParseMessage(String reqHex, String respHex, int idx, Crypto.Session session, GeneratedMessage.GeneratedExtension<?, ?> extension) throws DecoderException {
+        byte[] reqBytes = Hex.decodeHex(reqHex.replaceAll(" ", ""));
+        byte[] respBytes = Hex.decodeHex(respHex.replaceAll(" ", ""));
+
         TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly();
         MoshPacket packet;
         Crypto.Message message;
         TransportFragment.Fragment frag;
 
-        message = session.decrypt(req1Bytes, req1Bytes.length);
+        message = session.decrypt(reqBytes, reqBytes.length);
         packet = new MoshPacket(message);
         frag = new TransportFragment.Fragment(packet.getPayload());
         if (fragments.addFragment(frag)) {
             InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("req 1 : ");
+            System.out.println("req " + idx + " : ");
             System.out.println("---");
             System.out.println(recvInst.toString());
 
-            try {
-                ExtensionRegistry registry = ExtensionRegistry.newInstance();
-                registry.add(UserInputPB.resize);
-                System.out.println(UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray(), registry).toString());
-            } catch (InvalidProtocolBufferException e) {
-                e.printStackTrace();
+            if (extension != null) {
+                try {
+                    ExtensionRegistry registry = ExtensionRegistry.newInstance();
+                    registry.add(extension);
+                    System.out.println(UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray(), registry).toString());
+                } catch (InvalidProtocolBufferException e) {
+                    e.printStackTrace();
+                }
             }
         }
-        message = session.decrypt(resp1Bytes, resp1Bytes.length);
-        packet = new MoshPacket(message);
-        frag = new TransportFragment.Fragment(packet.getPayload());
-        if (fragments.addFragment(frag)) {
-            InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("resp 1 : ");
-            System.out.println("---");
-            System.out.println(recvInst.toString());
-        }
 
-        message = session.decrypt(req2Bytes, req2Bytes.length);
+        message = session.decrypt(respBytes, respBytes.length);
         packet = new MoshPacket(message);
         frag = new TransportFragment.Fragment(packet.getPayload());
         if (fragments.addFragment(frag)) {
             InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("req 2 : ");
-            System.out.println("---");
-            System.out.println(recvInst.toString());
-        }
-        message = session.decrypt(resp2Bytes, resp2Bytes.length);
-        packet = new MoshPacket(message);
-        frag = new TransportFragment.Fragment(packet.getPayload());
-        if (fragments.addFragment(frag)) {
-            InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("resp 2 : ");
-            System.out.println("---");
-            System.out.println(recvInst.toString());
-        }
-
-        message = session.decrypt(req3Bytes, req3Bytes.length);
-        packet = new MoshPacket(message);
-        frag = new TransportFragment.Fragment(packet.getPayload());
-        if (fragments.addFragment(frag)) {
-            InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("req 3 : ");
-            System.out.println("---");
-            System.out.println(recvInst.toString());
-        }
-        message = session.decrypt(resp3Bytes, resp3Bytes.length);
-        packet = new MoshPacket(message);
-        frag = new TransportFragment.Fragment(packet.getPayload());
-        if (fragments.addFragment(frag)) {
-            InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("resp 3 : ");
-            System.out.println("---");
-            System.out.println(recvInst.toString());
-        }
-
-        message = session.decrypt(input1Bytes, input1Bytes.length);
-        packet = new MoshPacket(message);
-        frag = new TransportFragment.Fragment(packet.getPayload());
-        if (fragments.addFragment(frag)) {
-            InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("input 1 : ");
-            System.out.println("---");
-            System.out.println(recvInst.toString());
-
-            try {
-                ExtensionRegistry registry = ExtensionRegistry.newInstance();
-                registry.add(UserInputPB.keystroke);
-                UserInputPB.UserMessage userMessage = UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray(), registry);
-                System.out.println(userMessage);
-            } catch (InvalidProtocolBufferException e) {
-                e.printStackTrace();
-            }
-        }
-        message = session.decrypt(respIn1Bytes, respIn1Bytes.length);
-        packet = new MoshPacket(message);
-        frag = new TransportFragment.Fragment(packet.getPayload());
-        if (fragments.addFragment(frag)) {
-            InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("resp input 1 : ");
-            System.out.println("---");
-            System.out.println(recvInst.toString());
-        }
-
-        message = session.decrypt(input2Bytes, input2Bytes.length);
-        packet = new MoshPacket(message);
-        frag = new TransportFragment.Fragment(packet.getPayload());
-        if (fragments.addFragment(frag)) {
-            InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("input 2 : ");
-            System.out.println("---");
-            System.out.println(recvInst.toString());
-
-            try {
-                UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray());
-            } catch (InvalidProtocolBufferException e) {
-                e.printStackTrace();
-            }
-        }
-        message = session.decrypt(respIn2Bytes, respIn2Bytes.length);
-        packet = new MoshPacket(message);
-        frag = new TransportFragment.Fragment(packet.getPayload());
-        if (fragments.addFragment(frag)) {
-            InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("resp input 2 : ");
-            System.out.println("---");
-            System.out.println(recvInst.toString());
-        }
-
-        message = session.decrypt(input3Bytes, input3Bytes.length);
-        packet = new MoshPacket(message);
-        frag = new TransportFragment.Fragment(packet.getPayload());
-        if (fragments.addFragment(frag)) {
-            InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("input 2 : ");
-            System.out.println("---");
-            System.out.println(recvInst.toString());
-
-            try {
-                UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray());
-            } catch (InvalidProtocolBufferException e) {
-                e.printStackTrace();
-            }
-        }
-        message = session.decrypt(respIn3Bytes, respIn3Bytes.length);
-        packet = new MoshPacket(message);
-        frag = new TransportFragment.Fragment(packet.getPayload());
-        if (fragments.addFragment(frag)) {
-            InstructionPB.Instruction recvInst = fragments.getAssembly();
-            System.out.println("resp input 3 : ");
+            System.out.println("resp " + idx + " : ");
             System.out.println("---");
             System.out.println(recvInst.toString());
         }

@@ -13,4 +13,6 @@ public abstract class State<T extends State<?>> {
 
     public abstract void pushBack(UserEvent event);
 
+    public abstract T copy();
+
 }

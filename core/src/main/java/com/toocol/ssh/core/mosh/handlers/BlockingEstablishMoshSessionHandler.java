@@ -53,9 +53,6 @@ public final class BlockingEstablishMoshSessionHandler extends AbstractBlockingM
         eventBus.request(LISTEN_LOCAL_SOCKET.address(), sessionId, result -> {
             if (result.succeeded()) {
                 try {
-                    // tell the server the size of the terminal
-                    session.resize(new UserEvent.Resize(Term.WIDTH, Term.HEIGHT));
-
                     eventBus.send(MOSH_TICK.address(), sessionId);
 
                     Shell shell = new Shell(sessionId, eventBus, session);

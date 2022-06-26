@@ -7,7 +7,6 @@ import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 import com.toocol.ssh.core.mosh.core.statesnyc.State;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramSocket;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +49,8 @@ public final class TransportSender<MyState extends State<MyState>> {
     private long minDelayClock;
 
     public TransportSender(MyState initialState, Transport.Addr addr, DatagramSocket socket) {
-        this.currentState = initialState;
-        this.sentStates.add(new TimestampedState<>(Timestamp.timestamp(), 0, initialState));
+        this.currentState = initialState.copy();
+        this.sentStates.add(new TimestampedState<>(Timestamp.timestamp(), 0, initialState.copy()));
         this.assumedReceiverState = sentStates.get(0);
         this.nextAckTime = Timestamp.timestamp();
         this.nextSendTime = Timestamp.timestamp();
@@ -111,7 +110,7 @@ public final class TransportSender<MyState extends State<MyState>> {
 
         sendInFragments(diff, newNum);
 
-        assumedReceiverState = sentStates.get(sentStates.size() - 1);
+        assumedReceiverState = sentStates.get(sentStates.size() - 2);
         nextAckTime = Timestamp.timestamp() + ACK_INTERVAL;
         nextSendTime = -1;
     }
@@ -255,5 +254,13 @@ public final class TransportSender<MyState extends State<MyState>> {
 
     public Connection getConnection() {
         return connection;
+    }
+
+    public void setSendDelay(int sendMinDelay) {
+        this.sendMinDelay = sendMinDelay;
+    }
+
+    public void setAckNum(long ackNum) {
+        this.ackNum = ackNum;
     }
 }

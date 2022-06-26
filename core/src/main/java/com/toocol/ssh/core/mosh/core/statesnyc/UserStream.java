@@ -14,7 +14,7 @@ import java.util.Iterator;
  * @date: 2022/5/11 0:30
  * @version: 0.0.1
  */
-public final class UserStream extends State<UserStream>{
+public final class UserStream extends State<UserStream> {
 
     private final Deque<UserEvent> actions = new ArrayDeque<>();
 
@@ -37,10 +37,8 @@ public final class UserStream extends State<UserStream>{
         Iterator<UserEvent> iterator = existing.actions.iterator();
         Iterator<UserEvent> myIt = actions.iterator();
         while (iterator.hasNext()) {
-            UserEvent next = iterator.next();
-            if (next != existing.actions.getLast()) {
-                myIt.next();
-            }
+            iterator.next();
+            myIt.next();
         }
 
         UserInputPB.UserMessage.Builder output = UserInputPB.UserMessage.newBuilder();
@@ -76,6 +74,13 @@ public final class UserStream extends State<UserStream>{
     }
 
     @Override
+    public UserStream copy() {
+        UserStream userStream = new UserStream();
+        userStream.actions.addAll(actions);
+        return userStream;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
@@ -98,5 +103,4 @@ public final class UserStream extends State<UserStream>{
         }
         return true;
     }
-
 }

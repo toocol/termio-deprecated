@@ -3,6 +3,7 @@ package com.toocol.ssh.core.mosh.core.network;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserStream;
+import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.execeptions.NetworkException;
 import io.vertx.core.datagram.DatagramSocket;
 
@@ -33,6 +34,9 @@ public final class Transport {
 
     public void connect(DatagramSocket socket) {
         this.sender = new TransportSender<>(new UserStream(), this.addr, socket);
+        this.sender.setSendDelay(1);
+        // tell the server the size of the terminal
+        pushBackEvent(new UserEvent.Resize(Term.WIDTH, Term.HEIGHT));
     }
 
     public void send(byte[] diff) {
@@ -47,8 +51,10 @@ public final class Transport {
             if (inst.getProtocolVersion() != NetworkConstants.MOSH_PROTOCOL_VERSION) {
                 throw new NetworkException("mosh protocol version mismatch");
             }
+            sender.setAckNum(inst.getNewNum());
             return inst.getDiff().toByteArray();
         }
+
         return null;
     }
 
@@ -59,4 +65,5 @@ public final class Transport {
     public void pushBackEvent(UserEvent event) {
         sender.getCurrentState().pushBack(event);
     }
+
 }
