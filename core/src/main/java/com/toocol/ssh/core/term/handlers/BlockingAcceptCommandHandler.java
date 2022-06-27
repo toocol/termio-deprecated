@@ -1,20 +1,15 @@
 package com.toocol.ssh.core.term.handlers;
 
 import com.toocol.ssh.core.cache.StatusCache;
-import com.toocol.ssh.core.term.commands.TermioCommand;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
-import com.toocol.ssh.core.term.core.TermPrinter;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.anis.AnisStringBuilder;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
-import com.toocol.ssh.utilities.utils.StrUtil;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,7 +21,7 @@ import static com.toocol.ssh.core.term.TermAddress.EXECUTE_OUTSIDE;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:11
  */
-public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageHandler<Boolean> {
+public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<Boolean> {
 
     private final Term term = Term.getInstance();
 

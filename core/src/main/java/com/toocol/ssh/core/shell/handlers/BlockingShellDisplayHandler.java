@@ -7,7 +7,7 @@ import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -25,7 +25,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
  * @date 2022/3/31 15:44
  */
 @SuppressWarnings("all")
-public final class BlockingShellDisplayHandler extends AbstractBlockingMessageHandler<Long> {
+public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Long> {
 
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();

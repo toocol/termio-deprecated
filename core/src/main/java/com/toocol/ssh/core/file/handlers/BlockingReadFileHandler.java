@@ -1,12 +1,10 @@
 package com.toocol.ssh.core.file.handlers;
 
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.address.IAddress;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
-import io.vertx.core.json.JsonArray;
-import org.apache.commons.lang3.StringUtils;
 
 import static com.toocol.ssh.core.file.FileAddress.READ_FILE;
 
@@ -14,7 +12,7 @@ import static com.toocol.ssh.core.file.FileAddress.READ_FILE;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:35
  */
-public final class BlockingReadFileHandler extends AbstractBlockingMessageHandler<String> {
+public final class BlockingReadFileHandler extends BlockingMessageHandler<String> {
 
     public BlockingReadFileHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);

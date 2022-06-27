@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.ssh.handlers;
 
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -18,7 +18,7 @@ import static com.toocol.ssh.core.ssh.SshAddress.ACTIVE_SSH_SESSION;
  * @date: 2022/4/23 20:49
  * @version: 0.0.1
  */
-public final class BlockingActiveSshSessionHandler extends AbstractBlockingMessageHandler<JsonObject> {
+public final class BlockingActiveSshSessionHandler extends BlockingMessageHandler<JsonObject> {
 
     public BlockingActiveSshSessionHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);

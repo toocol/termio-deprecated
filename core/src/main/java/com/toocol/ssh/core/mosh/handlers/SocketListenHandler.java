@@ -2,7 +2,7 @@ package com.toocol.ssh.core.mosh.handlers;
 
 import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractMessageHandler;
+import com.toocol.ssh.utilities.handler.NonBlockingMessageHandler;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
@@ -16,7 +16,7 @@ import static com.toocol.ssh.core.mosh.MoshAddress.LISTEN_LOCAL_SOCKET;
  * @date: 2022/4/30 19:24
  * @version: 0.0.1
  */
-public final class SocketListenHandler extends AbstractMessageHandler {
+public final class SocketListenHandler extends NonBlockingMessageHandler {
 
     private final MoshSessionCache moshSessionCache = MoshSessionCache.getInstance();
 
@@ -25,7 +25,7 @@ public final class SocketListenHandler extends AbstractMessageHandler {
     }
 
     @Override
-    public <T> void handle(Message<T> message) {
+    public <T> void handleInline(Message<T> message) {
         Optional.ofNullable(moshSessionCache.get(cast(message.body())))
                 .ifPresent(moshSession -> moshSession.connect(message));
     }

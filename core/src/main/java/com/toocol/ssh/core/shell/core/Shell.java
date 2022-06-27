@@ -1,9 +1,11 @@
 package com.toocol.ssh.core.shell.core;
 
 import com.jcraft.jsch.ChannelShell;
+import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.mosh.core.MoshSession;
+import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
 import com.toocol.ssh.core.term.core.EscapeHelper;
 import com.toocol.ssh.core.term.core.Printer;
@@ -93,6 +95,7 @@ public final class Shell extends AbstractDevice {
     volatile StringBuffer lastRemoteCmd = new StringBuffer();
     volatile StringBuffer lastExecuteCmd = new StringBuffer();
     volatile Status status = Status.NORMAL;
+    volatile ShellProtocol protocol;
 
     final Set<String> tabFeedbackRec = new HashSet<>();
 
@@ -127,6 +130,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public void resetIO(ShellProtocol protocol) {
+        this.protocol = protocol;
         try {
             switch (protocol) {
                 case SSH -> {
@@ -250,6 +254,19 @@ public final class Shell extends AbstractDevice {
                 .replaceAll("#", "")
                 .trim();
         user = preprocess.split("@")[0];
+    }
+
+    public void resize(int width, int height, long sessionId) {
+        switch (protocol){
+            case SSH -> {
+                ChannelShell channelShell = SshSessionCache.getInstance().getChannelShell(sessionId);
+                channelShell.setPtySize(width, height, width, height);
+            }
+            case MOSH -> {
+                MoshSession moshSession = MoshSessionCache.getInstance().get(sessionId);
+                moshSession.resize(new UserEvent.Resize(width, height));
+            }
+        }
     }
 
     @SuppressWarnings("all")

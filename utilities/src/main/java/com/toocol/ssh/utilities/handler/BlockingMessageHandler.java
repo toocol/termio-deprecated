@@ -11,13 +11,13 @@ import io.vertx.core.eventbus.Message;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 10:46
  */
-public abstract class AbstractBlockingMessageHandler<R> extends AbstractMessageHandler {
+public abstract class BlockingMessageHandler<R> extends AbstractMessageHandler {
     /**
      * whether the handler is handle parallel
      */
     private final boolean parallel;
 
-    public AbstractBlockingMessageHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingMessageHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context);
         this.parallel = parallel;
     }

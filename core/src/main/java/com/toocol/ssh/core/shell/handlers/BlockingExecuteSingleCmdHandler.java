@@ -6,7 +6,7 @@ import com.toocol.ssh.core.shell.core.CmdFeedbackHelper;
 import com.toocol.ssh.core.shell.core.ExecChannelProvider;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -23,7 +23,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND;
  * @date: 2022/4/10 17:57
  * @version: 0.0.1
  */
-public final class BlockingExecuteSingleCmdHandler extends AbstractBlockingMessageHandler<String> {
+public final class BlockingExecuteSingleCmdHandler extends BlockingMessageHandler<String> {
 
     private final ShellCache shellCache = ShellCache.getInstance();
     private final ExecChannelProvider execChannelProvider = ExecChannelProvider.getInstance();

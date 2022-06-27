@@ -4,7 +4,7 @@ import com.toocol.ssh.core.auth.core.SecurityCoder;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractMessageHandler;
+import com.toocol.ssh.utilities.handler.NonBlockingMessageHandler;
 import com.toocol.ssh.utilities.utils.ExitMessage;
 import com.toocol.ssh.utilities.utils.FileUtil;
 import io.vertx.core.Context;
@@ -19,7 +19,7 @@ import static com.toocol.ssh.core.auth.AuthAddress.DELETE_CREDENTIAL;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/1 16:18
  */
-public final class DeleteCredentialHandler extends AbstractMessageHandler {
+public final class DeleteCredentialHandler extends NonBlockingMessageHandler {
 
     public DeleteCredentialHandler(Vertx vertx, Context context) {
         super(vertx, context);
@@ -31,7 +31,7 @@ public final class DeleteCredentialHandler extends AbstractMessageHandler {
     }
 
     @Override
-    public <T> void handle(Message<T> message) {
+    public <T> void handleInline(Message<T> message) {
         int index = cast(message.body());
         String host = CredentialCache.deleteCredential(index);
         if (StringUtils.isNotEmpty(host)) {

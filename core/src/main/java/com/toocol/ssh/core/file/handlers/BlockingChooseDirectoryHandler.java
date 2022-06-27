@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.file.handlers;
 
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.core.file.core.DirectoryChooser;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
@@ -12,7 +12,7 @@ import static com.toocol.ssh.core.file.FileAddress.CHOOSE_DIRECTORY;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/16 16:19
  */
-public final class BlockingChooseDirectoryHandler extends AbstractBlockingMessageHandler<String> {
+public final class BlockingChooseDirectoryHandler extends BlockingMessageHandler<String> {
 
     public BlockingChooseDirectoryHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);

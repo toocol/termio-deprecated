@@ -1,15 +1,17 @@
 package com.toocol.ssh.core.term.handlers;
 
-import com.jcraft.jsch.ChannelShell;
-import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.console.Console;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
-import com.toocol.ssh.core.cache.SshSessionCache;
+import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.core.TermStatus;
-import io.vertx.core.*;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.console.Console;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
 import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
@@ -20,7 +22,7 @@ import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
  * @version: 0.0.1
  */
 @SuppressWarnings("all")
-public final class BlockingMonitorTerminalHandler extends AbstractBlockingMessageHandler<Void> {
+public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler<Void> {
 
     private final Console console = Console.get();
 
@@ -48,8 +50,7 @@ public final class BlockingMonitorTerminalHandler extends AbstractBlockingMessag
                 Term.WIDTH = terminalWidth;
                 Term.HEIGHT = terminalHeight;
                 if (Term.status.equals(TermStatus.SHELL)) {
-                    ChannelShell channelShell = SshSessionCache.getInstance().getChannelShell(sessionId);
-                    channelShell.setPtySize(terminalWidth, terminalHeight, terminalWidth, terminalHeight);
+                    ShellCache.getInstance().getShell(sessionId).resize(terminalWidth, terminalHeight, sessionId);
                 } else if (Term.status.equals(TermStatus.TERMIO)) {
                     Printer.printScene(true);
                 }

@@ -3,7 +3,7 @@ package com.toocol.ssh.core.mosh.handlers;
 import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -18,7 +18,7 @@ import static com.toocol.ssh.core.mosh.MoshAddress.MOSH_TICK;
  * @version: 0.0.1
  */
 @SuppressWarnings("all")
-public final class BlockingTickHandler extends AbstractBlockingMessageHandler<Void> {
+public final class BlockingTickHandler extends BlockingMessageHandler<Void> {
 
     private final MoshSessionCache moshSessionCache = MoshSessionCache.getInstance();
 

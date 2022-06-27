@@ -10,7 +10,7 @@ import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -27,7 +27,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  * @date: 2022/4/28 23:44
  * @version: 0.0.1
  */
-public final class BlockingEstablishMoshSessionHandler extends AbstractBlockingMessageHandler<Long> {
+public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHandler<Long> {
 
     private final MoshSessionFactory moshSessionFactory = MoshSessionFactory.factory(vertx);
     private final ShellCache shellCache = ShellCache.getInstance();

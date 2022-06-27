@@ -4,7 +4,7 @@ import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
@@ -28,7 +28,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMessageHandler<Long> {
+public final class BlockingEstablishSshSessionHandler extends BlockingMessageHandler<Long> {
 
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();

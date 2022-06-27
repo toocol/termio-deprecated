@@ -18,7 +18,8 @@ public enum TermTheme {
             15,
             105,
             231,
-            167),
+            167
+    ),
     LIGHT_THEME(
             "light",
             231,
@@ -31,7 +32,8 @@ public enum TermTheme {
             0,
             105,
             235,
-            167),
+            167
+    ),
     ;
     public final String name;
     public final int executeBackgroundColor;
