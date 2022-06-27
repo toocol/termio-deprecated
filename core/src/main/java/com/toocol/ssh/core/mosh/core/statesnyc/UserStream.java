@@ -2,10 +2,11 @@ package com.toocol.ssh.core.mosh.core.statesnyc;
 
 import com.google.protobuf.ByteString;
 import com.toocol.ssh.core.mosh.core.proto.UserInputPB;
+import com.toocol.ssh.core.term.core.Printer;
 
-import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
  * user.h:UserStream
@@ -16,12 +17,13 @@ import java.util.Iterator;
  */
 public final class UserStream extends State<UserStream> {
 
-    private final Deque<UserEvent> actions = new ArrayDeque<>();
+    private final Deque<UserEvent> actions = new ConcurrentLinkedDeque<>();
 
     @Override
     public void subtract(UserStream prefix) {
         if (this.equals(prefix)) {
             actions.clear();
+            return;
         }
 
         for (UserEvent next : prefix.actions) {

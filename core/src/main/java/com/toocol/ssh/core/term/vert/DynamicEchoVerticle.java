@@ -1,9 +1,9 @@
 package com.toocol.ssh.core.term.vert;
 
+import com.toocol.ssh.core.term.handlers.DynamicEchoHandler;
 import com.toocol.ssh.utilities.annotation.RegisterHandler;
 import com.toocol.ssh.utilities.annotation.VerticleDeployment;
 import com.toocol.ssh.utilities.handler.IHandlerMounter;
-import com.toocol.ssh.core.term.handlers.DynamicEchoHandler;
 import io.vertx.core.AbstractVerticle;
 
 /**

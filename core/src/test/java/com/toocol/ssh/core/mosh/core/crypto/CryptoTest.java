@@ -4,7 +4,6 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.toocol.ssh.core.mosh.core.network.Compressor;
 import com.toocol.ssh.core.mosh.core.network.ICompressorAcquirer;
 import com.toocol.ssh.core.mosh.core.network.MoshPacket;
 import com.toocol.ssh.core.mosh.core.network.TransportFragment;
@@ -222,6 +221,32 @@ class CryptoTest implements ICompressorAcquirer {
         printParseMessage(req5, resp5, 5, session, null);
     }
 
+    @Test
+    public void selfDump() throws DecoderException {
+        String key = "WkQ1ElbK11SJywYUggbl7g";
+
+        /*
+         * Those hex dump were coming from actual mosh connection.
+         * */
+        String req1 = "00 00 00 00 00 00 00 00 6d 39 80 21 7c 77 78 53 01 07 51 5f 07 24 43 87 ea f0 d7 91 1f b8 ab ee 8a c8 88 46 ef 3f 9c 39 e5 3a 52 6c 1d 28 77 78 ee e2 81 91 b4 97 91 6e 4a ae 85 a4 a3 95 de 19 cc 92 37 a7 5c 1f c8 c0 0a 36 da 55 cd 10 c9 99 b4 c6 c8";
+        String req2 = "00 00 00 00 00 00 00 01 a7 77 ba 59 55 a3 9a c5 b7 68 31 88 de c9 2e cd b8 2c d4 b0 fa ab 37 6f 89 a9 95 8e 79 c1 bf 66 5d 3a 8e b9 9a e6 28 d3 b4 cc ba f2 7e 17 ff 65 b9 15 4a 72 bf 7c 27 36 71 11 f5 d9 05 19 b7 24 14 ba f3 91 2e 8b 15 14 28 a4 fb 97 d0 2e f2 25 30 b9 f9 a2 57 f3 d2 d9 da 72 9d 81 f1 a1 39 2b 54 89 8a 03 6f 3f 8e dc eb";
+        String req3 = "00 00 00 00 00 00 00 02 8d c8 d1 cd 9d 9b 01 b8 28 43 b0 16 72 a7 7d 4f 5d d2 7d 61 f2 a1 25 62 42 15 3f b6 11 89 cd 6e 7a 59 16 c8 fb 7a 2c 30 da 44 27 97 8c ea 95 7f 7a 04 9f 0a 4c 3d ae b7 3b 74 ae b4 84 c6 24 ce e8 8c ba 02 0e db 04 75 61 88 c5 dc 70 be 16 c4 8e 2d c8 eb 45 b1 62 16 0c fd e7 00 65 56 88 89 7c 65 38 71 21 cb 1c 19 94 ab 43 00 39 ff 02 ba 88 d6 2e";
+        String req4 = "00 00 00 00 00 00 00 03 11 ab 59 41 c9 77 22 4b 26 c5 78 6b 9a 74 eb 64 34 43 4b cb 4e 5a 22 b8 71 a0 0e 4d 6b 90 a9 cd 91 48 ca a2 73 b8 9c 7c ef 17 b9 89 4a 43 2f 83 6f 67 e3 6b d7 b9 44 02 10 e2 2b 91 e1 60 fc a7 b4 98 e1 9b 43 db 87 6b 4d 6b b9 87 ca fa f9 e3 13 c4 be 54 a9 6f d9 4f 54 68 ec 31 4f 49 9a 11 e4 8c 71 6b 52 2b 66 85 4b bf af 4c 7c c0 bd 74 6b f0";
+
+        String resp1 = "80 00 00 00 00 00 00 01 74 e9 4e 9e c3 40 0b 38 df aa 7e 57 aa 92 e8 15 6a 7a a3 ff 77 34 12 8e 37 8e 77 db 78 b1 e6 00 7d 5a 9e 81 d3 7e 68 19 71 44 76 30 4e fd 89 95 a3 94 e8 ac 33 9c 25 1e 40 31 36 5b 5d bf 22 dc 88 d4 55 04 af a2 78 b5 b6 84 9d 1a fc 22 e4 c7 70 c3 0f b9 af 63 38 84 18 8e 22 75 fe 0d 71 f5 31 0c 72 10 4d 52 31 53 7d e5 93 e9 87 18";
+        String resp2 = "80 00 00 00 00 00 00 02 bd a4 96 71 2b 11 50 b4 4f 65 c2 65 8a e4 c4 c8 e2 0f 26 e5 74 12 29 23 c6 ea 07 ac f6 d8 d5 b0 3e 41 e7 dd 46 5f 21 f3 c2 57 ab 09 b4 e4 d6 ff 8a 37 bc 9d 1b 9f 9e 9a d0 73 f1 9d 84 27 b5 58 49 0d 76 92";
+        String resp3 = "80 00 00 00 00 00 00 03 db bc c9 8c b3 73 7d f9 06 77 b2 c5 ce 34 a5 ed 2e a0 5a c4 9d ff a4 58 31 13 d0 f4 80 12 c8 71 a2 5a 52 f2 e2 a9 32 50 96 96 f2 e8 31 5e 16 5f 2e e4 c4 bc f7 8a 77 cc 8d ce 19";
+        String resp4 = "80 00 00 00 00 00 00 06 4e 97 3f 9c f9 fa 65 a1 fc a4 e8 bb 49 a0 a4 57 c3 fd c9 70 eb 66 ab 69 a8 c6 9b 86 78 a4 4b be 5d a0 77 ab ef a8 71 9a f5 30 d9 4c b0 11 a0 a5 4e bf ce 6b 5c c7 ad 7e 8a 12 43 cc";
+
+
+        Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
+
+        printParseMessage(req1, resp1, 1, session, UserInputPB.resize);
+        printParseMessage(req2, resp2, 2, session, UserInputPB.keystroke);
+        printParseMessage(req3, resp3, 3, session, null);
+        printParseMessage(req4, resp4, 4, session, null);
+    }
+
     private void printParseMessage(String reqHex, String respHex, int idx, Crypto.Session session, GeneratedMessage.GeneratedExtension<?, ?> extension) throws DecoderException {
         byte[] reqBytes = null;
         byte[] respBytes = null;
@@ -267,6 +292,7 @@ class CryptoTest implements ICompressorAcquirer {
                 System.out.println("fragmentId : " + frag.getId());
                 System.out.println("---");
                 System.out.println(recvInst.toString());
+                System.out.println(recvInst.getDiff().toStringUtf8());
             }
         }
     }

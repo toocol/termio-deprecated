@@ -3,10 +3,12 @@ package com.toocol.ssh.core.mosh.handlers;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.ShellCache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.mosh.core.MoshSessionFactory;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.ShellProtocol;
+import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.utilities.address.IAddress;
@@ -59,6 +61,10 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
                     shell.initialFirstCorrespondence(ShellProtocol.MOSH);
                     shellCache.putShell(sessionId, shell);
 
+                    System.gc();
+                    Printer.clear();
+                    StatusCache.SHOW_WELCOME = true;
+
                     eventBus.send(DISPLAY_SHELL.address(), sessionId);
                     eventBus.send(RECEIVE_SHELL.address(), sessionId);
                 } catch (Exception e) {
@@ -67,9 +73,7 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
             } else {
                 eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
             }
-            System.gc();
         });
-
         promise.complete();
     }
 

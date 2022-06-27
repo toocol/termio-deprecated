@@ -6,6 +6,7 @@ import com.toocol.ssh.core.mosh.core.statesnyc.UserStream;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.execeptions.NetworkException;
 import io.vertx.core.datagram.DatagramSocket;
+import org.apache.commons.lang3.StringUtils;
 
 public final class Transport {
 
@@ -52,6 +53,9 @@ public final class Transport {
                 throw new NetworkException("mosh protocol version mismatch");
             }
             sender.setAckNum(inst.getNewNum());
+            if (StringUtils.isNotEmpty(inst.getDiff().toString())) {
+                sender.setDataAck();
+            }
             return inst.getDiff().toByteArray();
         }
 

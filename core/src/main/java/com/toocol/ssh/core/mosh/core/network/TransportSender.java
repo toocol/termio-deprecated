@@ -5,6 +5,7 @@ import com.toocol.ssh.core.mosh.core.crypto.Crypto;
 import com.toocol.ssh.core.mosh.core.crypto.Prng;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 import com.toocol.ssh.core.mosh.core.statesnyc.State;
+import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramSocket;
 
@@ -43,6 +44,7 @@ public final class TransportSender<MyState extends State<MyState>> {
     private long ackNum;
     private boolean pendingDataAck;
 
+    /* ms to collect all input */
     private int sendMinDelay;
     private long lastHeard;
 
@@ -110,7 +112,7 @@ public final class TransportSender<MyState extends State<MyState>> {
 
         sendInFragments(diff, newNum);
 
-        assumedReceiverState = sentStates.get(sentStates.size() - 2);
+        assumedReceiverState = sentStates.get(sentStates.size() - 1);
         nextAckTime = Timestamp.timestamp() + ACK_INTERVAL;
         nextSendTime = -1;
     }
@@ -130,7 +132,7 @@ public final class TransportSender<MyState extends State<MyState>> {
     }
 
     private void addSentState(long theTimestamp, long num, MyState state) {
-        sentStates.add(new TimestampedState<>(theTimestamp, num, state));
+        sentStates.add(new TimestampedState<>(theTimestamp, num, state.copy()));
         if (sentStates.size() > 32) {
             ListIterator<TimestampedState<MyState>> iterator = sentStates.listIterator(sentStates.size() - 1);
             for (int i = 0; i < 16; i++) {
@@ -220,6 +222,7 @@ public final class TransportSender<MyState extends State<MyState>> {
             if (state == null) {
                 return;
             }
+            assert now >= state.timestamp;
             if (now - state.timestamp < connection.timeout() + ACK_DELAY) {
                 assumedReceiverState = state;
             } else {
@@ -262,5 +265,9 @@ public final class TransportSender<MyState extends State<MyState>> {
 
     public void setAckNum(long ackNum) {
         this.ackNum = ackNum;
+    }
+
+    public void setDataAck() {
+        this.pendingDataAck = true;
     }
 }
