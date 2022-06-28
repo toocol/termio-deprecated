@@ -10,6 +10,7 @@ import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramSocket;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
 
@@ -23,7 +24,7 @@ import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
 public final class TransportSender<MyState extends State<MyState>> implements Loggable {
 
     private final MyState currentState;
-    private final List<TimestampedState<MyState>> sentStates = new ArrayList<>();
+    private final List<TimestampedState<MyState>> sentStates = new CopyOnWriteArrayList<>();
     private final TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter();
     private final Connection connection;
 
@@ -132,16 +133,17 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
 
     public void processAcknowledgmentThrough(long ackNum) {
         Iterator<TimestampedState<MyState>> iterator = sentStates.iterator();
-        TimestampedState<MyState> i = null;
+        TimestampedState<MyState> i;
+        boolean find = false;
         while (iterator.hasNext()) {
              i = iterator.next();
              if (i.num == ackNum) {
-                 i = null;
+                 find = true;
                  break;
              }
         }
 
-        if (i != null) {
+        if (find) {
             iterator = sentStates.iterator();
             while (iterator.hasNext()) {
                 i = iterator.next();
