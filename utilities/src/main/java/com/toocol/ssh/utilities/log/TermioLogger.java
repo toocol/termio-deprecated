@@ -15,7 +15,7 @@ public record TermioLogger(Class<?> clazz) implements Logger {
     private static final String WARN = "WARN";
     private static final String ERROR = "ERROR";
 
-    private static boolean skip = false;
+    private static boolean skip = true;
 
     @Override
     public void info(String message, Object... params) {
@@ -43,6 +43,10 @@ public record TermioLogger(Class<?> clazz) implements Logger {
 
     public static void skip() {
         skip = true;
+    }
+
+    public static void nonSkip() {
+        skip = false;
     }
 
     private void log(String message, String level, Object... params) {

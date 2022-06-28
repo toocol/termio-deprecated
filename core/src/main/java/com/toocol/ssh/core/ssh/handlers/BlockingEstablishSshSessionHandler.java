@@ -15,6 +15,7 @@ import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
+import com.toocol.ssh.utilities.log.Logable;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -32,7 +33,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-public final class BlockingEstablishSshSessionHandler extends BlockingMessageHandler<Long> {
+public final class BlockingEstablishSshSessionHandler extends BlockingMessageHandler<Long> implements Logable {
 
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();
@@ -64,6 +65,8 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
                 shell.setUser(credential.getUser());
                 shell.initialFirstCorrespondence(ShellProtocol.SSH);
                 shellCache.putShell(sessionId, shell);
+                info("Establish ssh session, sessionId = {}, host = {}, user = {}",
+                        sessionId, credential.getHost(), credential.getUser());
             } else {
                 StatusCache.HANGED_ENTER = true;
                 long newSessionId = factory.invokeSession(sessionId, credential, eventBus);
@@ -73,7 +76,11 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
                     shell.setUser(credential.getUser());
                     shell.initialFirstCorrespondence(ShellProtocol.SSH);
                     shellCache.putShell(sessionId, shell);
+                    info("Invoke session failed, re-establish ssh session, sessionId = {}, host = {}, user = {}",
+                            sessionId, credential.getHost(), credential.getUser());
                 } else {
+                    info("Multiplexing ssh session, sessionId = {}, host = {}, user = {}",
+                            sessionId, credential.getHost(), credential.getUser());
                     shellCache.getShell(newSessionId).resetIO(ShellProtocol.SSH);
                 }
                 sessionId = newSessionId;

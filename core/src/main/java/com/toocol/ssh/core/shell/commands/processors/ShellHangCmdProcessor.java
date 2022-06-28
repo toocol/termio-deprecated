@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
@@ -17,6 +18,7 @@ public class ShellHangCmdProcessor extends ShellCommandProcessor {
     public Tuple2<String, Long> process(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String cmd) {
         shell.cleanUp();
         isBreak.set(true);
-        return new Tuple2<>(StrUtil.EMPTY, -1L);
+        StatusCache.HANGED_QUIT = true;
+        return new Tuple2<>(StrUtil.EMPTY, shell.getSessionId());
     }
 }

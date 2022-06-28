@@ -130,6 +130,7 @@ public class TermioApplication {
                 Printer.println("Termio: shutdown");
                 SshSessionCache.getInstance().stopAll();
                 MoshSessionCache.getInstance().stopAll();
+                logger.info("Exit termio, execute shutdown hook.");
                 vertx.close();
             } catch (Exception e) {
                 Printer.println("Failed to execute shutdown hook.");
@@ -153,7 +154,7 @@ public class TermioApplication {
                     initialLatch = null;
                     verticleClassList = null;
                     System.gc();
-                    logger.info("start termio success.");
+                    logger.info("Start termio success.");
                     break;
                 }
             }
