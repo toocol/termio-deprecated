@@ -4,7 +4,7 @@ package com.toocol.ssh.utilities.log;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/6/28 15:56
  */
-public interface Logable {
+public interface Loggable {
 
     default void info(String message, Object... params) {
         Logger logger = LoggerFactory.getLogger(this.getClass());

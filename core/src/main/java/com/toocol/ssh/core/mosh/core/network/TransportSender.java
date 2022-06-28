@@ -5,14 +5,11 @@ import com.toocol.ssh.core.mosh.core.crypto.Crypto;
 import com.toocol.ssh.core.mosh.core.crypto.Prng;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 import com.toocol.ssh.core.mosh.core.statesnyc.State;
-import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramSocket;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Queue;
+import java.util.*;
 
 import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
 
@@ -23,7 +20,7 @@ import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
  * @date: 2022/5/8 21:33
  * @version: 0.0.1
  */
-public final class TransportSender<MyState extends State<MyState>> {
+public final class TransportSender<MyState extends State<MyState>> implements Loggable {
 
     private final MyState currentState;
     private final List<TimestampedState<MyState>> sentStates = new ArrayList<>();
@@ -95,6 +92,7 @@ public final class TransportSender<MyState extends State<MyState>> {
     }
 
     public void sendToReceiver(byte[] diff) {
+        info("Mosh-client send to receiver, diff = {}", diff == null ? 0 : diff.length);
         minDelayClock = -1;
         long newNum;
         TimestampedState<MyState> back = sentStates.get(sentStates.size() - 1);
@@ -118,6 +116,7 @@ public final class TransportSender<MyState extends State<MyState>> {
     }
 
     public void sendEmptyAck() {
+        info("Mosh-client Send empty ack.");
         long now = Timestamp.timestamp();
 
         assert now >= nextAckTime;
@@ -131,11 +130,33 @@ public final class TransportSender<MyState extends State<MyState>> {
         nextSendTime = -1;
     }
 
+    public void processAcknowledgmentThrough(long ackNum) {
+        Iterator<TimestampedState<MyState>> iterator = sentStates.iterator();
+        TimestampedState<MyState> i = null;
+        while (iterator.hasNext()) {
+             i = iterator.next();
+             if (i.num == ackNum) {
+                 i = null;
+                 break;
+             }
+        }
+
+        if (i != null) {
+            iterator = sentStates.iterator();
+            while (iterator.hasNext()) {
+                i = iterator.next();
+                if (i.num < ackNum) {
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
     private void addSentState(long theTimestamp, long num, MyState state) {
         sentStates.add(new TimestampedState<>(theTimestamp, num, state.copy()));
         if (sentStates.size() > 32) {
             ListIterator<TimestampedState<MyState>> iterator = sentStates.listIterator(sentStates.size() - 1);
-            for (int i = 0; i < 16; i++) {
+            for (int i = 0; i < 15; i++) {
                 if (iterator.hasPrevious()) {
                     iterator.previous();
                 }
@@ -236,8 +257,9 @@ public final class TransportSender<MyState extends State<MyState>> {
         MyState knownReceiverState = sentStates.get(0).state;
         currentState.subtract(knownReceiverState);
 
-        for (TimestampedState<MyState> sentState : sentStates) {
-            sentState.state.subtract(knownReceiverState);
+        ListIterator<TimestampedState<MyState>> iterator = sentStates.listIterator(sentStates.size() - 1);
+        while (iterator.hasPrevious()) {
+            iterator.previous().state.subtract(knownReceiverState);
         }
     }
 
@@ -253,6 +275,10 @@ public final class TransportSender<MyState extends State<MyState>> {
 
     public MyState getCurrentState() {
         return currentState;
+    }
+
+    public MyState getLastSentStates() {
+        return sentStates.get(sentStates.size() - 1).state;
     }
 
     public Connection getConnection() {

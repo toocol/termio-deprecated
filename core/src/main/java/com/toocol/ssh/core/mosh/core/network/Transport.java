@@ -40,10 +40,6 @@ public final class Transport {
         pushBackEvent(new UserEvent.Resize(Term.WIDTH, Term.HEIGHT));
     }
 
-    public void send(byte[] diff) {
-        sender.sendToReceiver(diff);
-    }
-
     public byte[] recv(byte[] recv) {
         byte[] bytes = sender.getConnection().recvOne(recv);
         TransportFragment.Fragment fragment = new TransportFragment.Fragment(bytes);
@@ -52,6 +48,7 @@ public final class Transport {
             if (inst.getProtocolVersion() != NetworkConstants.MOSH_PROTOCOL_VERSION) {
                 throw new NetworkException("mosh protocol version mismatch");
             }
+            sender.processAcknowledgmentThrough(inst.getAckNum());
             sender.setAckNum(inst.getNewNum());
             if (StringUtils.isNotEmpty(inst.getDiff().toString())) {
                 sender.setDataAck();
@@ -66,8 +63,18 @@ public final class Transport {
         sender.tick();
     }
 
+    @SuppressWarnings("all")
     public void pushBackEvent(UserEvent event) {
-        sender.getCurrentState().pushBack(event);
+        // Ensure that there is only one UserEvent to be sent at a time
+        UserStream currentState = sender.getCurrentState();
+        while (!sender.getLastSentStates().equals(currentState)) {
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                // do nothing
+            }
+        }
+        currentState.pushBack(event);
     }
 
 }

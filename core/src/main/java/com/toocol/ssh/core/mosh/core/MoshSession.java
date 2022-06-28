@@ -5,7 +5,7 @@ import com.toocol.ssh.core.mosh.core.network.MoshOutputStream;
 import com.toocol.ssh.core.mosh.core.network.Transport;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.term.core.Term;
-import com.toocol.ssh.utilities.log.Logable;
+import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.IpUtil;
 import io.vertx.core.Vertx;
 import io.vertx.core.datagram.DatagramSocket;
@@ -21,7 +21,7 @@ import java.net.SocketException;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/25 19:58
  */
-public final class MoshSession implements Logable {
+public final class MoshSession implements Loggable {
 
     private static class IO {
         private MoshOutputStream outputStream;
@@ -53,17 +53,14 @@ public final class MoshSession implements Logable {
                     this.io.inputStream = new MoshInputStream();
                     this.io.outputStream = new MoshOutputStream(this.io.inputStream, transport);
 
-                    Term term = Term.getInstance();
                     socket.listen(transport.addr.port(), localIpv4.toString().replaceFirst("/", ""), result -> {
                         if (result.succeeded()) {
                             socket.handler(this.io.outputStream::receivePacket);
-                            term.printDisplay("Mosh success to listened local port: " + transport.addr.port());
                             this.connected = true;
-                            info("Mosh success to listened local port: {}", transport.addr.port());
+                            info("Mosh-client success to listened local port: {}", transport.addr.port());
                             message.reply(null);
                         } else {
-                            term.printErr("Mosh fail to listened local port: " + transport.addr.port());
-                            error("Mosh fail to listened local port: {}", transport.addr.port());
+                            error("Mosh-client fail to listened local port: {}", transport.addr.port());
                             message.fail(-1, "Mosh fail to listened local port" + transport.addr.port());
                         }
                     });

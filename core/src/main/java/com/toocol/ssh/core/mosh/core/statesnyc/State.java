@@ -15,4 +15,5 @@ public abstract class State<T extends State<?>> {
 
     public abstract T copy();
 
+    public abstract int actionSize();
 }

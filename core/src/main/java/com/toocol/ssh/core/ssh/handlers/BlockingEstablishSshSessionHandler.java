@@ -58,7 +58,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
 
             if (sessionId == 0) {
                 StatusCache.HANGED_ENTER = false;
-                sessionId = factory.createSession(credential, eventBus);
+                sessionId = factory.createSession(credential);
 
                 Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
                 shell.setUser(credential.getUser());
@@ -66,18 +66,14 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
                 shellCache.putShell(sessionId, shell);
             } else {
                 StatusCache.HANGED_ENTER = true;
-                long newSessionId = factory.invokeSession(sessionId, credential, eventBus);
+                long newSessionId = factory.invokeSession(sessionId, credential);
 
                 if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
                     Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
                     shell.setUser(credential.getUser());
                     shell.initialFirstCorrespondence(ShellProtocol.SSH);
                     shellCache.putShell(sessionId, shell);
-                    warn("Invoke session failed, re-establish ssh session, sessionId = {}, host = {}, user = {}",
-                            sessionId, credential.getHost(), credential.getUser());
                 } else {
-                    info("Multiplexing ssh session, sessionId = {}, host = {}, user = {}",
-                            sessionId, credential.getHost(), credential.getUser());
                     shellCache.getShell(newSessionId).resetIO(ShellProtocol.SSH);
                 }
                 sessionId = newSessionId;
@@ -125,6 +121,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
 
         } else {
 
+            warn("Establish ssh connection failed.");
             eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
 
         }

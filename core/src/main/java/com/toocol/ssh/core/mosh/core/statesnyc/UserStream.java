@@ -2,7 +2,6 @@ package com.toocol.ssh.core.mosh.core.statesnyc;
 
 import com.google.protobuf.ByteString;
 import com.toocol.ssh.core.mosh.core.proto.UserInputPB;
-import com.toocol.ssh.core.term.core.Printer;
 
 import java.util.Deque;
 import java.util.Iterator;
@@ -104,5 +103,10 @@ public final class UserStream extends State<UserStream> {
             }
         }
         return true;
+    }
+
+    @Override
+    public int actionSize() {
+        return actions.size();
     }
 }
