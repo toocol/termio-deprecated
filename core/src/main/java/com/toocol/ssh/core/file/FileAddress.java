@@ -23,7 +23,7 @@ public enum FileAddress implements IAddress {
     /**
      * choose the local directory path.
      */
-    CHOOSE_DIRECTORY("terminal.directory.choose")
+    CHOOSE_DIRECTORY("terminal.directory.choose"),
     ;
 
     /**

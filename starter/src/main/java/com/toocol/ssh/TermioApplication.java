@@ -10,6 +10,8 @@ import com.toocol.ssh.core.term.core.TermCharEventDispatcher;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.utilities.annotation.VerticleDeployment;
 import com.toocol.ssh.utilities.jni.JNILoader;
+import com.toocol.ssh.utilities.log.Logger;
+import com.toocol.ssh.utilities.log.LoggerFactory;
 import com.toocol.ssh.utilities.utils.CastUtil;
 import com.toocol.ssh.utilities.utils.ClassScanner;
 import com.toocol.ssh.utilities.utils.ExitMessage;
@@ -39,6 +41,7 @@ import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
 public class TermioApplication {
 
     private static final long BLOCKED_CHECK_INTERVAL = 30 * 24 * 60 * 60 * 1000L;
+    private static final Logger logger = LoggerFactory.getLogger(TermioApplication.class);
 
     private static CountDownLatch initialLatch;
     private static CountDownLatch loadingLatch;
@@ -54,8 +57,8 @@ public class TermioApplication {
         Printer.printLoading(loadingLatch);
 
         Vertx vertx = prepareVertxEnvironment();
+        LoggerFactory.init(vertx);
         addShutdownHook(vertx);
-
         waitingStart(vertx);
     }
 
@@ -150,6 +153,7 @@ public class TermioApplication {
                     initialLatch = null;
                     verticleClassList = null;
                     System.gc();
+                    logger.info("start termio success.");
                     break;
                 }
             }
