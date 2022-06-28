@@ -9,19 +9,13 @@ import java.util.Date;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/6/28 11:52
  */
-public class TermioLogger implements Logger {
+public record TermioLogger(Class<?> clazz) implements Logger {
 
     private static final String INFO = "INFO";
     private static final String WARN = "WARN";
     private static final String ERROR = "ERROR";
 
-    protected static boolean skip = false;
-
-    private final Class<?> clazz;
-
-    protected TermioLogger(Class<?> clazz) {
-        this.clazz = clazz;
-    }
+    private static boolean skip = false;
 
     @Override
     public void info(String message, Object... params) {
@@ -45,6 +39,10 @@ public class TermioLogger implements Logger {
             return;
         }
         log(message, ERROR, params);
+    }
+
+    public static void skip() {
+        skip = true;
     }
 
     private void log(String message, String level, Object... params) {
