@@ -6,7 +6,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.Session;
-import com.toocol.ssh.utilities.utils.ICastable;
+import com.toocol.ssh.utilities.utils.Castable;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.cache.SshSessionCache;
 
@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  * @date: 2022/4/10 17:26
  * @version: 0.0.1
  */
-public final class SftpChannelProvider implements ICastable {
+public final class SftpChannelProvider implements Castable {
 
     private static final int MAXIMUM_CACHE_SIZE = 30;
     private static final int EXPIRE_AFTER_ACCESS_AFTER_MINUTES = 10;

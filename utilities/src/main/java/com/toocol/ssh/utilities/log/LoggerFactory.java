@@ -3,8 +3,8 @@ package com.toocol.ssh.utilities.log;
 import com.toocol.ssh.utilities.utils.FileUtil;
 import io.vertx.core.Vertx;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -12,11 +12,11 @@ import java.util.Map;
  */
 public final class LoggerFactory {
 
-    private static final Map<Class<?>, Logger> LOGGER_MAP = new HashMap<>();
+    private static final Map<Class<?>, Logger> LOGGER_MAP = new ConcurrentHashMap<>();
 
     public static void init(Vertx vertx) {
         try {
-            FileUtil.checkAndCreateFile(FileAppender.FILE_PATH);
+            FileUtil.checkAndCreateFile(FileAppender.filePath());
             FileAppender.vertx = vertx;
             TermioLogger.nonSkip();
         } catch (Exception e) {

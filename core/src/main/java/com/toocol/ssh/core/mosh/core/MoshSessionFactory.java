@@ -5,6 +5,7 @@ import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
+import com.toocol.ssh.utilities.log.Logable;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.Vertx;
 
@@ -21,12 +22,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/25 19:47
  */
-public final class MoshSessionFactory {
+public final class MoshSessionFactory implements Logable {
     private static MoshSessionFactory FACTORY;
 
+    private final MoshSessionCache moshSessionCache = MoshSessionCache.getInstance();
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final SshSessionFactory sshSessionFactory = SshSessionFactory.factory();
-    private final MoshSessionCache moshSessionCache = MoshSessionCache.getInstance();
 
     private final Vertx vertx;
 
@@ -50,8 +51,12 @@ public final class MoshSessionFactory {
             long sessionId = sshSessionCache.containSession(credential.getHost());
             if (sessionId != 0) {
                 sessionId = sshSessionFactory.invokeSession(sessionId, credential, null);
+                info("Multiplexing ssh session, sessionId = {}, host = {}, user = {}",
+                        sessionId, credential.getHost(), credential.getUser());
             } else {
                 sessionId = sshSessionFactory.createSession(credential, null);
+                info("Establish ssh session, sessionId = {}, host = {}, user = {}",
+                        sessionId, credential.getHost(), credential.getUser());
             }
 
             Tuple2<Integer, String> portKey = sshTouch(sessionId);
@@ -60,6 +65,8 @@ public final class MoshSessionFactory {
             }
             MoshSession moshSession = new MoshSession(vertx, sessionId, credential.getHost(), portKey._1(), portKey._2());
             moshSessionCache.put(moshSession);
+            info("Create mosh session, sessionId = {}, host = {}, user = {}",
+                    sessionId, credential.getHost(), credential.getUser());
             return moshSession;
         } catch (Exception e) {
             return null;

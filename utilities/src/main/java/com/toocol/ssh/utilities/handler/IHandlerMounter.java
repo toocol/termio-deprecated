@@ -2,7 +2,7 @@ package com.toocol.ssh.utilities.handler;
 
 import com.toocol.ssh.utilities.annotation.RegisterHandler;
 import com.toocol.ssh.utilities.utils.ExitMessage;
-import com.toocol.ssh.utilities.utils.ICastable;
+import com.toocol.ssh.utilities.utils.Castable;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 
@@ -13,7 +13,7 @@ import java.util.Arrays;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:02
  */
-public interface IHandlerMounter extends ICastable {
+public interface IHandlerMounter extends Castable {
     /**
      * assemble the handler to the eventBus
      *

@@ -4,11 +4,10 @@ import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.toocol.ssh.core.auth.core.SshCredential;
-import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;
-import com.toocol.ssh.utilities.utils.ICastable;
+import com.toocol.ssh.utilities.log.Logable;
+import com.toocol.ssh.utilities.utils.Castable;
 import com.toocol.ssh.utilities.utils.SnowflakeGuidGenerator;
 import io.vertx.core.eventbus.EventBus;
 
@@ -19,7 +18,7 @@ import java.util.Properties;
  * @date: 2022/4/23 20:54
  * @version: 0.0.1
  */
-public final class SshSessionFactory implements ICastable {
+public final class SshSessionFactory implements Castable, Logable {
 
     private static final SshSessionFactory FACTORY = new SshSessionFactory();
 
@@ -53,6 +52,8 @@ public final class SshSessionFactory implements ICastable {
         channelShell.setPtyType("xterm");
         channelShell.connect();
         sshSessionCache.putChannelShell(sessionId, channelShell);
+        info("Establish ssh session, sessionId = {}, host = {}, user = {}",
+                sessionId, credential.getHost(), credential.getUser());
         return sessionId;
     }
 

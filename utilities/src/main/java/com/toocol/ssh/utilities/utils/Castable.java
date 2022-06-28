@@ -6,7 +6,7 @@ package com.toocol.ssh.utilities.utils;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2021/10/28 14:49
  */
-public interface ICastable {
+public interface Castable {
     /**
      * Automatically deduces type conversions, ignoring "unchecked" warnings
      *

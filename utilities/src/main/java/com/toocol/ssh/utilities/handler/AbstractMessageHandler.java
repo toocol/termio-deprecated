@@ -1,7 +1,8 @@
 package com.toocol.ssh.utilities.handler;
 
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.utils.ICastable;
+import com.toocol.ssh.utilities.log.Logable;
+import com.toocol.ssh.utilities.utils.Castable;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
@@ -11,7 +12,7 @@ import io.vertx.core.eventbus.Message;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 10:34
  */
-public abstract class AbstractMessageHandler implements ICastable {
+public abstract class AbstractMessageHandler implements Castable, Logable {
     /**
      * the vertx system object.
      */

@@ -9,7 +9,7 @@ import io.vertx.core.eventbus.Message;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/6/27 10:40
  */
-public abstract class NonBlockingMessageHandler extends AbstractMessageHandler{
+public abstract class NonBlockingMessageHandler extends AbstractMessageHandler {
 
     protected NonBlockingMessageHandler(Vertx vertx, Context context) {
         super(vertx, context);
@@ -21,6 +21,7 @@ public abstract class NonBlockingMessageHandler extends AbstractMessageHandler{
             handleInline(message);
         } catch (Exception e) {
             ExitMessage.setMsg("Caught exception, exit program. class=" + this.getClass().getName() + " ,message=" + e.getMessage());
+            error("Caught exception, exit program. class = {} ,message = {}", this.getClass().getName(), e.getMessage());
             System.exit(-1);
         }
     }
