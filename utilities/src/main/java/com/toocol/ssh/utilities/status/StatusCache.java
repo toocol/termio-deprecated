@@ -1,4 +1,4 @@
-package com.toocol.ssh.core.cache;
+package com.toocol.ssh.utilities.status;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)

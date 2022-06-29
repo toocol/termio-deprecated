@@ -3,7 +3,7 @@ package com.toocol.ssh.core.term.handlers;
 import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.core.TermStatus;

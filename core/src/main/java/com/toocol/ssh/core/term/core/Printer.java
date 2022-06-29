@@ -7,7 +7,7 @@ import com.toocol.ssh.utilities.utils.PomUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.utilities.status.StatusCache;
 
 import java.io.PrintStream;
 import java.util.concurrent.CountDownLatch;

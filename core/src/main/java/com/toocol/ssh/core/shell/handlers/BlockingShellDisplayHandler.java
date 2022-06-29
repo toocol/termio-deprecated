@@ -3,7 +3,7 @@ package com.toocol.ssh.core.shell.handlers;
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.utilities.address.IAddress;

@@ -17,7 +17,7 @@ public final class LoggerFactory {
     public static void init(Vertx vertx) {
         try {
             FileUtil.checkAndCreateFile(FileAppender.filePath());
-            FileAppender.vertx = vertx;
+            FileAppender.openLogFile(vertx);
             TermioLogger.nonSkip();
         } catch (Exception e) {
             TermioLogger.skip();

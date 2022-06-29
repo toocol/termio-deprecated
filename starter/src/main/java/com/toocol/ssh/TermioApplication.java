@@ -2,7 +2,7 @@ package com.toocol.ssh;
 
 import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.core.config.SystemConfig;
 import com.toocol.ssh.core.shell.core.ShellCharEventDispatcher;
 import com.toocol.ssh.core.term.core.Printer;

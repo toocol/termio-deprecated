@@ -3,7 +3,7 @@ package com.toocol.ssh.core.shell.core;
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;

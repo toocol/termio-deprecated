@@ -21,7 +21,7 @@ public abstract class NonBlockingMessageHandler extends AbstractMessageHandler {
             handleInline(message);
         } catch (Exception e) {
             ExitMessage.setMsg("Caught exception, exit program, message = " + e.getMessage());
-            error("Caught exception, exit program, message = {}", e.getMessage());
+            error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e));
             System.exit(-1);
         }
     }

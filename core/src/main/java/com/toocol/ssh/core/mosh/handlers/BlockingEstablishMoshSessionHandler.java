@@ -3,7 +3,7 @@ package com.toocol.ssh.core.mosh.handlers;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.ShellCache;
-import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.mosh.core.MoshSessionFactory;
 import com.toocol.ssh.core.shell.core.Shell;

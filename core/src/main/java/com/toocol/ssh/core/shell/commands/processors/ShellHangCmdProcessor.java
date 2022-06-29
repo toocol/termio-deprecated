@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
-import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;

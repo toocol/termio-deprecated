@@ -47,4 +47,17 @@ public abstract class AbstractMessageHandler implements Castable, Loggable {
      */
     public abstract IAddress consume();
 
+    protected String parseStackTrace(Exception e) {
+        StringBuilder stackTraceBuilder = new StringBuilder();
+        stackTraceBuilder.append("\r\n").append("\t").append(e.getClass().getName()).append("\r\n");
+        for (int i = 0; i < e.getStackTrace().length; i++) {
+            StackTraceElement stackTraceElement = e.getStackTrace()[i];
+            stackTraceBuilder.append("\t").append(" - ").append(stackTraceElement.toString());
+            if (i != e.getStackTrace().length - 1) {
+                stackTraceBuilder.append("\r\n");
+            }
+        }
+        return stackTraceBuilder.toString();
+    }
+
 }

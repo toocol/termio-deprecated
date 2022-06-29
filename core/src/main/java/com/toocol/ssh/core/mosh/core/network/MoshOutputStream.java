@@ -42,7 +42,7 @@ public final class MoshOutputStream extends PipedOutputStream {
     public synchronized void receivePacket(DatagramPacket datagramPacket) {
         try {
             byte[] bytes = datagramPacket.data().getBytes();
-            bytes = transport.recv(bytes);
+            bytes = transport.recvAndStash(bytes);
             if (bytes != null) {
                 this.write(bytes, 0, bytes.length);
                 super.flush();

@@ -10,7 +10,6 @@ import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramSocket;
 
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
 
@@ -24,7 +23,7 @@ import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
 public final class TransportSender<MyState extends State<MyState>> implements Loggable {
 
     private final MyState currentState;
-    private final List<TimestampedState<MyState>> sentStates = new CopyOnWriteArrayList<>();
+    private final List<TimestampedState<MyState>> sentStates = new ArrayList<>();
     private final TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter();
     private final Connection connection;
 
@@ -39,8 +38,8 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
     private long shutdownStart;
 
     /* information about receiver state */
-    private long ackNum;
-    private boolean pendingDataAck;
+    private volatile long ackNum;
+    private volatile boolean pendingDataAck;
 
     /* ms to collect all input */
     private int sendMinDelay;
@@ -66,7 +65,7 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
         this.connection = new Connection(addr, socket);
     }
 
-    public void tick() {
+    public synchronized void tick() {
         calculateTimers();
 
         long now = Timestamp.timestamp();
@@ -131,7 +130,7 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
         nextSendTime = -1;
     }
 
-    public void processAcknowledgmentThrough(long ackNum) {
+    public synchronized void processAcknowledgmentThrough(long ackNum) {
         Iterator<TimestampedState<MyState>> iterator = sentStates.iterator();
         TimestampedState<MyState> i;
         boolean find = false;
@@ -238,7 +237,7 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
     private void updateAssumedReceiverState() {
         long now = Timestamp.timestamp();
 
-        assumedReceiverState = sentStates.get(0);
+        assumedReceiverState = sentStates.get(sentStates.size() - 1);
 
         for (int i = 1; i < sentStates.size(); i++) {
             TimestampedState<MyState> state = sentStates.get(i);

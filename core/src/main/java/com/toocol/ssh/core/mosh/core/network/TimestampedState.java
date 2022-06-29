@@ -21,6 +21,9 @@ public final class TimestampedState<T extends State> {
         this.state = state;
     }
 
+    public TimestampedState() {
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

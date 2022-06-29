@@ -35,7 +35,7 @@ public abstract class BlockingMessageHandler<R> extends AbstractMessageHandler {
                         handleWithinBlocking(cast(promise), message);
                     } catch (Exception e) {
                         ExitMessage.setMsg("Caught exception, exit program, message = " + e.getMessage());
-                        error("Caught exception, exit program, message = {}", e.getMessage());
+                        error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e));
                         System.exit(-1);
                     }
                 },
@@ -45,7 +45,7 @@ public abstract class BlockingMessageHandler<R> extends AbstractMessageHandler {
                         resultWithinBlocking(cast(asyncResult), message);
                     } catch (Exception e) {
                         ExitMessage.setMsg("Caught exception, exit program, message = " + e.getMessage());
-                        error("Caught exception, exit program, message = {}", e.getMessage());
+                        error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e));
                         System.exit(-1);
                     }
                 }

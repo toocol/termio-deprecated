@@ -5,7 +5,7 @@ import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.auth.handlers.AddCredentialHandler;
 import com.toocol.ssh.core.auth.handlers.DeleteCredentialHandler;
 import com.toocol.ssh.core.cache.CredentialCache;
-import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.annotation.RegisterHandler;
 import com.toocol.ssh.utilities.annotation.VerticleDeployment;
 import com.toocol.ssh.utilities.handler.IHandlerMounter;
