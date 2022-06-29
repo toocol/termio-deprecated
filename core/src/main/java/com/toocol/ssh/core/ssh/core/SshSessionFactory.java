@@ -29,7 +29,7 @@ public final class SshSessionFactory implements Castable, Loggable {
 
     }
 
-    private final SnowflakeGuidGenerator guidGenerator = new SnowflakeGuidGenerator();
+    private final SnowflakeGuidGenerator guidGenerator = SnowflakeGuidGenerator.getInstance();
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final JSch jSch = new JSch();
 

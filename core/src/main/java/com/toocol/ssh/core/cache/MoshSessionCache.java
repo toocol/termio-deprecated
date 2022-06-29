@@ -26,6 +26,10 @@ public class MoshSessionCache {
         return INSTANCE;
     }
 
+    public Map<Long, MoshSession> getSessionMap() {
+        return moshSessionMap;
+    }
+
     public void put(MoshSession moshSession) {
         moshSessionMap.put(moshSession.getSessionId(), moshSession);
     }

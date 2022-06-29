@@ -23,10 +23,10 @@ public final class ExecChannelProvider implements Castable {
     public ChannelExec getChannelExec(Long sessionId) throws Exception {
         Session session= sshSessionCache.getSession(sessionId);
         if (session == null) {
-            throw new RuntimeException("Session is null.");
+            throw new RuntimeException("Session is null, sessionId = " + sessionId);
         }
         if (!session.isConnected()) {
-            throw new RuntimeException("Session is not connected.");
+            throw new RuntimeException("Session is not connected, sessionId = " + sessionId);
         }
         return cast(session.openChannel("exec"));
     }

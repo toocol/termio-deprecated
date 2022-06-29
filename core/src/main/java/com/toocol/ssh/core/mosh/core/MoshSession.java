@@ -4,7 +4,6 @@ import com.toocol.ssh.core.mosh.core.network.MoshInputStream;
 import com.toocol.ssh.core.mosh.core.network.MoshOutputStream;
 import com.toocol.ssh.core.mosh.core.network.Transport;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
-import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.IpUtil;
 import io.vertx.core.Vertx;
@@ -84,14 +83,14 @@ public final class MoshSession implements Loggable {
 
     public InputStream getInputStream() throws IOException {
         if (!connected) {
-            throw new IOException("Mosh session is not connected.");
+            throw new IOException("Mosh session is not connected, sessionId = " + sessionId);
         }
         return this.io.inputStream;
     }
 
     public OutputStream getOutputStream() throws IOException {
         if (!connected) {
-            throw new IOException("Mosh session is not connected.");
+            throw new IOException("Mosh session is not connected, sessionId = " + sessionId);
         }
         return this.io.outputStream;
     }

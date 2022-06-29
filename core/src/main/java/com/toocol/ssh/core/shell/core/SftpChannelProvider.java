@@ -36,10 +36,10 @@ public final class SftpChannelProvider implements Castable {
         public ChannelSftp load(@Nullable Long sessionId) throws Exception {
             Session session= sshSessionCache.getSession(sessionId);
             if (session == null) {
-                throw new RuntimeException("Session is null.");
+                throw new RuntimeException("Session is null, sessionId = " + session);
             }
             if (!session.isConnected()) {
-                throw new RuntimeException("Session is not connected.");
+                throw new RuntimeException("Session is not connected, sessionId = " + sessionId);
             }
             ChannelSftp channelSftp = cast(session.openChannel("sftp"));
             channelSftp.connect();

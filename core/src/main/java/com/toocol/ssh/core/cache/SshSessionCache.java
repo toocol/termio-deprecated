@@ -2,7 +2,6 @@ package com.toocol.ssh.core.cache;
 
 import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.Session;
-import com.toocol.ssh.core.shell.core.Shell;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -36,6 +35,10 @@ public class SshSessionCache {
 
     public static SshSessionCache getInstance() {
         return INSTANCE;
+    }
+
+    public Map<Long, Session> getSessionMap() {
+        return sessionMap;
     }
 
     public static int getAlive() {

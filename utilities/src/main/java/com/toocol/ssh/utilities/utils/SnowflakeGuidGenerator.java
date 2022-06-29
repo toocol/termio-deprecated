@@ -5,29 +5,30 @@ package com.toocol.ssh.utilities.utils;
  * @date 2022/3/31 12:14
  */
 public class SnowflakeGuidGenerator {
+    private static SnowflakeGuidGenerator instance;
+
     public static final int LONG_BITS = 64;
-    public static final int SERVER_ID_BITS = 2;
+    public static final int UNIQUE_ID_BITS = 2;
     public static final int SEQUENCE_BITS = 16;
-    public static final int TIMESTAMP_SHIFT_BITS = SEQUENCE_BITS + SERVER_ID_BITS;
-    public static final int SERVER_ID_SHIFT_BITS = SEQUENCE_BITS;
-    public static final int SEQUENCE_REDUCTION_SHIFT_BITS = LONG_BITS - SEQUENCE_BITS;
+    public static final int TIMESTAMP_SHIFT_BITS = SEQUENCE_BITS + UNIQUE_ID_BITS;
+    public static final int UNIQUE_ID_SHIFT_BITS = SEQUENCE_BITS;
 
     private static final long MAX_SEQUENCE_PER_MILLIS = -1L >>> (LONG_BITS - SEQUENCE_BITS);
 
     private long sequence = 1;
     private long lastTimestamp = 0;
 
-    public long nextId() {
-        Tuple2<Long, Long> tuple = sequenceOf();
-        return (tuple._1() << TIMESTAMP_SHIFT_BITS)
-                | (1 << SERVER_ID_SHIFT_BITS)
-                | tuple._2();
+    private SnowflakeGuidGenerator() {
     }
 
-    /**
-     * @return Tuple<时间戳, 序列号>
-     */
-    private synchronized Tuple2<Long, Long> sequenceOf() {
+    public static synchronized SnowflakeGuidGenerator getInstance() {
+        if (instance == null) {
+            instance = new SnowflakeGuidGenerator();
+        }
+        return instance;
+    }
+
+    public long nextId() {
         long timestamp = timeGen();
 
         if (timestamp == lastTimestamp) {
@@ -41,7 +42,9 @@ public class SnowflakeGuidGenerator {
         }
 
         lastTimestamp = timestamp;
-        return new Tuple2<>(timestamp, sequence);
+        return (timestamp << TIMESTAMP_SHIFT_BITS)
+                | (1 << UNIQUE_ID_SHIFT_BITS)
+                | sequence;
     }
 
     private long timeGen() {
