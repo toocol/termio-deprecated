@@ -51,6 +51,7 @@ public final class MoshSession implements Loggable {
                     this.transport.connect(socket);
                     this.io.inputStream = new MoshInputStream();
                     this.io.outputStream = new MoshOutputStream(this.io.inputStream, transport);
+                    this.io.outputStream.waitReading();
 
                     socket.listen(transport.addr.port(), localIpv4.toString().replaceFirst("/", ""), result -> {
                         if (result.succeeded()) {

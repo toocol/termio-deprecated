@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+@SuppressWarnings("all")
 public final class Transport {
 
     public record Addr(String serverHost, int port, String key) {
@@ -37,6 +38,7 @@ public final class Transport {
     private TransportSender<UserStream> sender;
     private final List<TimestampedState<RemoteState>> receiveStates = new ArrayList<>();
     private final Queue<InstructionPB.Instruction> instQueue = new ConcurrentLinkedDeque<>();
+    private final Queue<byte[]> outputQueue = new ConcurrentLinkedDeque<>();
 
     public Transport(String serverHost, int port, String key) {
         this.addr = new Addr(serverHost, port, key);
@@ -50,45 +52,17 @@ public final class Transport {
         pushBackEvent(new UserEvent.Resize(Term.WIDTH, Term.HEIGHT));
     }
 
-    public byte[] recvAndStash(byte[] recv) {
+    public void recvAndStash(byte[] recv) {
         byte[] bytes = sender.getConnection().recvOne(recv);
         TransportFragment.Fragment fragment = new TransportFragment.Fragment(bytes);
         if (fragments.addFragment(fragment)) {
             InstructionPB.Instruction inst = fragments.getAssembly();
-            /* 1. make sure we don't already have the new state */
-            for (TimestampedState<RemoteState> state : receiveStates) {
-                if (inst.getNewNum() == state.num) {
-                    return null;
-                }
-            }
-            /* 2. make sure we do have the old state */
-            boolean found = false;
-            for (TimestampedState<RemoteState> state : receiveStates) {
-                if (inst.getOldNum() == state.num) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                return null;
-            }
-
-            TimestampedState<RemoteState> newState = new TimestampedState<>();
-            newState.timestamp = Timestamp.timestamp();
-            newState.num = inst.getNewNum();
-
-            for (int i = 0; i < receiveStates.size(); i++) {
-                TimestampedState<RemoteState> state = receiveStates.get(i);
-                if (state.num > newState.num) {
-                    receiveStates.add(i, newState);
-                }
+            if (inst.getProtocolVersion() != NetworkConstants.MOSH_PROTOCOL_VERSION) {
+                throw new NetworkException("mosh protocol version mismatch");
             }
 
             instQueue.offer(inst);
-            return inst.getDiff().toByteArray();
         }
-
-        return null;
     }
 
     public void tick() {
@@ -96,7 +70,6 @@ public final class Transport {
         sender.tick();
     }
 
-    @SuppressWarnings("all")
     public void pushBackEvent(UserEvent event) {
         // Ensure that there is only one UserEvent to be sent at a time
         UserStream currentState = sender.getCurrentState();
@@ -110,21 +83,54 @@ public final class Transport {
         currentState.pushBack(event);
     }
 
+    public Queue<byte[]> getOutputQueue() {
+        return outputQueue;
+    }
+
     private void recv() {
         // Ensure that there is only one packet to be process at a time
         if (!instQueue.isEmpty()) {
             InstructionPB.Instruction inst = instQueue.poll();
-            if (inst.getProtocolVersion() != NetworkConstants.MOSH_PROTOCOL_VERSION) {
-                throw new NetworkException("mosh protocol version mismatch");
+            /* 1. make sure we don't already have the new state */
+            for (TimestampedState<RemoteState> state : receiveStates) {
+                if (inst.getNewNum() == state.num) {
+                    return;
+                }
             }
+            /* 2. make sure we do have the old state */
+            boolean found = false;
+            for (TimestampedState<RemoteState> state : receiveStates) {
+                if (inst.getOldNum() == state.num) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                return;
+            }
+
+            TimestampedState<RemoteState> newState = new TimestampedState<>();
+            newState.timestamp = Timestamp.timestamp();
+            newState.num = inst.getNewNum();
+
+            for (int i = 0; i < receiveStates.size(); i++) {
+                TimestampedState<RemoteState> state = receiveStates.get(i);
+                if (state.num > newState.num) {
+                    receiveStates.add(i, newState);
+                }
+            }
+
             sender.processAcknowledgmentThrough(inst.getAckNum());
 
             processThrowawayUntil(inst.getThrowawayNum());
 
-            sender.setAckNum(receiveStates.get(receiveStates.size() - 1).num);
+            receiveStates.add(newState);
+            sender.setAckNum(newState.num);
             if (StringUtils.isNotEmpty(inst.getDiff().toString())) {
                 sender.setDataAck();
             }
+
+            outputQueue.offer(inst.getDiff().toByteArray());
         }
     }
 

@@ -8,12 +8,14 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.util.Queue;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/28 22:17
  * @version: 0.0.1
  */
+@SuppressWarnings("all")
 public final class MoshOutputStream extends PipedOutputStream {
 
     private static final int DEFAULT_BUFF_SIZE = 1024 * 10;
@@ -28,6 +30,26 @@ public final class MoshOutputStream extends PipedOutputStream {
         this.transport = transport;
     }
 
+    public void waitReading() {
+        Queue<byte[]> queue = this.transport.getOutputQueue();
+        new Thread(() -> {
+            while (true) {
+                try {
+                    while (!queue.isEmpty()) {
+                        byte[] bytes = queue.poll();
+                        if (bytes != null) {
+                            this.write(bytes, 0, bytes.length);
+                            super.flush();
+                        }
+                    }
+                    Thread.sleep(1);
+                } catch (Exception e) {
+                    Printer.printErr(e.getMessage());
+                }
+            }
+        }).start();
+    }
+
     public void pushBackUserBytesEvent() {
         if (curlen == 0) {
             return;
@@ -40,16 +62,8 @@ public final class MoshOutputStream extends PipedOutputStream {
     }
 
     public synchronized void receivePacket(DatagramPacket datagramPacket) {
-        try {
-            byte[] bytes = datagramPacket.data().getBytes();
-            bytes = transport.recvAndStash(bytes);
-            if (bytes != null) {
-                this.write(bytes, 0, bytes.length);
-                super.flush();
-            }
-        } catch (Exception e) {
-            Printer.printErr(e.getMessage());
-        }
+        byte[] bytes = datagramPacket.data().getBytes();
+        transport.recvAndStash(bytes);
     }
 
     @Override
