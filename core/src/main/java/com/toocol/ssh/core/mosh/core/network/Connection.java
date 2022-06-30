@@ -28,26 +28,24 @@ public final class Connection {
 
     final DatagramSocket socket;
 
-    final Crypto.Session encryptSession;
-    final Crypto.Session decryptSession;
+    final Crypto.Session session;
 
     public Connection(Transport.Addr addr, DatagramSocket socket) {
         this.addr = addr;
         this.socket = socket;
         Crypto.Base64Key key = new Crypto.Base64Key(addr.key());
-        this.encryptSession = new Crypto.Session(key);
-        this.decryptSession = new Crypto.Session(key);
+        this.session = new Crypto.Session(key);
     }
 
     public void send(byte[] msg) {
         MoshPacket packet = newPacket(msg);
-        socket.send(Buffer.buffer(encryptSession.encrypt(packet.toMessage())), addr.port(), addr.serverHost(), result -> {
+        socket.send(Buffer.buffer(session.encrypt(packet.toMessage())), addr.port(), addr.serverHost(), result -> {
 
         });
     }
 
     public byte[] recvOne(byte[] recv) {
-        Crypto.Message decryptMessage = decryptSession.decrypt(recv, recv.length);
+        Crypto.Message decryptMessage = session.decrypt(recv, recv.length);
         MoshPacket packet = new MoshPacket(decryptMessage);
         expectedReceiverSeq = packet.getSeq() + 1;
         if (packet.getTimestamp() != -1) {

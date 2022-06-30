@@ -40,15 +40,13 @@ public final class MoshOutputStream extends PipedOutputStream {
                         return;
                     }
                     while (!queue.isEmpty()) {
-                        synchronized (MoshSession.class) {
-                            if (close) {
-                                return;
-                            }
-                            byte[] bytes = queue.poll();
-                            if (bytes != null) {
-                                this.write(bytes, 0, bytes.length);
-                                super.flush();
-                            }
+                        if (close) {
+                            return;
+                        }
+                        byte[] bytes = queue.poll();
+                        if (bytes != null) {
+                            this.write(bytes, 0, bytes.length);
+                            super.flush();
                         }
                     }
                     Thread.sleep(1);
