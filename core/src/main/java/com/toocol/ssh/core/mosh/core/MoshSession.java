@@ -96,6 +96,13 @@ public final class MoshSession implements Loggable {
     }
 
     private void setOutputStream(MoshOutputStream outputStream) {
+        if (this.io.outputStream != null) {
+            try {
+                this.io.outputStream.close();
+            } catch (IOException e) {
+                // do nothing
+            }
+        }
         this.io.outputStream = outputStream;
         this.io.outputStream.waitReading();
     }

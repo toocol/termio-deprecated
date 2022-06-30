@@ -6,6 +6,7 @@ import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserStream;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.execeptions.NetworkException;
+import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramPacket;
 import io.vertx.core.datagram.DatagramSocket;
@@ -17,7 +18,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @SuppressWarnings("all")
-public final class Transport {
+public final class Transport implements Loggable {
 
     public record Addr(String serverHost, int port, String key) {
         public String serverHost() {
@@ -129,11 +130,13 @@ public final class Transport {
 
             receiveStates.add(newState);
             sender.setAckNum(newState.num);
-            if (StringUtils.isNotEmpty(inst.getDiff().toString())) {
+            byte[] diff = inst.getDiff().toByteArray();
+            info("Receive packet newNum = {}, ackNum = {}, diff = {}",
+                    inst.getNewNum(), inst.getAckNum(), inst.getDiff().toStringUtf8());
+            if (diff != null && diff.length > 0) {
                 sender.setDataAck();
+                outputQueue.offer(diff);
             }
-
-            outputQueue.offer(inst.getDiff().toByteArray());
         }
     }
 

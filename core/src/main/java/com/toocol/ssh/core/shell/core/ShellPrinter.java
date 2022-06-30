@@ -1,7 +1,8 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.console.Console;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.PrintStream;
@@ -18,6 +19,7 @@ import static com.toocol.ssh.utilities.utils.StrUtil.SPACE;
 record ShellPrinter(Shell shell) {
 
     private static final PrintStream printer = Printer.PRINTER;
+    private static final Console console = Console.get();
     public static final Pattern PROMPT_ECHO_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#]) .*");
 
     void printErr(String msg) {
@@ -74,6 +76,7 @@ record ShellPrinter(Shell shell) {
             shell.bottomLinePrint = msg;
         }
 
+        msg = console.processAnisControl(msg);
         printer.print(msg);
         return true;
     }

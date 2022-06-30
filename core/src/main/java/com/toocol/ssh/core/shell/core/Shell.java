@@ -3,7 +3,6 @@ package com.toocol.ssh.core.shell.core;
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
@@ -12,6 +11,7 @@ import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.action.AbstractDevice;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.utils.CmdUtil;
 import com.toocol.ssh.utilities.utils.ExitMessage;
 import com.toocol.ssh.utilities.utils.StrUtil;
@@ -43,6 +43,7 @@ public final class Shell extends AbstractDevice {
     static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#])");
 
     private ConsoleReader reader;
+
     {
         try {
             reader = new ConsoleReader(System.in, null, null);
@@ -257,7 +258,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public void resize(int width, int height, long sessionId) {
-        switch (protocol){
+        switch (protocol) {
             case SSH -> {
                 ChannelShell channelShell = SshSessionCache.getInstance().getChannelShell(sessionId);
                 channelShell.setPtySize(width, height, width, height);

@@ -60,4 +60,9 @@ public final class UnixConsole extends Console{
     public void cursorRight() {
 
     }
+
+    @Override
+    public String processAnisControl(String msg) {
+        return msg;
+    }
 }

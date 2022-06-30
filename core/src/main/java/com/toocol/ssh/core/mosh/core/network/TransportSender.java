@@ -94,7 +94,6 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
     }
 
     public void sendToReceiver(byte[] diff) {
-        info("Mosh-client send to receiver, diff = {}", diff == null ? 0 : diff.length);
         minDelayClock = -1;
         long newNum;
         TimestampedState<MyState> back = sentStates.get(sentStates.size() - 1);
@@ -118,7 +117,6 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
     }
 
     public void sendEmptyAck() {
-        info("Mosh-client Send empty ack.");
         long now = Timestamp.timestamp();
 
         assert now >= nextAckTime;

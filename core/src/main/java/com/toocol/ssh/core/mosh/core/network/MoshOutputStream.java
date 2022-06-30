@@ -1,6 +1,8 @@
 package com.toocol.ssh.core.mosh.core.network;
 
+import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
+import com.toocol.ssh.core.term.core.Printer;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -22,6 +24,7 @@ public final class MoshOutputStream extends PipedOutputStream {
 
     private int curlen = 0;
     private final Transport transport;
+    private volatile boolean close = false;
 
     public MoshOutputStream(PipedInputStream in, Transport transport) throws IOException {
         super(in);
@@ -33,16 +36,24 @@ public final class MoshOutputStream extends PipedOutputStream {
         new Thread(() -> {
             while (true) {
                 try {
+                    if (close) {
+                        return;
+                    }
                     while (!queue.isEmpty()) {
-                        byte[] bytes = queue.poll();
-                        if (bytes != null) {
-                            this.write(bytes, 0, bytes.length);
-                            super.flush();
+                        synchronized (MoshSession.class) {
+                            if (close) {
+                                return;
+                            }
+                            byte[] bytes = queue.poll();
+                            if (bytes != null) {
+                                this.write(bytes, 0, bytes.length);
+                                super.flush();
+                            }
                         }
                     }
                     Thread.sleep(1);
                 } catch (Exception e) {
-                    /* there maybe produce Read end dead exception, ignore it temporarily */
+                    Printer.printErr(e.getMessage());
                 }
             }
         }).start();
@@ -82,6 +93,7 @@ public final class MoshOutputStream extends PipedOutputStream {
     @Override
     public void close() throws IOException {
         super.close();
+        this.close = true;
     }
 
 }

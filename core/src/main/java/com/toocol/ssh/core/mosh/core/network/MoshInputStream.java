@@ -1,5 +1,8 @@
 package com.toocol.ssh.core.mosh.core.network;
 
+import com.toocol.ssh.core.mosh.core.MoshSession;
+
+import java.io.IOException;
 import java.io.PipedInputStream;
 
 /**
@@ -15,4 +18,12 @@ public final class MoshInputStream extends PipedInputStream {
         super(DEFAULT_BUFFER_SIZE);
     }
 
+    @Override
+    public synchronized int read(byte[] b, int off, int len) throws IOException {
+        int i;
+        synchronized (MoshSession.class) {
+            i = super.read(b, off, len);
+        }
+        return i;
+    }
 }

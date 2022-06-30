@@ -76,4 +76,9 @@ public final class WindowsConsole extends Console {
     public void cursorRight() {
         jni.cursorRight();
     }
+
+    @Override
+    public String processAnisControl(String msg) {
+        return msg;
+    }
 }
