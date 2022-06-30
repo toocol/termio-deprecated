@@ -1,15 +1,14 @@
 package com.toocol.ssh.core.term.handlers;
 
-import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.core.TermStatus;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
+import com.toocol.ssh.utilities.status.StatusCache;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -30,7 +29,6 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
 
     private final Console console = Console.get();
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
-    private final MoshSessionCache moshSessionCache = MoshSessionCache.getInstance();
 
     public BlockingMonitorTerminalHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -63,11 +61,6 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
             sshSessionCache.getSessionMap().forEach((sessionId, session) -> {
                 if (!session.isConnected()) {
                     warn("SessionId = {}, this SSH connection is detected to be disconnected, try to re-connect again", sessionId);
-                }
-            });
-            moshSessionCache.getSessionMap().forEach((sessionId, session) -> {
-                if (!session.isConnected()) {
-                    warn("SessionId = {}, this MOSH connection is detected to be disconnected, try to re-connect again", sessionId);
                 }
             });
 

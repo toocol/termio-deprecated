@@ -5,9 +5,9 @@ import com.toocol.ssh.core.mosh.core.crypto.Crypto;
 import com.toocol.ssh.core.mosh.core.crypto.Prng;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 import com.toocol.ssh.core.mosh.core.statesnyc.State;
+import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.Timestamp;
-import io.vertx.core.datagram.DatagramSocket;
 
 import java.util.*;
 
@@ -47,7 +47,7 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
 
     private long minDelayClock;
 
-    public TransportSender(MyState initialState, Transport.Addr addr, DatagramSocket socket) {
+    public TransportSender(MyState initialState, Connection connection) {
         this.currentState = initialState.copy();
         this.sentStates.add(new TimestampedState<>(Timestamp.timestamp(), 0, initialState.copy()));
         this.assumedReceiverState = sentStates.get(0);
@@ -61,15 +61,17 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
         this.sendMinDelay = 8;
         this.lastHeard = 0;
         this.minDelayClock = -1;
+        this.connection = connection;
+    }
 
-        this.connection = new Connection(addr, socket);
+    public synchronized void pushBackEvent(UserEvent userEvent) {
+        currentState.pushBack(userEvent);
     }
 
     public synchronized void tick() {
         calculateTimers();
 
         long now = Timestamp.timestamp();
-
         if (now < nextAckTime && now < nextSendTime) {
             return;
         }
@@ -130,7 +132,7 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
         nextSendTime = -1;
     }
 
-    public synchronized void processAcknowledgmentThrough(long ackNum) {
+    public void processAcknowledgmentThrough(long ackNum) {
         Iterator<TimestampedState<MyState>> iterator = sentStates.iterator();
         TimestampedState<MyState> i;
         boolean find = false;
@@ -156,7 +158,7 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
     private void addSentState(long theTimestamp, long num, MyState state) {
         sentStates.add(new TimestampedState<>(theTimestamp, num, state.copy()));
         if (sentStates.size() > 32) {
-            ListIterator<TimestampedState<MyState>> iterator = sentStates.listIterator(sentStates.size() - 1);
+            ListIterator<TimestampedState<MyState>> iterator = sentStates.listIterator(sentStates.size());
             for (int i = 0; i < 15; i++) {
                 if (iterator.hasPrevious()) {
                     iterator.previous();
@@ -258,7 +260,7 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
         MyState knownReceiverState = sentStates.get(0).state;
         currentState.subtract(knownReceiverState);
 
-        ListIterator<TimestampedState<MyState>> iterator = sentStates.listIterator(sentStates.size() - 1);
+        ListIterator<TimestampedState<MyState>> iterator = sentStates.listIterator(sentStates.size());
         while (iterator.hasPrevious()) {
             iterator.previous().state.subtract(knownReceiverState);
         }

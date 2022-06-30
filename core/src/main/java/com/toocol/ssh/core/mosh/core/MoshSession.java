@@ -49,13 +49,10 @@ public final class MoshSession implements Loggable {
                 try {
                     this.socket = vertx.createDatagramSocket(new DatagramSocketOptions());
                     this.transport.connect(socket);
-                    this.io.inputStream = new MoshInputStream();
-                    this.io.outputStream = new MoshOutputStream(this.io.inputStream, transport);
-                    this.io.outputStream.waitReading();
 
                     socket.listen(transport.addr.port(), localIpv4.toString().replaceFirst("/", ""), result -> {
                         if (result.succeeded()) {
-                            socket.handler(this.io.outputStream::receivePacket);
+                            socket.handler(this.transport::receivePacket);
                             this.connected = true;
                             info("Mosh-client success to listened local port: {}", transport.addr.port());
                             message.reply(null);
@@ -86,6 +83,8 @@ public final class MoshSession implements Loggable {
         if (!connected) {
             throw new IOException("Mosh session is not connected, sessionId = " + sessionId);
         }
+        this.io.inputStream = new MoshInputStream();
+        setOutputStream(new MoshOutputStream(this.io.inputStream, transport));
         return this.io.inputStream;
     }
 
@@ -94,6 +93,11 @@ public final class MoshSession implements Loggable {
             throw new IOException("Mosh session is not connected, sessionId = " + sessionId);
         }
         return this.io.outputStream;
+    }
+
+    private void setOutputStream(MoshOutputStream outputStream) {
+        this.io.outputStream = outputStream;
+        this.io.outputStream.waitReading();
     }
 
     public void close() {

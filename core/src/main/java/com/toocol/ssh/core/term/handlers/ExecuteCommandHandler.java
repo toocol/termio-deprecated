@@ -46,7 +46,8 @@ public final class ExecuteCommandHandler extends NonBlockingMessageHandler {
                 .map(termioCommand -> {
                     try {
                         termioCommand.processCmd(eventBus, cmd, resultAndMessage);
-                        if (TermioCommand.CMD_NUMBER.equals(termioCommand) && StringUtils.isEmpty(resultAndMessage._2())) {
+                        if ((TermioCommand.CMD_NUMBER.equals(termioCommand) || TermioCommand.CMD_MOSH.equals(termioCommand))
+                                && StringUtils.isEmpty(resultAndMessage._2())) {
                             isBreak.set(true);
                         }
                     } catch (Exception e) {

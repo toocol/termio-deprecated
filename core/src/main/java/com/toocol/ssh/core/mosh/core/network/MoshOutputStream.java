@@ -1,8 +1,6 @@
 package com.toocol.ssh.core.mosh.core.network;
 
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
-import com.toocol.ssh.core.term.core.Printer;
-import io.vertx.core.datagram.DatagramPacket;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -44,7 +42,7 @@ public final class MoshOutputStream extends PipedOutputStream {
                     }
                     Thread.sleep(1);
                 } catch (Exception e) {
-                    Printer.printErr(e.getMessage());
+                    /* there maybe produce Read end dead exception, ignore it temporarily */
                 }
             }
         }).start();
@@ -59,11 +57,6 @@ public final class MoshOutputStream extends PipedOutputStream {
         curlen = 0;
 
         transport.pushBackEvent(new UserEvent.UserBytes(cutOff));
-    }
-
-    public synchronized void receivePacket(DatagramPacket datagramPacket) {
-        byte[] bytes = datagramPacket.data().getBytes();
-        transport.recvAndStash(bytes);
     }
 
     @Override

@@ -56,4 +56,4 @@
 ```
 
 ## License
-[Apache-2.0](LICENSE) © Joe Zane
+[AGPL-3.0 license](LICENSE) © Joe Zane

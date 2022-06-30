@@ -7,6 +7,7 @@ import com.toocol.ssh.core.mosh.core.statesnyc.UserStream;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.execeptions.NetworkException;
 import com.toocol.ssh.utilities.utils.Timestamp;
+import io.vertx.core.datagram.DatagramPacket;
 import io.vertx.core.datagram.DatagramSocket;
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,11 +35,12 @@ public final class Transport {
 
     public final Addr addr;
     private final TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly();
-
-    private TransportSender<UserStream> sender;
     private final List<TimestampedState<RemoteState>> receiveStates = new ArrayList<>();
     private final Queue<InstructionPB.Instruction> instQueue = new ConcurrentLinkedDeque<>();
     private final Queue<byte[]> outputQueue = new ConcurrentLinkedDeque<>();
+
+    private TransportSender<UserStream> sender;
+    private Connection connection;
 
     public Transport(String serverHost, int port, String key) {
         this.addr = new Addr(serverHost, port, key);
@@ -46,14 +48,15 @@ public final class Transport {
     }
 
     public void connect(DatagramSocket socket) {
-        this.sender = new TransportSender<>(new UserStream(), this.addr, socket);
+        this.connection = new Connection(this.addr, socket);
+        this.sender = new TransportSender<>(new UserStream(), this.connection);
         this.sender.setSendDelay(1);
         // tell the server the size of the terminal
         pushBackEvent(new UserEvent.Resize(Term.WIDTH, Term.HEIGHT));
     }
 
-    public void recvAndStash(byte[] recv) {
-        byte[] bytes = sender.getConnection().recvOne(recv);
+    public void receivePacket(DatagramPacket datagramPacket) {
+        byte[] bytes = this.connection.recvOne(datagramPacket.data().getBytes());
         TransportFragment.Fragment fragment = new TransportFragment.Fragment(bytes);
         if (fragments.addFragment(fragment)) {
             InstructionPB.Instruction inst = fragments.getAssembly();
@@ -65,22 +68,21 @@ public final class Transport {
         }
     }
 
-    public void tick() {
-        recv();
-        sender.tick();
-    }
-
     public void pushBackEvent(UserEvent event) {
         // Ensure that there is only one UserEvent to be sent at a time
-        UserStream currentState = sender.getCurrentState();
-        while (!sender.getLastSentStates().equals(currentState)) {
+        while (!sender.getLastSentStates().equals(sender.getCurrentState())) {
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
                 // do nothing
             }
         }
-        currentState.pushBack(event);
+        sender.pushBackEvent(event);
+    }
+
+    public void tick() {
+        recv();
+        sender.tick();
     }
 
     public Queue<byte[]> getOutputQueue() {
@@ -91,6 +93,9 @@ public final class Transport {
         // Ensure that there is only one packet to be process at a time
         if (!instQueue.isEmpty()) {
             InstructionPB.Instruction inst = instQueue.poll();
+
+            sender.processAcknowledgmentThrough(inst.getAckNum());
+
             /* 1. make sure we don't already have the new state */
             for (TimestampedState<RemoteState> state : receiveStates) {
                 if (inst.getNewNum() == state.num) {
@@ -119,8 +124,6 @@ public final class Transport {
                     receiveStates.add(i, newState);
                 }
             }
-
-            sender.processAcknowledgmentThrough(inst.getAckNum());
 
             processThrowawayUntil(inst.getThrowawayNum());
 

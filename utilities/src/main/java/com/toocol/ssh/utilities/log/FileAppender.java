@@ -2,7 +2,6 @@ package com.toocol.ssh.utilities.log;
 
 import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.utils.FileUtil;
-import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
