@@ -39,7 +39,7 @@ public final class BlockingUfHandler extends BlockingMessageHandler<Void> {
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<Void> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<Void> promise, Message<T> message) throws Exception {
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String remotePath = request.getString("remotePath");
@@ -78,7 +78,7 @@ public final class BlockingUfHandler extends BlockingMessageHandler<Void> {
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
 
     }
 }

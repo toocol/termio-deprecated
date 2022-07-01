@@ -20,6 +20,8 @@ import static com.toocol.ssh.core.auth.AuthAddress.ADD_CREDENTIAL;
  */
 public final class AddCredentialHandler extends NonBlockingMessageHandler {
 
+    private final CredentialCache credentialCache = CredentialCache.getInstance();
+
     public AddCredentialHandler(Vertx vertx, Context context) {
         super(vertx, context);
     }
@@ -32,10 +34,10 @@ public final class AddCredentialHandler extends NonBlockingMessageHandler {
     @Override
     public <T> void handleInline(Message<T> message) {
         SshCredential credential = SshCredential.transFromJson(cast(message.body()));
-        CredentialCache.addCredential(credential);
+        credentialCache.addCredential(credential);
 
         String filePath = FileUtil.relativeToFixed("./.credentials");
-        String credentialsJson = CredentialCache.getCredentialsJson();
+        String credentialsJson = credentialCache.getCredentialsJson();
 
         SecurityCoder coder = SecurityCoder.get();
         if (coder != null) {

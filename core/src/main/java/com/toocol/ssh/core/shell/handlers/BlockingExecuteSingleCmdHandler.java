@@ -38,7 +38,7 @@ public final class BlockingExecuteSingleCmdHandler extends BlockingMessageHandle
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<String> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<String> promise, Message<T> message) throws Exception {
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String cmd = request.getString("cmd");
@@ -63,7 +63,7 @@ public final class BlockingExecuteSingleCmdHandler extends BlockingMessageHandle
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
         if (asyncResult.succeeded()) {
             message.reply(asyncResult.result());
         } else {

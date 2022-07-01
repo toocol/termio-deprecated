@@ -24,7 +24,7 @@ public final class BlockingReadFileHandler extends BlockingMessageHandler<String
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<String> promise, Message<T> message) {
+    protected <T> void handleBlocking(Promise<String> promise, Message<T> message) {
         String filePath = cast(message.body());
         Buffer resultBuffer = vertx.fileSystem().readFileBlocking(filePath);
         String fileData = resultBuffer.getString(0, resultBuffer.length());
@@ -33,7 +33,7 @@ public final class BlockingReadFileHandler extends BlockingMessageHandler<String
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<String> asyncResult, Message<T> message) {
+    protected <T> void resultBlocking(AsyncResult<String> asyncResult, Message<T> message) {
         String result = asyncResult.result();
         message.reply(result);
     }

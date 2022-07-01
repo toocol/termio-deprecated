@@ -32,7 +32,7 @@ public abstract class BlockingMessageHandler<R> extends AbstractMessageHandler {
         context.executeBlocking(
                 promise -> {
                     try {
-                        handleWithinBlocking(cast(promise), message);
+                        handleBlocking(cast(promise), message);
                     } catch (Exception e) {
                         ExitMessage.setMsg("Caught exception, exit program, message = " + e.getMessage());
                         error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e));
@@ -42,7 +42,7 @@ public abstract class BlockingMessageHandler<R> extends AbstractMessageHandler {
                 !parallel,
                 asyncResult -> {
                     try {
-                        resultWithinBlocking(cast(asyncResult), message);
+                        resultBlocking(cast(asyncResult), message);
                     } catch (Exception e) {
                         ExitMessage.setMsg("Caught exception, exit program, message = " + e.getMessage());
                         error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e));
@@ -60,7 +60,7 @@ public abstract class BlockingMessageHandler<R> extends AbstractMessageHandler {
      * @param <T>     generic type
      * @throws Exception exception
      */
-    protected abstract <T> void handleWithinBlocking(Promise<R> promise, Message<T> message) throws Exception;
+    protected abstract <T> void handleBlocking(Promise<R> promise, Message<T> message) throws Exception;
 
     /**
      * response the blocked process result
@@ -70,5 +70,5 @@ public abstract class BlockingMessageHandler<R> extends AbstractMessageHandler {
      * @param <T>         generic type
      * @throws Exception exception
      */
-    protected abstract <T> void resultWithinBlocking(AsyncResult<R> asyncResult, Message<T> message) throws Exception;
+    protected abstract <T> void resultBlocking(AsyncResult<R> asyncResult, Message<T> message) throws Exception;
 }

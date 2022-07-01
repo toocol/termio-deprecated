@@ -13,6 +13,9 @@ import static com.toocol.ssh.core.ssh.SshAddress.ESTABLISH_SSH_SESSION;
  * @date 2022/4/1 17:34
  */
 public class NumberCmdProcessor extends TermioCommandProcessor {
+
+    private final CredentialCache credentialCache = CredentialCache.getInstance();
+
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         if (!StringUtils.isNumeric(cmd)) {
@@ -30,8 +33,8 @@ public class NumberCmdProcessor extends TermioCommandProcessor {
             resultAndMsg.first(false).second("The input number must > 0.");
             return;
         }
-        if (idx > CredentialCache.credentialsSize()) {
-            resultAndMsg.first(false).second("The input number exceeds stored credentials' size, max number should be " + CredentialCache.credentialsSize() + ".");
+        if (idx > credentialCache.credentialsSize()) {
+            resultAndMsg.first(false).second("The input number exceeds stored credentials' size, max number should be " + credentialCache.credentialsSize() + ".");
             return;
         }
 

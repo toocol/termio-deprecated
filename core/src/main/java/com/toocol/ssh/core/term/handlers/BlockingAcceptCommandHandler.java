@@ -1,10 +1,10 @@
 package com.toocol.ssh.core.term.handlers;
 
-import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
+import com.toocol.ssh.utilities.status.StatusCache;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -40,7 +40,7 @@ public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<B
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<Boolean> promise, Message<T> message) {
+    protected <T> void handleBlocking(Promise<Boolean> promise, Message<T> message) {
         try {
             int signal = cast(message.body());
             if (signal == NORMAL_BACK || signal == FIRST_IN || signal == CONNECT_FAILED) {
@@ -85,7 +85,7 @@ public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<B
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<Boolean> asyncResult, Message<T> message) {
+    protected <T> void resultBlocking(AsyncResult<Boolean> asyncResult, Message<T> message) {
         if (asyncResult.result()) {
             eventBus.send(ACCEPT_COMMAND.address(), ACCEPT_ERROR);
         }

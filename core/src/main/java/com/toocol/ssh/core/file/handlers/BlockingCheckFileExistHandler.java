@@ -1,9 +1,12 @@
 package com.toocol.ssh.core.file.handlers;
 
-import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.utils.FileUtil;
-import io.vertx.core.*;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
 import static com.toocol.ssh.core.file.FileAddress.CHECK_FILE_EXIST;
@@ -24,7 +27,7 @@ public final class BlockingCheckFileExistHandler extends BlockingMessageHandler<
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<Void> promise, Message<T> message) throws Exception{
+    protected <T> void handleBlocking(Promise<Void> promise, Message<T> message) throws Exception{
         String filePath = cast(message.body());
         boolean success = FileUtil.checkAndCreateFile(filePath);
         if (!success) {
@@ -34,7 +37,7 @@ public final class BlockingCheckFileExistHandler extends BlockingMessageHandler<
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<Void> asyncResult, Message<T> message) {
+    protected <T> void resultBlocking(AsyncResult<Void> asyncResult, Message<T> message) {
         message.reply(null);
     }
 }

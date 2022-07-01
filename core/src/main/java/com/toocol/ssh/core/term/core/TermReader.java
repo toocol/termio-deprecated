@@ -16,7 +16,7 @@ public record TermReader(Term term) {
 
     @SuppressWarnings("all")
     String readLine() {
-        term.executeCursorOldX.set(term.getCursorPosition()._1());
+        term.executeCursorOldX.set(term.getCursorPosition()[0]);
         try {
             while (true) {
                 char inChar = (char) term.reader.readCharacter();

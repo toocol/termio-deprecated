@@ -21,6 +21,8 @@ import static com.toocol.ssh.core.auth.AuthAddress.DELETE_CREDENTIAL;
  */
 public final class DeleteCredentialHandler extends NonBlockingMessageHandler {
 
+    private final CredentialCache credentialCache = CredentialCache.getInstance();
+
     public DeleteCredentialHandler(Vertx vertx, Context context) {
         super(vertx, context);
     }
@@ -33,13 +35,13 @@ public final class DeleteCredentialHandler extends NonBlockingMessageHandler {
     @Override
     public <T> void handleInline(Message<T> message) {
         int index = cast(message.body());
-        String host = CredentialCache.deleteCredential(index);
+        String host = credentialCache.deleteCredential(index);
         if (StringUtils.isNotEmpty(host)) {
             SshSessionCache.getInstance().stop(host);
         }
 
         String filePath = FileUtil.relativeToFixed("./.credentials");
-        String credentialsJson = CredentialCache.getCredentialsJson();
+        String credentialsJson = credentialCache.getCredentialsJson();
 
         SecurityCoder coder = SecurityCoder.get();
         if (coder != null) {

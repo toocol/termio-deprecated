@@ -44,13 +44,13 @@ public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Lo
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<Long> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         long sessionId = cast(message.body());
 
         Shell shell = shellCache.getShell(sessionId);
 
-        if (shell.getWelcome() != null && StatusCache.SHOW_WELCOME) {
-            Printer.print(shell.getWelcome());
+        if (shell.getSshWelcome() != null && StatusCache.SHOW_WELCOME) {
+            shell.printWelcome();
             StatusCache.SHOW_WELCOME = false;
         }
 
@@ -127,7 +127,7 @@ public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Lo
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
             StatusCache.JUST_CLOSE_EXHIBIT_SHELL = false;
             cmdHasFeedbackWhenJustExit = false;

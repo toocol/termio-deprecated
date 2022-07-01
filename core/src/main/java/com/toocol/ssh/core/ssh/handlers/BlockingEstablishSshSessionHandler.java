@@ -4,7 +4,6 @@ import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
@@ -15,6 +14,7 @@ import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
+import com.toocol.ssh.utilities.status.StatusCache;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -34,6 +34,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  */
 public final class BlockingEstablishSshSessionHandler extends BlockingMessageHandler<Long> {
 
+    private final CredentialCache credentialCache = CredentialCache.getInstance();
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();
     private final SshSessionFactory factory = SshSessionFactory.factory();
@@ -48,9 +49,9 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<Long> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         int index = cast(message.body());
-        SshCredential credential = CredentialCache.getCredential(index);
+        SshCredential credential = credentialCache.getCredential(index);
         assert credential != null;
 
         try {
@@ -74,11 +75,15 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
                     shell.initialFirstCorrespondence(ShellProtocol.SSH);
                     shellCache.putShell(sessionId, shell);
                 } else {
-                    shellCache.getShell(newSessionId).resetIO(ShellProtocol.SSH);
+                    Shell shell = shellCache.getShell(newSessionId);
+                    if (shell.getChannelShell() == null) {
+                        /* If the connection is established through Mosh, it needs to be set the ChannelShell*/
+                        shell.setChannelShell(sshSessionCache.getChannelShell(sessionId));
+                    }
+                    shell.resetIO(ShellProtocol.SSH);
                 }
                 sessionId = newSessionId;
             }
-
 
             Optional.ofNullable(sshSessionCache.getChannelShell(sessionId)).ifPresent(channelShell -> {
                 int width = Term.getInstance().getWidth();
@@ -100,7 +105,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         Long sessionId = asyncResult.result();
         if (sessionId != null) {
 

@@ -2,7 +2,6 @@ package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.utilities.console.Console;
-import com.toocol.ssh.utilities.utils.Tuple2;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.PrintStream;
@@ -62,9 +61,9 @@ record ShellPrinter(Shell shell) {
             }
 
             if (!tmp.contains(CRLF)) {
-                Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
-                if (cursorPosition._1() != 0) {
-                    shell.term.setCursorPosition(0, cursorPosition._2());
+                int[] cursorPosition = shell.term.getCursorPosition();
+                if (cursorPosition[0] != 0) {
+                    shell.term.setCursorPosition(0, cursorPosition[1]);
                 }
             }
         }

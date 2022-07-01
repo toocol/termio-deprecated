@@ -18,6 +18,8 @@ import static com.toocol.ssh.core.auth.AuthAddress.ADD_CREDENTIAL;
  */
 public class AddCmdProcessor extends TermioCommandProcessor {
 
+    private final CredentialCache credentialCache = CredentialCache.getInstance();
+
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         String[] split = cmd.trim().replaceAll(" {2,}"," ").split("--");
@@ -68,7 +70,7 @@ public class AddCmdProcessor extends TermioCommandProcessor {
         }
 
         SshCredential credential = SshCredential.builder().host(host).user(user).password(password).port(port).build();
-        if (CredentialCache.containsCredential(credential)) {
+        if (credentialCache.containsCredential(credential)) {
             resultAndMsg.first(false).second("Connection property already exist.");
             return;
         }

@@ -1,13 +1,12 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.utilities.anis.AnisStringBuilder;
-import com.toocol.ssh.utilities.console.Console;
-import com.toocol.ssh.utilities.utils.ExitMessage;
-import com.toocol.ssh.utilities.utils.PomUtil;
-import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
+import com.toocol.ssh.utilities.anis.AnisStringBuilder;
+import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.status.StatusCache;
+import com.toocol.ssh.utilities.utils.ExitMessage;
+import com.toocol.ssh.utilities.utils.PomUtil;
 
 import java.io.PrintStream;
 import java.util.concurrent.CountDownLatch;
@@ -21,6 +20,7 @@ import static com.toocol.ssh.core.config.SystemConfig.*;
  */
 public final class Printer {
     public static final PrintStream PRINTER = System.out;
+    private static final CredentialCache credentialCache = CredentialCache.getInstance();
 
     private static final Runtime RUNTIME = Runtime.getRuntime();
 
@@ -87,26 +87,26 @@ public final class Printer {
 
     public static void printScene(boolean resize) {
         Term term = Term.getInstance();
-        Tuple2<Integer, Integer> oldPosition = term.getCursorPosition();
+        int[] oldPosition = term.getCursorPosition();
         CONSOLE.hideCursor();
         if (resize) {
             clear();
         }
         printInformationBar();
         print("Properties:                                                                           \n");
-        if (CredentialCache.credentialsSize() == 0) {
+        if (credentialCache.credentialsSize() == 0) {
             print("You have no connection properties, type 'help' to get more information.                         \n\n");
         } else {
-            CredentialCache.showCredentials();
+            credentialCache.showCredentials();
         }
 
         for (int idx = 0; idx < Term.TOP_MARGIN; idx++) {
             println();
         }
 
-        Term.executeLine = term.getCursorPosition()._2();
+        Term.executeLine = term.getCursorPosition()[1];
         term.printExecuteBackground();
-        if (resize && oldPosition._1() != 0 && oldPosition._2() != 0) {
+        if (resize && oldPosition[0] != 0 && oldPosition[1] != 0) {
             term.printDisplayBuffer();
             printTermPrompt();
             term.printCommandBuffer();

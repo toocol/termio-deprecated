@@ -32,7 +32,7 @@ public final class BlockingTickHandler extends BlockingMessageHandler<Void> {
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<Void> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<Void> promise, Message<T> message) throws Exception {
         long sessionId = cast(message.body());
         MoshSession moshSession = moshSessionCache.get(sessionId);
 
@@ -48,7 +48,7 @@ public final class BlockingTickHandler extends BlockingMessageHandler<Void> {
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
 
     }
 }

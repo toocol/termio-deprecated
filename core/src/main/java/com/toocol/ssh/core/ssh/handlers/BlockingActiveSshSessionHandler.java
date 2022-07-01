@@ -25,14 +25,14 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<JsonObject> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<JsonObject> promise, Message<T> message) throws Exception {
         int index = cast(message.body());
 
         //TODO: see com.toocol.ssh.core.ssh.handlers.BlockingEstablishSessionHandler
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<JsonObject> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<JsonObject> asyncResult, Message<T> message) throws Exception {
         if (asyncResult.succeeded()) {
             message.reply(true);
         } else {

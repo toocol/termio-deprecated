@@ -30,6 +30,8 @@ import static com.toocol.ssh.core.file.FileAddress.READ_FILE;
 })
 public final class AuthVerticle extends AbstractVerticle implements IHandlerMounter {
 
+    private final CredentialCache credentialCache = CredentialCache.getInstance();
+
     @Override
     public void start() throws Exception {
         String filePath = FileUtil.relativeToFixed("./.credentials");
@@ -65,7 +67,7 @@ public final class AuthVerticle extends AbstractVerticle implements IHandlerMoun
                 sshCredentials.forEach(o -> {
                     JsonObject credentialJsonObj = cast(o);
                     SshCredential sshCredential = SshCredential.transFromJson(credentialJsonObj);
-                    CredentialCache.addCredential(sshCredential);
+                    credentialCache.addCredential(sshCredential);
                 });
 
                 StatusCache.LOADING_ACCOMPLISH = true;

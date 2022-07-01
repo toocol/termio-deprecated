@@ -16,6 +16,8 @@ import static com.toocol.ssh.core.auth.AuthAddress.DELETE_CREDENTIAL;
  */
 public class DeleteCmdProcessor extends TermioCommandProcessor {
 
+    private final CredentialCache credentialCache = CredentialCache.getInstance();
+
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         String[] split = cmd.trim().replaceAll(" {2,}", " ").split("--");
@@ -29,7 +31,7 @@ public class DeleteCmdProcessor extends TermioCommandProcessor {
             return;
         }
         int index = Integer.parseInt(indexStr);
-        if (CredentialCache.credentialsSize() < index) {
+        if (credentialCache.credentialsSize() < index) {
             resultAndMsg.first(false).second("The index correspond credential didn't exist.");
             return;
         }

@@ -1,7 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.utilities.event.CharEvent;
-import com.toocol.ssh.utilities.utils.Tuple2;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -15,9 +14,9 @@ public final class ActionTab extends TermCharAction {
 
     @Override
     public boolean act(Term term, CharEvent charEvent, char inChar) {
-        Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
-        if (cursorPosition._1() < term.lineBuilder.length() + Term.getPromptLen()) {
-            term.setCursorPosition(term.lineBuilder.length() + Term.getPromptLen(), cursorPosition._2());
+        int[] cursorPosition = term.getCursorPosition();
+        if (cursorPosition[0] < term.lineBuilder.length() + Term.getPromptLen()) {
+            term.setCursorPosition(term.lineBuilder.length() + Term.getPromptLen(), cursorPosition[1]);
         }
         return false;
     }

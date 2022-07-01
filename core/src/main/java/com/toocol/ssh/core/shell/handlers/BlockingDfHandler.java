@@ -2,12 +2,15 @@ package com.toocol.ssh.core.shell.handlers;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.toocol.ssh.core.cache.ShellCache;
-import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.core.shell.core.SftpChannelProvider;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;
-import io.vertx.core.*;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.io.IOUtils;
@@ -42,7 +45,7 @@ public final class BlockingDfHandler extends BlockingMessageHandler<byte[]> {
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<byte[]> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<byte[]> promise, Message<T> message) throws Exception {
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String remotePath = request.getString("remotePath");
@@ -116,7 +119,7 @@ public final class BlockingDfHandler extends BlockingMessageHandler<byte[]> {
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<byte[]> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<byte[]> asyncResult, Message<T> message) throws Exception {
         byte[] result = asyncResult.result();
         if (result != null && result.length > 0) {
             message.reply(result);

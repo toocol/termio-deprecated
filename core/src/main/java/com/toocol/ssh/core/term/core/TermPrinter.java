@@ -45,7 +45,7 @@ public record TermPrinter(Term term) {
     synchronized void cleanDisplayZone() {
         term.setCursorPosition(0, Term.executeLine + 1);
         int windowWidth = term.getWidth();
-        while (term.getCursorPosition()._2() < term.getHeight() - 1) {
+        while (term.getCursorPosition()[1] < term.getHeight() - 1) {
             Printer.println(" ".repeat(windowWidth));
         }
     }
@@ -80,7 +80,7 @@ public record TermPrinter(Term term) {
                     .append(line)
                     .toString());
         }
-        term.displayZoneBottom = term.getCursorPosition()._2() + 1;
+        term.displayZoneBottom = term.getCursorPosition()[1] + 1;
         term.setCursorPosition(Term.getPromptLen() + term.lineBuilder.length(), Term.executeLine);
         term.showCursor();
     }
@@ -102,7 +102,7 @@ public record TermPrinter(Term term) {
                     .append(line)
                     .toString());
         }
-        term.displayZoneBottom = term.getCursorPosition()._2() + 1;
+        term.displayZoneBottom = term.getCursorPosition()[1] + 1;
         term.setCursorPosition(0, Term.executeLine);
     }
 
@@ -126,7 +126,7 @@ public record TermPrinter(Term term) {
                     .append(line)
                     .toString());
         }
-        term.displayZoneBottom = term.getCursorPosition()._2() + 1;
+        term.displayZoneBottom = term.getCursorPosition()[1] + 1;
         term.setCursorPosition(term.executeCursorOldX.get(), Term.executeLine);
         term.showCursor();
     }

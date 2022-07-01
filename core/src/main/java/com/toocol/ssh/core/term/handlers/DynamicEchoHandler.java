@@ -31,6 +31,7 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
 
     volatile public static String lastInput = StrUtil.EMPTY;
 
+    private final CredentialCache credentialCache = CredentialCache.getInstance();
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final Term term = Term.getInstance();
 
@@ -61,7 +62,7 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
                 SshCredential credential = null;
                 try {
                     index = Integer.parseInt(finalCmd);
-                    credential = CredentialCache.getCredential(index);
+                    credential = credentialCache.getCredential(index);
                 } catch (Exception e) {
                     // exceed Integer range
                 }

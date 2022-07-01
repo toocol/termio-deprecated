@@ -49,7 +49,7 @@ public final class BlockingShellReceiveHandler extends BlockingMessageHandler<Lo
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<Long> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = true;
 
         long sessionId = cast(message.body());
@@ -167,7 +167,7 @@ public final class BlockingShellReceiveHandler extends BlockingMessageHandler<Lo
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = false;
         Term.status = TermStatus.TERMIO;
 

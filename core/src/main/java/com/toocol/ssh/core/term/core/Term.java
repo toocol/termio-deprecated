@@ -4,7 +4,6 @@ import com.toocol.ssh.utilities.action.AbstractDevice;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.utils.ExitMessage;
-import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import jline.console.ConsoleReader;
 
@@ -120,9 +119,9 @@ public final class Term extends AbstractDevice {
         return HEIGHT;
     }
 
-    public Tuple2<Integer, Integer> getCursorPosition() {
+    public int[] getCursorPosition() {
         String[] coord = CONSOLE.getCursorPosition().split(",");
-        return new Tuple2<>(Integer.parseInt(coord[0]), Integer.parseInt(coord[1]));
+        return new int[] {Integer.parseInt(coord[0]), Integer.parseInt(coord[1])};
     }
 
     public void setCursorPosition(int x, int y) {

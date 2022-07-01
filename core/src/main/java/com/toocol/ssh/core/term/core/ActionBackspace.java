@@ -2,7 +2,6 @@ package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.utilities.event.CharEvent;
 import com.toocol.ssh.utilities.utils.CharUtil;
-import com.toocol.ssh.utilities.utils.Tuple2;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -16,14 +15,14 @@ public final class ActionBackspace extends TermCharAction {
 
     @Override
     public boolean act(Term term, CharEvent charEvent, char inChar) {
-        Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
-        if (cursorPosition._1() == Term.getPromptLen()) {
+        int[] cursorPosition = term.getCursorPosition();
+        if (cursorPosition[0] == Term.getPromptLen()) {
             Printer.voice();
             return false;
         }
         char deleteChar;
-        if (cursorPosition._1() < term.lineBuilder.length() + Term.getPromptLen()) {
-            int index = cursorPosition._1() - Term.getPromptLen() - 1;
+        if (cursorPosition[0] < term.lineBuilder.length() + Term.getPromptLen()) {
+            int index = cursorPosition[0] - Term.getPromptLen() - 1;
             deleteChar = term.lineBuilder.charAt(index);
             term.lineBuilder.deleteCharAt(index);
         } else {

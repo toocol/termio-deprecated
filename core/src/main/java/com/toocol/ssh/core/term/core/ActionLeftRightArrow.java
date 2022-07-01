@@ -15,7 +15,7 @@ public final class ActionLeftRightArrow extends TermCharAction {
 
     @Override
     public boolean act(Term term, CharEvent charEvent, char inChar) {
-        int cursorX = term.getCursorPosition()._1();
+        int cursorX = term.getCursorPosition()[0];
         if (inChar == CharUtil.LEFT_ARROW) {
             if (cursorX > Term.getPromptLen()) {
                 term.cursorLeft();

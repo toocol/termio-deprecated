@@ -10,7 +10,6 @@ import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramPacket;
 import io.vertx.core.datagram.DatagramSocket;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;

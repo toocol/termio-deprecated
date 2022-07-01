@@ -15,7 +15,6 @@ import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.utils.CmdUtil;
 import com.toocol.ssh.utilities.utils.ExitMessage;
 import com.toocol.ssh.utilities.utils.StrUtil;
-import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import jline.console.ConsoleReader;
@@ -103,7 +102,8 @@ public final class Shell extends AbstractDevice {
     final StringBuilder cmd = new StringBuilder();
     volatile AtomicReference<String> prompt = new AtomicReference<>();
     volatile AtomicReference<String> fullPath = new AtomicReference<>();
-    volatile String welcome = null;
+    volatile String sshWelcome = null;
+    volatile String moshWelcome = null;
     volatile String user = null;
     volatile String bottomLinePrint = StrUtil.EMPTY;
 
@@ -270,6 +270,13 @@ public final class Shell extends AbstractDevice {
         }
     }
 
+    public void printWelcome() {
+        switch (protocol) {
+            case SSH -> Printer.print(sshWelcome);
+            case MOSH -> Printer.print(moshWelcome);
+        }
+    }
+
     @SuppressWarnings("all")
     public void initialFirstCorrespondence(ShellProtocol protocol) {
         if (initOnce) {
@@ -331,7 +338,11 @@ public final class Shell extends AbstractDevice {
                                 returnWrite = true;
                                 break;
                             } else {
-                                welcome = inputStr;
+                                if (this.protocol.equals(ShellProtocol.SSH)) {
+                                    sshWelcome = inputStr;
+                                } else if (this.protocol.equals(ShellProtocol.MOSH)) {
+                                    moshWelcome = inputStr;
+                                }
                                 returnWrite = true;
                                 break;
                             }
@@ -423,9 +434,9 @@ public final class Shell extends AbstractDevice {
 
     public void clearShellLineWithPrompt() {
         int promptLen = prompt.get().length();
-        Tuple2<Integer, Integer> position = term.getCursorPosition();
-        int cursorX = position._1();
-        int cursorY = position._2();
+        int[] position = term.getCursorPosition();
+        int cursorX = position[0];
+        int cursorY = position[1];
         term.hideCursor();
         term.setCursorPosition(promptLen, cursorY);
         Printer.print(" ".repeat(cursorX - promptLen));
@@ -466,8 +477,8 @@ public final class Shell extends AbstractDevice {
         return status;
     }
 
-    public String getWelcome() {
-        return StringUtils.isEmpty(welcome) ? null : welcome;
+    public String getSshWelcome() {
+        return StringUtils.isEmpty(sshWelcome) ? null : sshWelcome;
     }
 
     public String getPrompt() {
@@ -508,6 +519,14 @@ public final class Shell extends AbstractDevice {
 
     public void setFullPath(String fullPath) {
         this.fullPath.set(fullPath);
+    }
+
+    public ChannelShell getChannelShell() {
+        return channelShell;
+    }
+
+    public void setChannelShell(ChannelShell channelShell) {
+        this.channelShell = channelShell;
     }
 
     public InputStream getInputStream() {
