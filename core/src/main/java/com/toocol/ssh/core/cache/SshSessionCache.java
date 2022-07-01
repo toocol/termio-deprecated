@@ -120,7 +120,6 @@ public class SshSessionCache {
             v.disconnect();
             return null;
         });
-        ShellCache.getInstance().stop(sessionId);
     }
 
     public synchronized void stop(String host) {

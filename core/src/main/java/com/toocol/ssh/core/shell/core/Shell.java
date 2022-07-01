@@ -270,6 +270,15 @@ public final class Shell extends AbstractDevice {
         }
     }
 
+    public boolean hasWelcome() {
+        boolean flag = false;
+        switch (protocol) {
+            case SSH ->  flag = sshWelcome != null;
+            case MOSH -> flag = moshWelcome != null;
+        }
+        return flag;
+    }
+
     public void printWelcome() {
         switch (protocol) {
             case SSH -> Printer.print(sshWelcome);
@@ -282,6 +291,7 @@ public final class Shell extends AbstractDevice {
         if (initOnce) {
             return;
         }
+        this.protocol = protocol;
         try {
             CountDownLatch mainLatch = new CountDownLatch(2);
 
@@ -531,5 +541,9 @@ public final class Shell extends AbstractDevice {
 
     public InputStream getInputStream() {
         return inputStream;
+    }
+
+    public ShellProtocol getProtocol() {
+        return this.protocol;
     }
 }

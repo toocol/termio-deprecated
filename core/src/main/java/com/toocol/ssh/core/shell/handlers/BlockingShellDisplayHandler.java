@@ -49,7 +49,7 @@ public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Lo
 
         Shell shell = shellCache.getShell(sessionId);
 
-        if (shell.getSshWelcome() != null && StatusCache.SHOW_WELCOME) {
+        if (shell.hasWelcome() && StatusCache.SHOW_WELCOME) {
             shell.printWelcome();
             StatusCache.SHOW_WELCOME = false;
         }

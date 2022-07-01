@@ -51,12 +51,21 @@ public final class Crypto {
     }
 
     public static class Message {
-        public final Nonce nonce;
-        public final byte[] text;
+        public Nonce nonce;
+        public byte[] text;
+
+        public Message() {
+        }
 
         public Message(Nonce nonce, byte[] text) {
             this.nonce = nonce;
             this.text = text;
+        }
+
+        public Message resetData(Nonce nonce, byte[] text) {
+            this.nonce = nonce;
+            this.text = text;
+            return this;
         }
 
         public short getTimestamp() {
@@ -179,7 +188,7 @@ public final class Crypto {
             return bytes;
         }
 
-        public Message decrypt(byte[] str, int len) {
+        public Message decrypt(byte[] str, int len, Message message) {
             if (len < 24) {
                 throw new CryptoException("Ciphertext must contain nonce and tag.");
             }
@@ -213,7 +222,7 @@ public final class Crypto {
 
             byte[] text = new byte[ptLen];
             System.arraycopy(plaintextBuffer.data, 0, text, 0, ptLen);
-            return new Message(nonce, text);
+            return message.resetData(nonce, text);
         }
     }
 

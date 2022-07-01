@@ -101,6 +101,7 @@ public final class MoshSessionFactory implements Loggable {
                                     String[] split = line.split(" ");
                                     portKey.first(Integer.parseInt(split[2])).second(split[3]);
                                     latch.countDown();
+                                    return;
                                 }
                             }
                         }

@@ -93,8 +93,12 @@ class CryptoTest implements ICompressorAcquirer {
         String key = "zr0jtuYVKJnfJHP/XOOsbQ";
         Crypto.Session encryptSession = new Crypto.Session(new Crypto.Base64Key(key));
         Crypto.Session decryptSession = new Crypto.Session(new Crypto.Base64Key(key));
-        TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter();
-        TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly();
+        TransportFragment.Pool sendPool = new TransportFragment.Pool();
+        TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter(sendPool);
+        TransportFragment.Pool receivePool = new TransportFragment.Pool();
+        sendPool.init();
+        receivePool.init();
+        TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly(receivePool);
 
         int oldNum = 0;
         int newNum = 0;
@@ -116,12 +120,13 @@ class CryptoTest implements ICompressorAcquirer {
                 byte[] bytes = fragment.toBytes();
 
                 MoshPacket sendPacket = newPacket(bytes);
-                Crypto.Message origin = sendPacket.toMessage();
+                Crypto.Message origin = sendPacket.fillMessage(new Crypto.Message());
 
                 byte[] encrypt = encryptSession.encrypt(origin);
-                Crypto.Message decrypt = decryptSession.decrypt(encrypt, encrypt.length);
+                sendPool.recycle();
+                Crypto.Message decrypt = decryptSession.decrypt(encrypt, encrypt.length, new Crypto.Message());
                 MoshPacket recvPacket = new MoshPacket(decrypt);
-                TransportFragment.Fragment frag = new TransportFragment.Fragment(recvPacket.getPayload());
+                TransportFragment.Fragment frag = receivePool.getObject().setData(recvPacket.getPayload());
 
                 if (fragments.addFragment(frag)) {
                     InstructionPB.Instruction recvInst = fragments.getAssembly();
@@ -255,15 +260,17 @@ class CryptoTest implements ICompressorAcquirer {
         if (StringUtils.isNotEmpty(respHex))
             respBytes = Hex.decodeHex(respHex.replaceAll(" ", ""));
 
-        TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly();
+        TransportFragment.Pool pool = new TransportFragment.Pool();
+        pool.init();
+        TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly(pool);
         MoshPacket packet;
-        Crypto.Message message;
+        Crypto.Message message = new Crypto.Message();
         TransportFragment.Fragment frag;
 
         if (reqBytes != null) {
-            message = session.decrypt(reqBytes, reqBytes.length);
+            message = session.decrypt(reqBytes, reqBytes.length, message);
             packet = new MoshPacket(message);
-            frag = new TransportFragment.Fragment(packet.getPayload());
+            frag = pool.getObject().setData(packet.getPayload());
             if (fragments.addFragment(frag)) {
                 InstructionPB.Instruction recvInst = fragments.getAssembly();
                 System.out.println("req " + idx + " : ");
@@ -283,7 +290,7 @@ class CryptoTest implements ICompressorAcquirer {
         }
 
         if (respBytes != null) {
-            message = session.decrypt(respBytes, respBytes.length);
+            message = session.decrypt(respBytes, respBytes.length, message);
             packet = new MoshPacket(message);
             frag = new TransportFragment.Fragment(packet.getPayload());
             if (fragments.addFragment(frag)) {

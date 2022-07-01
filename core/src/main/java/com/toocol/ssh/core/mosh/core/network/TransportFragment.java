@@ -2,6 +2,7 @@ package com.toocol.ssh.core.mosh.core.network;
 
 import com.toocol.ssh.core.mosh.core.crypto.ByteOrder;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
+import com.toocol.ssh.utilities.obj.AbstractObjectsPool;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -15,13 +16,33 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class TransportFragment {
     private static final int FRAG_HEADER_LEN = 10; /* sizeof(long) + sizeof(short) */
 
-    public static class Fragment {
+    public final static class Pool extends AbstractObjectsPool<Fragment> {
+        private static final int NUM_FRAGMENTS = 5;
+        private static final int MAX_FRAGMENTS = 10;
+
+        @Override
+        protected int numObjects() {
+            return NUM_FRAGMENTS;
+        }
+
+        @Override
+        protected int maxObjects() {
+            return MAX_FRAGMENTS;
+        }
+
+        @Override
+        protected Fragment newObject() {
+            return new Fragment();
+        }
+    }
+
+    public final static class Fragment {
         private static final byte[] BUFFER = new byte[NetworkConstants.DEFAULT_SEND_MTU];
 
-        private final long id;
-        private final boolean finalize;
-        private final boolean initialized;
-        private final byte[] contents;
+        private long id;
+        private boolean finalize;
+        private boolean initialized;
+        private byte[] contents;
 
         private short fragmentNum;
 
@@ -58,6 +79,44 @@ public final class TransportFragment {
             this.finalize = ((fragmentNum & 0x8000) >>> 15) != 0;
             this.fragmentNum &= 0x7FFF;
             this.initialized = true;
+        }
+
+        public Fragment recycle() {
+            this.id = -1;
+            this.fragmentNum = -1;
+            this.finalize = false;
+            this.initialized = false;
+            this.contents = new byte[0];
+            return this;
+        }
+
+        public Fragment setData(long id, short fragmentNum, boolean finalize, byte[] contents) {
+            this.id = id;
+            this.fragmentNum = fragmentNum;
+            this.finalize = finalize;
+            this.contents = contents;
+
+            this.initialized = true;
+            return this;
+        }
+
+        public Fragment setData(byte[] bytes) {
+            assert bytes.length > FRAG_HEADER_LEN;
+
+            this.contents = new byte[bytes.length - FRAG_HEADER_LEN];
+            System.arraycopy(bytes, FRAG_HEADER_LEN, this.contents, 0, bytes.length - FRAG_HEADER_LEN);
+
+            byte[] idBytes = new byte[8];
+            byte[] fragmentNumBytes = new byte[2];
+            System.arraycopy(bytes, 0, idBytes, 0, 8);
+            System.arraycopy(bytes, 8, fragmentNumBytes, 0, 2);
+
+            this.id = ByteOrder.be64toh(idBytes);
+            this.fragmentNum = ByteOrder.be16toh(fragmentNumBytes);
+            this.finalize = ((fragmentNum & 0x8000) >>> 15) != 0;
+            this.fragmentNum &= 0x7FFF;
+            this.initialized = true;
+            return this;
         }
 
         private byte[] networkOrderBytes(short hostOrder) {
@@ -97,12 +156,14 @@ public final class TransportFragment {
         }
     }
 
-    public static class Fragmenter implements ICompressorAcquirer {
+    public final static class Fragmenter implements ICompressorAcquirer {
+        private final Pool pool;
         private long nextInstructionId;
         private InstructionPB.Instruction lastInstruction;
         private int lastMTU;
 
-        public Fragmenter() {
+        public Fragmenter(Pool pool) {
+            this.pool = pool;
             this.nextInstructionId = 0;
             this.lastMTU = -1;
         }
@@ -142,7 +203,7 @@ public final class TransportFragment {
                     finalize = true;
                 }
 
-                ret.offer(new Fragment(nextInstructionId, fragmentNum++, finalize, thisFragment));
+                ret.offer(pool.getObject().setData(nextInstructionId, fragmentNum++, finalize, thisFragment));
             }
 
             return ret;
@@ -153,18 +214,20 @@ public final class TransportFragment {
         }
     }
 
-    public static class FragmentAssembly implements ICompressorAcquirer{
+    public final static class FragmentAssembly implements ICompressorAcquirer{
         private final Set<Fragment> fragments = new TreeSet<>(Comparator.comparingInt(f -> f.fragmentNum));
+        private final Pool pool;
         private long currentId;
         private int fragmentsArrived;
         private int fragmentsTotal;
         private int contentsLength;
 
-        public FragmentAssembly() {
+        public FragmentAssembly(Pool pool) {
             this.currentId = -1;
             this.fragmentsArrived = 0;
             this.fragmentsTotal = -1;
             this.contentsLength = 0;
+            this.pool = pool;
         }
 
         public boolean addFragment(Fragment fragment) {
@@ -204,6 +267,7 @@ public final class TransportFragment {
             fragments.forEach(fragment -> {
                 System.arraycopy(fragment.contents, 0, contents, proceed.get(), fragment.contents.length);
                 proceed.set(proceed.get() + fragment.contents.length);
+                pool.recycle();
             });
 
             byte[] decompress = getCompressor().decompress(contents);

@@ -55,9 +55,9 @@ public final class BlockingShellReceiveHandler extends BlockingMessageHandler<Lo
         long sessionId = cast(message.body());
         Shell shell = shellCache.getShell(sessionId);
 
-        shell.writeAndFlush("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
-
         try {
+            shell.writeAndFlush("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
+
             while (true) {
                 String cmdRead = shell.readCmd();
                 if (cmdRead == null) {
@@ -176,7 +176,7 @@ public final class BlockingShellReceiveHandler extends BlockingMessageHandler<Lo
             // hang up the session
             info("Hang up session, sessionId = {}", sessionId);
         } else {
-            sshSessionCache.stop(sessionId);
+            shellCache.stop(sessionId);
             info("Destroy session, sessionId = {}", sessionId);
         }
 

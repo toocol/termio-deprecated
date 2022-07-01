@@ -1,6 +1,5 @@
 package com.toocol.ssh.core.mosh.core.network;
 
-import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.term.core.Printer;
 

@@ -5,6 +5,7 @@ import com.toocol.ssh.core.mosh.core.statesnyc.RemoteState;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserStream;
 import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.utilities.annotation.DiffThread;
 import com.toocol.ssh.utilities.execeptions.NetworkException;
 import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.Timestamp;
@@ -34,7 +35,8 @@ public final class Transport implements Loggable {
     }
 
     public final Addr addr;
-    private final TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly();
+    private final TransportFragment.Pool receivePool = new TransportFragment.Pool();
+    private final TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly(receivePool);
     private final List<TimestampedState<RemoteState>> receiveStates = new ArrayList<>();
     private final Queue<InstructionPB.Instruction> instQueue = new ConcurrentLinkedDeque<>();
     private final Queue<byte[]> outputQueue = new ConcurrentLinkedDeque<>();
@@ -51,13 +53,15 @@ public final class Transport implements Loggable {
         this.connection = new Connection(this.addr, socket);
         this.sender = new TransportSender<>(new UserStream(), this.connection);
         this.sender.setSendDelay(1);
+        this.receivePool.init();
         // tell the server the size of the terminal
         pushBackEvent(new UserEvent.Resize(Term.WIDTH, Term.HEIGHT));
     }
 
+    @DiffThread
     public void receivePacket(DatagramPacket datagramPacket) {
         byte[] bytes = this.connection.recvOne(datagramPacket.data().getBytes());
-        TransportFragment.Fragment fragment = new TransportFragment.Fragment(bytes);
+        TransportFragment.Fragment fragment = receivePool.getObject().setData(bytes);
         if (fragments.addFragment(fragment)) {
             InstructionPB.Instruction inst = fragments.getAssembly();
             if (inst.getProtocolVersion() != NetworkConstants.MOSH_PROTOCOL_VERSION) {
@@ -68,6 +72,7 @@ public final class Transport implements Loggable {
         }
     }
 
+    @DiffThread
     public void pushBackEvent(UserEvent event) {
         // Ensure that there is only one UserEvent to be sent at a time
         while (!sender.getLastSentStates().equals(sender.getCurrentState())) {
@@ -80,6 +85,7 @@ public final class Transport implements Loggable {
         sender.pushBackEvent(event);
     }
 
+    @DiffThread
     public void tick() {
         recv();
         sender.tick();

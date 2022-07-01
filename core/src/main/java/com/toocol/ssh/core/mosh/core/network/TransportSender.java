@@ -24,7 +24,8 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
 
     private final MyState currentState;
     private final List<TimestampedState<MyState>> sentStates = new ArrayList<>();
-    private final TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter();
+    private final TransportFragment.Pool sendPool = new TransportFragment.Pool();
+    private final TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter(sendPool);
     private final Connection connection;
 
     private TimestampedState<MyState> assumedReceiverState;
@@ -62,6 +63,7 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
         this.lastHeard = 0;
         this.minDelayClock = -1;
         this.connection = connection;
+        this.sendPool.init();
     }
 
     public synchronized void pushBackEvent(UserEvent userEvent) {
@@ -187,6 +189,7 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
 
             TransportFragment.Fragment fragment = fragments.poll();
             connection.send(fragment.toBytes());
+            sendPool.recycle();
 
         }
 

@@ -5,7 +5,7 @@ package com.toocol.ssh.core.mosh.core.statesnyc;
  * @date: 2022/6/30 0:14
  * @version: 0.0.1
  */
-public class RemoteState extends State<RemoteState>{
+public final class RemoteState extends State<RemoteState>{
 
     @Override
     public void subtract(RemoteState prefix) {
