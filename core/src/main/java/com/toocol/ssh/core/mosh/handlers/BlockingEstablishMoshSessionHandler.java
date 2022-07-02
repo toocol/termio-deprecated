@@ -63,9 +63,8 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
                     shell.setUser(credential.getUser());
                     shell.initialFirstCorrespondence(ShellProtocol.MOSH);
                     shellCache.putShell(sessionId, shell);
+                    shell.printAfterEstablish();
 
-                    System.gc();
-                    Printer.clear();
                     StatusCache.SHOW_WELCOME = true;
                     StatusCache.HANGED_QUIT = false;
 
@@ -74,6 +73,7 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
 
                     eventBus.send(DISPLAY_SHELL.address(), sessionId);
                     eventBus.send(RECEIVE_SHELL.address(), sessionId);
+                    System.gc();
                 } catch (Exception e) {
                     eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
                 }

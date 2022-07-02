@@ -5,6 +5,7 @@ import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
 import com.toocol.ssh.utilities.obj.AbstractObjectsPool;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class TransportFragment {
     private static final int FRAG_HEADER_LEN = 10; /* sizeof(long) + sizeof(short) */
 
+    @NotThreadSafe
     public final static class Pool extends AbstractObjectsPool<Fragment> {
         private static final int NUM_FRAGMENTS = 5;
         private static final int MAX_FRAGMENTS = 10;
@@ -33,6 +35,19 @@ public final class TransportFragment {
         @Override
         protected Fragment newObject() {
             return new Fragment();
+        }
+
+        @Override
+        public void recycle() {
+            if (!initOnce.get()) {
+                error("{}: Object pool not initialize, recycle() failed", this.getClass().getName());
+                return;
+            }
+
+            if (busyPool.isEmpty()) {
+                return;
+            }
+            freePool.offer(busyPool.poll().recycle());
         }
     }
 

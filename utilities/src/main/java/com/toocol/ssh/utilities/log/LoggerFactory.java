@@ -3,6 +3,7 @@ package com.toocol.ssh.utilities.log;
 import com.toocol.ssh.utilities.utils.FileUtil;
 import io.vertx.core.Vertx;
 
+import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,7 +28,7 @@ public final class LoggerFactory {
     public static Logger getLogger(Class<?> clazz) {
         return LOGGER_MAP.compute(clazz, (k, v) -> {
             if (v == null) {
-                v = new TermioLogger(clazz);
+                v = new TermioLogger(clazz, new StringBuilder(), new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
             }
             return v;
         });

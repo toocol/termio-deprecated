@@ -1,6 +1,8 @@
 package com.toocol.ssh.utilities.console;
 
 import com.toocol.ssh.utilities.jni.TermioJNI;
+import com.toocol.ssh.utilities.utils.AnisControl;
+import com.toocol.ssh.utilities.utils.StrUtil;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -79,6 +81,28 @@ public final class WindowsConsole extends Console {
 
     @Override
     public String processAnisControl(String msg) {
-        return msg;
+        if (msg.startsWith("\n\u0004:\u0002@") && msg.length() == 6) {
+            return StrUtil.EMPTY;
+        }
+        if (msg.contains("\u001B[K")) {
+            return msg;
+        }
+        msg = msg.replaceAll("�\\u0001\\u0012�\\u0001\"�\\u0001", StrUtil.EMPTY);
+        msg = msg.replaceAll("�\\u0003\\u0012�\\u0003\"�\\u0003", StrUtil.EMPTY);
+        msg = msg.replaceAll("�\\u0004\\u0012�\\u0004\"�\\u0004", StrUtil.EMPTY);
+        msg = msg.replaceAll("�\b\\u0012�\b\"�\b", StrUtil.EMPTY);
+        StringBuilder builder = new StringBuilder();
+        String[] split = msg.split(StrUtil.CRLF);
+        for (int i = 0; i < split.length; i++) {
+            String sp = split[i];
+            if (!sp.contains(AnisControl.DEVICE_CONTROL)) {
+                builder.append(sp);
+            }  else continue;
+
+            if (i != split.length - 1) {
+                builder.append(StrUtil.CRLF);
+            }
+        }
+        return builder.toString();
     }
 }

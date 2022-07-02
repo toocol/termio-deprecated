@@ -286,6 +286,16 @@ public final class Shell extends AbstractDevice {
         }
     }
 
+    public void printAfterEstablish() {
+        Printer.clear();
+        if (StatusCache.HANGED_ENTER) {
+            Printer.println("Invoke hanged session.");
+        } else {
+            Printer.println("Session established.");
+        }
+        Printer.println("Use protocol " + protocol.name() + ".\n");
+    }
+
     @SuppressWarnings("all")
     public void initialFirstCorrespondence(ShellProtocol protocol) {
         if (initOnce) {

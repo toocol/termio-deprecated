@@ -26,6 +26,7 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
     private final List<TimestampedState<MyState>> sentStates = new ArrayList<>();
     private final TransportFragment.Pool sendPool = new TransportFragment.Pool();
     private final TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter(sendPool);
+    private final InstructionPB.Instruction.Builder builder = InstructionPB.Instruction.newBuilder();
     private final Connection connection;
 
     private TimestampedState<MyState> assumedReceiverState;
@@ -169,7 +170,6 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
     }
 
     private void sendInFragments(byte[] diff, long newNum) {
-        InstructionPB.Instruction.Builder builder = InstructionPB.Instruction.newBuilder();
         builder.setProtocolVersion(MOSH_PROTOCOL_VERSION);
         builder.setOldNum(assumedReceiverState.num);
         builder.setNewNum(newNum);

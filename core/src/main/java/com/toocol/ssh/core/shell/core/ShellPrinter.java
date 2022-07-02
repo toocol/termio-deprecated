@@ -75,7 +75,9 @@ record ShellPrinter(Shell shell) {
             shell.bottomLinePrint = msg;
         }
 
-        msg = console.processAnisControl(msg);
+        if (shell.protocol.equals(ShellProtocol.MOSH)) {
+            msg = console.processAnisControl(msg);
+        }
         printer.print(msg);
         return true;
     }

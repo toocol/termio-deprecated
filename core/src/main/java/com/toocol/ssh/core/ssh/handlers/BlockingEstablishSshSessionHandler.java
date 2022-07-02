@@ -109,14 +109,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
         Long sessionId = asyncResult.result();
         if (sessionId != null) {
 
-            Printer.clear();
-
-            if (StatusCache.HANGED_ENTER) {
-                Printer.println("Invoke hanged session.\n");
-            } else {
-                Printer.println("Session established.\n");
-            }
-
+            shellCache.getShell(sessionId).printAfterEstablish();
             StatusCache.SHOW_WELCOME = true;
 
             BlockingMonitorTerminalHandler.sessionId = sessionId;

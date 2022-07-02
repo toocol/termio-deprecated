@@ -12,13 +12,14 @@ import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramPacket;
 import io.vertx.core.datagram.DatagramSocket;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @SuppressWarnings("all")
 public final class Transport implements Loggable {
+
+    private static final int ACK_BUFFER = 32;
 
     public record Addr(String serverHost, int port, String key) {
         public String serverHost() {
@@ -40,6 +41,7 @@ public final class Transport implements Loggable {
     private final List<TimestampedState<RemoteState>> receiveStates = new ArrayList<>();
     private final Queue<InstructionPB.Instruction> instQueue = new ConcurrentLinkedDeque<>();
     private final Queue<byte[]> outputQueue = new ConcurrentLinkedDeque<>();
+    private final Map<Long, byte[]> acked = new HashMap<>();
 
     private TransportSender<UserStream> sender;
     private Connection connection;
@@ -135,14 +137,46 @@ public final class Transport implements Loggable {
 
             receiveStates.add(newState);
             sender.setAckNum(newState.num);
+
             byte[] diff = inst.getDiff().toByteArray();
             info("Receive packet newNum = {}, ackNum = {}, diff = {}",
                     inst.getNewNum(), inst.getAckNum(), inst.getDiff().toStringUtf8());
             if (diff != null && diff.length > 0) {
                 sender.setDataAck();
+
+                if (inst.getAckNum() == 2 && acked.containsKey(inst.getAckNum())) {
+                    return;
+                }
+                if (acked.containsKey(inst.getAckNum()) && acked.get(inst.getAckNum()).length >= diff.length){
+                    return;
+                } else if (acked.containsKey(inst.getAckNum()) && acked.get(inst.getAckNum()).length < diff.length) {
+                    diff = subtractDiff(acked.get(inst.getAckNum()), diff);
+                }
+                if (acked.size() >= ACK_BUFFER) {
+                    int cnt = 0;
+                    for (Long ack : acked.keySet()) {
+                        if (cnt == ACK_BUFFER / 2) {
+                            break;
+                        }
+                        acked.remove(ack);
+                        cnt++;
+                    }
+                }
+                acked.put(inst.getAckNum(), diff);
                 outputQueue.offer(diff);
             }
         }
+    }
+
+    private byte[] subtractDiff(byte[] l, byte[] r) {
+//        for (int i = 0; i < l.length; i++) {
+//            if (l[i] != r[i]) {
+//                return new byte[0];
+//            }
+//        }
+        byte[] diff = new byte[r.length - l.length];
+        System.arraycopy(r, l.length, diff, 0, r.length - l.length);
+        return diff;
     }
 
     private void processThrowawayUntil(long throwawayNum) {

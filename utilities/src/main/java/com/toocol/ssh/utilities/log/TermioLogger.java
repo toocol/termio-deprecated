@@ -9,7 +9,8 @@ import java.util.Date;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/6/28 11:52
  */
-public record TermioLogger(Class<?> clazz) implements Logger {
+public record TermioLogger(Class<?> clazz, StringBuilder logBuilder,
+                           SimpleDateFormat simpleDateFormat) implements Logger {
 
     private static final String INFO = "INFO";
     private static final String WARN = "WARN";
@@ -49,15 +50,14 @@ public record TermioLogger(Class<?> clazz) implements Logger {
         skip = false;
     }
 
-    private void log(String message, String level, Object... params) {
-        final StringBuilder logBuilder = new StringBuilder();
+    private synchronized void log(String message, String level, Object... params) {
+        logBuilder.delete(0, logBuilder.length());
         appendTime(logBuilder).append(" ").append(level).append(" ");
         appendClassThreadInfo(logBuilder).append(StrUtil.fullFillParam(message, params)).append("\r\n");
         FileAppender.logFileAppend(logBuilder.toString());
     }
 
     private StringBuilder appendTime(final StringBuilder logBuilder) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return logBuilder.append(simpleDateFormat.format(new Date()));
     }
 

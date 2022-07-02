@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/7/2 0:24
@@ -23,12 +21,13 @@ class TransportFragmentTest {
         long useMem;
         long notMem;
 
+        List<TransportFragment.Fragment> list = new ArrayList<>(100000000);
         long start = System.currentTimeMillis();
         TransportFragment.Pool pool = new TransportFragment.Pool();
         pool.init();
         long sm = runtime.totalMemory() - runtime.freeMemory();
         for (int i = 0; i < loop; i++) {
-            pool.getObject();
+            list.add(pool.getObject());
             pool.recycle();
         }
         long end = System.currentTimeMillis();
@@ -36,8 +35,8 @@ class TransportFragmentTest {
         usePool = end - start;
         useMem = em - sm;
 
+        list.clear();
         start = System.currentTimeMillis();
-        List<TransportFragment.Fragment> list = new ArrayList<>();
         sm = runtime.totalMemory() - runtime.freeMemory();
         for (int i = 0; i < loop; i++) {
             list.add(new TransportFragment.Fragment());
@@ -47,9 +46,9 @@ class TransportFragmentTest {
         notPool = end - start;
         notMem = em - sm;
         System.out.println("usePoll: " + usePool);
-        System.out.println("useMem: " + useMem);
+        System.out.println("useMem: " + useMem/1024/1024);
         System.out.println("notPoll: " + notPool);
-        System.out.println("notMem: " + notMem);
+        System.out.println("notMem: " + notMem/1024/1024);
     }
 
 }

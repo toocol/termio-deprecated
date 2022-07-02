@@ -2,8 +2,9 @@ package com.toocol.ssh.utilities.obj;
 
 import com.toocol.ssh.utilities.log.Loggable;
 
+import javax.annotation.concurrent.NotThreadSafe;
+import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -11,14 +12,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @date: 2022/7/1 22:39
  * @version: 0.0.1
  */
+@NotThreadSafe
 public abstract class AbstractObjectsPool<T> implements Loggable {
 
     private static final short INCREMENT = 5;
 
     protected final AtomicBoolean initOnce = new AtomicBoolean();
 
-    protected final Queue<T> freePool = new ConcurrentLinkedDeque<>();
-    protected final Queue<T> busyPool = new ConcurrentLinkedDeque<>();
+    protected final Queue<T> freePool = new ArrayDeque<>();
+    protected final Queue<T> busyPool = new ArrayDeque<>();
 
     public AbstractObjectsPool() {
     }
