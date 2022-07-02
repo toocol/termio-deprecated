@@ -169,11 +169,6 @@ public final class Transport implements Loggable {
     }
 
     private byte[] subtractDiff(byte[] l, byte[] r) {
-//        for (int i = 0; i < l.length; i++) {
-//            if (l[i] != r[i]) {
-//                return new byte[0];
-//            }
-//        }
         byte[] diff = new byte[r.length - l.length];
         System.arraycopy(r, l.length, diff, 0, r.length - l.length);
         return diff;
