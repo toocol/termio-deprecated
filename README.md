@@ -14,7 +14,7 @@
 
 <div align="center" >
 
-![Purely java project](https://img.shields.io/badge/Language-Java/OracleOpenJDK17-orange) ![License](https://img.shields.io/badge/License-Apache--2.0-red) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux-%2320B2AA) ![Vert.x](https://img.shields.io/badge/Vert.x-4.2.6-%236699CC) ![JSch](https://img.shields.io/badge/JSch-0.1.55-%23CCCCFF)   
+![Purely java project](https://img.shields.io/badge/Language-Java/OracleOpenJDK17-orange) ![License](https://img.shields.io/badge/License-Apache--2.0-red) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux-%2320B2AA) 
 
 </div>
 
@@ -56,4 +56,4 @@
 ```
 
 ## License
-[Apache-2.0](LICENSE) © Joe Zane
+[AGPL-3.0 license](LICENSE) © Joe Zane

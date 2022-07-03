@@ -3,7 +3,6 @@ package com.toocol.ssh.core.shell.core;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.utilities.event.CharEvent;
 import com.toocol.ssh.utilities.utils.CharUtil;
-import com.toocol.ssh.utilities.utils.Tuple2;
 
 import java.nio.charset.StandardCharsets;
 
@@ -19,16 +18,16 @@ public final class ActionBackspace extends ShellCharAction {
 
     @Override
     public boolean act(Shell shell, CharEvent charEvent, char inChar) {
-        Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
-        if (cursorPosition._1() <= shell.prompt.get().length()) {
+        int[] cursorPosition = shell.term.getCursorPosition();
+        if (cursorPosition[0] <= shell.prompt.get().length()) {
             Printer.voice();
             shell.status = Shell.Status.NORMAL;
             return false;
         }
 
-        if (cursorPosition._1() < shell.currentPrint.length() + shell.prompt.get().length()) {
+        if (cursorPosition[0] < shell.currentPrint.length() + shell.prompt.get().length()) {
             // cursor has moved
-            int index = cursorPosition._1() - shell.prompt.get().length() - 1;
+            int index = cursorPosition[0] - shell.prompt.get().length() - 1;
             if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
                 String removal = "\u007F".repeat(shell.remoteCmd.length());
                 shell.remoteCmd.deleteCharAt(index);
@@ -44,7 +43,7 @@ public final class ActionBackspace extends ShellCharAction {
             shell.term.hideCursor();
             Printer.virtualBackspace();
             Printer.print(shell.currentPrint.substring(index, shell.currentPrint.length()) + CharUtil.SPACE);
-            shell.term.setCursorPosition(cursorPosition._1() - 1, cursorPosition._2());
+            shell.term.setCursorPosition(cursorPosition[0] - 1, cursorPosition[1]);
             shell.term.showCursor();
         } else {
             if (localLastInputBuffer.length() > 0) {

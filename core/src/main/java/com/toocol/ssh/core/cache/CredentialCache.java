@@ -4,6 +4,7 @@ import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
+import com.toocol.ssh.utilities.utils.ExitMessage;
 import io.vertx.core.json.JsonArray;
 
 import java.util.*;
@@ -18,16 +19,29 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class CredentialCache {
 
-    private static final Set<SshCredential> CREDENTIAL_SET = new TreeSet<>(Comparator.comparingInt(credential -> -1 * credential.getHost().hashCode()));
-    private static final ReadWriteLock READ_WRITE_LOCK = new ReentrantReadWriteLock();
+    private static CredentialCache instance;
 
-    public static int credentialsSize() {
+    private CredentialCache() {
+
+    }
+
+    public synchronized static CredentialCache getInstance() {
+        if (instance == null) {
+            instance = new CredentialCache();
+        }
+        return instance;
+    }
+
+    private final Set<SshCredential> CREDENTIAL_SET = new TreeSet<>(Comparator.comparingInt(credential -> -1 * credential.getHost().hashCode()));
+    private final ReadWriteLock READ_WRITE_LOCK = new ReentrantReadWriteLock();
+
+    public int credentialsSize() {
         Lock lock = READ_WRITE_LOCK.readLock();
         lock.lock();
         try {
             return CREDENTIAL_SET.size();
         } catch (Exception e) {
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();
@@ -35,13 +49,13 @@ public class CredentialCache {
         return 0;
     }
 
-    public static String getCredentialsJson() {
+    public String getCredentialsJson() {
         Lock lock = READ_WRITE_LOCK.readLock();
         lock.lock();
         try {
             return new JsonArray(new ArrayList<>(CREDENTIAL_SET)).toString();
         } catch (Exception e) {
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();
@@ -49,7 +63,7 @@ public class CredentialCache {
         return null;
     }
 
-    public static void showCredentials() {
+    public void showCredentials() {
         Lock lock = READ_WRITE_LOCK.readLock();
         lock.lock();
         try {
@@ -67,14 +81,14 @@ public class CredentialCache {
                 Printer.println(builder.toString());
             });
         } catch (Exception e) {
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();
         }
     }
 
-    public static SshCredential getCredential(int index) {
+    public SshCredential getCredential(int index) {
         Lock lock = READ_WRITE_LOCK.readLock();
         lock.lock();
         try {
@@ -85,7 +99,7 @@ public class CredentialCache {
                 }
             }
         } catch (Exception e) {
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();
@@ -93,13 +107,31 @@ public class CredentialCache {
         return null;
     }
 
-    public static boolean containsCredential(SshCredential credential) {
+    public SshCredential getCredential(String host) {
+        Lock lock = READ_WRITE_LOCK.readLock();
+        lock.lock();
+        try {
+            for (SshCredential sshCredential : CREDENTIAL_SET) {
+                if (sshCredential.getHost().equals(host)) {
+                    return sshCredential;
+                }
+            }
+        } catch (Exception e) {
+            ExitMessage.setMsg("Credential operation error.");
+            System.exit(-1);
+        } finally {
+            lock.unlock();
+        }
+        return null;
+    }
+
+    public boolean containsCredential(SshCredential credential) {
         Lock lock = READ_WRITE_LOCK.readLock();
         lock.lock();
         try {
             return CREDENTIAL_SET.contains(credential);
         } catch (Exception e) {
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();
@@ -107,20 +139,20 @@ public class CredentialCache {
         return false;
     }
 
-    public static void addCredential(SshCredential credential) {
+    public void addCredential(SshCredential credential) {
         Lock lock = READ_WRITE_LOCK.writeLock();
         lock.lock();
         try {
             CREDENTIAL_SET.add(credential);
         } catch (Exception e) {
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();
         }
     }
 
-    public static String deleteCredential(int index) {
+    public String deleteCredential(int index) {
         Lock lock = READ_WRITE_LOCK.writeLock();
         lock.lock();
         try {
@@ -136,7 +168,7 @@ public class CredentialCache {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Printer.println("System devastating error.");
+            ExitMessage.setMsg("Credential operation error.");
             System.exit(-1);
         } finally {
             lock.unlock();

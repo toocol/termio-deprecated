@@ -8,7 +8,7 @@ import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.anis.ColorHelper;
-import com.toocol.ssh.utilities.handler.AbstractMessageHandler;
+import com.toocol.ssh.utilities.handler.NonBlockingMessageHandler;
 import com.toocol.ssh.utilities.utils.CharUtil;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import io.vertx.core.Context;
@@ -25,12 +25,13 @@ import static com.toocol.ssh.core.term.TermAddress.TERMINAL_ECHO;
  * @date: 2022/4/23 2:59
  * @version: 0.0.1
  */
-public final class DynamicEchoHandler extends AbstractMessageHandler {
+public final class DynamicEchoHandler extends NonBlockingMessageHandler {
 
     private static final Map<String, TermioCommand> COMMANDS = TermioCommand.COMMANDS;
 
     volatile public static String lastInput = StrUtil.EMPTY;
 
+    private final CredentialCache credentialCache = CredentialCache.getInstance();
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final Term term = Term.getInstance();
 
@@ -39,7 +40,7 @@ public final class DynamicEchoHandler extends AbstractMessageHandler {
     }
 
     @Override
-    public <T> void handle(Message<T> message) {
+    public <T> void handleInline(Message<T> message) {
         String cmd = cast(message.body());
         int backgroundColor = Term.theme.displayBackGroundColor;
         int commandHighlightColor = Term.theme.commandHighlightColor;
@@ -61,7 +62,7 @@ public final class DynamicEchoHandler extends AbstractMessageHandler {
                 SshCredential credential = null;
                 try {
                     index = Integer.parseInt(finalCmd);
-                    credential = CredentialCache.getCredential(index);
+                    credential = credentialCache.getCredential(index);
                 } catch (Exception e) {
                     // exceed Integer range
                 }

@@ -6,7 +6,7 @@ import com.toocol.ssh.core.shell.core.CmdFeedbackHelper;
 import com.toocol.ssh.core.shell.core.ExecChannelProvider;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -23,7 +23,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND;
  * @date: 2022/4/10 17:57
  * @version: 0.0.1
  */
-public final class BlockingExecuteSingleCmdHandler extends AbstractBlockingMessageHandler<String> {
+public final class BlockingExecuteSingleCmdHandler extends BlockingMessageHandler<String> {
 
     private final ShellCache shellCache = ShellCache.getInstance();
     private final ExecChannelProvider execChannelProvider = ExecChannelProvider.getInstance();
@@ -38,7 +38,7 @@ public final class BlockingExecuteSingleCmdHandler extends AbstractBlockingMessa
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<String> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<String> promise, Message<T> message) throws Exception {
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String cmd = request.getString("cmd");
@@ -63,7 +63,7 @@ public final class BlockingExecuteSingleCmdHandler extends AbstractBlockingMessa
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
         if (asyncResult.succeeded()) {
             message.reply(asyncResult.result());
         } else {

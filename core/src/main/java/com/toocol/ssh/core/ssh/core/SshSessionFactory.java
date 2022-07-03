@@ -4,13 +4,11 @@ import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.toocol.ssh.core.auth.core.SshCredential;
-import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.SshUserInfo;
-import com.toocol.ssh.utilities.utils.ICastable;
+import com.toocol.ssh.utilities.log.Loggable;
+import com.toocol.ssh.utilities.utils.Castable;
 import com.toocol.ssh.utilities.utils.SnowflakeGuidGenerator;
-import io.vertx.core.eventbus.EventBus;
 
 import java.util.Properties;
 
@@ -19,7 +17,7 @@ import java.util.Properties;
  * @date: 2022/4/23 20:54
  * @version: 0.0.1
  */
-public final class SshSessionFactory implements ICastable {
+public final class SshSessionFactory implements Castable, Loggable {
 
     private static final SshSessionFactory FACTORY = new SshSessionFactory();
 
@@ -31,11 +29,11 @@ public final class SshSessionFactory implements ICastable {
 
     }
 
-    private final SnowflakeGuidGenerator guidGenerator = new SnowflakeGuidGenerator();
+    private final SnowflakeGuidGenerator guidGenerator = SnowflakeGuidGenerator.getInstance();
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final JSch jSch = new JSch();
 
-    public long createSession(SshCredential credential, EventBus eventBus) throws Exception {
+    public long createSession(SshCredential credential) throws Exception {
         long sessionId;
         Session session = jSch.getSession(credential.getUser(), credential.getHost(), credential.getPort());
         session.setPassword(credential.getPassword());
@@ -53,10 +51,12 @@ public final class SshSessionFactory implements ICastable {
         channelShell.setPtyType("xterm");
         channelShell.connect();
         sshSessionCache.putChannelShell(sessionId, channelShell);
+        info("Establish ssh session, sessionId = {}, host = {}, user = {}",
+                sessionId, credential.getHost(), credential.getUser());
         return sessionId;
     }
 
-    public long invokeSession(long sessionId, SshCredential credential, EventBus eventBus) throws Exception{
+    public long invokeSession(long sessionId, SshCredential credential) throws Exception {
         boolean reopenChannelShell = false;
         Session session = sshSessionCache.getSession(sessionId);
         if (!session.isConnected()) {
@@ -76,6 +76,11 @@ public final class SshSessionFactory implements ICastable {
                 sshSessionCache.putSession(sessionId, session);
             }
             reopenChannelShell = true;
+            warn("Invoke ssh session failed, re-establish ssh session, sessionId = {}, host = {}, user = {}",
+                    sessionId, credential.getHost(), credential.getUser());
+        } else {
+            info("Multiplexing ssh session, sessionId = {}, host = {}, user = {}",
+                    sessionId, credential.getHost(), credential.getUser());
         }
 
         ChannelShell channelShell = sshSessionCache.getChannelShell(sessionId);

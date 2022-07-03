@@ -1,20 +1,15 @@
 package com.toocol.ssh.core.term.handlers;
 
-import com.toocol.ssh.core.cache.StatusCache;
-import com.toocol.ssh.core.term.commands.TermioCommand;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
-import com.toocol.ssh.core.term.core.TermPrinter;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.anis.AnisStringBuilder;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
-import com.toocol.ssh.utilities.utils.StrUtil;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
+import com.toocol.ssh.utilities.status.StatusCache;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,7 +21,7 @@ import static com.toocol.ssh.core.term.TermAddress.EXECUTE_OUTSIDE;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:11
  */
-public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageHandler<Boolean> {
+public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<Boolean> {
 
     private final Term term = Term.getInstance();
 
@@ -45,7 +40,7 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<Boolean> promise, Message<T> message) {
+    protected <T> void handleBlocking(Promise<Boolean> promise, Message<T> message) {
         try {
             int signal = cast(message.body());
             if (signal == NORMAL_BACK || signal == FIRST_IN || signal == CONNECT_FAILED) {
@@ -55,7 +50,7 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
 
             term.printExecuteBackground();
             if (signal == CONNECT_FAILED) {
-                term.printDisplay(new AnisStringBuilder().background(Term.theme.displayBackGroundColor).append("lost connection.").toString());
+                term.printErr("lost connection.");
             }
             term.showCursor();
             while (true) {
@@ -90,7 +85,7 @@ public final class BlockingAcceptCommandHandler extends AbstractBlockingMessageH
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<Boolean> asyncResult, Message<T> message) {
+    protected <T> void resultBlocking(AsyncResult<Boolean> asyncResult, Message<T> message) {
         if (asyncResult.result()) {
             eventBus.send(ACCEPT_COMMAND.address(), ACCEPT_ERROR);
         }

@@ -15,7 +15,7 @@ public final class ActionLeftRightArrow extends ShellCharAction {
 
     @Override
     public boolean act(Shell shell, CharEvent charEvent, char inChar) {
-        int cursorX = shell.term.getCursorPosition()._1();
+        int cursorX = shell.term.getCursorPosition()[0];
         if (inChar == CharUtil.LEFT_ARROW) {
             if (cursorX > shell.prompt.get().length()) {
                 shell.term.cursorLeft();

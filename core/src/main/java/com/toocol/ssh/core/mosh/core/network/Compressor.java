@@ -1,10 +1,7 @@
 package com.toocol.ssh.core.mosh.core.network;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
@@ -17,6 +14,24 @@ public final class Compressor {
 
     private static Compressor compressor;
 
+    /**
+     * When we send packet to mosh-server and receive packet from mosh-server, we have to set the nowrap to false.
+     */
+    public enum Mode {
+        WRAP(true, true),
+        NO_WRAP(false, false)
+        ;
+        private final boolean compressNowrap;
+        private final boolean decompressNowrap;
+
+        Mode(boolean compressNowrap, boolean decompressNowrap) {
+            this.compressNowrap = compressNowrap;
+            this.decompressNowrap = decompressNowrap;
+        }
+    }
+
+    private static Mode mode = Mode.NO_WRAP;
+
     static synchronized Compressor get() {
         if (compressor == null) {
             compressor = new Compressor();
@@ -28,14 +43,13 @@ public final class Compressor {
 
     }
 
-    public String compressStr(String input) {
-        if (StringUtils.isEmpty(input)) {
-            return input;
+    public byte[] compress(byte[] bytes) {
+        if (bytes == null || bytes.length == 0) {
+            return new byte[0];
         }
-        byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
         byte[] output;
 
-        Deflater compressor = new Deflater();
+        Deflater compressor = new Deflater(Deflater.DEFAULT_COMPRESSION, mode.compressNowrap);
         compressor.reset();
         compressor.setInput(bytes);
         compressor.finish();
@@ -60,17 +74,13 @@ public final class Compressor {
         }
 
         compressor.end();
-        return new String(output, StandardCharsets.UTF_8);
+        return output;
     }
 
-    public String uncompressStr(String input) {
-        if (StringUtils.isEmpty(input)) {
-            return input;
-        }
+    public byte[] decompress(byte[] data) {
         byte[] output;
-        byte[] data = input.getBytes(StandardCharsets.UTF_8);
 
-        Inflater decompressor = new Inflater();
+        Inflater decompressor = new Inflater(mode.decompressNowrap);
         decompressor.reset();
         decompressor.setInput(data);
 
@@ -94,7 +104,15 @@ public final class Compressor {
         }
 
         decompressor.end();
-        return new String(output, StandardCharsets.UTF_8);
+        return output;
+    }
+
+    public static void wrap() {
+        mode = Mode.WRAP;
+    }
+
+    public static void noWrap() {
+        mode = Mode.NO_WRAP;
     }
 
 }

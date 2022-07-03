@@ -2,6 +2,7 @@ package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.core.term.handlers.DynamicEchoHandler;
 import com.toocol.ssh.utilities.utils.CharUtil;
+import com.toocol.ssh.utilities.utils.ExitMessage;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,7 +16,7 @@ public record TermReader(Term term) {
 
     @SuppressWarnings("all")
     String readLine() {
-        term.executeCursorOldX.set(term.getCursorPosition()._1());
+        term.executeCursorOldX.set(term.getCursorPosition()[0]);
         try {
             while (true) {
                 char inChar = (char) term.reader.readCharacter();
@@ -39,7 +40,7 @@ public record TermReader(Term term) {
             }
 
         } catch (Exception e) {
-            Printer.println("\nSomething error.");
+            ExitMessage.setMsg("Term reader error.");
             System.exit(-1);
         }
         return null;

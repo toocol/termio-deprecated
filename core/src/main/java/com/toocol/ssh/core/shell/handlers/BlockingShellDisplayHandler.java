@@ -3,11 +3,11 @@ package com.toocol.ssh.core.shell.handlers;
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -25,7 +25,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
  * @date 2022/3/31 15:44
  */
 @SuppressWarnings("all")
-public final class BlockingShellDisplayHandler extends AbstractBlockingMessageHandler<Long> {
+public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Long> {
 
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();
@@ -44,13 +44,13 @@ public final class BlockingShellDisplayHandler extends AbstractBlockingMessageHa
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<Long> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         long sessionId = cast(message.body());
 
         Shell shell = shellCache.getShell(sessionId);
 
-        if (shell.getWelcome() != null && StatusCache.SHOW_WELCOME) {
-            Printer.print(shell.getWelcome());
+        if (shell.hasWelcome() && StatusCache.SHOW_WELCOME) {
+            shell.printWelcome();
             StatusCache.SHOW_WELCOME = false;
         }
 
@@ -127,7 +127,7 @@ public final class BlockingShellDisplayHandler extends AbstractBlockingMessageHa
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
             StatusCache.JUST_CLOSE_EXHIBIT_SHELL = false;
             cmdHasFeedbackWhenJustExit = false;

@@ -1,11 +1,11 @@
 package com.toocol.ssh.core.shell.handlers;
 
 import com.toocol.ssh.core.cache.ShellCache;
-import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.core.shell.core.CmdFeedbackHelper;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import io.vertx.core.AsyncResult;
@@ -26,7 +26,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND_IN_C
  * @date: 2022/4/10 22:45
  * @version: 0.0.1
  */
-public final class BlockingExecuteCmdInShellHandler extends AbstractBlockingMessageHandler<String> {
+public final class BlockingExecuteCmdInShellHandler extends BlockingMessageHandler<String> {
 
     private final ShellCache shellCache = ShellCache.getInstance();
 
@@ -40,7 +40,7 @@ public final class BlockingExecuteCmdInShellHandler extends AbstractBlockingMess
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<String> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<String> promise, Message<T> message) throws Exception {
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String cmd = request.getString("cmd");
@@ -68,7 +68,7 @@ public final class BlockingExecuteCmdInShellHandler extends AbstractBlockingMess
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
         if (asyncResult.succeeded()) {
             message.reply(asyncResult.result());
         } else {

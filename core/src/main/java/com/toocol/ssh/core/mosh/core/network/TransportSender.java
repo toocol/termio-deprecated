@@ -2,53 +2,181 @@ package com.toocol.ssh.core.mosh.core.network;
 
 import com.google.protobuf.ByteString;
 import com.toocol.ssh.core.mosh.core.crypto.Crypto;
+import com.toocol.ssh.core.mosh.core.crypto.Prng;
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
+import com.toocol.ssh.core.mosh.core.statesnyc.State;
+import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
+import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.Timestamp;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
 
 /**
  * transportsender.h/transportsender-impl.h
- * <p>
- * TODO: See: transportsender-impl.h :: 153
- * TODO: See: transportsender-impl.h :: 239
- * TODO: See: transportsender-impl.h :: 320
  *
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/5/8 21:33
  * @version: 0.0.1
  */
-public final class TransportSender {
+public final class TransportSender<MyState extends State<MyState>> implements Loggable {
 
-    private long ackNum;
+    private final MyState currentState;
+    private final List<TimestampedState<MyState>> sentStates = new ArrayList<>();
+    private final TransportFragment.Pool sendPool = new TransportFragment.Pool();
+    private final TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter(sendPool);
+    private final InstructionPB.Instruction.Builder builder = InstructionPB.Instruction.newBuilder();
+    private final Connection connection;
+
+    private TimestampedState<MyState> assumedReceiverState;
+
+    /* timing state */
+    private long nextAckTime;
+    private long nextSendTime;
+
+    private int verbose;
     private int shutdownTries;
+    private long shutdownStart;
 
-    private final List<TimestampedState> sentStatesType = new ArrayList<>();
-    private final TransportFragment.Fragmenter fragmenter = new TransportFragment.Fragmenter();
+    /* information about receiver state */
+    private volatile long ackNum;
+    private volatile boolean pendingDataAck;
 
-    private TimestampedState assumedReceiverState;
+    /* ms to collect all input */
+    private int sendMinDelay;
+    private long lastHeard;
 
-    public TransportSender() {
+    private long minDelayClock;
 
+    public TransportSender(MyState initialState, Connection connection) {
+        this.currentState = initialState.copy();
+        this.sentStates.add(new TimestampedState<>(Timestamp.timestamp(), 0, initialState.copy()));
+        this.assumedReceiverState = sentStates.get(0);
+        this.nextAckTime = Timestamp.timestamp();
+        this.nextSendTime = Timestamp.timestamp();
+        this.verbose = 0;
+        this.shutdownTries = 0;
+        this.shutdownStart = -1;
+        this.ackNum = 0;
+        this.pendingDataAck = false;
+        this.sendMinDelay = 8;
+        this.lastHeard = 0;
+        this.minDelayClock = -1;
+        this.connection = connection;
+        this.sendPool.init();
     }
 
-    private void sendEmptyAck() {
+    public synchronized void pushBackEvent(UserEvent userEvent) {
+        currentState.pushBack(userEvent);
+    }
+
+    public synchronized void tick() {
+        calculateTimers();
+
         long now = Timestamp.timestamp();
+        if (now < nextAckTime && now < nextSendTime) {
+            return;
+        }
+
+        byte[] diff = currentState.diffFrom(assumedReceiverState.state);
+
+        if (diff == null || diff.length == 0) {
+            if (now >= nextAckTime) {
+                sendEmptyAck();
+                minDelayClock = -1;
+            }
+            if (now >= nextSendTime) {
+                nextSendTime = -1;
+                minDelayClock = -1;
+            }
+        } else {
+            sendToReceiver(diff);
+            minDelayClock = -1;
+        }
     }
 
-    private void sendInFragments(String diff, long newNum) {
-        InstructionPB.Instruction.Builder builder = InstructionPB.Instruction.newBuilder();
+    public void sendToReceiver(byte[] diff) {
+        minDelayClock = -1;
+        long newNum;
+        TimestampedState<MyState> back = sentStates.get(sentStates.size() - 1);
+        if (currentState.equals(back.state)) {
+            newNum = back.num;
+        } else {
+            newNum = back.num + 1;
+        }
+
+        if (newNum == back.num) {
+            back.timestamp = Timestamp.timestamp();
+        } else {
+            addSentState(Timestamp.timestamp(), newNum, currentState);
+        }
+
+        sendInFragments(diff, newNum);
+
+        assumedReceiverState = sentStates.get(sentStates.size() - 1);
+        nextAckTime = Timestamp.timestamp() + ACK_INTERVAL;
+        nextSendTime = -1;
+    }
+
+    public void sendEmptyAck() {
+        long now = Timestamp.timestamp();
+
+        assert now >= nextAckTime;
+
+        long new_num = sentStates.get(sentStates.size() - 1).num + 1;
+
+        addSentState(now, new_num, currentState);
+        sendInFragments(new byte[0], new_num);
+
+        nextAckTime = now + ACK_INTERVAL;
+        nextSendTime = -1;
+    }
+
+    public void processAcknowledgmentThrough(long ackNum) {
+        Iterator<TimestampedState<MyState>> iterator = sentStates.iterator();
+        TimestampedState<MyState> i;
+        boolean find = false;
+        while (iterator.hasNext()) {
+             i = iterator.next();
+             if (i.num == ackNum) {
+                 find = true;
+                 break;
+             }
+        }
+
+        if (find) {
+            iterator = sentStates.iterator();
+            while (iterator.hasNext()) {
+                i = iterator.next();
+                if (i.num < ackNum) {
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
+    private void addSentState(long theTimestamp, long num, MyState state) {
+        sentStates.add(new TimestampedState<>(theTimestamp, num, state.copy()));
+        if (sentStates.size() > 32) {
+            ListIterator<TimestampedState<MyState>> iterator = sentStates.listIterator(sentStates.size());
+            for (int i = 0; i < 15; i++) {
+                if (iterator.hasPrevious()) {
+                    iterator.previous();
+                }
+            }
+            iterator.remove();
+        }
+    }
+
+    private void sendInFragments(byte[] diff, long newNum) {
         builder.setProtocolVersion(MOSH_PROTOCOL_VERSION);
         builder.setOldNum(assumedReceiverState.num);
         builder.setNewNum(newNum);
         builder.setAckNum(ackNum);
-        builder.setThrowawayNum(sentStatesType.get(0).num);
-        builder.setDiff(ByteString.copyFromUtf8(diff));
-        builder.setChaff(ByteString.copyFromUtf8(makeChaff()));
+        builder.setThrowawayNum(sentStates.get(0).num);
+        builder.setDiff(ByteString.copyFrom(diff));
+        builder.setChaff(ByteString.copyFrom(makeChaff()));
         InstructionPB.Instruction inst = builder.build();
 
         if (newNum == -1) {
@@ -58,41 +186,85 @@ public final class TransportSender {
         Queue<TransportFragment.Fragment> fragments = fragmenter.makeFragments(inst,
                 DEFAULT_SEND_MTU - MoshPacket.ADDED_BYTES - Crypto.Session.ADDED_BYTES);
         while (!fragments.isEmpty()) {
+
             TransportFragment.Fragment fragment = fragments.poll();
+            connection.send(fragment.toBytes());
+            sendPool.recycle();
+
         }
+
+        pendingDataAck = false;
+    }
+
+    private byte[] makeChaff() {
+        int chaffMax = 16;
+        int chaffLen = Prng.uint8() % (chaffMax + 1);
+
+        byte[] chaff = new byte[chaffLen];
+        Prng.fill(chaff, chaffLen);
+        return chaff;
     }
 
     private void calculateTimers() {
         long now = Timestamp.timestamp();
 
         updateAssumedReceiverState();
+
+        rationalizeStates();
+
+        if (pendingDataAck && (nextAckTime > now + ACK_DELAY)) {
+            nextAckTime = now + ACK_DELAY;
+        }
+
+        if (!currentState.equals(sentStates.get(sentStates.size() - 1).state)) {
+            if (minDelayClock == -1) {
+                minDelayClock = now;
+            }
+
+            nextSendTime = Math.max(minDelayClock + sendMinDelay,
+                    sentStates.get(sentStates.size()- 1).timestamp + sendInterval());
+        } else if (!currentState.equals(assumedReceiverState.state)
+                && lastHeard + ACTIVE_RETRY_TIMEOUT > now) {
+            nextSendTime = sentStates.get(sentStates.size()- 1).timestamp + sendInterval();
+            if (minDelayClock != -1) {
+                nextSendTime = Math.max(nextSendTime, minDelayClock + sendMinDelay);
+            }
+        } else if (!currentState.equals(sentStates.get(0).state)
+                && lastHeard + ACTIVE_RETRY_TIMEOUT > now) {
+            nextSendTime = sentStates.get(sentStates.size()- 1).timestamp + connection.timeout() + ACK_DELAY;
+        } else {
+            nextSendTime = -1;
+        }
     }
 
     private void updateAssumedReceiverState() {
         long now = Timestamp.timestamp();
 
-        assumedReceiverState = sentStatesType.get(0);
+        assumedReceiverState = sentStates.get(sentStates.size() - 1);
 
-        TimestampedState state = sentStatesType.get(1);
-        if (state == null) {
-            return;
+        for (int i = 1; i < sentStates.size(); i++) {
+            TimestampedState<MyState> state = sentStates.get(i);
+            if (state == null) {
+                return;
+            }
+            assert now >= state.timestamp;
+            if (now - state.timestamp < connection.timeout() + ACK_DELAY) {
+                assumedReceiverState = state;
+            } else {
+                return;
+            }
         }
-        if (now - state.timestamp < timeout() + ACK_DELAY) {
-            assumedReceiverState = state;
-        }
+
     }
 
     private void rationalizeStates() {
+        MyState knownReceiverState = sentStates.get(0).state;
+        currentState.subtract(knownReceiverState);
 
-    }
-
-    private String makeChaff() {
-        int chaffMax = 16;
-        int chaffLen = PRNG.uint8() % (chaffMax + 1);
-
-        byte[] chaff = new byte[chaffMax];
-        PRNG.fill(chaff, chaffLen);
-        return new String(chaff, 0, chaffLen);
+        ListIterator<TimestampedState<MyState>> iterator = sentStates.listIterator(sentStates.size());
+        while (iterator.hasPrevious()) {
+            iterator.previous().state.subtract(knownReceiverState);
+        }
     }
 
     private int sendInterval() {
@@ -105,13 +277,27 @@ public final class TransportSender {
         return sendInterval;
     }
 
-    private long timeout() {
-        long rto = (long) Math.ceil(SRIT + 4 * RTTVAR);
-        if (rto < MIN_RTO) {
-            rto = MIN_RTO;
-        } else if (rto > MAX_RTO) {
-            rto = MAX_RTO;
-        }
-        return rto;
+    public MyState getCurrentState() {
+        return currentState;
+    }
+
+    public MyState getLastSentStates() {
+        return sentStates.get(sentStates.size() - 1).state;
+    }
+
+    public Connection getConnection() {
+        return connection;
+    }
+
+    public void setSendDelay(int sendMinDelay) {
+        this.sendMinDelay = sendMinDelay;
+    }
+
+    public void setAckNum(long ackNum) {
+        this.ackNum = ackNum;
+    }
+
+    public void setDataAck() {
+        this.pendingDataAck = true;
     }
 }

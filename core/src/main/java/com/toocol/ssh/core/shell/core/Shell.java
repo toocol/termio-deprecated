@@ -1,18 +1,20 @@
 package com.toocol.ssh.core.shell.core;
 
 import com.jcraft.jsch.ChannelShell;
+import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.mosh.core.MoshSession;
+import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
 import com.toocol.ssh.core.term.core.EscapeHelper;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.action.AbstractDevice;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.utils.CmdUtil;
+import com.toocol.ssh.utilities.utils.ExitMessage;
 import com.toocol.ssh.utilities.utils.StrUtil;
-import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import jline.console.ConsoleReader;
@@ -40,11 +42,12 @@ public final class Shell extends AbstractDevice {
     static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#])");
 
     private ConsoleReader reader;
+
     {
         try {
             reader = new ConsoleReader(System.in, null, null);
         } catch (Exception e) {
-            Printer.println("\nCreate console reader failed.");
+            ExitMessage.setMsg("Create console reader failed.");
             System.exit(-1);
         }
     }
@@ -92,13 +95,15 @@ public final class Shell extends AbstractDevice {
     volatile StringBuffer lastRemoteCmd = new StringBuffer();
     volatile StringBuffer lastExecuteCmd = new StringBuffer();
     volatile Status status = Status.NORMAL;
+    volatile ShellProtocol protocol;
 
     final Set<String> tabFeedbackRec = new HashSet<>();
 
     final StringBuilder cmd = new StringBuilder();
     volatile AtomicReference<String> prompt = new AtomicReference<>();
     volatile AtomicReference<String> fullPath = new AtomicReference<>();
-    volatile String welcome = null;
+    volatile String sshWelcome = null;
+    volatile String moshWelcome = null;
     volatile String user = null;
     volatile String bottomLinePrint = StrUtil.EMPTY;
 
@@ -126,6 +131,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public void resetIO(ShellProtocol protocol) {
+        this.protocol = protocol;
         try {
             switch (protocol) {
                 case SSH -> {
@@ -138,7 +144,7 @@ public final class Shell extends AbstractDevice {
                 }
             }
         } catch (Exception e) {
-            Printer.printErr("Reset IO failed: " + e.getMessage());
+            ExitMessage.setMsg("Reset IO failed: " + e.getMessage());
             System.exit(-1);
         }
     }
@@ -251,11 +257,51 @@ public final class Shell extends AbstractDevice {
         user = preprocess.split("@")[0];
     }
 
+    public void resize(int width, int height, long sessionId) {
+        switch (protocol) {
+            case SSH -> {
+                ChannelShell channelShell = SshSessionCache.getInstance().getChannelShell(sessionId);
+                channelShell.setPtySize(width, height, width, height);
+            }
+            case MOSH -> {
+                MoshSession moshSession = MoshSessionCache.getInstance().get(sessionId);
+                moshSession.resize(new UserEvent.Resize(width, height));
+            }
+        }
+    }
+
+    public boolean hasWelcome() {
+        boolean flag = false;
+        switch (protocol) {
+            case SSH ->  flag = sshWelcome != null;
+            case MOSH -> flag = moshWelcome != null;
+        }
+        return flag;
+    }
+
+    public void printWelcome() {
+        switch (protocol) {
+            case SSH -> Printer.print(sshWelcome);
+            case MOSH -> Printer.print(moshWelcome);
+        }
+    }
+
+    public void printAfterEstablish() {
+        Printer.clear();
+        if (StatusCache.HANGED_ENTER) {
+            Printer.println("Invoke hanged session.");
+        } else {
+            Printer.println("Session established.");
+        }
+        Printer.println("Use protocol " + protocol.name() + ".\n");
+    }
+
     @SuppressWarnings("all")
     public void initialFirstCorrespondence(ShellProtocol protocol) {
         if (initOnce) {
             return;
         }
+        this.protocol = protocol;
         try {
             CountDownLatch mainLatch = new CountDownLatch(2);
 
@@ -312,7 +358,11 @@ public final class Shell extends AbstractDevice {
                                 returnWrite = true;
                                 break;
                             } else {
-                                welcome = inputStr;
+                                if (this.protocol.equals(ShellProtocol.SSH)) {
+                                    sshWelcome = inputStr;
+                                } else if (this.protocol.equals(ShellProtocol.MOSH)) {
+                                    moshWelcome = inputStr;
+                                }
                                 returnWrite = true;
                                 break;
                             }
@@ -404,9 +454,9 @@ public final class Shell extends AbstractDevice {
 
     public void clearShellLineWithPrompt() {
         int promptLen = prompt.get().length();
-        Tuple2<Integer, Integer> position = term.getCursorPosition();
-        int cursorX = position._1();
-        int cursorY = position._2();
+        int[] position = term.getCursorPosition();
+        int cursorX = position[0];
+        int cursorY = position[1];
         term.hideCursor();
         term.setCursorPosition(promptLen, cursorY);
         Printer.print(" ".repeat(cursorX - promptLen));
@@ -447,8 +497,8 @@ public final class Shell extends AbstractDevice {
         return status;
     }
 
-    public String getWelcome() {
-        return StringUtils.isEmpty(welcome) ? null : welcome;
+    public String getSshWelcome() {
+        return StringUtils.isEmpty(sshWelcome) ? null : sshWelcome;
     }
 
     public String getPrompt() {
@@ -491,7 +541,19 @@ public final class Shell extends AbstractDevice {
         this.fullPath.set(fullPath);
     }
 
+    public ChannelShell getChannelShell() {
+        return channelShell;
+    }
+
+    public void setChannelShell(ChannelShell channelShell) {
+        this.channelShell = channelShell;
+    }
+
     public InputStream getInputStream() {
         return inputStream;
+    }
+
+    public ShellProtocol getProtocol() {
+        return this.protocol;
     }
 }

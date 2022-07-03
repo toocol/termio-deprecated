@@ -1,19 +1,19 @@
 package com.toocol.ssh.core.shell.handlers;
 
 import com.toocol.ssh.core.cache.ShellCache;
-import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
-import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
-import com.toocol.ssh.utilities.utils.StrUtil;
-import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.core.TermStatus;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
+import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
+import com.toocol.ssh.utilities.utils.StrUtil;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -34,7 +34,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 15:25
  */
-public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHandler<Long> {
+public final class BlockingShellReceiveHandler extends BlockingMessageHandler<Long> {
 
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();
@@ -49,15 +49,15 @@ public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHa
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<Long> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = true;
 
         long sessionId = cast(message.body());
         Shell shell = shellCache.getShell(sessionId);
 
-        shell.writeAndFlush("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
-
         try {
+            shell.writeAndFlush("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
+
             while (true) {
                 String cmdRead = shell.readCmd();
                 if (cmdRead == null) {
@@ -167,16 +167,17 @@ public final class BlockingShellReceiveHandler extends AbstractBlockingMessageHa
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = false;
         Term.status = TermStatus.TERMIO;
 
         long sessionId = asyncResult.result();
-        if (sessionId == -1) {
+        if (StatusCache.HANGED_QUIT) {
             // hang up the session
-            StatusCache.HANGED_QUIT = true;
+            info("Hang up session, sessionId = {}", sessionId);
         } else {
-            sshSessionCache.stop(sessionId);
+            shellCache.stop(sessionId);
+            info("Destroy session, sessionId = {}", sessionId);
         }
 
         eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.NORMAL_BACK);

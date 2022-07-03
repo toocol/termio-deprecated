@@ -13,6 +13,9 @@ import static com.toocol.ssh.core.mosh.MoshAddress.ESTABLISH_MOSH_SESSION;
  * @date 2022/4/27 16:19
  */
 public class MoshCmdProcessor extends TermioCommandProcessor {
+
+    private final CredentialCache credentialCache = CredentialCache.getInstance();
+
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         String[] split = cmd.trim().replaceAll(" {2,}", " ").split(" ");
@@ -38,8 +41,8 @@ public class MoshCmdProcessor extends TermioCommandProcessor {
             resultAndMsg.first(false).second("The input number must > 0.");
             return;
         }
-        if (idx > CredentialCache.credentialsSize()) {
-            resultAndMsg.first(false).second("The input number exceeds stored credentials' size, max number should be " + CredentialCache.credentialsSize() + ".");
+        if (idx > credentialCache.credentialsSize()) {
+            resultAndMsg.first(false).second("The input number exceeds stored credentials' size, max number should be " + credentialCache.credentialsSize() + ".");
             return;
         }
 

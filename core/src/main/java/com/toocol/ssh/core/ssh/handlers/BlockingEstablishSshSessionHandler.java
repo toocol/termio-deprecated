@@ -1,26 +1,30 @@
 package com.toocol.ssh.core.ssh.handlers;
 
-import com.toocol.ssh.core.cache.ShellCache;
-import com.toocol.ssh.core.shell.core.Shell;
-import com.toocol.ssh.core.shell.core.ShellProtocol;
-import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
+import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.core.TermStatus;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
-import io.vertx.core.*;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
+import com.toocol.ssh.utilities.status.StatusCache;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
 import java.util.Optional;
 
-import static com.toocol.ssh.core.shell.ShellAddress.*;
+import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
+import static com.toocol.ssh.core.shell.ShellAddress.RECEIVE_SHELL;
 import static com.toocol.ssh.core.ssh.SshAddress.ESTABLISH_SSH_SESSION;
 import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
 
@@ -28,8 +32,9 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMessageHandler<Long> {
+public final class BlockingEstablishSshSessionHandler extends BlockingMessageHandler<Long> {
 
+    private final CredentialCache credentialCache = CredentialCache.getInstance();
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();
     private final SshSessionFactory factory = SshSessionFactory.factory();
@@ -44,9 +49,9 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMe
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<Long> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         int index = cast(message.body());
-        SshCredential credential = CredentialCache.getCredential(index);
+        SshCredential credential = credentialCache.getCredential(index);
         assert credential != null;
 
         try {
@@ -54,7 +59,7 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMe
 
             if (sessionId == 0) {
                 StatusCache.HANGED_ENTER = false;
-                sessionId = factory.createSession(credential, eventBus);
+                sessionId = factory.createSession(credential);
 
                 Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
                 shell.setUser(credential.getUser());
@@ -62,7 +67,7 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMe
                 shellCache.putShell(sessionId, shell);
             } else {
                 StatusCache.HANGED_ENTER = true;
-                long newSessionId = factory.invokeSession(sessionId, credential, eventBus);
+                long newSessionId = factory.invokeSession(sessionId, credential);
 
                 if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
                     Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
@@ -70,11 +75,15 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMe
                     shell.initialFirstCorrespondence(ShellProtocol.SSH);
                     shellCache.putShell(sessionId, shell);
                 } else {
-                    shellCache.getShell(newSessionId).resetIO(ShellProtocol.SSH);
+                    Shell shell = shellCache.getShell(newSessionId);
+                    if (shell.getChannelShell() == null) {
+                        /* If the connection is established through Mosh, it needs to be set the ChannelShell*/
+                        shell.setChannelShell(sshSessionCache.getChannelShell(sessionId));
+                    }
+                    shell.resetIO(ShellProtocol.SSH);
                 }
                 sessionId = newSessionId;
             }
-
 
             Optional.ofNullable(sshSessionCache.getChannelShell(sessionId)).ifPresent(channelShell -> {
                 int width = Term.getInstance().getWidth();
@@ -96,18 +105,11 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMe
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         Long sessionId = asyncResult.result();
         if (sessionId != null) {
 
-            Printer.clear();
-
-            if (StatusCache.HANGED_ENTER) {
-                Printer.println("Invoke hanged session.\n");
-            } else {
-                Printer.println("Session established.\n");
-            }
-
+            shellCache.getShell(sessionId).printAfterEstablish();
             StatusCache.SHOW_WELCOME = true;
 
             BlockingMonitorTerminalHandler.sessionId = sessionId;
@@ -117,6 +119,7 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingMe
 
         } else {
 
+            warn("Establish ssh connection failed.");
             eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
 
         }

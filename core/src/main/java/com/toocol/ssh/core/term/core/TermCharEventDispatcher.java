@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.toocol.ssh.utilities.event.CharEvent;
 import com.toocol.ssh.utilities.utils.CastUtil;
 import com.toocol.ssh.utilities.utils.ClassScanner;
+import com.toocol.ssh.utilities.utils.ExitMessage;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
@@ -35,7 +36,7 @@ public final class TermCharEventDispatcher {
                             map.put(event, charAction);
                         }
                     } catch (Exception e) {
-                        Printer.printErr("Register char event action failed.");
+                        ExitMessage.setMsg("Register char event action failed.");
                         System.exit(-1);
                     }
                 });

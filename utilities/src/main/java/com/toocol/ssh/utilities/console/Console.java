@@ -44,4 +44,6 @@ public abstract class Console {
 
     public abstract void cursorRight();
 
+    public abstract String processAnisControl(String msg);
+
 }

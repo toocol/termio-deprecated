@@ -3,9 +3,8 @@ package com.toocol.ssh.core.shell.handlers;
 import com.jcraft.jsch.ChannelSftp;
 import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.utils.FileNameUtil;
-import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.shell.core.SftpChannelProvider;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.term.core.Printer;
@@ -25,7 +24,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_UF_COMMAND;
  * @date: 2022/4/9 16:38
  * @version: 0.0.1
  */
-public final class BlockingUfHandler extends AbstractBlockingMessageHandler<Void> {
+public final class BlockingUfHandler extends BlockingMessageHandler<Void> {
 
     private final SftpChannelProvider sftpChannelProvider = SftpChannelProvider.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();
@@ -40,7 +39,7 @@ public final class BlockingUfHandler extends AbstractBlockingMessageHandler<Void
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<Void> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<Void> promise, Message<T> message) throws Exception {
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String remotePath = request.getString("remotePath");
@@ -79,7 +78,7 @@ public final class BlockingUfHandler extends AbstractBlockingMessageHandler<Void
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
 
     }
 }

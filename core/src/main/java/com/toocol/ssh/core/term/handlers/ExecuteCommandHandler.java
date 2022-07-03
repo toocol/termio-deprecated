@@ -6,7 +6,7 @@ import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.core.TermPrinter;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
-import com.toocol.ssh.utilities.handler.AbstractMessageHandler;
+import com.toocol.ssh.utilities.handler.NonBlockingMessageHandler;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.Context;
@@ -23,7 +23,7 @@ import static com.toocol.ssh.core.term.TermAddress.EXECUTE_OUTSIDE;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:09
  */
-public final class ExecuteCommandHandler extends AbstractMessageHandler {
+public final class ExecuteCommandHandler extends NonBlockingMessageHandler {
 
     public ExecuteCommandHandler(Vertx vertx, Context context) {
         super(vertx, context);
@@ -37,7 +37,7 @@ public final class ExecuteCommandHandler extends AbstractMessageHandler {
     }
 
     @Override
-    public <T> void handle(Message<T> message) {
+    public <T> void handleInline(Message<T> message) {
         String cmd = String.valueOf(message.body());
 
         Tuple2<Boolean, String> resultAndMessage = new Tuple2<>();
@@ -46,7 +46,8 @@ public final class ExecuteCommandHandler extends AbstractMessageHandler {
                 .map(termioCommand -> {
                     try {
                         termioCommand.processCmd(eventBus, cmd, resultAndMessage);
-                        if (TermioCommand.CMD_NUMBER.equals(termioCommand) && StringUtils.isEmpty(resultAndMessage._2())) {
+                        if ((TermioCommand.CMD_NUMBER.equals(termioCommand) || TermioCommand.CMD_MOSH.equals(termioCommand))
+                                && StringUtils.isEmpty(resultAndMessage._2())) {
                             isBreak.set(true);
                         }
                     } catch (Exception e) {

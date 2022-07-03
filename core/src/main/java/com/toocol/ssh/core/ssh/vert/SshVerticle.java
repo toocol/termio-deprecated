@@ -17,7 +17,7 @@ import io.vertx.core.AbstractVerticle;
         BlockingActiveSshSessionHandler.class,
         BlockingEstablishSshSessionHandler.class,
 })
-public class SshVerticle extends AbstractVerticle implements IHandlerMounter {
+public final class SshVerticle extends AbstractVerticle implements IHandlerMounter {
 
     @Override
     public void start() throws Exception {

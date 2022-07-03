@@ -3,10 +3,11 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-credentials.tsh
-starter/credentials.tsh
+.credentials
+starter/.credentials
 starter/.vertx/
 starter/arthas-output
+*.log
 
 ### STS ###
 .apt_generated

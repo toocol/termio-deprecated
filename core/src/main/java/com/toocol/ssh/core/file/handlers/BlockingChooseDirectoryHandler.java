@@ -1,9 +1,12 @@
 package com.toocol.ssh.core.file.handlers;
 
-import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
 import com.toocol.ssh.core.file.core.DirectoryChooser;
-import io.vertx.core.*;
+import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
 import static com.toocol.ssh.core.file.FileAddress.CHOOSE_DIRECTORY;
@@ -12,7 +15,7 @@ import static com.toocol.ssh.core.file.FileAddress.CHOOSE_DIRECTORY;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/16 16:19
  */
-public final class BlockingChooseDirectoryHandler extends AbstractBlockingMessageHandler<String> {
+public final class BlockingChooseDirectoryHandler extends BlockingMessageHandler<String> {
 
     public BlockingChooseDirectoryHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -24,12 +27,12 @@ public final class BlockingChooseDirectoryHandler extends AbstractBlockingMessag
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<String> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<String> promise, Message<T> message) throws Exception {
         promise.complete(new DirectoryChooser().showOpenDialog());
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
         message.reply(asyncResult.result());
     }
 }

@@ -1,7 +1,8 @@
 package com.toocol.ssh.utilities.handler;
 
 import com.toocol.ssh.utilities.annotation.RegisterHandler;
-import com.toocol.ssh.utilities.utils.ICastable;
+import com.toocol.ssh.utilities.utils.ExitMessage;
+import com.toocol.ssh.utilities.utils.Castable;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 
@@ -12,7 +13,7 @@ import java.util.Arrays;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:02
  */
-public interface IHandlerMounter extends ICastable {
+public interface IHandlerMounter extends Castable {
     /**
      * assemble the handler to the eventBus
      *
@@ -33,25 +34,24 @@ public interface IHandlerMounter extends ICastable {
         Arrays.stream(registerHandler.handlers()).forEach(handlerClass -> {
             try {
 
-                if (handlerClass.getSuperclass().equals(AbstractMessageHandler.class)) {
+                if (handlerClass.getSuperclass().equals(NonBlockingMessageHandler.class)) {
 
-                    Constructor<? extends AbstractMessageHandler> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, Context.class));
+                    Constructor<? extends NonBlockingMessageHandler> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, Context.class));
                     declaredConstructor.setAccessible(true);
                     AbstractMessageHandler commandHandler = declaredConstructor.newInstance(vertx, context);
                     vertx.eventBus().consumer(commandHandler.consume().address(), commandHandler::handle);
 
-                } else if (handlerClass.getSuperclass().equals(AbstractBlockingMessageHandler.class)) {
+                } else if (handlerClass.getSuperclass().equals(BlockingMessageHandler.class)) {
 
-                    Constructor<? extends AbstractBlockingMessageHandler<?>> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, Context.class, boolean.class));
+                    Constructor<? extends BlockingMessageHandler<?>> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, Context.class, boolean.class));
                     declaredConstructor.setAccessible(true);
-                    AbstractBlockingMessageHandler<?> commandHandler = declaredConstructor.newInstance(vertx, context, parallel);
+                    BlockingMessageHandler<?> commandHandler = declaredConstructor.newInstance(vertx, context, parallel);
                     vertx.eventBus().consumer(commandHandler.consume().address(), commandHandler::handle);
 
                 }
 
             } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("Assemble handler failed, message = " + e.getMessage());
+                ExitMessage.setMsg("Assemble handler failed, message = " + e.getMessage());
                 System.exit(-1);
             }
         });

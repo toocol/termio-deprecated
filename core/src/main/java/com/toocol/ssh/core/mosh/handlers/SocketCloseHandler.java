@@ -3,7 +3,7 @@ package com.toocol.ssh.core.mosh.handlers;
 import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractMessageHandler;
+import com.toocol.ssh.utilities.handler.NonBlockingMessageHandler;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
@@ -17,7 +17,7 @@ import static com.toocol.ssh.core.mosh.MoshAddress.CLOSE_LOCAL_SOCKET;
  * @date: 2022/4/30 20:18
  * @version: 0.0.1
  */
-public final class SocketCloseHandler extends AbstractMessageHandler {
+public final class SocketCloseHandler extends NonBlockingMessageHandler {
 
     private final MoshSessionCache moshSessionCache = MoshSessionCache.getInstance();
 
@@ -26,7 +26,7 @@ public final class SocketCloseHandler extends AbstractMessageHandler {
     }
 
     @Override
-    public <T> void handle(Message<T> message) {
+    public <T> void handleInline(Message<T> message) {
         Optional.ofNullable(moshSessionCache.get(cast(message.body())))
                 .ifPresent(MoshSession::close);
     }

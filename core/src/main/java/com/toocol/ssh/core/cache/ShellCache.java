@@ -42,7 +42,13 @@ public class ShellCache {
     }
 
     public void stop(long sessionId) {
-        shellMap.computeIfPresent(sessionId, (k, v) -> null);
+        shellMap.computeIfPresent(sessionId, (k, v) -> {
+            switch (v.getProtocol()) {
+                case SSH -> SshSessionCache.getInstance().stop(sessionId);
+                case MOSH -> MoshSessionCache.getInstance().stop(sessionId);
+            }
+            return null;
+        });
     }
 
 }

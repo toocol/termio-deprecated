@@ -14,7 +14,7 @@ import io.vertx.core.AbstractVerticle;
 @RegisterHandler(handlers = {
         BlockingEstablishMoshSessionHandler.class
 })
-public class MoshVerticle extends AbstractVerticle implements IHandlerMounter {
+public final class MoshVerticle extends AbstractVerticle implements IHandlerMounter {
     @Override
     public void start() throws Exception {
         mountHandler(vertx, context);

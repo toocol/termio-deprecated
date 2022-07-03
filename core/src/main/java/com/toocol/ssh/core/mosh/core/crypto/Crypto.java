@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
 import com.toocol.ssh.utilities.execeptions.CryptoException;
+import com.toocol.ssh.utilities.utils.ExitMessage;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -24,28 +25,55 @@ public final class Crypto {
             System.arraycopy(ByteOrder.htoBe64(directionSeq), 0, this.bytes, 4, 8);
         }
 
+        public Nonce(byte[] bytes, int len) {
+            if (len != 8) {
+                throw new CryptoException("Nonce representation must be 8 octets long.");
+            }
+
+            System.arraycopy(bytes, 0, this.bytes, 4, 8);
+        }
+
+        public long val() {
+            byte[] longBytes = new byte[8];
+            System.arraycopy(this.bytes, 4, longBytes, 0, 8);
+            return ByteOrder.be64toh(longBytes);
+        }
+
         public byte[] data() {
             return bytes;
         }
 
-        public String ccStr() {
+        public byte[] ccBytes() {
             byte[] cc = new byte[8];
             System.arraycopy(bytes, 4, cc, 0, 8);
-            return new String(cc);
+            return cc;
         }
     }
 
     public static class Message {
-        public final Nonce nonce;
-        public final String text;
+        public Nonce nonce;
+        public byte[] text;
 
-        public Message(Nonce nonce, String text) {
+        public Message() {
+        }
+
+        public Message(Nonce nonce, byte[] text) {
             this.nonce = nonce;
             this.text = text;
         }
 
-        public byte[] data() {
-            return text.getBytes(StandardCharsets.UTF_8);
+        public Message resetData(Nonce nonce, byte[] text) {
+            this.nonce = nonce;
+            this.text = text;
+            return this;
+        }
+
+        public short getTimestamp() {
+            return ByteOrder.be16toh(new byte[]{text[0], text[1]});
+        }
+
+        public short getTimestampReply() {
+            return ByteOrder.be16toh(new byte[]{text[2], text[3]});
         }
     }
 
@@ -94,7 +122,6 @@ public final class Crypto {
         public static final int RECEIVE_MTU = 2048;
         public static final int ADDED_BYTES = 16;
 
-        Base64Key key;
         AeOcb.AeCtx ctx;
         long blocksEncrypted;
 
@@ -103,7 +130,6 @@ public final class Crypto {
         AlignedBuffer nonceBuffer;
 
         public Session(Base64Key key) {
-            this.key = key;
             this.blocksEncrypted = 0;
             this.plaintextBuffer = new AlignedBuffer(RECEIVE_MTU);
             this.ciphertextBuffer = new AlignedBuffer(RECEIVE_MTU);
@@ -116,13 +142,13 @@ public final class Crypto {
         }
 
         public byte[] encrypt(Message plainText) {
-            int ptLen = plainText.data().length;
+            int ptLen = plainText.text.length;
             int ciphertextLen = ptLen + 16;
 
             assert ciphertextLen * 2 <= ciphertextBuffer.len;
             assert ptLen * 2 <= plaintextBuffer.len;
 
-            System.arraycopy(plainText.data(), 0, plaintextBuffer.data, 0, plainText.data().length);
+            System.arraycopy(plainText.text, 0, plaintextBuffer.data, 0, plainText.text.length);
             System.arraycopy(plainText.nonce.data(), 0, nonceBuffer.data, 0, Nonce.NONCE_LEN);
 
             if (ciphertextLen != AeOcb.aeEncrypt(
@@ -151,17 +177,59 @@ public final class Crypto {
             String text = new String(
                     ciphertextBuffer.data,
                     0,
-                    ciphertextLen
+                    ciphertextLen,
+                    StandardCharsets.UTF_8
             );
 
-            return (plainText.nonce.ccStr() + text).getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = new byte[8 + ciphertextLen];
+            System.arraycopy(plainText.nonce.ccBytes(), 0, bytes, 0, 8);
+            System.arraycopy(ciphertextBuffer.data, 0, bytes, 8, ciphertextLen);
+
+            return bytes;
+        }
+
+        public Message decrypt(byte[] str, int len, Message message) {
+            if (len < 24) {
+                throw new CryptoException("Ciphertext must contain nonce and tag.");
+            }
+
+            int bodyLen = len - 8;
+            int ptLen = bodyLen - 16;
+
+            if (ptLen < 0) {
+                ExitMessage.setMsg("Mosh error, invalid message length.");
+                System.exit(-1);
+            }
+
+            assert bodyLen <= ciphertextBuffer.len;
+            assert ptLen <= plaintextBuffer.len;
+
+            Nonce nonce = new Nonce(str, 8);
+            System.arraycopy(str, 8, ciphertextBuffer.data, 0, bodyLen);
+            System.arraycopy(nonce.data(), 0, nonceBuffer.data, 0, Nonce.NONCE_LEN);
+
+            if (ptLen != AeOcb.aeDecrypt(ctx, /* ctx */
+                    nonceBuffer.data,      /* nonce */
+                    ciphertextBuffer.data, /* ct */
+                    bodyLen,               /* ct_len */
+                    null,                  /* ad */
+                    0,                     /* ad_len */
+                    plaintextBuffer.data,  /* pt */
+                    null,                  /* tag */
+                    1)) {                  /* final */
+                throw new CryptoException("Packet failed integrity check.");
+            }
+
+            byte[] text = new byte[ptLen];
+            System.arraycopy(plaintextBuffer.data, 0, text, 0, ptLen);
+            return message.resetData(nonce, text);
         }
     }
 
     private static long counter = 0;
 
     public synchronized static long unique() {
-        return ++counter;
+        return counter++;
     }
 
 }

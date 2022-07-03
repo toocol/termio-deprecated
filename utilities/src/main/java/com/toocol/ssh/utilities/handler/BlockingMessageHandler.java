@@ -1,5 +1,6 @@
 package com.toocol.ssh.utilities.handler;
 
+import com.toocol.ssh.utilities.utils.ExitMessage;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -10,13 +11,13 @@ import io.vertx.core.eventbus.Message;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 10:46
  */
-public abstract class AbstractBlockingMessageHandler<R> extends AbstractMessageHandler {
+public abstract class BlockingMessageHandler<R> extends AbstractMessageHandler {
     /**
      * whether the handler is handle parallel
      */
     private final boolean parallel;
 
-    public AbstractBlockingMessageHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingMessageHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context);
         this.parallel = parallel;
     }
@@ -31,18 +32,20 @@ public abstract class AbstractBlockingMessageHandler<R> extends AbstractMessageH
         context.executeBlocking(
                 promise -> {
                     try {
-                        handleWithinBlocking(cast(promise), message);
+                        handleBlocking(cast(promise), message);
                     } catch (Exception e) {
-                        System.out.println("Caught exception, exit program. class=" + this.getClass().getName() + " ,message=" + e.getMessage());
+                        ExitMessage.setMsg("Caught exception, exit program, message = " + e.getMessage());
+                        error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e));
                         System.exit(-1);
                     }
                 },
                 !parallel,
                 asyncResult -> {
                     try {
-                        resultWithinBlocking(cast(asyncResult), message);
+                        resultBlocking(cast(asyncResult), message);
                     } catch (Exception e) {
-                        System.out.println("Caught exception, exit program. class=" + this.getClass().getName() + " ,message=" + e.getMessage());
+                        ExitMessage.setMsg("Caught exception, exit program, message = " + e.getMessage());
+                        error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e));
                         System.exit(-1);
                     }
                 }
@@ -57,7 +60,7 @@ public abstract class AbstractBlockingMessageHandler<R> extends AbstractMessageH
      * @param <T>     generic type
      * @throws Exception exception
      */
-    protected abstract <T> void handleWithinBlocking(Promise<R> promise, Message<T> message) throws Exception;
+    protected abstract <T> void handleBlocking(Promise<R> promise, Message<T> message) throws Exception;
 
     /**
      * response the blocked process result
@@ -67,5 +70,5 @@ public abstract class AbstractBlockingMessageHandler<R> extends AbstractMessageH
      * @param <T>         generic type
      * @throws Exception exception
      */
-    protected abstract <T> void resultWithinBlocking(AsyncResult<R> asyncResult, Message<T> message) throws Exception;
+    protected abstract <T> void resultBlocking(AsyncResult<R> asyncResult, Message<T> message) throws Exception;
 }

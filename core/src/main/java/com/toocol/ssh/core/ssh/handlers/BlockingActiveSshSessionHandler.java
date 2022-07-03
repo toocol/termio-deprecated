@@ -10,7 +10,7 @@ import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.handler.AbstractBlockingMessageHandler;
+import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -29,16 +29,18 @@ import static com.toocol.ssh.core.ssh.SshAddress.ACTIVE_SSH_SESSION;
  * @date: 2022/4/23 20:49
  * @version: 0.0.1
  */
-public final class BlockingActiveSshSessionHandler extends AbstractBlockingMessageHandler<JsonObject> {
+public final class BlockingActiveSshSessionHandler extends BlockingMessageHandler<JsonObject> {
+
     private final ShellCache shellCache = ShellCache.getInstance();
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final SshSessionFactory factory = SshSessionFactory.factory();
+
     public BlockingActiveSshSessionHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 
     @Override
-    protected <T> void handleWithinBlocking(Promise<JsonObject> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<JsonObject> promise, Message<T> message) throws Exception {
         int index = cast(message.body());
         SshCredential credential = CredentialCache.getCredential(index);
         assert credential != null;
@@ -92,7 +94,7 @@ public final class BlockingActiveSshSessionHandler extends AbstractBlockingMessa
     }
 
     @Override
-    protected <T> void resultWithinBlocking(AsyncResult<JsonObject> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<JsonObject> asyncResult, Message<T> message) throws Exception {
         if (asyncResult.succeeded()) {
             message.reply(true);
         } else {

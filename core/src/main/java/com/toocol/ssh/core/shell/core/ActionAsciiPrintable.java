@@ -4,7 +4,6 @@ import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.utilities.event.CharEvent;
 import com.toocol.ssh.utilities.utils.ASCIIStrCache;
 import com.toocol.ssh.utilities.utils.CharUtil;
-import com.toocol.ssh.utilities.utils.Tuple2;
 
 import java.nio.charset.StandardCharsets;
 
@@ -26,10 +25,10 @@ public final class ActionAsciiPrintable extends ShellCharAction {
         if (inChar == CharUtil.SPACE && shell.currentPrint.length() == 0) {
             return false;
         }
-        Tuple2<Integer, Integer> cursorPosition = shell.term.getCursorPosition();
-        if (cursorPosition._1() < shell.currentPrint.length() + shell.prompt.get().length()) {
+        int[] cursorPosition = shell.term.getCursorPosition();
+        if (cursorPosition[0] < shell.currentPrint.length() + shell.prompt.get().length()) {
             // cursor has moved
-            int index = cursorPosition._1() - shell.prompt.get().length();
+            int index = cursorPosition[0] - shell.prompt.get().length();
             if (index == 0 && inChar == CharUtil.SPACE) {
                 return false;
             }
@@ -47,7 +46,7 @@ public final class ActionAsciiPrintable extends ShellCharAction {
             shell.currentPrint.insert(index, inChar);
             shell.term.hideCursor();
             Printer.print(shell.currentPrint.substring(index, shell.currentPrint.length()));
-            shell.term.setCursorPosition(cursorPosition._1() + 1, cursorPosition._2());
+            shell.term.setCursorPosition(cursorPosition[0] + 1, cursorPosition[1]);
             shell.term.showCursor();
         } else {
             // normal print

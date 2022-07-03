@@ -2,7 +2,6 @@ package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.utilities.event.CharEvent;
 import com.toocol.ssh.utilities.utils.StrUtil;
-import com.toocol.ssh.utilities.utils.Tuple2;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -16,9 +15,9 @@ public final class ActionCRLF extends TermCharAction {
 
     @Override
     public boolean act(Term term, CharEvent charEvent, char inChar) {
-        Tuple2<Integer, Integer> cursorPosition = term.getCursorPosition();
+        int[] cursorPosition = term.getCursorPosition();
         term.hideCursor();
-        term.setCursorPosition(Term.getPromptLen(), cursorPosition._2());
+        term.setCursorPosition(Term.getPromptLen(), cursorPosition[1]);
         term.showCursor();
         term.historyCmdHelper.push(term.lineBuilder.toString());
 

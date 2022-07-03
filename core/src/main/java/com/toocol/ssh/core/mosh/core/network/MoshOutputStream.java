@@ -1,67 +1,62 @@
 package com.toocol.ssh.core.mosh.core.network;
 
-import com.toocol.ssh.utilities.utils.Timestamp;
-import com.toocol.ssh.core.mosh.core.crypto.Crypto;
+import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.term.core.Printer;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.datagram.DatagramPacket;
-import io.vertx.core.datagram.DatagramSocket;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.Queue;
 
 /**
- * Equivalent to network.h/network.cc/
- *
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/28 22:17
  * @version: 0.0.1
  */
+@SuppressWarnings("all")
 public final class MoshOutputStream extends PipedOutputStream {
 
     private static final int DEFAULT_BUFF_SIZE = 1024 * 10;
 
-    @SuppressWarnings("all")
-    public static class Transport {
-        public final String serverHost;
-        public final int port;
-        public final String key;
-
-        public Transport(String serverHost, int port, String key) {
-            this.serverHost = serverHost;
-            this.port = port;
-            this.key = key;
-        }
-    }
-
-    final DatagramSocket socket;
-    final Transport transport;
-    final TransportSender transportSender;
-    final Crypto.Session session;
     final byte[] buff = new byte[DEFAULT_BUFF_SIZE];
 
     private int curlen = 0;
+    private final Transport transport;
+    private volatile boolean close = false;
 
-    private short savedTimestamp;
-    private long savedTimestampReceivedAt;
-    private long expectedReceiverSeq;
-
-    private long lastHeard;
-    private long lastPortChoice;
-    private long lastRoundtripSuccess;
-
-    public MoshOutputStream(PipedInputStream in, DatagramSocket socket, Transport transport) throws IOException {
+    public MoshOutputStream(PipedInputStream in, Transport transport) throws IOException {
         super(in);
-        this.socket = socket;
         this.transport = transport;
-        this.transportSender = new TransportSender();
-        this.session = new Crypto.Session(new Crypto.Base64Key(transport.key));
     }
 
-    public void sendPacket() {
+    public void waitReading() {
+        Queue<byte[]> queue = this.transport.getOutputQueue();
+        new Thread(() -> {
+            while (true) {
+                try {
+                    if (close) {
+                        return;
+                    }
+                    while (!queue.isEmpty()) {
+                        if (close) {
+                            return;
+                        }
+                        byte[] bytes = queue.poll();
+                        if (bytes != null) {
+                            this.write(bytes, 0, bytes.length);
+                            super.flush();
+                        }
+                    }
+                    Thread.sleep(1);
+                } catch (Exception e) {
+                    Printer.printErr(e.getMessage());
+                }
+            }
+        }).start();
+    }
+
+    public void pushBackUserBytesEvent() {
         if (curlen == 0) {
             return;
         }
@@ -69,18 +64,7 @@ public final class MoshOutputStream extends PipedOutputStream {
         System.arraycopy(buff, 0, cutOff, 0, curlen);
         curlen = 0;
 
-        MoshPacket packet = newPacket(cutOff);
-        socket.send(Buffer.buffer(session.encrypt(packet.toMessage())), transport.port, transport.serverHost);
-    }
-
-    public void receivePacket(DatagramPacket datagramPacket) {
-        try {
-            byte[] bytes = datagramPacket.data().getBytes();
-            this.write(bytes, 0, bytes.length);
-            super.flush();
-        } catch (IOException e) {
-            Printer.printErr(e.getMessage());
-        }
+        transport.pushBackEvent(new UserEvent.UserBytes(cutOff));
     }
 
     @Override
@@ -97,7 +81,7 @@ public final class MoshOutputStream extends PipedOutputStream {
     @Override
     public synchronized void flush() throws IOException {
         try {
-            sendPacket();
+            pushBackUserBytesEvent();
         } catch (Exception e) {
             throw new IOException("Send packet failed");
         }
@@ -106,27 +90,7 @@ public final class MoshOutputStream extends PipedOutputStream {
     @Override
     public void close() throws IOException {
         super.close();
-        this.socket.close();
-    }
-
-
-    private MoshPacket newPacket(byte[] bytes) {
-        short outgoingTimestampReply = -1;
-
-        long now = Timestamp.timestamp();
-
-        if (now - savedTimestampReceivedAt < 1000) {
-            outgoingTimestampReply = (short) (savedTimestamp + (short) (now - savedTimestampReceivedAt));
-            savedTimestamp = -1;
-            savedTimestampReceivedAt = -1;
-        }
-
-        return new MoshPacket(
-                new String(bytes, StandardCharsets.UTF_8),
-                MoshPacket.Direction.TO_SERVER,
-                Timestamp.timestamp16(),
-                outgoingTimestampReply
-        );
+        this.close = true;
     }
 
 }

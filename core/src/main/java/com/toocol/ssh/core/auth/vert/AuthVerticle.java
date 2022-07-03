@@ -5,7 +5,7 @@ import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.auth.handlers.AddCredentialHandler;
 import com.toocol.ssh.core.auth.handlers.DeleteCredentialHandler;
 import com.toocol.ssh.core.cache.CredentialCache;
-import com.toocol.ssh.core.cache.StatusCache;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.annotation.RegisterHandler;
 import com.toocol.ssh.utilities.annotation.VerticleDeployment;
 import com.toocol.ssh.utilities.handler.IHandlerMounter;
@@ -30,9 +30,11 @@ import static com.toocol.ssh.core.file.FileAddress.READ_FILE;
 })
 public final class AuthVerticle extends AbstractVerticle implements IHandlerMounter {
 
+    private final CredentialCache credentialCache = CredentialCache.getInstance();
+
     @Override
     public void start() throws Exception {
-        String filePath = FileUtil.relativeToFixed("./credentials.tsh");
+        String filePath = FileUtil.relativeToFixed("./.credentials");
 
         mountHandler(vertx, context);
 
@@ -48,7 +50,7 @@ public final class AuthVerticle extends AbstractVerticle implements IHandlerMoun
 
                     if (sshCredentialsStr == null) {
                         ExitMessage.setMsg("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
-                                ", and try to delete unsafe credentials.tsh at program's home folder.");
+                                ", and try to delete unsafe .credentials at program's home folder.");
                         System.exit(-1);
                     }
                 }
@@ -58,14 +60,14 @@ public final class AuthVerticle extends AbstractVerticle implements IHandlerMoun
                     sshCredentials = StringUtils.isEmpty(sshCredentialsStr) ? new JsonArray() : new JsonArray(sshCredentialsStr);
                 } catch (Exception e) {
                     ExitMessage.setMsg("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
-                            ", and try to delete unsafe credentials.tsh at program's home folder.");
+                            ", and try to delete unsafe .credentials at program's home folder.");
                     System.exit(-1);
                 }
 
                 sshCredentials.forEach(o -> {
                     JsonObject credentialJsonObj = cast(o);
                     SshCredential sshCredential = SshCredential.transFromJson(credentialJsonObj);
-                    CredentialCache.addCredential(sshCredential);
+                    credentialCache.addCredential(sshCredential);
                 });
 
                 StatusCache.LOADING_ACCOMPLISH = true;
