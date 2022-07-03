@@ -7,18 +7,14 @@ import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
-import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
-import com.toocol.ssh.utilities.status.StatusCache;
-import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
-import io.vertx.core.json.JsonObject;
 
 import java.util.Optional;
 
@@ -59,7 +55,7 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
                 shell.initialFirstCorrespondence(ShellProtocol.SSH);
                 shellCache.putShell(sessionId, shell);
             } else {
-              long newSessionId = factory.invokeSession(sessionId, credential);
+                long newSessionId = factory.invokeSession(sessionId, credential);
 
                 if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
                     Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
@@ -80,9 +76,9 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
 
             System.gc();
             if (sessionId > 0) {
-                promise.complete(credential.getHost() + "@" + credential.getUser());
+                promise.complete("Active session success, " + credential.getHost() + "@" + credential.getUser());
             } else {
-                promise.fail(credential.getHost() + "@" + credential.getUser());
+                promise.fail("Active session failed, " + credential.getHost() + "@" + credential.getUser());
             }
         } catch (Exception e) {
             promise.complete(null);
@@ -94,7 +90,7 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
         if (asyncResult.succeeded()) {
             Term term = Term.getInstance();
             term.printScene(false);
-            term.printDisplay("Active session " + asyncResult.result() + " success.");
+            term.printDisplay(asyncResult.result());
             message.reply(true);
         } else {
             message.reply(false);

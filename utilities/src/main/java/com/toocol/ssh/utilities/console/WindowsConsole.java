@@ -4,6 +4,8 @@ import com.toocol.ssh.utilities.jni.TermioJNI;
 import com.toocol.ssh.utilities.utils.AnisControl;
 import com.toocol.ssh.utilities.utils.StrUtil;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/24 11:47
@@ -81,28 +83,50 @@ public final class WindowsConsole extends Console {
 
     @Override
     public String processAnisControl(String msg) {
-        if (msg.startsWith("\n\u0004:\u0002@") && msg.length() == 6) {
+        if ((msg.startsWith("\n\u0004:\u0002@") && msg.length() == 6)
+                || (msg.startsWith("\u0004:\u0002@") && msg.length() == 5)) {
             return StrUtil.EMPTY;
         }
-        if (msg.contains("\u001B[K")) {
-            return msg;
-        }
-        msg = msg.replaceAll("�\\u0001\\u0012�\\u0001\"�\\u0001", StrUtil.EMPTY);
-        msg = msg.replaceAll("�\\u0003\\u0012�\\u0003\"�\\u0003", StrUtil.EMPTY);
-        msg = msg.replaceAll("�\\u0004\\u0012�\\u0004\"�\\u0004", StrUtil.EMPTY);
-        msg = msg.replaceAll("�\b\\u0012�\b\"�\b", StrUtil.EMPTY);
+
         StringBuilder builder = new StringBuilder();
         String[] split = msg.split(StrUtil.CRLF);
+        if (split.length <= 1) {
+            split = msg.split(StrUtil.LF);
+        }
+        if (split.length <= 1) {
+            split = msg.split(StrUtil.CR);
+        }
         for (int i = 0; i < split.length; i++) {
             String sp = split[i];
             if (!sp.contains(AnisControl.DEVICE_CONTROL)) {
                 builder.append(sp);
-            }  else continue;
+            } else {
+                if (sp.contains(AnisControl.ESCAPE)) {
+                    builder.append(sp.substring(sp.indexOf(AnisControl.ESCAPE)));
+                } else continue;
+            }
 
             if (i != split.length - 1) {
                 builder.append(StrUtil.CRLF);
             }
         }
         return builder.toString();
+    }
+
+    @Override
+    public byte[] cleanUnsupportedCharacter(byte[] bytes) {
+        String msg = new String(bytes, StandardCharsets.UTF_8);
+        msg = msg.replaceAll("\\u001A\\u0005\\(�\\u000102", AnisControl.DEVICE_CONTROL);
+        msg = msg.replaceAll("�\\b\\u0012�\\b\"�\\b", AnisControl.DEVICE_CONTROL);
+        msg = msg.replaceAll("\\u0012Z\"X", AnisControl.DEVICE_CONTROL);
+        msg = msg.replaceAll(";\\u00129\"7ls\\u001B", AnisControl.DEVICE_CONTROL);
+        for (int i = 0; i < 32; i++) {
+            String regex = "\\u000" + i + "\\u0012";
+            msg = msg.replaceAll(regex, AnisControl.DEVICE_CONTROL);
+
+            regex = "�\\u000" + i + "\\u0012�\\u000" + i + "\"�\\u000" + i;
+            msg = msg.replaceAll(regex, AnisControl.DEVICE_CONTROL);
+        }
+        return msg.getBytes(StandardCharsets.UTF_8);
     }
 }

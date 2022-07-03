@@ -46,4 +46,6 @@ public abstract class Console {
 
     public abstract String processAnisControl(String msg);
 
+    public abstract byte[] cleanUnsupportedCharacter(byte[] bytes);
+
 }

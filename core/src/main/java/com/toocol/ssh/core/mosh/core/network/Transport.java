@@ -6,6 +6,7 @@ import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserStream;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.annotation.DiffThread;
+import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.execeptions.NetworkException;
 import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.Timestamp;
@@ -13,12 +14,15 @@ import io.vertx.core.datagram.DatagramPacket;
 import io.vertx.core.datagram.DatagramSocket;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @SuppressWarnings("all")
 public final class Transport implements Loggable {
 
     private static final int ACK_BUFFER = 32;
+
+    private static final Console CONSOLE = Console.get();
 
     public record Addr(String serverHost, int port, String key) {
         public String serverHost() {
@@ -40,7 +44,7 @@ public final class Transport implements Loggable {
     private final List<TimestampedState<RemoteState>> receiveStates = new ArrayList<>();
     private final Queue<InstructionPB.Instruction> instQueue = new ConcurrentLinkedDeque<>();
     private final Queue<byte[]> outputQueue = new ConcurrentLinkedDeque<>();
-    private final Map<Long, byte[]> acked = new HashMap<>();
+    private final Map<Long, byte[]> acked = new ConcurrentHashMap<>();
 
     private TransportSender<UserStream> sender;
     private Connection connection;
@@ -143,10 +147,12 @@ public final class Transport implements Loggable {
             if (diff != null && diff.length > 0) {
                 sender.setDataAck();
 
+                diff = CONSOLE.cleanUnsupportedCharacter(diff);
+
                 if (inst.getAckNum() == 2 && acked.containsKey(inst.getAckNum())) {
                     return;
                 }
-                if (acked.containsKey(inst.getAckNum()) && acked.get(inst.getAckNum()).length >= diff.length){
+                if (acked.containsKey(inst.getAckNum()) && acked.get(inst.getAckNum()).length >= diff.length) {
                     return;
                 } else if (acked.containsKey(inst.getAckNum()) && acked.get(inst.getAckNum()).length < diff.length) {
                     diff = subtractDiff(acked.get(inst.getAckNum()), diff);

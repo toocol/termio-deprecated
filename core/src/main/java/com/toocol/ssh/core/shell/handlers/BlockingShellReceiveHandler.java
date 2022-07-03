@@ -130,9 +130,11 @@ public final class BlockingShellReceiveHandler extends BlockingMessageHandler<Lo
                     JsonObject request = new JsonObject();
                     request.put("sessionId", sessionId);
                     request.put("cmd", " pwd");
+                    request.put("prefix", "/");
                     eventBus.request(EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL.address(), request, result -> {
                         shell.setFullPath(cast(result.result().body()));
                         latch.countDown();
+                        info("Current full path: {}", shell.getFullPath());
                     });
                 } else {
                     latch.countDown();

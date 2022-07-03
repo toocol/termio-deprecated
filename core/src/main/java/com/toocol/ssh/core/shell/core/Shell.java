@@ -10,6 +10,7 @@ import com.toocol.ssh.core.term.core.EscapeHelper;
 import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.action.AbstractDevice;
+import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.utils.CmdUtil;
@@ -40,6 +41,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
 public final class Shell extends AbstractDevice {
 
     static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#])");
+    static final Console CONSOLE = Console.get();
 
     private ConsoleReader reader;
 
@@ -361,6 +363,7 @@ public final class Shell extends AbstractDevice {
                                 if (this.protocol.equals(ShellProtocol.SSH)) {
                                     sshWelcome = inputStr;
                                 } else if (this.protocol.equals(ShellProtocol.MOSH)) {
+                                    inputStr = CONSOLE.processAnisControl(inputStr);
                                     moshWelcome = inputStr;
                                 }
                                 returnWrite = true;

@@ -65,4 +65,9 @@ public final class UnixConsole extends Console{
     public String processAnisControl(String msg) {
         return msg;
     }
+
+    @Override
+    public byte[] cleanUnsupportedCharacter(byte[] bytes) {
+        return bytes;
+    }
 }

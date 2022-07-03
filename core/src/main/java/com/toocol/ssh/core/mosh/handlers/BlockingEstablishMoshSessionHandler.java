@@ -15,6 +15,7 @@ import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.status.StatusCache;
+import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -87,7 +88,9 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
     @Override
     protected <T> void resultBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
         if (!asyncResult.succeeded()) {
-            Term.getInstance().printErr("Can't touch the mosh-server.");
+            warn("Establish mosh connection failed.");
+            MessageBox.setErrorMessage("Can't touch the mosh-server.");
+            eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.NORMAL_BACK);
         }
     }
 

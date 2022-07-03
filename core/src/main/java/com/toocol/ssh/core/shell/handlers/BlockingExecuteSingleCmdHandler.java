@@ -42,6 +42,7 @@ public final class BlockingExecuteSingleCmdHandler extends BlockingMessageHandle
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String cmd = request.getString("cmd");
+        String prefix = request.getString("prefix");
 
         ChannelExec channelExec = execChannelProvider.getChannelExec(sessionId);
         Shell shell = shellCache.getShell(sessionId);
@@ -55,7 +56,7 @@ public final class BlockingExecuteSingleCmdHandler extends BlockingMessageHandle
         channelExec.setCommand(cmd);
         channelExec.connect();
 
-        String feedback = new CmdFeedbackHelper(inputStream, cmd, shell).extractFeedback();
+        String feedback = new CmdFeedbackHelper(inputStream, cmd, shell, prefix).extractFeedback();
 
         channelExec.disconnect();
 

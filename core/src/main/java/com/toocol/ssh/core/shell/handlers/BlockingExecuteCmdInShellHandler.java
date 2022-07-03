@@ -44,6 +44,7 @@ public final class BlockingExecuteCmdInShellHandler extends BlockingMessageHandl
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String cmd = request.getString("cmd");
+        String prefix = request.getString("prefix");
 
         SharedCountdownLatch.await(
                 () -> {
@@ -59,7 +60,7 @@ public final class BlockingExecuteCmdInShellHandler extends BlockingMessageHandl
         InputStream inputStream = shell.getInputStream();
         shell.writeAndFlush((cmd + StrUtil.LF).getBytes(StandardCharsets.UTF_8));
 
-        String feedback = new CmdFeedbackHelper(inputStream, cmd, shell).extractFeedback();
+        String feedback = new CmdFeedbackHelper(inputStream, cmd, shell, prefix).extractFeedback();
 
         StatusCache.ACCESS_EXHIBIT_SHELL_WITH_PROMPT = false;
         eventBus.send(DISPLAY_SHELL.address(), sessionId);

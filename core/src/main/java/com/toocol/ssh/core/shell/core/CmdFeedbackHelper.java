@@ -1,7 +1,9 @@
 package com.toocol.ssh.core.shell.core;
 
+import com.toocol.ssh.utilities.utils.AnisControl;
 import com.toocol.ssh.utilities.utils.StrUtil;
 
+import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.util.regex.Matcher;
 
@@ -9,7 +11,7 @@ import java.util.regex.Matcher;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/11 15:14
  */
-public record CmdFeedbackHelper(InputStream inputStream, String cmd, Shell shell) {
+public record CmdFeedbackHelper(InputStream inputStream, String cmd, Shell shell, @Nullable String prefix) {
 
     public String extractFeedback() throws Exception {
         String feedback = null;
@@ -34,20 +36,29 @@ public record CmdFeedbackHelper(InputStream inputStream, String cmd, Shell shell
                         && !cleanedMsg.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
                         && !cleanedMsg.equals(shell.localLastCmd.toString().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))) {
                     feedback = msg;
-                } else if (matcher.find()){
+                } else if (matcher.find()) {
                     shell.setPrompt(matcher.group(0) + StrUtil.SPACE);
                     shell.extractUserFromPrompt();
                 }
 
                 if (msg.contains(StrUtil.CRLF)) {
-                    for (String split : msg.split(StrUtil.CRLF)) {
-                        Matcher insideMatcher = Shell.PROMPT_PATTERN.matcher(split);
-                        String cleanedSplit = split.replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY);
-                        if (!insideMatcher.find()
-                                && !cleanedSplit.equals(cmd.replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
-                                && !cleanedSplit.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
-                                && !cleanedSplit.equals(shell.localLastCmd.toString().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))) {
-                            feedback = split;
+                    if (prefix != null) {
+                        for (String split : msg.split(StrUtil.CRLF)) {
+                            if (split.startsWith(prefix)) {
+                                feedback = split;
+                            }
+                        }
+                    } else {
+                        for (String split : msg.split(StrUtil.CRLF)) {
+                            Matcher insideMatcher = Shell.PROMPT_PATTERN.matcher(split);
+                            String cleanedSplit = split.replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY);
+                            if (!insideMatcher.find()
+                                    && !cleanedSplit.equals(cmd.replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
+                                    && !cleanedSplit.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
+                                    && !cleanedSplit.equals(shell.localLastCmd.toString().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
+                                    && !cleanedSplit.contains(AnisControl.DEVICE_CONTROL)) {
+                                feedback = split;
+                            }
                         }
                     }
                 }
