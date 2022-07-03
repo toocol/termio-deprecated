@@ -38,8 +38,8 @@ public class DeleteCmdProcessor extends TermioCommandProcessor {
 
         eventBus.request(DELETE_CREDENTIAL.address(), index, res -> {
             Printer.clear();
-            Printer.printScene(false);
-            Printer.printTermPrompt();
+            Term.getInstance().printScene(false);
+            Term.getInstance().printTermPrompt();
             Term.getInstance().setCursorPosition(Term.getPromptLen(), Term.executeLine);
         });
 

@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class Term extends AbstractDevice {
 
     public static final String PROMPT = " [termio] > ";
-    private static final Console CONSOLE = Console.get();
+    static final Console CONSOLE = Console.get();
 
     public static final int TOP_MARGIN = 3;
     public static final int LEFT_MARGIN = 0;
@@ -64,6 +64,14 @@ public final class Term extends AbstractDevice {
     volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
     int displayZoneBottom = 0;
     char lastChar = '\0';
+
+    public void printScene(boolean resize) {
+        termPrinter.printScene(resize);
+    }
+
+    public void printTermPrompt() {
+        termPrinter.printTermPrompt();
+    }
 
     public void printExecution(String msg) {
         termPrinter.printExecution(msg);

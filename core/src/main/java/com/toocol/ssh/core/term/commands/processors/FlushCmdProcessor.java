@@ -17,7 +17,7 @@ public class FlushCmdProcessor extends TermioCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         Printer.clear();
-        Printer.printScene(false);
+        Term.getInstance().printScene(false);
         Term.getInstance().setCursorPosition(Term.LEFT_MARGIN, Term.executeLine);
 
         AnisStringBuilder builder = new AnisStringBuilder()

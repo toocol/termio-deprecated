@@ -45,7 +45,7 @@ public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<B
             int signal = cast(message.body());
             if (signal == NORMAL_BACK || signal == FIRST_IN || signal == CONNECT_FAILED) {
                 Printer.clear();
-                Printer.printScene(false);
+                Term.getInstance().printScene(false);
             }
 
             term.printExecuteBackground();

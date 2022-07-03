@@ -77,9 +77,8 @@ public class AddCmdProcessor extends TermioCommandProcessor {
 
         eventBus.request(ADD_CREDENTIAL.address(), new JsonObject(credential.toMap()), res -> {
             Printer.clear();
-            Printer.printScene(false);
-            Printer.printTermPrompt();
-            Term.getInstance().setCursorPosition(Term.getPromptLen(), Term.executeLine);
+            Term.getInstance().printScene(false);
+            Term.getInstance().printTermPrompt();
         });
         resultAndMsg.first(true);
     }

@@ -1,12 +1,9 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.core.cache.CredentialCache;
-import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.utils.ExitMessage;
-import com.toocol.ssh.utilities.utils.PomUtil;
 
 import java.io.PrintStream;
 import java.util.concurrent.CountDownLatch;
@@ -20,9 +17,6 @@ import static com.toocol.ssh.core.config.SystemConfig.*;
  */
 public final class Printer {
     public static final PrintStream PRINTER = System.out;
-    private static final CredentialCache credentialCache = CredentialCache.getInstance();
-
-    private static final Runtime RUNTIME = Runtime.getRuntime();
 
     private static final Console CONSOLE = Console.get();
 
@@ -31,22 +25,6 @@ public final class Printer {
             "|",
             "/",
             "-"};
-
-    private static long totalMemory() {
-        return RUNTIME.totalMemory() / 1024 / 1024;
-    }
-
-    private static long maxMemory() {
-        return RUNTIME.maxMemory() / 1024 / 1024;
-    }
-
-    private static long freeMemory() {
-        return RUNTIME.freeMemory() / 1024 / 1024;
-    }
-
-    private static long usedMemory() {
-        return totalMemory() - freeMemory();
-    }
 
     public static void print(String msg) {
         PRINTER.print(msg);
@@ -77,70 +55,6 @@ public final class Printer {
         print("\b");
         print(" ");
         print("\b");
-    }
-
-    public static void printTermPrompt() {
-        Term term = Term.getInstance();
-        term.printExecuteBackground();
-        term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
-    }
-
-    public static void printScene(boolean resize) {
-        Term term = Term.getInstance();
-        int[] oldPosition = term.getCursorPosition();
-        CONSOLE.hideCursor();
-        if (resize) {
-            clear();
-        }
-        printInformationBar();
-        print("Properties:                                                                           \n");
-        if (credentialCache.credentialsSize() == 0) {
-            print("You have no connection properties, type 'help' to get more information.                         \n\n");
-        } else {
-            credentialCache.showCredentials();
-        }
-
-        for (int idx = 0; idx < Term.TOP_MARGIN; idx++) {
-            println();
-        }
-
-        Term.executeLine = term.getCursorPosition()[1];
-        term.printExecuteBackground();
-        if (resize && oldPosition[0] != 0 && oldPosition[1] != 0) {
-            term.printDisplayBuffer();
-            printTermPrompt();
-            term.printCommandBuffer();
-        }
-        CONSOLE.showCursor();
-    }
-
-    private static void printInformationBar() {
-        int windowWidth = CONSOLE.getWindowWidth();
-
-        CONSOLE.setCursorPosition(0, 0);
-
-        String termioVersion = " termio: V" + PomUtil.getVersion();
-        String memoryUse = "memory-use: " + usedMemory() + "MB";
-        String active = "alive: " + SshSessionCache.getAlive();
-        String website = "https://github.com/Joezeo/termio ";
-        int totalLen = termioVersion.length() + website.length() + memoryUse.length() + active.length();
-        if (totalLen >= windowWidth) {
-            return;
-        }
-        String space = " ".repeat((windowWidth - totalLen) / 3);
-
-        String merge = termioVersion + space + memoryUse + space + active + space + website;
-        int fulfil = windowWidth - merge.length();
-        if (fulfil != 0) {
-            merge = merge.replaceAll(website, " ".repeat(fulfil)) + website;
-        }
-
-        AnisStringBuilder builder = new AnisStringBuilder()
-                .background(Term.theme.infoBarBackgroundColor)
-                .front(Term.theme.infoBarFrontColor)
-                .append(merge);
-        println(builder.toString());
-        println();
     }
 
     @SuppressWarnings("all")

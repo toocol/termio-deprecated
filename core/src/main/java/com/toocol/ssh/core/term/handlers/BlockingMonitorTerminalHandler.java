@@ -82,7 +82,7 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
             if (Term.status.equals(TermStatus.SHELL)) {
                 ShellCache.getInstance().getShell(sessionId).resize(terminalWidth, terminalHeight, sessionId);
             } else if (Term.status.equals(TermStatus.TERMIO)) {
-                Printer.printScene(true);
+                Term.getInstance().printScene(true);
             }
         }
     }

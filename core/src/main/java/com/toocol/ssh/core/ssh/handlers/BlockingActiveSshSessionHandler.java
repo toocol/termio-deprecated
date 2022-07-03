@@ -92,7 +92,7 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
     @Override
     protected <T> void resultBlocking(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
         if (asyncResult.succeeded()) {
-            Printer.printScene(false);
+            Term.getInstance().printScene(false);
             message.reply(true);
         } else {
             message.reply(false);
