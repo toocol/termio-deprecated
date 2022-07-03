@@ -81,7 +81,6 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
             System.gc();
             if (sessionId > 0) {
                 promise.complete();
-                info("active do");
             } else {
                 promise.fail("Session establish failed.");
             }
@@ -92,7 +91,6 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
 
     @Override
     protected <T> void resultBlocking(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
-        info("active finish");
         if (asyncResult.succeeded()) {
             Printer.printScene(false);
             message.reply(true);
