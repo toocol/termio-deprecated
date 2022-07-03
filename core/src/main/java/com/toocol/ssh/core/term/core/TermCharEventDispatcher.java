@@ -6,7 +6,6 @@ import com.toocol.ssh.utilities.utils.CastUtil;
 import com.toocol.ssh.utilities.utils.ClassScanner;
 import com.toocol.ssh.utilities.utils.ExitMessage;
 
-import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,6 +45,7 @@ public final class TermCharEventDispatcher {
     public static void init() {
 
     }
+
     public boolean dispatch(Term term, char inChar) {
         CharEvent charEvent = CharEvent.eventOf(inChar);
         if (charEvent == null) {

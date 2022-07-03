@@ -2,7 +2,6 @@ package com.toocol.ssh.core.term.core;
 
 import com.toocol.ssh.utilities.event.CharEvent;
 import com.toocol.ssh.utilities.utils.CharUtil;
-import com.toocol.ssh.utilities.utils.Tuple2;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -16,7 +15,7 @@ public final class ActionPrintable extends TermCharAction {
 
     @Override
     public boolean act(Term term, CharEvent charEvent, char inChar) {
-         if (term.escapeHelper.isAcceptBracketAfterEscape()) {
+        if (term.escapeHelper.isAcceptBracketAfterEscape()) {
             return false;
         }
         if (inChar == CharUtil.SPACE && term.lineBuilder.length() == 0) {
