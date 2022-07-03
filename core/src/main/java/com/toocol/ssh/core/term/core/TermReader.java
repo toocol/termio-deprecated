@@ -34,6 +34,7 @@ public record TermReader(Term term) {
 
                 term.lastChar = finalChar;
                 term.printExecution(term.lineBuilder.toString());
+
                 term.eventBus.send(TERMINAL_ECHO.address(), term.lineBuilder.toString());
             }
 

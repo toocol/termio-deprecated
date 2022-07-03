@@ -16,7 +16,7 @@ public final class ActionPrintable extends TermCharAction {
 
     @Override
     public boolean act(Term term, CharEvent charEvent, char inChar) {
-        if (term.escapeHelper.isAcceptBracketAfterEscape()) {
+         if (term.escapeHelper.isAcceptBracketAfterEscape()) {
             return false;
         }
         if (inChar == CharUtil.SPACE && term.lineBuilder.length() == 0) {
