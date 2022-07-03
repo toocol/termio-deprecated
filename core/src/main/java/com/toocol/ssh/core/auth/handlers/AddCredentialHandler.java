@@ -5,7 +5,7 @@ import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.NonBlockingMessageHandler;
-import com.toocol.ssh.utilities.utils.ExitMessage;
+import com.toocol.ssh.utilities.utils.MessageBox;
 import com.toocol.ssh.utilities.utils.FileUtil;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
@@ -44,7 +44,7 @@ public final class AddCredentialHandler extends NonBlockingMessageHandler {
             credentialsJson = coder.encode(credentialsJson);
 
             if (credentialsJson == null) {
-                ExitMessage.setMsg("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
+                MessageBox.setExitMessage("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
                         ", and try to delete unsafe .credentials at program's home folder.");
                 System.exit(-1);
             }

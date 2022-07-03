@@ -5,12 +5,14 @@ import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.status.StatusCache;
+import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
+import javax.swing.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -52,6 +54,15 @@ public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<B
             if (signal == CONNECT_FAILED) {
                 term.printErr("lost connection.");
             }
+            if (MessageBox.hasMessage()) {
+                term.printDisplay(MessageBox.message());
+                MessageBox.clearMessage();
+            }
+            if (MessageBox.hasErrorMessage()) {
+                term.printErr(MessageBox.errorMessage());
+                MessageBox.clearErrorMessage();
+            }
+
             term.showCursor();
             while (true) {
                 term.setCursorPosition(Term.getPromptLen(), Term.executeLine);

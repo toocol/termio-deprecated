@@ -1,11 +1,10 @@
 package com.toocol.ssh.core.shell.core;
 
 import com.google.common.collect.ImmutableMap;
-import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.utilities.event.CharEvent;
 import com.toocol.ssh.utilities.utils.CastUtil;
 import com.toocol.ssh.utilities.utils.ClassScanner;
-import com.toocol.ssh.utilities.utils.ExitMessage;
+import com.toocol.ssh.utilities.utils.MessageBox;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -36,7 +35,7 @@ public final class ShellCharEventDispatcher {
                             map.put(event, charAction);
                         }
                     } catch (Exception e) {
-                        ExitMessage.setMsg("Register char event action failed.");
+                        MessageBox.setExitMessage("Register char event action failed.");
                         System.exit(-1);
                     }
                 });

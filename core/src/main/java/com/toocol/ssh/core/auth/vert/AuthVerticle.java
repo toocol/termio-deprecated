@@ -9,7 +9,7 @@ import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.annotation.RegisterHandler;
 import com.toocol.ssh.utilities.annotation.VerticleDeployment;
 import com.toocol.ssh.utilities.handler.IHandlerMounter;
-import com.toocol.ssh.utilities.utils.ExitMessage;
+import com.toocol.ssh.utilities.utils.MessageBox;
 import com.toocol.ssh.utilities.utils.FileUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonArray;
@@ -49,7 +49,7 @@ public final class AuthVerticle extends AbstractVerticle implements IHandlerMoun
                     sshCredentialsStr = coder.decode(sshCredentialsStr);
 
                     if (sshCredentialsStr == null) {
-                        ExitMessage.setMsg("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
+                        MessageBox.setExitMessage("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
                                 ", and try to delete unsafe .credentials at program's home folder.");
                         System.exit(-1);
                     }
@@ -59,7 +59,7 @@ public final class AuthVerticle extends AbstractVerticle implements IHandlerMoun
                 try {
                     sshCredentials = StringUtils.isEmpty(sshCredentialsStr) ? new JsonArray() : new JsonArray(sshCredentialsStr);
                 } catch (Exception e) {
-                    ExitMessage.setMsg("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
+                    MessageBox.setExitMessage("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
                             ", and try to delete unsafe .credentials at program's home folder.");
                     System.exit(-1);
                 }

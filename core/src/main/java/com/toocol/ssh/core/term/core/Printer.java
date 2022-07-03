@@ -3,7 +3,7 @@ package com.toocol.ssh.core.term.core;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.status.StatusCache;
-import com.toocol.ssh.utilities.utils.ExitMessage;
+import com.toocol.ssh.utilities.utils.MessageBox;
 
 import java.io.PrintStream;
 import java.util.concurrent.CountDownLatch;
@@ -78,7 +78,7 @@ public final class Printer {
                     Thread.sleep(200);
                 }
             } catch (InterruptedException e) {
-                ExitMessage.setMsg("Start up failed.");
+                MessageBox.setExitMessage("Start up failed.");
                 System.exit(-1);
             }
             latch.countDown();

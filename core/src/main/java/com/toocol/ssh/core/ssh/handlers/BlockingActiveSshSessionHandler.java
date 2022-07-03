@@ -12,6 +12,7 @@ import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.status.StatusCache;
+import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -30,7 +31,7 @@ import static com.toocol.ssh.core.ssh.SshAddress.ACTIVE_SSH_SESSION;
  * @date: 2022/4/23 20:49
  * @version: 0.0.1
  */
-public final class BlockingActiveSshSessionHandler extends BlockingMessageHandler<Void> {
+public final class BlockingActiveSshSessionHandler extends BlockingMessageHandler<String> {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();
@@ -42,7 +43,7 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<Void> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(Promise<String> promise, Message<T> message) throws Exception {
         int index = cast(message.body());
         SshCredential credential = credentialCache.getCredential(index);
         assert credential != null;
@@ -77,12 +78,11 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
                 channelShell.setPtySize(width, height, width, height);
             });
 
-            // invoke gc() to clean up already un-use object during initial processing. (it's very efficacious :))
             System.gc();
             if (sessionId > 0) {
-                promise.complete();
+                promise.complete(credential.getHost() + "@" + credential.getUser());
             } else {
-                promise.fail("Session establish failed.");
+                promise.fail(credential.getHost() + "@" + credential.getUser());
             }
         } catch (Exception e) {
             promise.complete(null);
@@ -90,9 +90,11 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
         if (asyncResult.succeeded()) {
-            Term.getInstance().printScene(false);
+            Term term = Term.getInstance();
+            term.printScene(false);
+            term.printDisplay("Active session " + asyncResult.result() + " success.");
             message.reply(true);
         } else {
             message.reply(false);

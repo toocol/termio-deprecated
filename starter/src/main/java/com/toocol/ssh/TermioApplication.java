@@ -14,7 +14,7 @@ import com.toocol.ssh.utilities.log.Logger;
 import com.toocol.ssh.utilities.log.LoggerFactory;
 import com.toocol.ssh.utilities.utils.CastUtil;
 import com.toocol.ssh.utilities.utils.ClassScanner;
-import com.toocol.ssh.utilities.utils.ExitMessage;
+import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -78,7 +78,7 @@ public class TermioApplication {
 
     private static void checkStartParam(String[] args) {
         if (args.length != 1) {
-            ExitMessage.setMsg("Wrong boot type.");
+            MessageBox.setExitMessage("Wrong boot type.");
             System.exit(-1);
         }
         SystemConfig.BOOT_TYPE = args[0];
@@ -108,7 +108,7 @@ public class TermioApplication {
                         if (result.succeeded()) {
                             initialLatch.countDown();
                         } else {
-                            ExitMessage.setMsg("Termio start up failed, verticle = " + verticleClass.getSimpleName());
+                            MessageBox.setExitMessage("Termio start up failed, verticle = " + verticleClass.getSimpleName());
                             vertx.close();
                             System.exit(-1);
                         }
@@ -124,8 +124,8 @@ public class TermioApplication {
             try {
                 Printer.clear();
                 StatusCache.STOP_PROGRAM = true;
-                if (StringUtils.isNotEmpty(ExitMessage.getMsg())) {
-                    Printer.printErr(ExitMessage.getMsg());
+                if (MessageBox.hasExitMessage()) {
+                    Printer.printErr(MessageBox.exitMessage());
                 }
                 Printer.println("Termio: shutdown");
                 SshSessionCache.getInstance().stopAll();
@@ -159,7 +159,7 @@ public class TermioApplication {
             }
         } catch (Exception e) {
             vertx.close();
-            ExitMessage.setMsg("Termio start up error.");
+            MessageBox.setExitMessage("Termio start up error.");
             System.exit(-1);
         }
     }

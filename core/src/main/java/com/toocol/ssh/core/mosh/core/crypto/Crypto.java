@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.mosh.core.crypto;
 
 import com.toocol.ssh.utilities.execeptions.CryptoException;
-import com.toocol.ssh.utilities.utils.ExitMessage;
+import com.toocol.ssh.utilities.utils.MessageBox;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -197,7 +197,7 @@ public final class Crypto {
             int ptLen = bodyLen - 16;
 
             if (ptLen < 0) {
-                ExitMessage.setMsg("Mosh error, invalid message length.");
+                MessageBox.setExitMessage("Mosh error, invalid message length.");
                 System.exit(-1);
             }
 

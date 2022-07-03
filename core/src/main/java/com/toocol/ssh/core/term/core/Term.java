@@ -3,7 +3,7 @@ package com.toocol.ssh.core.term.core;
 import com.toocol.ssh.utilities.action.AbstractDevice;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.console.Console;
-import com.toocol.ssh.utilities.utils.ExitMessage;
+import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.eventbus.EventBus;
 import jline.console.ConsoleReader;
 
@@ -45,7 +45,7 @@ public final class Term extends AbstractDevice {
         try {
             reader = new ConsoleReader();
         } catch (Exception e) {
-            ExitMessage.setMsg("Create console reader failed.");
+            MessageBox.setExitMessage("Create console reader failed.");
             System.exit(-1);
         }
     }

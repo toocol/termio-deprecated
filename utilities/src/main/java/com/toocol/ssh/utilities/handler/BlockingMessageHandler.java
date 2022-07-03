@@ -1,6 +1,6 @@
 package com.toocol.ssh.utilities.handler;
 
-import com.toocol.ssh.utilities.utils.ExitMessage;
+import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -34,7 +34,7 @@ public abstract class BlockingMessageHandler<R> extends AbstractMessageHandler {
                     try {
                         handleBlocking(cast(promise), message);
                     } catch (Exception e) {
-                        ExitMessage.setMsg("Caught exception, exit program, message = " + e.getMessage());
+                        MessageBox.setExitMessage("Caught exception, exit program, message = " + e.getMessage());
                         error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e));
                         System.exit(-1);
                     }
@@ -44,7 +44,7 @@ public abstract class BlockingMessageHandler<R> extends AbstractMessageHandler {
                     try {
                         resultBlocking(cast(asyncResult), message);
                     } catch (Exception e) {
-                        ExitMessage.setMsg("Caught exception, exit program, message = " + e.getMessage());
+                        MessageBox.setExitMessage("Caught exception, exit program, message = " + e.getMessage());
                         error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e));
                         System.exit(-1);
                     }

@@ -1,6 +1,6 @@
 package com.toocol.ssh.utilities.handler;
 
-import com.toocol.ssh.utilities.utils.ExitMessage;
+import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
@@ -20,7 +20,7 @@ public abstract class NonBlockingMessageHandler extends AbstractMessageHandler {
         try {
             handleInline(message);
         } catch (Exception e) {
-            ExitMessage.setMsg("Caught exception, exit program, message = " + e.getMessage());
+            MessageBox.setExitMessage("Caught exception, exit program, message = " + e.getMessage());
             error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e));
             System.exit(-1);
         }
