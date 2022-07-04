@@ -60,7 +60,7 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
                 break;
             }
 
-            Thread.sleep(1);
+            Thread.sleep(100);
         }
 
         promise.complete();
