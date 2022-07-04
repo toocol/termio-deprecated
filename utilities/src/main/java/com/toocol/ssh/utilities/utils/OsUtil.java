@@ -18,4 +18,16 @@ public class OsUtil {
         return isWindows() ? "\\" : "/";
     }
 
+    public static String getExecution() {
+        return isWindows() ? "cmd" : "bash";
+    }
+
+    public static String getExecuteMode() {
+        return isWindows() ? "/c" : "-c";
+    }
+
+    public static String getClearCmd() {
+        return isWindows() ? "cls" : "clear";
+    }
+
 }

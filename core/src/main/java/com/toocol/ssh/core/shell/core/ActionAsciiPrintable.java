@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.event.CharEvent;
 import com.toocol.ssh.utilities.utils.ASCIIStrCache;
 import com.toocol.ssh.utilities.utils.CharUtil;

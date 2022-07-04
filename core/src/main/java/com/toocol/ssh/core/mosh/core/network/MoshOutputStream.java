@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.mosh.core.network;
 
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
-import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.anis.Printer;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

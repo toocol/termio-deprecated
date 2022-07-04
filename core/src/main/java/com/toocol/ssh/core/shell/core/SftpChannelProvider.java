@@ -7,7 +7,7 @@ import com.google.common.cache.RemovalListener;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.Session;
 import com.toocol.ssh.utilities.utils.Castable;
-import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.core.cache.SshSessionCache;
 
 import javax.annotation.Nonnull;

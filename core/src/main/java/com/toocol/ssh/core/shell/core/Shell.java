@@ -7,7 +7,7 @@ import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
 import com.toocol.ssh.core.term.core.EscapeHelper;
-import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.action.AbstractDevice;
 import com.toocol.ssh.utilities.console.Console;

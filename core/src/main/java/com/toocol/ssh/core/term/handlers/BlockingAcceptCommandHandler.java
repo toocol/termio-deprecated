@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.term.handlers;
 
-import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
@@ -12,7 +12,6 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
-import javax.swing.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 

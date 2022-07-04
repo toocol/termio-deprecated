@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.cache;
 
 import com.toocol.ssh.core.auth.core.SshCredential;
-import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.utils.MessageBox;

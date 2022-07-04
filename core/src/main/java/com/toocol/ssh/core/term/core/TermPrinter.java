@@ -3,6 +3,7 @@ package com.toocol.ssh.core.term.core;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.utils.PomUtil;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;

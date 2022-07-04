@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.term.handlers;
 
 import com.toocol.ssh.core.term.commands.TermioCommand;
-import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.core.TermPrinter;
 import com.toocol.ssh.utilities.address.IAddress;

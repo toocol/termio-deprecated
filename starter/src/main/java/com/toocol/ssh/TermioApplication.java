@@ -2,16 +2,15 @@ package com.toocol.ssh;
 
 import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
-import com.toocol.ssh.utilities.status.StatusCache;
-import com.toocol.ssh.core.config.SystemConfig;
 import com.toocol.ssh.core.shell.core.ShellCharEventDispatcher;
-import com.toocol.ssh.core.term.core.Printer;
 import com.toocol.ssh.core.term.core.TermCharEventDispatcher;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.annotation.VerticleDeployment;
 import com.toocol.ssh.utilities.jni.JNILoader;
 import com.toocol.ssh.utilities.log.Logger;
 import com.toocol.ssh.utilities.log.LoggerFactory;
+import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.utils.CastUtil;
 import com.toocol.ssh.utilities.utils.ClassScanner;
 import com.toocol.ssh.utilities.utils.MessageBox;
@@ -19,7 +18,6 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import org.apache.commons.lang3.StringUtils;
 import sun.misc.Signal;
 
 import java.util.ArrayList;
@@ -51,7 +49,6 @@ public class TermioApplication {
         /* Block the Ctrl+C */
         Signal.handle(new Signal("INT"), signal -> {});
 
-        checkStartParam(args);
         componentInitialise();
 
         Printer.printLoading(loadingLatch);
@@ -74,14 +71,6 @@ public class TermioApplication {
         });
         initialLatch = new CountDownLatch(verticleClassList.size());
         loadingLatch = new CountDownLatch(1);
-    }
-
-    private static void checkStartParam(String[] args) {
-        if (args.length != 1) {
-            MessageBox.setExitMessage("Wrong boot type.");
-            System.exit(-1);
-        }
-        SystemConfig.BOOT_TYPE = args[0];
     }
 
     private static void componentInitialise() {
@@ -125,14 +114,14 @@ public class TermioApplication {
                 Printer.clear();
                 StatusCache.STOP_PROGRAM = true;
                 if (MessageBox.hasExitMessage()) {
-                    Printer.printErr(MessageBox.exitMessage());
+                    Printer.println(MessageBox.exitMessage());
                 }
                 Printer.println("Termio: shutdown");
                 SshSessionCache.getInstance().stopAll();
                 MoshSessionCache.getInstance().stopAll();
                 vertx.close();
             } catch (Exception e) {
-                Printer.println("Failed to execute shutdown hook.");
+                Printer.printErr("Failed to execute shutdown hook.");
             }
         }));
     }

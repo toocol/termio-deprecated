@@ -4,7 +4,7 @@ import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
 import com.toocol.ssh.core.shell.core.Shell;
-import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.anis.Printer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 

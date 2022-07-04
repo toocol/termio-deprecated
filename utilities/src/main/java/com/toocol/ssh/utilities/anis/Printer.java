@@ -1,14 +1,12 @@
-package com.toocol.ssh.core.term.core;
+package com.toocol.ssh.utilities.anis;
 
-import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.utils.MessageBox;
+import com.toocol.ssh.utilities.utils.OsUtil;
 
 import java.io.PrintStream;
 import java.util.concurrent.CountDownLatch;
-
-import static com.toocol.ssh.core.config.SystemConfig.*;
 
 /**
  * @author ZhaoZhe
@@ -38,17 +36,14 @@ public final class Printer {
         PRINTER.println(msg);
     }
 
-    public static void voice() {
-        PRINTER.print("\u0007");
+    public static void printErr(String msg) {
+        PRINTER.println(new AnisStringBuilder()
+                .front(167)
+                .append(msg));
     }
 
-    public static void printErr(String msg) {
-        println(
-                new AnisStringBuilder()
-                        .front(Term.theme.errorMsgColor)
-                        .append(msg)
-                        .toString()
-        );
+    public static void voice() {
+        PRINTER.print("\u0007");
     }
 
     public static void virtualBackspace() {
@@ -87,15 +82,13 @@ public final class Printer {
     }
 
     public static void clear() {
-        getExecuteMode().ifPresent(executeMode -> getClearCmd().ifPresent(clearCmd -> {
-            try {
-                new ProcessBuilder(BOOT_TYPE, executeMode, clearCmd)
-                        .inheritIO()
-                        .start()
-                        .waitFor();
-            } catch (Exception e) {
-                // do nothing
-            }
-        }));
+        try {
+            new ProcessBuilder(OsUtil.getExecution(), OsUtil.getExecuteMode(), OsUtil.getClearCmd())
+                    .inheritIO()
+                    .start()
+                    .waitFor();
+        } catch (Exception e) {
+            // do nothing
+        }
     }
 }

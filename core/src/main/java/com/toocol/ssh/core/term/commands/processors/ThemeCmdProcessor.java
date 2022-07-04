@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.term.commands.processors;
 
 import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
-import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.core.TermTheme;
 import com.toocol.ssh.utilities.utils.Tuple2;

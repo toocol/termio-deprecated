@@ -7,7 +7,7 @@ import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.utils.FileNameUtil;
 import com.toocol.ssh.core.shell.core.SftpChannelProvider;
 import com.toocol.ssh.core.shell.core.Shell;
-import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.anis.Printer;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;

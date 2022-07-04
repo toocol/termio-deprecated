@@ -5,7 +5,7 @@ import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
-import com.toocol.ssh.core.term.core.Printer;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
