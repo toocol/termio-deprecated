@@ -106,7 +106,7 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
 
                     shellCache.putShell(newSessionId, shell);
                     sshSessionCache.stop(sessionId);
-                    shellCache.stop(sessionId);
+                    shellCache.stop(sessionId, ShellProtocol.SSH);
 
                     info("Re-connect session success, newSessionId = {}, host = {}, " +
                             "old session is destroy, destroySessionId = {}", newSessionId, credential.getHost(), sessionId);

@@ -1,6 +1,7 @@
 package com.toocol.ssh.core.cache;
 
 import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.shell.core.ShellProtocol;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,6 +45,16 @@ public class ShellCache {
     public void stop(long sessionId) {
         shellMap.computeIfPresent(sessionId, (k, v) -> {
             switch (v.getProtocol()) {
+                case SSH -> SshSessionCache.getInstance().stop(sessionId);
+                case MOSH -> MoshSessionCache.getInstance().stop(sessionId);
+            }
+            return null;
+        });
+    }
+
+    public void stop(long sessionId, ShellProtocol protocol) {
+        shellMap.computeIfPresent(sessionId, (k, v) -> {
+            switch (protocol) {
                 case SSH -> SshSessionCache.getInstance().stop(sessionId);
                 case MOSH -> MoshSessionCache.getInstance().stop(sessionId);
             }

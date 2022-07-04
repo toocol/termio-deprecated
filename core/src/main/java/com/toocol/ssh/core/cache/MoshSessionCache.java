@@ -42,6 +42,13 @@ public class MoshSessionCache {
         return moshSessionMap.containsKey(sessionId);
     }
 
+    public boolean isDisconnect(long sessionId) {
+        if (!containSession(sessionId)) {
+            return true;
+        }
+        return !moshSessionMap.get(sessionId).isConnected();
+    }
+
     public void stop(long sessionId) {
         moshSessionMap.computeIfPresent(sessionId, (k, v) -> {
             v.close();

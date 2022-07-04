@@ -12,6 +12,7 @@ import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
+import com.toocol.ssh.utilities.utils.MessageBox;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.AsyncResult;
@@ -163,6 +164,7 @@ public final class BlockingShellReceiveHandler extends BlockingMessageHandler<Lo
                 latch.await();
             }
         } catch (RemoteDisconnectException e) {
+            MessageBox.setErrorMessage(e.getMessage());
             promise.tryComplete(sessionId);
         }
 

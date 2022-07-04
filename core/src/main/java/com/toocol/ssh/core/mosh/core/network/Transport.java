@@ -79,14 +79,6 @@ public final class Transport implements Loggable {
 
     @DiffThread
     public void pushBackEvent(UserEvent event) {
-        // Ensure that there is only one UserEvent to be sent at a time
-        while (!sender.getLastSentStates().equals(sender.getCurrentState())) {
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                // do nothing
-            }
-        }
         sender.pushBackEvent(event);
     }
 
@@ -180,6 +172,7 @@ public final class Transport implements Loggable {
     }
 
     private void processThrowawayUntil(long throwawayNum) {
+        // when sender's throwaway num equals receiver's ackNum there were problems
         receiveStates.removeIf(next -> next.num < throwawayNum);
         assert receiveStates.size() > 0;
     }

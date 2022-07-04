@@ -3,16 +3,16 @@ package com.toocol.ssh.core.shell.core;
 import com.jcraft.jsch.ChannelShell;
 import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
 import com.toocol.ssh.core.term.core.EscapeHelper;
-import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.action.AbstractDevice;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
-import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.utilities.utils.CmdUtil;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import com.toocol.ssh.utilities.utils.StrUtil;
@@ -275,7 +275,7 @@ public final class Shell extends AbstractDevice {
     public boolean hasWelcome() {
         boolean flag = false;
         switch (protocol) {
-            case SSH ->  flag = sshWelcome != null;
+            case SSH -> flag = sshWelcome != null;
             case MOSH -> flag = moshWelcome != null;
         }
         return flag;
@@ -398,10 +398,25 @@ public final class Shell extends AbstractDevice {
         this.initOnce = true;
     }
 
-    public void flush() {
-        if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
-            throw new RemoteDisconnectException("Session disconnect.");
+    private void checkConnection() {
+        switch (protocol) {
+            case SSH -> {
+                if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
+                    throw new RemoteDisconnectException("SSH session disconnect.");
+                }
+            }
+            case MOSH -> {
+                if (MoshSessionCache.getInstance().isDisconnect(sessionId)) {
+                    throw new RemoteDisconnectException("Mosh session disconnect.");
+                }
+            }
+            default -> {
+            }
         }
+    }
+
+    public void flush() {
+        checkConnection();
         try {
             outputStream.flush();
         } catch (IOException e) {
@@ -410,9 +425,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public void write(byte[] bytes) {
-        if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
-            throw new RemoteDisconnectException("Session disconnect.");
-        }
+        checkConnection();
         try {
             outputStream.write(bytes);
         } catch (IOException e) {
@@ -421,9 +434,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public void write(char bytes) {
-        if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
-            throw new RemoteDisconnectException("Session disconnect.");
-        }
+        checkConnection();
         try {
             outputStream.write(bytes);
         } catch (IOException e) {
@@ -432,9 +443,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public void writeAndFlush(byte[] bytes) {
-        if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
-            throw new RemoteDisconnectException("Session disconnect.");
-        }
+        checkConnection();
         try {
             outputStream.write(bytes);
             outputStream.flush();
@@ -444,9 +453,7 @@ public final class Shell extends AbstractDevice {
     }
 
     public void writeAndFlush(char inChar) {
-        if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
-            throw new RemoteDisconnectException("Session disconnect.");
-        }
+        checkConnection();
         try {
             outputStream.write(inChar);
             outputStream.flush();

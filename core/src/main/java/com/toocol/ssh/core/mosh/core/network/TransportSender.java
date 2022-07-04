@@ -256,7 +256,6 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
                 return;
             }
         }
-
     }
 
     private void rationalizeStates() {
@@ -277,14 +276,6 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
             sendInterval = SEND_INTERVAL_MAX;
         }
         return sendInterval;
-    }
-
-    public MyState getCurrentState() {
-        return currentState;
-    }
-
-    public MyState getLastSentStates() {
-        return sentStates.get(sentStates.size() - 1).state;
     }
 
     public Connection getConnection() {
