@@ -12,7 +12,7 @@ import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.action.AbstractDevice;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
-import com.toocol.ssh.utilities.status.StatusCache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.utilities.utils.CmdUtil;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import com.toocol.ssh.utilities.utils.StrUtil;

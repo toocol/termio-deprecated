@@ -1,4 +1,4 @@
-package com.toocol.ssh.utilities.status;
+package com.toocol.ssh.core.cache;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -6,8 +6,6 @@ package com.toocol.ssh.utilities.status;
  * @version: 0.0.1
  */
 public class StatusCache {
-
-    public volatile static boolean LOADING_ACCOMPLISH = false;
 
     public volatile static boolean STOP_ACCEPT_OUT_COMMAND = false;
 

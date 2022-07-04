@@ -229,7 +229,7 @@ public final class TransportFragment {
         }
     }
 
-    public final static class FragmentAssembly implements ICompressorAcquirer{
+    public final static class FragmentAssembly implements ICompressorAcquirer {
         private final Set<Fragment> fragments = new TreeSet<>(Comparator.comparingInt(f -> f.fragmentNum));
         private final Pool pool;
         private long currentId;

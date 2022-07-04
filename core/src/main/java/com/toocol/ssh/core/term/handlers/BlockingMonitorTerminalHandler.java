@@ -12,7 +12,7 @@ import com.toocol.ssh.core.term.core.TermStatus;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
-import com.toocol.ssh.utilities.status.StatusCache;
+import com.toocol.ssh.core.cache.StatusCache;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;

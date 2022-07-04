@@ -105,6 +105,8 @@ public final class Transport implements Loggable {
         if (!instQueue.isEmpty()) {
             InstructionPB.Instruction inst = instQueue.poll();
 
+            info("Receive packet newNum = {}, ackNum = {}, throwawayNum = {}, diff = {}",
+                    inst.getNewNum(), inst.getAckNum(), inst.getThrowawayNum(), inst.getDiff().toString());
             sender.processAcknowledgmentThrough(inst.getAckNum());
 
             /* 1. make sure we don't already have the new state */
@@ -142,8 +144,6 @@ public final class Transport implements Loggable {
             sender.setAckNum(newState.num);
 
             byte[] diff = inst.getDiff().toByteArray();
-            info("Receive packet newNum = {}, ackNum = {}, diff = {}",
-                    inst.getNewNum(), inst.getAckNum(), inst.getDiff().toStringUtf8());
             if (diff != null && diff.length > 0) {
                 sender.setDataAck();
 

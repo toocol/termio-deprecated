@@ -5,12 +5,12 @@ import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.auth.handlers.AddCredentialHandler;
 import com.toocol.ssh.core.auth.handlers.DeleteCredentialHandler;
 import com.toocol.ssh.core.cache.CredentialCache;
-import com.toocol.ssh.utilities.status.StatusCache;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.annotation.RegisterHandler;
 import com.toocol.ssh.utilities.annotation.VerticleDeployment;
 import com.toocol.ssh.utilities.handler.IHandlerMounter;
-import com.toocol.ssh.utilities.utils.MessageBox;
 import com.toocol.ssh.utilities.utils.FileUtil;
+import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -70,7 +70,7 @@ public final class AuthVerticle extends AbstractVerticle implements IHandlerMoun
                     credentialCache.addCredential(sshCredential);
                 });
 
-                StatusCache.LOADING_ACCOMPLISH = true;
+                Printer.LOADING_ACCOMPLISH = true;
             });
         });
     }

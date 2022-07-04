@@ -8,9 +8,10 @@ import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.annotation.VerticleDeployment;
 import com.toocol.ssh.utilities.jni.JNILoader;
+import com.toocol.ssh.utilities.log.FileAppender;
 import com.toocol.ssh.utilities.log.Logger;
 import com.toocol.ssh.utilities.log.LoggerFactory;
-import com.toocol.ssh.utilities.status.StatusCache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.utilities.utils.CastUtil;
 import com.toocol.ssh.utilities.utils.ClassScanner;
 import com.toocol.ssh.utilities.utils.MessageBox;
@@ -47,7 +48,8 @@ public class TermioApplication {
 
     public static void main(String[] args) {
         /* Block the Ctrl+C */
-        Signal.handle(new Signal("INT"), signal -> {});
+        Signal.handle(new Signal("INT"), signal -> {
+        });
 
         componentInitialise();
 
@@ -119,6 +121,7 @@ public class TermioApplication {
                 Printer.println("Termio: shutdown");
                 SshSessionCache.getInstance().stopAll();
                 MoshSessionCache.getInstance().stopAll();
+                FileAppender.close();
                 vertx.close();
             } catch (Exception e) {
                 Printer.printErr("Failed to execute shutdown hook.");
@@ -133,7 +136,7 @@ public class TermioApplication {
                 throw new RuntimeException("Waiting timeout.");
             }
             while (true) {
-                if (StatusCache.LOADING_ACCOMPLISH) {
+                if (Printer.LOADING_ACCOMPLISH) {
                     loadingLatch.await();
                     vertx.eventBus().send(MONITOR_TERMINAL.address(), null);
                     vertx.eventBus().send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.FIRST_IN);

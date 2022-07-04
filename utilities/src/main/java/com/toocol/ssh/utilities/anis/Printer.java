@@ -1,7 +1,6 @@
 package com.toocol.ssh.utilities.anis;
 
 import com.toocol.ssh.utilities.console.Console;
-import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import com.toocol.ssh.utilities.utils.OsUtil;
 
@@ -14,15 +13,18 @@ import java.util.concurrent.CountDownLatch;
  * @date 2021/2/19 16:20
  */
 public final class Printer {
+    public volatile static boolean LOADING_ACCOMPLISH = false;
     public static final PrintStream PRINTER = System.out;
 
     private static final Console CONSOLE = Console.get();
 
-    private static final String[] patterns = new String[]{"-",
+    private static final String[] patterns = new String[]{
+            "-",
             "\\",
             "|",
             "/",
-            "-"};
+            "-"
+    };
 
     public static void print(String msg) {
         PRINTER.print(msg);
@@ -61,7 +63,7 @@ public final class Printer {
             print(patterns[idx++] + " starting termio.");
             try {
                 while (true) {
-                    if (StatusCache.LOADING_ACCOMPLISH) {
+                    if (LOADING_ACCOMPLISH) {
                         break;
                     }
                     CONSOLE.setCursorPosition(0, 0);

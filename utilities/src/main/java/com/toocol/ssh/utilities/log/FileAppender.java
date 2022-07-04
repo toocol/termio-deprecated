@@ -1,6 +1,5 @@
 package com.toocol.ssh.utilities.log;
 
-import com.toocol.ssh.utilities.status.StatusCache;
 import com.toocol.ssh.utilities.utils.FileUtil;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -25,6 +24,10 @@ public class FileAppender {
 
     private static volatile boolean opened = false;
 
+    public static void close() {
+        opened = false;
+    }
+
     @SuppressWarnings("all")
     protected static void openLogFile(Vertx vertx) {
         vertx.fileSystem().open(filePath(), new OpenOptions().setAppend(true), ar -> {
@@ -37,9 +40,9 @@ public class FileAppender {
                             ws.write(Buffer.buffer(LOG_QUEUE.poll()));
                         }
 
-                        if (StatusCache.STOP_PROGRAM) {
+                        if (!opened) {
                             ws.close();
-                            break;
+                            return;
                         }
 
                         try {
