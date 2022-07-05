@@ -97,8 +97,8 @@ public final class Transport implements Loggable {
         if (!instQueue.isEmpty()) {
             InstructionPB.Instruction inst = instQueue.poll();
 
-            info("Receive packet newNum = {}, ackNum = {}, throwawayNum = {}, diff = {}",
-                    inst.getNewNum(), inst.getAckNum(), inst.getThrowawayNum(), inst.getDiff().toString());
+            info("Receive packet oldNum = {}, newNum = {}, ackNum = {}, throwawayNum = {}, diff = {}",
+                    inst.getOldNum(), inst.getNewNum(), inst.getAckNum(), inst.getThrowawayNum(), inst.getDiff().toString());
             sender.processAcknowledgmentThrough(inst.getAckNum());
 
             /* 1. make sure we don't already have the new state */
@@ -119,26 +119,15 @@ public final class Transport implements Loggable {
                 return;
             }
 
+            processThrowawayUntil(inst.getThrowawayNum());
+
             TimestampedState<RemoteState> newState = new TimestampedState<>();
             newState.timestamp = Timestamp.timestamp();
             newState.num = inst.getNewNum();
 
-            for (int i = 0; i < receiveStates.size(); i++) {
-                TimestampedState<RemoteState> state = receiveStates.get(i);
-                if (state.num > newState.num) {
-                    receiveStates.add(i, newState);
-                }
-            }
-
-            processThrowawayUntil(inst.getThrowawayNum());
-
-            receiveStates.add(newState);
-            sender.setAckNum(newState.num);
-
             byte[] diff = inst.getDiff().toByteArray();
+            boolean dataAcked = false;
             if (diff != null && diff.length > 0) {
-                sender.setDataAck();
-
                 diff = CONSOLE.cleanUnsupportedCharacter(diff);
 
                 if (inst.getAckNum() == 2 && acked.containsKey(inst.getAckNum())) {
@@ -161,6 +150,24 @@ public final class Transport implements Loggable {
                 }
                 acked.put(inst.getAckNum(), diff);
                 outputQueue.offer(diff);
+                dataAcked = true;
+            }
+
+            for (int i = 0; i < receiveStates.size(); i++) {
+                TimestampedState<RemoteState> state = receiveStates.get(i);
+                if (state.num > newState.num) {
+                    receiveStates.add(i, newState);
+                    warn("Received OUT-OF-ORDER state {} [ack {}]", newState.num, inst.getAckNum());
+                    return;
+                }
+            }
+
+            receiveStates.add(newState);
+            sender.setAckNum(newState.num);
+
+            sender.remoteHeard(newState.timestamp);
+            if (dataAcked) {
+                sender.setDataAck();
             }
         }
     }

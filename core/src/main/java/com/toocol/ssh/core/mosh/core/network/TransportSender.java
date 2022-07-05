@@ -35,7 +35,6 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
     private long nextAckTime;
     private long nextSendTime;
 
-    private int verbose;
     private int shutdownTries;
     private long shutdownStart;
 
@@ -55,7 +54,6 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
         this.assumedReceiverState = sentStates.get(0);
         this.nextAckTime = Timestamp.timestamp();
         this.nextSendTime = Timestamp.timestamp();
-        this.verbose = 0;
         this.shutdownTries = 0;
         this.shutdownStart = -1;
         this.ackNum = 0;
@@ -133,29 +131,6 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
         nextSendTime = -1;
     }
 
-    public void processAcknowledgmentThrough(long ackNum) {
-        Iterator<TimestampedState<MyState>> iterator = sentStates.iterator();
-        TimestampedState<MyState> i;
-        boolean find = false;
-        while (iterator.hasNext()) {
-             i = iterator.next();
-             if (i.num == ackNum) {
-                 find = true;
-                 break;
-             }
-        }
-
-        if (find) {
-            iterator = sentStates.iterator();
-            while (iterator.hasNext()) {
-                i = iterator.next();
-                if (i.num < ackNum) {
-                    iterator.remove();
-                }
-            }
-        }
-    }
-
     private void addSentState(long theTimestamp, long num, MyState state) {
         sentStates.add(new TimestampedState<>(theTimestamp, num, state.copy()));
         if (sentStates.size() > 32) {
@@ -178,8 +153,8 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
         builder.setDiff(ByteString.copyFrom(diff));
         builder.setChaff(ByteString.copyFrom(makeChaff()));
         InstructionPB.Instruction inst = builder.build();
-        info("Send packet newNum = {}, ackNum = {}, throwawayNum = {}, diff = {}",
-                newNum, ackNum, inst.getThrowawayNum(), inst.getDiff().toString());
+        info("Send packet oldNum = {}, newNum = {}, ackNum = {}, throwawayNum = {}, diff = {}",
+                inst.getOldNum(), newNum, ackNum, inst.getThrowawayNum(), inst.getDiff().toString());
 
         if (newNum == -1) {
             shutdownTries++;
@@ -196,6 +171,29 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
         }
 
         pendingDataAck = false;
+    }
+
+    public void processAcknowledgmentThrough(long ackNum) {
+        Iterator<TimestampedState<MyState>> iterator = sentStates.iterator();
+        TimestampedState<MyState> i;
+        boolean find = false;
+        while (iterator.hasNext()) {
+            i = iterator.next();
+            if (i.num == ackNum) {
+                find = true;
+                break;
+            }
+        }
+
+        if (find) {
+            iterator = sentStates.iterator();
+            while (iterator.hasNext()) {
+                i = iterator.next();
+                if (i.num < ackNum) {
+                    iterator.remove();
+                }
+            }
+        }
     }
 
     private byte[] makeChaff() {
@@ -224,25 +222,29 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
             }
 
             nextSendTime = Math.max(minDelayClock + sendMinDelay,
-                    sentStates.get(sentStates.size()- 1).timestamp + sendInterval());
+                    sentStates.get(sentStates.size() - 1).timestamp + sendInterval());
         } else if (!currentState.equals(assumedReceiverState.state)
                 && lastHeard + ACTIVE_RETRY_TIMEOUT > now) {
-            nextSendTime = sentStates.get(sentStates.size()- 1).timestamp + sendInterval();
+            nextSendTime = sentStates.get(sentStates.size() - 1).timestamp + sendInterval();
             if (minDelayClock != -1) {
                 nextSendTime = Math.max(nextSendTime, minDelayClock + sendMinDelay);
             }
         } else if (!currentState.equals(sentStates.get(0).state)
                 && lastHeard + ACTIVE_RETRY_TIMEOUT > now) {
-            nextSendTime = sentStates.get(sentStates.size()- 1).timestamp + connection.timeout() + ACK_DELAY;
+            nextSendTime = sentStates.get(sentStates.size() - 1).timestamp + connection.timeout() + ACK_DELAY;
         } else {
             nextSendTime = -1;
         }
     }
 
+    public void remoteHeard(long timestamp) {
+        this.lastHeard = timestamp;
+    }
+
     private void updateAssumedReceiverState() {
         long now = Timestamp.timestamp();
 
-        assumedReceiverState = sentStates.get(sentStates.size() - 1);
+        assumedReceiverState = sentStates.get(0);
 
         for (int i = 1; i < sentStates.size(); i++) {
             TimestampedState<MyState> state = sentStates.get(i);

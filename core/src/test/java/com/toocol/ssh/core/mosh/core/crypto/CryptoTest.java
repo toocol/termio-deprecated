@@ -272,16 +272,17 @@ class CryptoTest implements ICompressorAcquirer {
             packet = new MoshPacket(message);
             frag = pool.getObject().setData(packet.getPayload());
             if (fragments.addFragment(frag)) {
-                InstructionPB.Instruction recvInst = fragments.getAssembly();
+                InstructionPB.Instruction reqInst = fragments.getAssembly();
+                assert reqInst != null;
                 System.out.println("req " + idx + " : ");
                 System.out.println("---");
-                System.out.println(recvInst.toString());
+                System.out.println(reqInst.toString());
 
                 if (extension != null) {
                     try {
                         ExtensionRegistry registry = ExtensionRegistry.newInstance();
                         registry.add(extension);
-                        System.out.println(UserInputPB.UserMessage.parseFrom(recvInst.getDiff().toByteArray(), registry).toString());
+                        System.out.println(UserInputPB.UserMessage.parseFrom(reqInst.getDiff().toByteArray(), registry).toString());
                     } catch (InvalidProtocolBufferException e) {
                         e.printStackTrace();
                     }
@@ -295,11 +296,11 @@ class CryptoTest implements ICompressorAcquirer {
             frag = new TransportFragment.Fragment(packet.getPayload());
             if (fragments.addFragment(frag)) {
                 InstructionPB.Instruction recvInst = fragments.getAssembly();
+                assert  recvInst != null;
                 System.out.println("resp " + idx + " : ");
                 System.out.println("fragmentId : " + frag.getId());
                 System.out.println("---");
                 System.out.println(recvInst.toString());
-                System.out.println(recvInst.getDiff().toStringUtf8());
             }
         }
     }

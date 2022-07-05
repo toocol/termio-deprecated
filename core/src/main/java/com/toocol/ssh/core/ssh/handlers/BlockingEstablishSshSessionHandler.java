@@ -91,8 +91,6 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
             });
             StatusCache.HANGED_QUIT = false;
 
-            // invoke gc() to clean up already un-use object during initial processing. (it's very efficacious :))
-            System.gc();
             if (sessionId > 0) {
                 promise.complete(sessionId);
             } else {
@@ -100,6 +98,9 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
             }
         } catch (Exception e) {
             promise.complete(null);
+        } finally {
+            // invoke gc() to clean up already un-use object during initial processing. (it's very efficacious :))
+            System.gc();
         }
     }
 

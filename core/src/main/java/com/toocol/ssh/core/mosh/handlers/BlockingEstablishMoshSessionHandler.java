@@ -73,9 +73,10 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
 
                     eventBus.send(DISPLAY_SHELL.address(), sessionId);
                     eventBus.send(RECEIVE_SHELL.address(), sessionId);
-                    System.gc();
                 } catch (Exception e) {
                     eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
+                } finally {
+                    System.gc();
                 }
             } else {
                 eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
