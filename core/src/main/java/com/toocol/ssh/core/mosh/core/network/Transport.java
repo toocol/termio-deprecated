@@ -98,7 +98,7 @@ public final class Transport implements Loggable {
             InstructionPB.Instruction inst = instQueue.poll();
 
             info("Receive packet oldNum = {}, newNum = {}, ackNum = {}, throwawayNum = {}, diff = {}",
-                    inst.getOldNum(), inst.getNewNum(), inst.getAckNum(), inst.getThrowawayNum(), inst.getDiff().toString());
+                    inst.getOldNum(), inst.getNewNum(), inst.getAckNum(), inst.getThrowawayNum(), inst.getDiff().toStringUtf8());
             sender.processAcknowledgmentThrough(inst.getAckNum());
 
             /* 1. make sure we don't already have the new state */

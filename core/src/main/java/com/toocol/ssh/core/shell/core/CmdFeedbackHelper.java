@@ -34,7 +34,8 @@ public record CmdFeedbackHelper(InputStream inputStream, String cmd, Shell shell
                         && !msg.contains(StrUtil.CRLF)
                         && !cleanedMsg.equals(cmd.replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
                         && !cleanedMsg.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
-                        && !cleanedMsg.equals(shell.localLastCmd.toString().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))) {
+                        && !cleanedMsg.equals(shell.localLastCmd.toString().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
+                        && !cleanedMsg.contains(AnisControl.ESCAPE)) {
                     feedback = msg;
                 } else if (matcher.find()) {
                     shell.setPrompt(matcher.group(0) + StrUtil.SPACE);
@@ -56,7 +57,7 @@ public record CmdFeedbackHelper(InputStream inputStream, String cmd, Shell shell
                                     && !cleanedSplit.equals(cmd.replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
                                     && !cleanedSplit.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
                                     && !cleanedSplit.equals(shell.localLastCmd.toString().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
-                                    && !cleanedSplit.contains(AnisControl.DEVICE_CONTROL)) {
+                                    && !cleanedSplit.contains(AnisControl.DC2)) {
                                 feedback = split;
                             }
                         }
