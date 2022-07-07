@@ -10,7 +10,7 @@
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_com_toocol_ssh_common_jni_TerminatioJNI_getCh
-  (JNIEnv *, jobject) {
+  (JNIEnv *env, jobject obj) {
     return -1;
 }
 
@@ -20,7 +20,7 @@ JNIEXPORT jint JNICALL Java_com_toocol_ssh_common_jni_TerminatioJNI_getCh
  * Signature: ()Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_toocol_ssh_common_jni_TerminatioJNI_chooseFiles
-  (JNIEnv *, jobject) {
+  (JNIEnv *env, jobject obj) {
     return 0;
 }
 
@@ -30,7 +30,7 @@ JNIEXPORT jstring JNICALL Java_com_toocol_ssh_common_jni_TerminatioJNI_chooseFil
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_com_toocol_ssh_common_jni_TerminatioJNI_getWindowWidth
-  (JNIEnv *, jobject) {
+  (JNIEnv *env, jobject obj) {
     return 0;
 }
 
@@ -40,6 +40,6 @@ JNIEXPORT jint JNICALL Java_com_toocol_ssh_common_jni_TerminatioJNI_getWindowWid
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_com_toocol_ssh_common_jni_TerminatioJNI_getWindowHeight
-  (JNIEnv *, jobject) {
+  (JNIEnv *env, jobject obj) {
     return 0;
 }
