@@ -78,7 +78,6 @@ public final class Shell extends AbstractDevice {
 
     private volatile boolean returnWrite = false;
     private volatile boolean promptNow = false;
-    private volatile boolean initOnce = false;
 
     final Term term = Term.getInstance();
     final ShellPrinter shellPrinter;
@@ -208,6 +207,9 @@ public final class Shell extends AbstractDevice {
             default -> {
             }
         }
+        if (protocol.equals(ShellProtocol.MOSH)) {
+            CONSOLE.showCursor();
+        }
 
         if (status.equals(Shell.Status.VIM_BEFORE)) {
             status = Shell.Status.VIM_UNDER;
@@ -300,9 +302,6 @@ public final class Shell extends AbstractDevice {
 
     @SuppressWarnings("all")
     public void initialFirstCorrespondence(ShellProtocol protocol) {
-        if (initOnce) {
-            return;
-        }
         this.protocol = protocol;
         try {
             CountDownLatch mainLatch = new CountDownLatch(2);
@@ -363,7 +362,6 @@ public final class Shell extends AbstractDevice {
                                 if (this.protocol.equals(ShellProtocol.SSH)) {
                                     sshWelcome = inputStr;
                                 } else if (this.protocol.equals(ShellProtocol.MOSH)) {
-                                    inputStr = CONSOLE.processAnisControl(inputStr);
                                     moshWelcome = inputStr;
                                 }
                                 returnWrite = true;
@@ -395,7 +393,6 @@ public final class Shell extends AbstractDevice {
         fullPath.set("/" + user);
 
         resetIO(protocol);
-        this.initOnce = true;
     }
 
     private void checkConnection() {

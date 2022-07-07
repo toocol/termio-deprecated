@@ -1,7 +1,6 @@
 package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.utilities.anis.Printer;
-import com.toocol.ssh.utilities.console.Console;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.PrintStream;
@@ -18,7 +17,6 @@ import static com.toocol.ssh.utilities.utils.StrUtil.SPACE;
 record ShellPrinter(Shell shell) {
 
     private static final PrintStream printer = Printer.PRINTER;
-    private static final Console console = Console.get();
     public static final Pattern PROMPT_ECHO_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#]) .*");
 
     void printErr(String msg) {
@@ -75,9 +73,6 @@ record ShellPrinter(Shell shell) {
             shell.bottomLinePrint = msg;
         }
 
-        if (shell.protocol.equals(ShellProtocol.MOSH)) {
-            msg = console.processAnisControl(msg);
-        }
         printer.print(msg);
         return true;
     }
@@ -105,6 +100,7 @@ record ShellPrinter(Shell shell) {
         if (msg.contains("\u001B")) {
             return;
         }
+        msg = msg.replaceAll("\b", "");
         if (StringUtils.isNotEmpty(shell.currentPrint)
                 && msg.contains(shell.currentPrint)
                 && !msg.replaceAll("\u0007", "").equals(shell.currentPrint.toString())
@@ -130,7 +126,6 @@ record ShellPrinter(Shell shell) {
             Printer.print(tmp);
             return;
         } else {
-            msg = msg.replaceAll("\b", "");
             if (msg.trim().equals(shell.localLastCmd.toString().replaceAll("\t", ""))) {
                 if (msg.endsWith(SPACE)) {
                     printer.print(SPACE);

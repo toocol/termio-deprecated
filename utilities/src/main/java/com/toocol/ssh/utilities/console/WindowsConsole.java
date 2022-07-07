@@ -83,10 +83,39 @@ public final class WindowsConsole extends Console {
     }
 
     @Override
-    public String processAnisControl(String msg) {
+    public byte[] cleanUnsupportedCharacter(byte[] bytes) {
+        String msg = new String(bytes, StandardCharsets.UTF_8);
         if ((msg.startsWith("\n\u0004:\u0002@") && msg.length() == 6)
                 || (msg.startsWith("\u0004:\u0002@") && msg.length() == 5)) {
-            return StrUtil.EMPTY;
+            msg = StrUtil.EMPTY;
+        }
+        if (msg.contains("\u0005:\u0003@�")) {
+            msg = StrUtil.EMPTY;
+        }
+        if (msg.contains("\u0016\u0012\u0014\"\u0012")) {
+            msg = StrUtil.EMPTY;
+        }
+        if (msg.contains(AnisControl.BS) && msg.contains(AnisControl.FF_DC2)) {
+            msg = msg.substring(msg.indexOf(CharUtil.BACKSPACE));
+        }
+        msg = msg.replaceAll("\\u001B\\[\\?25h", StrUtil.EMPTY);
+        msg = msg.replaceAll("\\u001A\\u0005\\(�\\u000102", AnisControl.DC2);
+        msg = msg.replaceAll("�\\b\\u0012�\\b\"�\\b", AnisControl.DC2);
+        msg = msg.replaceAll("\\u0012Z\"X", AnisControl.DC2);
+        msg = msg.replaceAll(";\\u00129\"7ls\\u001B", AnisControl.DC2);
+        msg = msg.replaceAll("\\)\\u0012", AnisControl.DC2);
+        msg = msg.replaceAll("\\u0005:\\u0003@�\\u0001", AnisControl.DELETE_LINE);
+        msg = msg.replaceAll("\\u0005:\\u0003@�\\u0001", AnisControl.DELETE_LINE);
+        msg = msg.replaceAll("A\\u0012", AnisControl.DELETE_LINE);
+        msg = msg.replaceAll("B\\u0012", AnisControl.DELETE_LINE);
+        msg = msg.replaceAll("\\+\\u0012", AnisControl.DELETE_LINE);
+        msg = msg.replaceAll("�\\u0003\\u0012�\\u0003\"�\\u0003ls", AnisControl.DELETE_LINE);
+        for (int i = 0; i < 32; i++) {
+            String regex = "\\u000" + i + "\\u0012";
+            msg = msg.replaceAll(regex, AnisControl.DC2);
+
+            regex = "�\\u000" + i + "\\u0012�\\u000" + i + "\"�\\u000" + i;
+            msg = msg.replaceAll(regex, AnisControl.DC2);
         }
 
         StringBuilder builder = new StringBuilder();
@@ -121,35 +150,6 @@ public final class WindowsConsole extends Console {
                 builder.append(StrUtil.CRLF);
             }
         }
-        return builder.toString();
-    }
-
-    @Override
-    public byte[] cleanUnsupportedCharacter(byte[] bytes) {
-        String msg = new String(bytes, StandardCharsets.UTF_8);
-        msg = msg.replaceAll("\\u001A\\u0005\\(�\\u000102", AnisControl.DC2);
-        msg = msg.replaceAll("�\\b\\u0012�\\b\"�\\b", AnisControl.DC2);
-        msg = msg.replaceAll("\\u0012Z\"X", AnisControl.DC2);
-        msg = msg.replaceAll(";\\u00129\"7ls\\u001B", AnisControl.DC2);
-        msg = msg.replaceAll("A\\u0012", AnisControl.DELETE_LINE);
-        msg = msg.replaceAll("\\+\\u0012", AnisControl.DELETE_LINE);
-        msg = msg.replaceAll("�\\u0003\\u0012�\\u0003\"�\\u0003ls", AnisControl.DELETE_LINE);
-        if (msg.contains("\u0005:\u0003@�")) {
-            msg = StrUtil.EMPTY;
-        }
-        if (msg.contains("\u0016\u0012\u0014\"\u0012")) {
-            msg = StrUtil.EMPTY;
-        }
-        if (msg.contains(AnisControl.BS) && msg.contains(AnisControl.FF_DC2)) {
-            msg = msg.substring(msg.indexOf(CharUtil.BACKSPACE));
-        }
-        for (int i = 0; i < 32; i++) {
-            String regex = "\\u000" + i + "\\u0012";
-            msg = msg.replaceAll(regex, AnisControl.DC2);
-
-            regex = "�\\u000" + i + "\\u0012�\\u000" + i + "\"�\\u000" + i;
-            msg = msg.replaceAll(regex, AnisControl.DC2);
-        }
-        return msg.getBytes(StandardCharsets.UTF_8);
+        return builder.toString().getBytes(StandardCharsets.UTF_8);
     }
 }

@@ -4,7 +4,7 @@ package com.toocol.ssh.utilities.console;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/24 11:47
  */
-public final class UnixConsole extends Console{
+public final class UnixConsole extends Console {
 
     @Override
     public String chooseFiles() {
@@ -59,11 +59,6 @@ public final class UnixConsole extends Console{
     @Override
     public void cursorRight() {
 
-    }
-
-    @Override
-    public String processAnisControl(String msg) {
-        return msg;
     }
 
     @Override
