@@ -97,7 +97,7 @@ record ShellPrinter(Shell shell) {
         if (StringUtils.isEmpty(msg)) {
             return;
         }
-        if (msg.contains("\u001B")) {
+        if (msg.contains("\u001B") && shell.protocol.equals(ShellProtocol.SSH)) {
             return;
         }
         msg = msg.replaceAll("\b", "");

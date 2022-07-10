@@ -89,7 +89,7 @@ public final class WindowsConsole extends Console {
                 || (msg.startsWith("\u0004:\u0002@") && msg.length() == 5)) {
             msg = StrUtil.EMPTY;
         }
-        if (msg.contains("\u0005:\u0003@�")) {
+        if (msg.contains("\u0005:\u0003@�") && !msg.contains("\r\n")) {
             msg = StrUtil.EMPTY;
         }
         if (msg.contains("\u0016\u0012\u0014\"\u0012")) {
@@ -104,10 +104,10 @@ public final class WindowsConsole extends Console {
         msg = msg.replaceAll("\\u0012Z\"X", AnisControl.DC2);
         msg = msg.replaceAll(";\\u00129\"7ls\\u001B", AnisControl.DC2);
         msg = msg.replaceAll("\\)\\u0012", AnisControl.DC2);
+        msg = msg.replaceAll("�\\u0002\\u0012�\\u0002\"�\\u0002ls\\u001B\\[\\?25l", AnisControl.DELETE_LINE);
         msg = msg.replaceAll("\\u0005:\\u0003@�\\u0001", AnisControl.DELETE_LINE);
-        msg = msg.replaceAll("\\u0005:\\u0003@�\\u0001", AnisControl.DELETE_LINE);
-        msg = msg.replaceAll("A\\u0012", AnisControl.DELETE_LINE);
-        msg = msg.replaceAll("B\\u0012", AnisControl.DELETE_LINE);
+        msg = msg.replaceAll("[a-z]\\u0012", AnisControl.DC2);
+        msg = msg.replaceAll("[A-Z]\\u0012", AnisControl.DELETE_LINE);
         msg = msg.replaceAll("\\+\\u0012", AnisControl.DELETE_LINE);
         msg = msg.replaceAll("�\\u0003\\u0012�\\u0003\"�\\u0003ls", AnisControl.DELETE_LINE);
         for (int i = 0; i < 32; i++) {
@@ -115,7 +115,11 @@ public final class WindowsConsole extends Console {
             msg = msg.replaceAll(regex, AnisControl.DC2);
 
             regex = "�\\u000" + i + "\\u0012�\\u000" + i + "\"�\\u000" + i;
-            msg = msg.replaceAll(regex, AnisControl.DC2);
+            if (msg.contains(AnisControl.ESCAPE)) {
+                msg = msg.replaceAll(regex, AnisControl.DC2);
+            } else {
+                msg = msg.replaceAll(regex, "");
+            }
         }
 
         StringBuilder builder = new StringBuilder();
@@ -134,6 +138,16 @@ public final class WindowsConsole extends Console {
             if (sp.contains(AnisControl.FF_DC2)) {
                 continue;
             }
+            if (sp.equals("\n")) {
+                continue;
+            }
+            if (sp.contains("\u0005:\u0003@�")) {
+                if (sp.contains("�\u0002\u0012�\u0002\"�\u0002")) {
+                    sp = sp.substring(sp.lastIndexOf(AnisControl.STX) + 1);
+                } else continue;
+            }
+
+            sp = sp.replaceAll("\\n{2,}", "\n");
 
             if (!sp.contains(AnisControl.DC2)) {
                 builder.append(sp);
