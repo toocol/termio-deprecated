@@ -1,4 +1,7 @@
-package com.toocol.ssh.utilities.utils;
+package com.toocol.ssh.utilities.anis;
+
+import com.toocol.ssh.utilities.utils.CharUtil;
+import com.toocol.ssh.utilities.utils.StrUtil;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -48,7 +51,7 @@ public class AsciiControl {
     public static final String US = "\u001F";
     public static final String DEL = "\u007F";
 
-    public static final char[] REGEX_CHARS = new char[] {'[', ']', '?', '.', '^', '{', '}', '+', '/'};
+    public static final char[] REGEX_CHARS = new char[]{'[', ']', '?', '.', '^', '{', '}', '+', '/'};
     public static final String[][] REPLACES = new String[][]{
             {"\u001B[?25h", "\\u001B\\[\\?25h"},
             {"\u001B\u0012\u0019\"\u0017", "\\u001B\\u0012\\u0019\"\\u0017"}
@@ -56,7 +59,7 @@ public class AsciiControl {
     public static final String[] IGNORES = new String[]{
             "\u001B[?25l"
     };
-    public static final Set<Character> SUPPORTED_CHARACTER = new HashSet<>(){
+    public static final Set<Character> SUPPORTED_CHARACTER = new HashSet<>() {
         {
             add(CharUtil.ESCAPE);
             add(CharUtil.LF);
@@ -113,7 +116,8 @@ public class AsciiControl {
     }
 
     public static boolean haveBs(String source) {
-        return source.contains(BS);
+        // This method is used to match tab auto-accomplish path
+        return source.contains("\"" + BS);
     }
 
     public static String ignoreAndReplace(String source) {

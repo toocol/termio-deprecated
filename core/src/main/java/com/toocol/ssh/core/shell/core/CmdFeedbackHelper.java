@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.utilities.utils.AsciiControl;
+import com.toocol.ssh.utilities.anis.AsciiControl;
 import com.toocol.ssh.utilities.utils.StrUtil;
 
 import javax.annotation.Nullable;

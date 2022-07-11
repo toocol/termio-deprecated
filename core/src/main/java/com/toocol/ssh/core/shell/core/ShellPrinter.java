@@ -1,14 +1,13 @@
 package com.toocol.ssh.core.shell.core;
 
+import com.toocol.ssh.utilities.anis.AsciiControl;
 import com.toocol.ssh.utilities.anis.Printer;
-import com.toocol.ssh.utilities.utils.AsciiControl;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.toocol.ssh.utilities.utils.StrUtil.CRLF;
-import static com.toocol.ssh.utilities.utils.StrUtil.SPACE;
+import static com.toocol.ssh.utilities.utils.StrUtil.*;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -27,22 +26,40 @@ record ShellPrinter(Shell shell) {
         if (msg.contains("export HISTCONTROL=ignoreboth")) {
             return false;
         }
+        String splitChar = shell.getProtocol().equals(ShellProtocol.SSH) ? CRLF : LF;
+        String lastCmd = shell.localLastCmd.toString().trim();
         if (shell.localLastCmd.toString().equals(msg)) {
             return false;
         } else if (msg.startsWith("\b\u001B[K")) {
-            String[] split = msg.split("\r\n");
+            String[] split = msg.split(splitChar);
             if (split.length == 1) {
                 return false;
             }
             msg = split[1];
-        } else if (msg.startsWith(shell.localLastCmd.toString().trim())) {
-            // cd command's echo is like this: cd /\r\n[host@user address]
+        } else if (msg.startsWith(lastCmd) && StringUtils.isNotEmpty(lastCmd)) {
+            // SSH: cd command's echo is like this: cd /\r\n[host@user address]
             msg = msg.substring(shell.localLastCmd.toString().length());
         }
-        if (msg.startsWith(CRLF)) {
-            msg = msg.replaceFirst("\r\n", "");
+        if (msg.startsWith(splitChar)) {
+            msg = msg.replaceFirst(splitChar, "");
+        }
+        if (shell.protocol.equals(ShellProtocol.MOSH)) {
+            StringBuilder sb = new StringBuilder();
+            for (String str : msg.split(splitChar)) {
+                if (str.contains(lastCmd) && StringUtils.isNotEmpty(lastCmd)) {
+                    continue;
+                }
+                sb.append(str).append("\n");
+            }
+            if (sb.length() > 0 && sb.toString().contains(shell.getPrompt())) {
+                sb.deleteCharAt(sb.length() - 1);
+            }
+            msg = sb.toString();
         }
 
+        if (lastCmd.equals("clear") && msg.equals("\u001B\u0012\u0019\"\u0017\u001B[?25l\r\u001B[K\u001B[1;22H\n")) {
+            msg = EMPTY;
+        }
         String tmp = msg;
         if (tmp.contains(shell.prompt.get())) {
 
@@ -57,7 +74,7 @@ record ShellPrinter(Shell shell) {
                 }
             }
 
-            if (!tmp.contains(CRLF)) {
+            if (!tmp.contains(splitChar)) {
                 int[] cursorPosition = shell.term.getCursorPosition();
                 if (cursorPosition[0] != 0) {
                     shell.term.setCursorPosition(0, cursorPosition[1]);
@@ -65,8 +82,8 @@ record ShellPrinter(Shell shell) {
             }
         }
 
-        if (msg.contains(CRLF)) {
-            String[] split = msg.split(CRLF);
+        if (msg.contains(splitChar)) {
+            String[] split = msg.split(splitChar);
             shell.bottomLinePrint = split[split.length - 1];
         } else {
             shell.bottomLinePrint = msg;

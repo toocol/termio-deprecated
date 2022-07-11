@@ -1,7 +1,6 @@
 package com.toocol.ssh.utilities.anis;
 
 import com.toocol.ssh.utilities.console.Console;
-import com.toocol.ssh.utilities.utils.AsciiControl;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import com.toocol.ssh.utilities.utils.OsUtil;
 

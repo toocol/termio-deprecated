@@ -78,6 +78,20 @@ class ConsoleTest {
                 "\u001B[?25h\u001B[0m";
         diff = console.cleanUnsupportedCharacter(msg.getBytes(StandardCharsets.UTF_8));
         System.out.println(new String(diff, StandardCharsets.UTF_8));
+
+        msg = "B\u0012@\">\u001B]0;root@vultrguest:/usr\u0007\u001B[?25l\n" +
+                "[root@vultrguest usr]# \u001B[?25h";
+        diff = console.cleanUnsupportedCharacter(msg.getBytes(StandardCharsets.UTF_8));
+        System.out.println(new String(diff, StandardCharsets.UTF_8));
+
+        msg = "\b\u0012\u0006\"\u0004ls";
+        diff = console.cleanUnsupportedCharacter(msg.getBytes(StandardCharsets.UTF_8));
+        System.out.println(new String(diff, StandardCharsets.UTF_8));
+
+        msg = "\u001B\u0012\u0019\"\u0017\u001B[?25l\n" +
+                "\u001B[K\u001B[1;22H\u001B[?25h";
+        diff = console.cleanUnsupportedCharacter(msg.getBytes(StandardCharsets.UTF_8));
+        System.out.println(new String(diff, StandardCharsets.UTF_8));
     }
 
 }

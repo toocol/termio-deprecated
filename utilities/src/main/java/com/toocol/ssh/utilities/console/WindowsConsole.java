@@ -1,7 +1,7 @@
 package com.toocol.ssh.utilities.console;
 
+import com.toocol.ssh.utilities.anis.AsciiControl;
 import com.toocol.ssh.utilities.jni.TermioJNI;
-import com.toocol.ssh.utilities.utils.AsciiControl;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
 
