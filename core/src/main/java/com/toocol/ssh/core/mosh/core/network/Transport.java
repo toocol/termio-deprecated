@@ -174,9 +174,17 @@ public final class Transport implements Loggable {
     }
 
     private byte[] subtractDiff(byte[] l, byte[] r) {
-        return new String(r, StandardCharsets.UTF_8)
-                .replaceAll(new String(l, StandardCharsets.UTF_8), "")
-                .getBytes(StandardCharsets.UTF_8);
+        String rstr = new String(r, StandardCharsets.UTF_8);
+        String lstr = new String(l, StandardCharsets.UTF_8);
+        if (rstr.contains(lstr)) {
+            return rstr
+                    .replaceAll(lstr, "")
+                    .getBytes(StandardCharsets.UTF_8);
+        } else {
+            byte[] diff = new byte[r.length - l.length];
+            System.arraycopy(r, l.length, diff, 0, r.length - l.length);
+            return diff;
+        }
     }
 
     private void processThrowawayUntil(long throwawayNum) {
