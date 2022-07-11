@@ -5,6 +5,7 @@ import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.commands.ShellCommand;
 import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.core.TermStatus;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
@@ -117,7 +118,11 @@ public final class BlockingShellReceiveHandler extends BlockingMessageHandler<Lo
                 }
 
                 if (shell.getStatus().equals(Shell.Status.NORMAL)) {
-                    shell.setLocalLastCmd(cmd + StrUtil.CRLF);
+                    if (shell.getProtocol().equals(ShellProtocol.SSH)) {
+                        shell.setLocalLastCmd(cmd + StrUtil.CRLF);
+                    } else if (shell.getProtocol().equals(ShellProtocol.MOSH)) {
+                        shell.setLocalLastCmd(cmd + StrUtil.LF);
+                    }
                 }
 
                 if (SshSessionCache.getInstance().isDisconnect(sessionId)) {

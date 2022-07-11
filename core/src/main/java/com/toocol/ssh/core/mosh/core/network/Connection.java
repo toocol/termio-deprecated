@@ -51,9 +51,7 @@ public final class Connection {
 
     public void send(byte[] msg) {
         MoshPacket packet = newPacket(msg);
-        socket.send(Buffer.buffer(encryptSession.encrypt(packet.fillMessage(sendMessage))), addr.port(), addr.serverHost(), result -> {
-
-        });
+        socket.send(Buffer.buffer(encryptSession.encrypt(packet.fillMessage(sendMessage))), addr.port(), addr.serverHost());
     }
 
     public byte[] recvOne(byte[] recv) {

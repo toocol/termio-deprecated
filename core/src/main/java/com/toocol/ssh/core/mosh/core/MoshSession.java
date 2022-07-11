@@ -75,8 +75,8 @@ public final class MoshSession implements Loggable {
         transport.tick();
     }
 
-    public void resize(UserEvent.Resize resizeEvent) {
-        transport.pushBackEvent(resizeEvent);
+    public void resize(int width, int height) {
+        transport.pushBackEvent(new UserEvent.Resize(width, height));
     }
 
     public InputStream getInputStream() throws IOException {

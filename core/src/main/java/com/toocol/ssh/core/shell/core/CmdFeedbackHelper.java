@@ -1,6 +1,6 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.utilities.utils.AnisControl;
+import com.toocol.ssh.utilities.utils.AsciiControl;
 import com.toocol.ssh.utilities.utils.StrUtil;
 
 import javax.annotation.Nullable;
@@ -35,29 +35,30 @@ public record CmdFeedbackHelper(InputStream inputStream, String cmd, Shell shell
                         && !cleanedMsg.equals(cmd.replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
                         && !cleanedMsg.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
                         && !cleanedMsg.equals(shell.localLastCmd.toString().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
-                        && !cleanedMsg.contains(AnisControl.ESCAPE)) {
+                        && !cleanedMsg.contains(AsciiControl.ESCAPE)) {
                     feedback = msg;
                 } else if (matcher.find()) {
                     shell.setPrompt(matcher.group(0) + StrUtil.SPACE);
                     shell.extractUserFromPrompt();
                 }
 
-                if (msg.contains(StrUtil.CRLF)) {
+                if (msg.contains(StrUtil.CRLF) || msg.contains(StrUtil.LF)) {
+                    String splitCh = msg.contains(StrUtil.CRLF) ? StrUtil.CRLF : StrUtil.LF;
                     if (prefix != null) {
-                        for (String split : msg.split(StrUtil.CRLF)) {
+                        for (String split : msg.split(splitCh)) {
                             if (split.startsWith(prefix)) {
                                 feedback = split;
                             }
                         }
                     } else {
-                        for (String split : msg.split(StrUtil.CRLF)) {
+                        for (String split : msg.split(splitCh)) {
                             Matcher insideMatcher = Shell.PROMPT_PATTERN.matcher(split);
                             String cleanedSplit = split.replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY);
                             if (!insideMatcher.find()
                                     && !cleanedSplit.equals(cmd.replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
                                     && !cleanedSplit.equals(shell.getLastRemoteCmd().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
                                     && !cleanedSplit.equals(shell.localLastCmd.toString().replaceAll(StrUtil.CR, StrUtil.EMPTY).replaceAll(StrUtil.LF, StrUtil.EMPTY).replaceAll(StrUtil.SPACE, StrUtil.EMPTY))
-                                    && !cleanedSplit.contains(AnisControl.DC2)) {
+                                    && !cleanedSplit.contains(AsciiControl.DC2)) {
                                 feedback = split;
                             }
                         }

@@ -1,9 +1,9 @@
 package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.utilities.anis.Printer;
+import com.toocol.ssh.utilities.utils.AsciiControl;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.PrintStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,12 +16,11 @@ import static com.toocol.ssh.utilities.utils.StrUtil.SPACE;
  */
 record ShellPrinter(Shell shell) {
 
-    private static final PrintStream printer = Printer.PRINTER;
     public static final Pattern PROMPT_ECHO_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#]) .*");
 
     void printErr(String msg) {
-        printer.print(msg);
-        printer.print(shell.getPrompt());
+        Printer.print(msg);
+        Printer.print(shell.getPrompt());
     }
 
     boolean printInNormal(String msg) {
@@ -38,7 +37,7 @@ record ShellPrinter(Shell shell) {
             msg = split[1];
         } else if (msg.startsWith(shell.localLastCmd.toString().trim())) {
             // cd command's echo is like this: cd /\r\n[host@user address]
-            msg = msg.substring(shell.localLastCmd.toString().trim().length());
+            msg = msg.substring(shell.localLastCmd.toString().length());
         }
         if (msg.startsWith(CRLF)) {
             msg = msg.replaceFirst("\r\n", "");
@@ -73,7 +72,7 @@ record ShellPrinter(Shell shell) {
             shell.bottomLinePrint = msg;
         }
 
-        printer.print(msg);
+        Printer.print(msg);
         return true;
     }
 
@@ -90,22 +89,22 @@ record ShellPrinter(Shell shell) {
         } else {
             shell.bottomLinePrint = msg;
         }
-        printer.print(msg);
+        Printer.print(msg);
     }
 
     void printInTabAccomplish(String msg) {
         if (StringUtils.isEmpty(msg)) {
             return;
         }
-        if (msg.contains("\u001B") && shell.protocol.equals(ShellProtocol.SSH)) {
+        if (msg.contains(AsciiControl.ESCAPE) && shell.protocol.equals(ShellProtocol.SSH)) {
             return;
         }
         msg = msg.replaceAll("\b", "");
         if (StringUtils.isNotEmpty(shell.currentPrint)
                 && msg.contains(shell.currentPrint)
-                && !msg.replaceAll("\u0007", "").equals(shell.currentPrint.toString())
+                && !msg.replaceAll(AsciiControl.BEL, "").equals(shell.currentPrint.toString())
                 && !msg.contains(CRLF)) {
-            String tmp = msg.replaceAll("\u0007", "");
+            String tmp = msg.replaceAll(AsciiControl.BEL, "");
             shell.remoteCmd.delete(0, shell.remoteCmd.length()).append(tmp);
             shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(tmp);
             shell.currentPrint.delete(0, shell.currentPrint.length()).append(tmp);
@@ -116,9 +115,9 @@ record ShellPrinter(Shell shell) {
             return;
         } else if (StringUtils.isNotEmpty(shell.localLastInput.toString())
                 && msg.startsWith(shell.localLastInput.toString())
-                && !msg.replaceAll("\u0007", "").equals(shell.localLastInput.toString())
+                && !msg.replaceAll(AsciiControl.BEL, "").equals(shell.localLastInput.toString())
                 && !msg.contains(CRLF)) {
-            msg = msg.replaceAll("\u0007", "");
+            msg = msg.replaceAll(AsciiControl.BEL, "");
             String tmp = msg.substring(shell.localLastInput.length());
             shell.remoteCmd.append(tmp);
             shell.localLastCmd.append(tmp);
@@ -128,7 +127,7 @@ record ShellPrinter(Shell shell) {
         } else {
             if (msg.trim().equals(shell.localLastCmd.toString().replaceAll("\t", ""))) {
                 if (msg.endsWith(SPACE)) {
-                    printer.print(SPACE);
+                    Printer.print(SPACE);
                 }
                 return;
             }
@@ -137,8 +136,8 @@ record ShellPrinter(Shell shell) {
             }
 
             // remove system prompt voice
-            if (msg.contains("\u0007")) {
-                String[] split = msg.split("\u0007");
+            if (msg.contains(AsciiControl.BEL)) {
+                String[] split = msg.split(AsciiControl.BEL);
                 if (split.length == 1) {
                     if (split[0].equals(shell.localLastInput.toString())) {
                         return;
@@ -146,7 +145,7 @@ record ShellPrinter(Shell shell) {
                 } else if (split.length == 2) {
                     msg = split[1];
                     if (!msg.contains(CRLF)) {
-                        printer.print(msg);
+                        Printer.print(msg);
                         shell.remoteCmd.append(msg);
                         String newVal = shell.localLastCmd.toString().replaceAll("\t", "") + msg;
                         shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(newVal);
@@ -161,7 +160,7 @@ record ShellPrinter(Shell shell) {
                 return;
             }
             if (!msg.contains(CRLF)) {
-                printer.print(msg);
+                Printer.print(msg);
                 shell.remoteCmd.append(msg);
                 String newVal = shell.localLastCmd.toString().replaceAll("\t", "") + msg;
                 shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(newVal);
@@ -183,7 +182,7 @@ record ShellPrinter(Shell shell) {
                     if (shell.tabFeedbackRec.contains(input)) {
                         continue;
                     }
-                    printer.print(CRLF + input);
+                    Printer.print(CRLF + input);
                     shell.tabFeedbackRec.add(input);
                 }
                 return;
@@ -196,7 +195,7 @@ record ShellPrinter(Shell shell) {
         shell.bottomLinePrint = msg;
 
         shell.currentPrint.append(msg);
-        printer.print(msg);
+        Printer.print(msg);
     }
 
     void printInMore(String msg) {
@@ -212,6 +211,6 @@ record ShellPrinter(Shell shell) {
         } else {
             shell.bottomLinePrint = msg;
         }
-        printer.print(msg);
+        Printer.print(msg);
     }
 }

@@ -5,7 +5,6 @@ import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.mosh.core.MoshSession;
-import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
 import com.toocol.ssh.core.term.core.EscapeHelper;
 import com.toocol.ssh.core.term.core.Term;
@@ -269,7 +268,7 @@ public final class Shell extends AbstractDevice {
             }
             case MOSH -> {
                 MoshSession moshSession = MoshSessionCache.getInstance().get(sessionId);
-                moshSession.resize(new UserEvent.Resize(width, height));
+                moshSession.resize(width, height);
             }
         }
     }

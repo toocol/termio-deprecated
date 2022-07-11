@@ -13,6 +13,7 @@ import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramPacket;
 import io.vertx.core.datagram.DatagramSocket;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -173,9 +174,9 @@ public final class Transport implements Loggable {
     }
 
     private byte[] subtractDiff(byte[] l, byte[] r) {
-        byte[] diff = new byte[r.length - l.length];
-        System.arraycopy(r, l.length, diff, 0, r.length - l.length);
-        return diff;
+        return new String(r, StandardCharsets.UTF_8)
+                .replaceAll(new String(l, StandardCharsets.UTF_8), "")
+                .getBytes(StandardCharsets.UTF_8);
     }
 
     private void processThrowawayUntil(long throwawayNum) {

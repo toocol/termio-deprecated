@@ -1,6 +1,7 @@
 package com.toocol.ssh.utilities.anis;
 
 import com.toocol.ssh.utilities.console.Console;
+import com.toocol.ssh.utilities.utils.AsciiControl;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import com.toocol.ssh.utilities.utils.OsUtil;
 
@@ -45,7 +46,7 @@ public final class Printer {
     }
 
     public static void voice() {
-        PRINTER.print("\u0007");
+        PRINTER.print(AsciiControl.BEL);
     }
 
     public static void virtualBackspace() {

@@ -1,9 +1,9 @@
 package com.toocol.ssh.utilities.console;
 
 import com.toocol.ssh.utilities.jni.TermioJNI;
-import com.toocol.ssh.utilities.utils.AnisControl;
-import com.toocol.ssh.utilities.utils.CharUtil;
+import com.toocol.ssh.utilities.utils.AsciiControl;
 import com.toocol.ssh.utilities.utils.StrUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 
@@ -84,86 +84,80 @@ public final class WindowsConsole extends Console {
 
     @Override
     public byte[] cleanUnsupportedCharacter(byte[] bytes) {
-        String msg = new String(bytes, StandardCharsets.UTF_8);
-        if ((msg.startsWith("\n\u0004:\u0002@") && msg.length() == 6)
-                || (msg.startsWith("\u0004:\u0002@") && msg.length() == 5)) {
-            msg = StrUtil.EMPTY;
-        }
-        if (msg.contains("\u0005:\u0003@�") && !msg.contains("\r\n")) {
-            msg = StrUtil.EMPTY;
-        }
-        if (msg.contains("\u0016\u0012\u0014\"\u0012")) {
-            msg = StrUtil.EMPTY;
-        }
-        if (msg.contains(AnisControl.BS) && msg.contains(AnisControl.FF_DC2)) {
-            msg = msg.substring(msg.indexOf(CharUtil.BACKSPACE));
-        }
-        msg = msg.replaceAll("\\u001B\\[\\?25h", StrUtil.EMPTY);
-        msg = msg.replaceAll("\\u001A\\u0005\\(�\\u000102", AnisControl.DC2);
-        msg = msg.replaceAll("�\\b\\u0012�\\b\"�\\b", AnisControl.DC2);
-        msg = msg.replaceAll("\\u0012Z\"X", AnisControl.DC2);
-        msg = msg.replaceAll(";\\u00129\"7ls\\u001B", AnisControl.DC2);
-        msg = msg.replaceAll("\\)\\u0012", AnisControl.DC2);
-        msg = msg.replaceAll("�\\u0002\\u0012�\\u0002\"�\\u0002ls\\u001B\\[\\?25l", AnisControl.DELETE_LINE);
-        msg = msg.replaceAll("\\u0005:\\u0003@�\\u0001", AnisControl.DELETE_LINE);
-        msg = msg.replaceAll("[a-z]\\u0012", AnisControl.DC2);
-        msg = msg.replaceAll("[A-Z]\\u0012", AnisControl.DELETE_LINE);
-        msg = msg.replaceAll("\\+\\u0012", AnisControl.DELETE_LINE);
-        msg = msg.replaceAll("�\\u0003\\u0012�\\u0003\"�\\u0003ls", AnisControl.DELETE_LINE);
-        for (int i = 0; i < 32; i++) {
-            String regex = "\\u000" + i + "\\u0012";
-            msg = msg.replaceAll(regex, AnisControl.DC2);
+        return innerClearUnsupportedCharacter(bytes);
+    }
 
-            regex = "�\\u000" + i + "\\u0012�\\u000" + i + "\"�\\u000" + i;
-            if (msg.contains(AnisControl.ESCAPE)) {
-                msg = msg.replaceAll(regex, AnisControl.DC2);
-            } else {
-                msg = msg.replaceAll(regex, "");
-            }
-        }
-
+    private byte[] innerClearUnsupportedCharacter(byte[] bytes) {
         StringBuilder builder = new StringBuilder();
-        String[] split = msg.split(StrUtil.CRLF);
-        if (split.length <= 1) {
-            split = msg.split(StrUtil.LF);
-        }
-        if (split.length <= 1) {
-            split = msg.split(StrUtil.CR);
-        }
-        for (int i = 0; i < split.length; i++) {
-            String sp = split[i];
-            if (sp.contains(AnisControl.EOT_STX)) {
-                continue;
-            }
-            if (sp.contains(AnisControl.FF_DC2)) {
-                continue;
-            }
-            if (sp.equals("\n")) {
-                continue;
-            }
-            if (sp.contains("\u0005:\u0003@�")) {
-                if (sp.contains("�\u0002\u0012�\u0002\"�\u0002")) {
-                    sp = sp.substring(sp.lastIndexOf(AnisControl.STX) + 1);
-                } else continue;
-            }
-
-            sp = sp.replaceAll("\\n{2,}", "\n");
-
-            if (!sp.contains(AnisControl.DC2)) {
-                builder.append(sp);
-            } else {
-                if (sp.contains(AnisControl.DELETE_LINE)) {
-                    continue;
+        String msg = new String(bytes, StandardCharsets.UTF_8);
+        if (msg.contains("\r\n")) {
+            for (String line : msg.split("\r\n")) {
+                if (line.contains("\n")) {
+                    line = line.replaceAll("\\n{2,}", "\n");
+                    for (String sp : line.split("\n")) {
+                        sp = doClearString(sp);
+                        if (StringUtils.isNotEmpty(sp)) {
+                            builder.append(sp).append("\n");
+                        }
+                    }
+                } else {
+                    line = doClearString(line);
+                    if (StringUtils.isNotEmpty(line)) {
+                        builder.append(line).append("\n");
+                    }
                 }
-                if (sp.contains(AnisControl.ESCAPE)) {
-                    builder.append(sp.substring(sp.indexOf(AnisControl.ESCAPE)));
-                } else continue;
             }
-
-            if (i != split.length - 1) {
-                builder.append(StrUtil.CRLF);
+        } else {
+            if (msg.contains("\n")) {
+                msg = msg.replaceAll("\\n{2,}", "\n");
+                for (String sp : msg.split("\n")) {
+                    sp = doClearString(sp);
+                    if (StringUtils.isNotEmpty(sp)) {
+                        builder.append(sp).append("\n");
+                    }
+                }
+            } else {
+                msg = doClearString(msg);
+                if (StringUtils.isNotEmpty(msg)) {
+                    builder.append(msg).append("\n");
+                }
             }
         }
-        return builder.toString().getBytes(StandardCharsets.UTF_8);
+        if (builder.length() > 0) {
+            builder.deleteCharAt(builder.length() - 1);
+        }
+        msg = builder.toString().replaceAll("\\n{2,}", "\n");
+        return msg.getBytes(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * We can ensure that param source doesn't have characters such as '\n','\r\n'
+     */
+    private String doClearString(String source) {
+        if (StringUtils.isEmpty(source)) {
+            return StrUtil.EMPTY;
+        }
+        if (AsciiControl.haveUnsupportedAsciiControl(source)) {
+            int preLen = source.length();
+            source = AsciiControl.preClear(source);
+            if (source.length() != preLen) {
+                if (AsciiControl.haveEscape(source)) {
+                    source = AsciiControl.escapeMatch(source);
+                }
+            } else if (AsciiControl.haveEscape(source)) {
+                source = source.substring(source.indexOf(AsciiControl.ESCAPE));
+            } else if (AsciiControl.haveBs(source)) {
+                source = AsciiControl.bsMatch(source);
+            } else {
+                source = StrUtil.EMPTY;
+            }
+        } else if (AsciiControl.haveEscape(source)) {
+            source = AsciiControl.escapeMatch(source);
+        }
+        source = AsciiControl.ignoreAndReplace(source);
+        if (source.equals(AsciiControl.ESCAPE)) {
+            source = StrUtil.EMPTY;
+        }
+        return source;
     }
 }
