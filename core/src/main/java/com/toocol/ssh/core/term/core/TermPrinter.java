@@ -100,7 +100,9 @@ public record TermPrinter(Term term) {
             printTermPrompt();
             term.printCommandBuffer();
         }
-        term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
+        if (!resize) {
+            term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
+        }
         CONSOLE.showCursor();
     }
 
