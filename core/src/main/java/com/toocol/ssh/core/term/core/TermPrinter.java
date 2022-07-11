@@ -232,4 +232,8 @@ public record TermPrinter(Term term) {
         term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
         Printer.print(new AnisStringBuilder().background(Term.theme.executeBackgroundColor).front(Term.theme.executeFrontColor).append(COMMAND_BUFF).toString());
     }
+
+    synchronized void printTest() {
+        cleanDisplay();
+    }
 }

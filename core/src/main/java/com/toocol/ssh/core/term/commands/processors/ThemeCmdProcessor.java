@@ -14,17 +14,17 @@ import io.vertx.core.eventbus.EventBus;
  */
 public class ThemeCmdProcessor extends TermioCommandProcessor {
     @Override
-    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> tuple) {
+    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         String[] split = cmd.trim().replaceAll(" {2,}"," ").split(" ");
         if (split.length != 2) {
-            tuple.first(false).second("Please select the theme [dark/light]");
+            resultAndMsg.first(false).second("Please select the theme [dark/light]");
             return;
         }
 
         String theme = split[1];
         TermTheme termTheme = TermTheme.nameOf(theme);
         if (termTheme == null) {
-            tuple.first(false).second(theme + ": theme not found. support: [dark/light]");
+            resultAndMsg.first(false).second(theme + ": theme not found. support: [dark/light]");
             return;
         }
 

@@ -10,7 +10,7 @@ import io.vertx.core.eventbus.EventBus;
  */
 public class ExitCmdProcessor extends TermioCommandProcessor {
     @Override
-    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> tuple) {
+    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         System.exit(-1);
     }
 }

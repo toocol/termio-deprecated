@@ -107,6 +107,10 @@ public final class Term extends AbstractDevice {
         termPrinter.printExecuteBackground();
     }
 
+    public void printTest() {
+        termPrinter.printTest();
+    }
+
     public String readLine() {
         return termReader.readLine();
     }

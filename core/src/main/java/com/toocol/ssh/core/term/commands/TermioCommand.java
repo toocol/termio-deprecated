@@ -32,6 +32,7 @@ public enum TermioCommand implements ICommand {
     CMD_NUMBER("numbers", new NumberCmdProcessor(), "Select the connection properties.", "Input property index to connect"),
     CMD_ACTIVE("active", new ActiveCmdProcessor(), "Active the ssh connect session without enter the Shell.", "Active the selected ssh connect session, without enter the Shell.\n\nExamples:\nactive 1\nactive 1 3 4\nactive 1-10"),
     CMD_MOSH("mosh", new MoshCmdProcessor(), "Use mosh to connect remote device.", "Use mosh to connect remote device.\n\nExamples:\nmosh 1"),
+    CMD_TEST("test", new TestCmdProcessor(), "Test console print.", "Test console print."),
     CMD_HELLO_WORLD("hello", new HelloCmdProcessor(), null, null);
 
     public static final Map<String, TermioCommand> COMMANDS = new HashMap<>();
