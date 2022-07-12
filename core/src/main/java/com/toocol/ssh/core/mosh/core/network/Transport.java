@@ -9,6 +9,7 @@ import com.toocol.ssh.utilities.annotation.DiffThread;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.execeptions.NetworkException;
 import com.toocol.ssh.utilities.log.Loggable;
+import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramPacket;
 import io.vertx.core.datagram.DatagramSocket;
@@ -95,7 +96,7 @@ public final class Transport implements Loggable {
 
     private void recv() {
         // Ensure that there is only one packet to be process at a time
-        if (!instQueue.isEmpty()) {
+        while (!instQueue.isEmpty()) {
             InstructionPB.Instruction inst = instQueue.poll();
 
             info("Receive packet oldNum = {}, newNum = {}, ackNum = {}, throwawayNum = {}, diff = {}",
@@ -178,7 +179,7 @@ public final class Transport implements Loggable {
         String lstr = new String(l, StandardCharsets.UTF_8);
         if (rstr.contains(lstr)) {
             return rstr
-                    .replaceAll(lstr, "")
+                    .replaceAll(lstr, StrUtil.EMPTY)
                     .getBytes(StandardCharsets.UTF_8);
         } else {
             byte[] diff = new byte[r.length - l.length];

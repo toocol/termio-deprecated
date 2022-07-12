@@ -57,7 +57,7 @@ record ShellPrinter(Shell shell) {
             msg = sb.toString();
         }
 
-        if (lastCmd.equals("clear") && msg.contains("\u001B\u0012\u0019\"\u0017\u001B[?25l")) {
+        if (lastCmd.equals("clear") && msg.contains("\u001B")) {
             msg = EMPTY;
         }
         String tmp = msg;

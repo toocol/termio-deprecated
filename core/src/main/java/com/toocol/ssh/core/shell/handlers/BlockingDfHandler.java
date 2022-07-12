@@ -4,8 +4,8 @@ import com.jcraft.jsch.ChannelSftp;
 import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.shell.core.SftpChannelProvider;
 import com.toocol.ssh.core.shell.core.Shell;
-import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -18,7 +18,6 @@ import org.apache.commons.io.IOUtils;
 import java.io.InputStream;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
 
 import static com.toocol.ssh.core.file.FileAddress.CHOOSE_DIRECTORY;
 import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
@@ -64,55 +63,51 @@ public final class BlockingDfHandler extends BlockingMessageHandler<byte[]> {
         }
 
         if (type == DF_TYPE_FILE) {
-            CountDownLatch latch = new CountDownLatch(1);
-            StringBuilder localPathBuilder = new StringBuilder();
             eventBus.request(CHOOSE_DIRECTORY.address(), null, result -> {
+                String storagePath;
                 if (result.result() == null) {
-                    localPathBuilder.append("-1");
+                    storagePath = "-1";
                 } else {
-                    localPathBuilder.append(Objects.requireNonNullElse(result.result().body(), "-1"));
+                    storagePath = cast(Objects.requireNonNullElse(result.result().body(), "-1"));
                 }
-                latch.countDown();
-            });
-            latch.await();
 
-            Shell shell = ShellCache.getInstance().getShell(sessionId);
-            Printer.print(shell.getPrompt());
+                Shell shell = ShellCache.getInstance().getShell(sessionId);
+                Printer.print(shell.getPrompt());
 
-            String storagePath = localPathBuilder.toString();
-            if ("-1".equals(storagePath)) {
-                promise.fail("-1");
-                promise.tryComplete();
-                return;
-            }
+                if ("-1".equals(storagePath)) {
+                    promise.fail("-1");
+                    promise.tryComplete();
+                    return;
+                }
 
-            if (remotePath.contains(",")) {
-                for (String rpath : remotePath.split(",")) {
+                if (remotePath.contains(",")) {
+                    for (String rpath : remotePath.split(",")) {
+                        try {
+                            channelSftp.get(rpath, storagePath);
+                        } catch (Exception e) {
+                            Printer.println("\ndf: no such file '" + rpath + "'.");
+                            Printer.print(shell.getPrompt() + shell.getCurrentPrint());
+                        }
+                    }
+                } else {
                     try {
-                        channelSftp.get(rpath, localPathBuilder.toString());
+                        channelSftp.get(remotePath, storagePath);
                     } catch (Exception e) {
-                        Printer.println("\ndf: no such file '" + rpath + "'.");
+                        Printer.println("\ndf: no such file '" + remotePath + "'.");
                         Printer.print(shell.getPrompt() + shell.getCurrentPrint());
                     }
                 }
-            } else {
-                try {
-                    channelSftp.get(remotePath, localPathBuilder.toString());
-                } catch (Exception e) {
-                    Printer.println("\ndf: no such file '" + remotePath + "'.");
-                    Printer.print(shell.getPrompt() + shell.getCurrentPrint());
-                }
-            }
 
+            });
 
             promise.tryComplete();
         } else {
             try {
                 InputStream inputStream = channelSftp.get(remotePath);
                 byte[] bytes = IOUtils.buffer(inputStream).readAllBytes();
-                promise.complete(bytes);
+                promise.tryComplete(bytes);
             } catch (Exception e) {
-                promise.complete();
+                promise.tryComplete();
             }
         }
 
