@@ -50,8 +50,10 @@ public class AsciiControl {
     public static final String RS = "\u001E";
     public static final String US = "\u001F";
     public static final String DEL = "\u007F";
+    public static final String UNKNOWN = "�";
 
     public static final char[] REGEX_CHARS = new char[]{'[', ']', '?', '.', '^', '{', '}', '+', '/'};
+    public static final String[] PRE_CLEARS = new String[]{"\\u0019\\u0012\\u0017\"\\u0015"};
     public static final String[][] REPLACES = new String[][]{
             {"\u001B[?25h", "\\u001B\\[\\?25h"},
             {"\u001B\u0012\u0019\"\u0017", "\\u001B\\u0012\\u0019\"\\u0017"}
@@ -82,6 +84,9 @@ public class AsciiControl {
             }
             source = source.replaceAll("\\u001B\\[\\?25l", "");
         }
+        for (String preClear : PRE_CLEARS) {
+            source = source.replaceAll(preClear, StrUtil.EMPTY);
+        }
         return source;
     }
 
@@ -104,7 +109,7 @@ public class AsciiControl {
     public static boolean haveUnsupportedAsciiControl(String source) {
         for (int i = 0; i < source.length(); i++) {
             char ch = source.charAt(i);
-            if (!SUPPORTED_CHARACTER.contains(ch) && CharUtil.isAsciiControl(ch)) {
+            if (!SUPPORTED_CHARACTER.contains(ch) && (CharUtil.isAsciiControl(ch) || ch == CharUtil.UNKNOWN)) {
                 return true;
             }
         }

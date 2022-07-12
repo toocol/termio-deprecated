@@ -81,6 +81,10 @@ public final class CharUtil {
      */
     public static final char LF = '\n';
     /**
+     * {@code '�'}
+     */
+    public static final char UNKNOWN = '�';
+    /**
      * {@code '-'}
      */
     public static final char DASHED = '-';
