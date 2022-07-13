@@ -137,23 +137,6 @@ public final class WindowsConsole extends Console {
         if (StringUtils.isEmpty(source)) {
             return StrUtil.EMPTY;
         }
-        if (AsciiControl.haveUnsupportedAsciiControl(source)) {
-            int preLen = source.length();
-            source = AsciiControl.preClear(source);
-            if (source.length() != preLen) {
-                if (AsciiControl.haveEscape(source)) {
-                    source = AsciiControl.escapeMatch(source);
-                }
-            } else if (AsciiControl.haveEscape(source)) {
-                source = source.substring(source.indexOf(AsciiControl.ESCAPE));
-            } else if (AsciiControl.haveBs(source)) {
-                source = AsciiControl.bsMatch(source);
-            } else {
-                source = StrUtil.EMPTY;
-            }
-        } else if (AsciiControl.haveEscape(source)) {
-            source = AsciiControl.escapeMatch(source);
-        }
         source = AsciiControl.ignoreAndReplace(source);
         if (source.equals(AsciiControl.ESCAPE)) {
             source = StrUtil.EMPTY;

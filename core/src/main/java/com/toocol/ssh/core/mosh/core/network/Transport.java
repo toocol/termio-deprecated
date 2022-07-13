@@ -1,30 +1,26 @@
 package com.toocol.ssh.core.mosh.core.network;
 
 import com.toocol.ssh.core.mosh.core.proto.InstructionPB;
-import com.toocol.ssh.core.mosh.core.statesnyc.RemoteState;
+import com.toocol.ssh.core.mosh.core.statesnyc.CompleteTerminal;
+import com.toocol.ssh.core.mosh.core.statesnyc.State;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserStream;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.annotation.DiffThread;
-import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.execeptions.NetworkException;
 import com.toocol.ssh.utilities.log.Loggable;
-import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramPacket;
 import io.vertx.core.datagram.DatagramSocket;
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @SuppressWarnings("all")
-public final class Transport implements Loggable {
+public final class Transport<RemoteState extends State> implements Loggable {
 
-    private static final int ACK_BUFFER = 32;
-
-    private static final Console CONSOLE = Console.get();
 
     public record Addr(String serverHost, int port, String key) {
         public String serverHost() {
@@ -41,19 +37,19 @@ public final class Transport implements Loggable {
     }
 
     public final Addr addr;
+    private final RemoteState state;
     private final TransportFragment.Pool receivePool = new TransportFragment.Pool();
     private final TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly(receivePool);
     private final List<TimestampedState<RemoteState>> receiveStates = new ArrayList<>();
     private final Queue<InstructionPB.Instruction> instQueue = new ConcurrentLinkedDeque<>();
-    private final Queue<byte[]> outputQueue = new ConcurrentLinkedDeque<>();
-    private final Map<Long, byte[]> acked = new ConcurrentHashMap<>();
 
     private TransportSender<UserStream> sender;
     private Connection connection;
 
-    public Transport(String serverHost, int port, String key) {
+    public Transport(String serverHost, int port, String key, RemoteState initalRemoteState) {
         this.addr = new Addr(serverHost, port, key);
-        receiveStates.add(new TimestampedState<>(Timestamp.timestamp(), 0, new RemoteState()));
+        this.state = initalRemoteState;
+        receiveStates.add(new TimestampedState<>(Timestamp.timestamp(), 0, initalRemoteState));
     }
 
     public void connect(DatagramSocket socket) {
@@ -91,7 +87,7 @@ public final class Transport implements Loggable {
     }
 
     public Queue<byte[]> getOutputQueue() {
-        return outputQueue;
+        return ((CompleteTerminal) state).getOutputQueue();
     }
 
     private void recv() {
@@ -99,8 +95,6 @@ public final class Transport implements Loggable {
         while (!instQueue.isEmpty()) {
             InstructionPB.Instruction inst = instQueue.poll();
 
-            info("Receive packet oldNum = {}, newNum = {}, ackNum = {}, throwawayNum = {}, diff = {}",
-                    inst.getOldNum(), inst.getNewNum(), inst.getAckNum(), inst.getThrowawayNum(), inst.getDiff().toStringUtf8());
             sender.processAcknowledgmentThrough(inst.getAckNum());
 
             /* 1. make sure we don't already have the new state */
@@ -124,34 +118,20 @@ public final class Transport implements Loggable {
             processThrowawayUntil(inst.getThrowawayNum());
 
             TimestampedState<RemoteState> newState = new TimestampedState<>();
+            newState.state = state;
             newState.timestamp = Timestamp.timestamp();
             newState.num = inst.getNewNum();
 
             byte[] diff = inst.getDiff().toByteArray();
             boolean dataAcked = false;
             if (diff != null && diff.length > 0) {
-                diff = CONSOLE.cleanUnsupportedCharacter(diff);
+                info("Receive packet oldNum = {}, newNum = {}, ackNum = {}, throwawayNum = {}, diff = {}",
+                        inst.getOldNum(), inst.getNewNum(), inst.getAckNum(), inst.getThrowawayNum(), inst.getDiff().toStringUtf8());
+                if (inst.getAckNum() == 2) {
+                    return;
+                }
+                newState.state.applyString(diff, inst.getAckNum());
 
-                if (inst.getAckNum() == 2 && acked.containsKey(inst.getAckNum())) {
-                    return;
-                }
-                if (acked.containsKey(inst.getAckNum()) && acked.get(inst.getAckNum()).length >= diff.length) {
-                    return;
-                } else if (acked.containsKey(inst.getAckNum()) && acked.get(inst.getAckNum()).length < diff.length) {
-                    diff = subtractDiff(acked.get(inst.getAckNum()), diff);
-                }
-                if (acked.size() >= ACK_BUFFER) {
-                    int cnt = 0;
-                    for (Long ack : acked.keySet()) {
-                        if (cnt == ACK_BUFFER / 2) {
-                            break;
-                        }
-                        acked.remove(ack);
-                        cnt++;
-                    }
-                }
-                acked.put(inst.getAckNum(), diff);
-                outputQueue.offer(diff);
                 dataAcked = true;
             }
 
@@ -171,20 +151,6 @@ public final class Transport implements Loggable {
             if (dataAcked) {
                 sender.setDataAck();
             }
-        }
-    }
-
-    private byte[] subtractDiff(byte[] l, byte[] r) {
-        String rstr = new String(r, StandardCharsets.UTF_8);
-        String lstr = new String(l, StandardCharsets.UTF_8);
-        if (rstr.contains(lstr)) {
-            return rstr
-                    .replaceAll(lstr, StrUtil.EMPTY)
-                    .getBytes(StandardCharsets.UTF_8);
-        } else {
-            byte[] diff = new byte[r.length - l.length];
-            System.arraycopy(r, l.length, diff, 0, r.length - l.length);
-            return diff;
         }
     }
 

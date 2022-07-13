@@ -3,6 +3,7 @@ package com.toocol.ssh.core.mosh.core;
 import com.toocol.ssh.core.mosh.core.network.MoshInputStream;
 import com.toocol.ssh.core.mosh.core.network.MoshOutputStream;
 import com.toocol.ssh.core.mosh.core.network.Transport;
+import com.toocol.ssh.core.mosh.core.statesnyc.CompleteTerminal;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.IpUtil;
@@ -29,7 +30,7 @@ public final class MoshSession implements Loggable {
 
     private final IO io;
     private final Vertx vertx;
-    private final Transport transport;
+    private final Transport<CompleteTerminal> transport;
     private final long sessionId;
 
     private DatagramSocket socket;
@@ -39,7 +40,7 @@ public final class MoshSession implements Loggable {
         this.vertx = vertx;
         this.io = new IO();
         this.sessionId = sessionId;
-        this.transport = new Transport(host, port, key);
+        this.transport = new Transport<>(host, port, key, new CompleteTerminal());
     }
 
     // handle by event loop.

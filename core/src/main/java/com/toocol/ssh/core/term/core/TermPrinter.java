@@ -73,7 +73,6 @@ public record TermPrinter(Term term) {
         Printer.println();
     }
 
-
     public void printScene(boolean resize) {
         Term term = Term.getInstance();
         int[] oldPosition = term.getCursorPosition();

@@ -28,7 +28,7 @@ record ShellPrinter(Shell shell) {
         }
         String splitChar = shell.getProtocol().equals(ShellProtocol.SSH) ? CRLF : LF;
         String lastCmd = shell.localLastCmd.toString().trim();
-        if (shell.localLastCmd.toString().equals(msg)) {
+        if (shell.localLastCmd.toString().trim().equals(msg.trim())) {
             return false;
         } else if (msg.startsWith("\b\u001B[K")) {
             String[] split = msg.split(splitChar);
@@ -38,7 +38,7 @@ record ShellPrinter(Shell shell) {
             msg = split[1];
         } else if (msg.startsWith(lastCmd) && StringUtils.isNotEmpty(lastCmd)) {
             // SSH: cd command's echo is like this: cd /\r\n[host@user address]
-            msg = msg.substring(shell.localLastCmd.toString().length());
+            msg = msg.substring(lastCmd.length());
         }
         if (msg.startsWith(splitChar)) {
             msg = msg.replaceFirst(splitChar, "");
