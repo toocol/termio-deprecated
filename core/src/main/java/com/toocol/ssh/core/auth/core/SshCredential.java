@@ -36,6 +36,16 @@ public class SshCredential implements Serializable {
      */
     private int port;
 
+    public SshCredential() {
+    }
+
+    public SshCredential(String host, String user, String password, int port) {
+        this.host = host;
+        this.user = user;
+        this.password = password;
+        this.port = port;
+    }
+
     public static SshCredential transFromJson(JsonObject jsonObject) {
         return new SshCredential(
                 jsonObject.getString("host"),
@@ -43,6 +53,10 @@ public class SshCredential implements Serializable {
                 jsonObject.getString("password"),
                 jsonObject.getInteger("port")
         );
+    }
+
+    public static SshCredentialBuilder builder() {
+        return new SshCredentialBuilder();
     }
 
     public Map<String, Object> toMap() {
@@ -84,16 +98,6 @@ public class SshCredential implements Serializable {
         return new HashCodeBuilder(17, 37).append(host).append(user).append(password).append(port).toHashCode();
     }
 
-    public SshCredential() {
-    }
-
-    public SshCredential(String host, String user, String password, int port) {
-        this.host = host;
-        this.user = user;
-        this.password = password;
-        this.port = port;
-    }
-
     public String getHost() {
         return host;
     }
@@ -124,10 +128,6 @@ public class SshCredential implements Serializable {
 
     public void setPort(int port) {
         this.port = port;
-    }
-
-    public static SshCredentialBuilder builder() {
-        return new SshCredentialBuilder();
     }
 
     public static final class SshCredentialBuilder {

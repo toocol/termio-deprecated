@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.term.core;
 
-import com.toocol.ssh.utilities.utils.CharUtil;
 import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.utilities.utils.CharUtil;
 import jline.console.ConsoleReader;
 import jline.internal.NonBlockingInputStream;
 
@@ -65,7 +65,7 @@ public final class EscapeHelper {
                 case 'B':
                     return CharUtil.DOWN_ARROW;
                 case 'C':
-                   return CharUtil.RIGHT_ARROW;
+                    return CharUtil.RIGHT_ARROW;
                 case 'D':
                     return CharUtil.LEFT_ARROW;
                 default:

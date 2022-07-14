@@ -2,8 +2,6 @@ package com.toocol.ssh.core.mosh.core.crypto;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/5/13 2:20

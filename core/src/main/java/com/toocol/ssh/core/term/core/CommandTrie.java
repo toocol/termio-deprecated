@@ -6,33 +6,6 @@ package com.toocol.ssh.core.term.core;
  */
 public final class CommandTrie {
     private static final int CHARS = 26;
-
-    protected static final class Node {
-        public boolean end;
-        public String cmd;
-
-        public final Node[] tns = new Node[CHARS];
-
-        public int nextSize() {
-            int cnt = 0;
-            for (Node tn : tns) {
-                if (tn != null) {
-                    cnt++;
-                }
-            }
-            return cnt;
-        }
-
-        public Node next() {
-            for (Node tn : tns) {
-                if (tn != null) {
-                    return tn;
-                }
-            }
-            return null;
-        }
-    }
-
     private final Node root = new Node();
 
     /**
@@ -93,5 +66,30 @@ public final class CommandTrie {
             p = p.next();
         }
         return (p != null && p.end) ? p.cmd : cmd;
+    }
+
+    protected static final class Node {
+        public final Node[] tns = new Node[CHARS];
+        public boolean end;
+        public String cmd;
+
+        public int nextSize() {
+            int cnt = 0;
+            for (Node tn : tns) {
+                if (tn != null) {
+                    cnt++;
+                }
+            }
+            return cnt;
+        }
+
+        public Node next() {
+            for (Node tn : tns) {
+                if (tn != null) {
+                    return tn;
+                }
+            }
+            return null;
+        }
     }
 }

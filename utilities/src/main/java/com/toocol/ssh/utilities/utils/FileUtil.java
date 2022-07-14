@@ -10,10 +10,22 @@ import java.io.IOException;
  * @date 2022/3/17 13:58
  */
 public class FileUtil {
+    /**
+     * .class file extension name
+     */
+    public static final String CLASS_EXT = FileNameUtil.EXT_CLASS;
+    /**
+     * .jar file extension name
+     */
+    public static final String JAR_FILE_EXT = FileNameUtil.EXT_JAR;
+    /**
+     * .jar file extension name in jar file.
+     */
+    public static final String JAR_PATH_EXT = ".jar!";
     private static final String TWO_POINT = "..";
     private static final String POINT = ".";
-
     public static String userDir;
+
     static {
         userDir = System.getProperty("user.dir");
         userDir = userDir.replaceAll("\\\\\\\\", "/");
@@ -59,20 +71,6 @@ public class FileUtil {
         }
         return file.isFile();
     }
-
-
-    /**
-     * .class file extension name
-     */
-    public static final String CLASS_EXT = FileNameUtil.EXT_CLASS;
-    /**
-     * .jar file extension name
-     */
-    public static final String JAR_FILE_EXT = FileNameUtil.EXT_JAR;
-    /**
-     * .jar file extension name in jar file.
-     */
-    public static final String JAR_PATH_EXT = ".jar!";
 
     /**
      * whether is Windows environment

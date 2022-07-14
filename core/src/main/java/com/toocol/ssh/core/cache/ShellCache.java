@@ -14,6 +14,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ShellCache {
 
     private static ShellCache INSTANCE = null;
+    /**
+     * the map stored all alive ssh session shell's object.
+     */
+    private final Map<Long, Shell> shellMap = new ConcurrentHashMap<>();
 
     public ShellCache() {
     }
@@ -24,11 +28,6 @@ public class ShellCache {
         }
         return INSTANCE;
     }
-
-    /**
-     * the map stored all alive ssh session shell's object.
-     */
-    private final Map<Long, Shell> shellMap = new ConcurrentHashMap<>();
 
     public boolean contains(long sessionId) {
         return shellMap.containsKey(sessionId);

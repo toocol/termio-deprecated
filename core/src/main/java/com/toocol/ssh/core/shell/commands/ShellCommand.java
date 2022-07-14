@@ -36,6 +36,7 @@ public enum ShellCommand implements ICommand {
     ;
 
     public static final Map<String, ShellCommand> COMMANDS = new HashMap<>();
+
     static {
         Arrays.stream(values())
                 .forEach(command -> COMMANDS.put(command.cmd, command));
@@ -55,6 +56,19 @@ public enum ShellCommand implements ICommand {
         String originCmd = cmd.trim().replaceAll(" {2,}", " ").split(" ")[0];
         ShellCommand shellCommand = COMMANDS.get(originCmd);
         return Optional.ofNullable(shellCommand);
+    }
+
+    public static String help() {
+        AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.displayBackGroundColor);
+        helpBuilder.append("Shell commands:\t[param] means optional param\n");
+        for (ShellCommand command : values()) {
+            if (StringUtils.isEmpty(command.comment)) {
+                continue;
+            }
+            helpBuilder.front(Term.theme.commandHighlightColor).append(command.cmd).deFront()
+                    .append(" ".repeat(23 - command.cmd.length())).append(command.comment).append(CharUtil.LF);
+        }
+        return helpBuilder.toString();
     }
 
     public final Tuple2<String, Long> processCmd(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String msg) {
@@ -84,18 +98,5 @@ public enum ShellCommand implements ICommand {
 
     public String cmd() {
         return cmd;
-    }
-
-    public static String help() {
-        AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.displayBackGroundColor);
-        helpBuilder.append("Shell commands:\t[param] means optional param\n");
-        for (ShellCommand command : values()) {
-            if (StringUtils.isEmpty(command.comment)) {
-                continue;
-            }
-            helpBuilder.front(Term.theme.commandHighlightColor).append(command.cmd).deFront()
-                    .append(" ".repeat(23 - command.cmd.length())).append(command.comment).append(CharUtil.LF);
-        }
-        return helpBuilder.toString();
     }
 }

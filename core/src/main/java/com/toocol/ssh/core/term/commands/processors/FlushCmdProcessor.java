@@ -1,10 +1,10 @@
 package com.toocol.ssh.core.term.commands.processors;
 
 import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
-import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.core.TermPrinter;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;

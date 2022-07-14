@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.shell.core;
 
-import com.toocol.ssh.utilities.utils.StrUtil;
 import com.toocol.ssh.utilities.anis.Printer;
+import com.toocol.ssh.utilities.utils.StrUtil;
 
 import java.util.Stack;
 import java.util.UUID;

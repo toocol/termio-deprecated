@@ -1,8 +1,8 @@
 package com.toocol.ssh.core.term.commands.processors;
 
 import com.toocol.ssh.core.shell.commands.ShellCommand;
-import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
 import com.toocol.ssh.core.term.commands.TermioCommand;
+import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 

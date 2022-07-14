@@ -2,7 +2,6 @@ package com.toocol.ssh.core.mosh.core.network;
 
 import com.toocol.ssh.core.mosh.core.crypto.ByteOrder;
 import com.toocol.ssh.core.mosh.core.crypto.Crypto;
-import com.toocol.ssh.utilities.utils.Timestamp;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -14,26 +13,13 @@ import java.util.Objects;
  */
 public final class MoshPacket {
     static final int ADDED_BYTES = 8 /* seqno/nonce */ + 4 /* timestamp */;
-
-    public enum Direction {
-        TO_SERVER(0),
-        TO_CLIENT(1);
-        private final long idx;
-
-        Direction(long idx) {
-            this.idx = idx;
-        }
-    }
-
     private static final long DIRECTION_MASK = 1L << 63;
     private static final long SEQUENCE_MASK = ~DIRECTION_MASK;
-
     private long seq;
     private Direction direction;
     private byte[] payload;
     private short timestamp;
     private short timestampReply;
-
     public MoshPacket() {
     }
 
@@ -126,5 +112,15 @@ public final class MoshPacket {
 
     public short getTimestampReply() {
         return timestampReply;
+    }
+
+    public enum Direction {
+        TO_SERVER(0),
+        TO_CLIENT(1);
+        private final long idx;
+
+        Direction(long idx) {
+            this.idx = idx;
+        }
     }
 }

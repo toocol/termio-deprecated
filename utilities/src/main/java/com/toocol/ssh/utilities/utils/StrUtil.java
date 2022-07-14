@@ -226,7 +226,7 @@ public final class StrUtil extends StringUtils {
      * 用params替换原字符串中的{}
      * use params replace {} in origin string
      *
-     * @param str str
+     * @param str    str
      * @param params param
      * @return result
      */

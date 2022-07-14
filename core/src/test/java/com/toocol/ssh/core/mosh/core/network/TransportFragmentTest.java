@@ -46,9 +46,9 @@ class TransportFragmentTest {
         notPool = end - start;
         notMem = em - sm;
         System.out.println("usePoll: " + usePool);
-        System.out.println("useMem: " + useMem/1024/1024);
+        System.out.println("useMem: " + useMem / 1024 / 1024);
         System.out.println("notPoll: " + notPool);
-        System.out.println("notMem: " + notMem/1024/1024);
+        System.out.println("notMem: " + notMem / 1024 / 1024);
     }
 
 }

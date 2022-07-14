@@ -148,8 +148,8 @@ class CryptoTest implements ICompressorAcquirer {
         String key = "H8czB7uE1l1oy6/Nn+elkw";
 
         /*
-        * Those hex dump were coming from actual mosh connection.
-        * */
+         * Those hex dump were coming from actual mosh connection.
+         * */
         String req1 = "00 00 00 00 00 00 00 00 72 f9 6a 80 d9 03 c3 e6 81 63 30 6b cd 28 c3 e4 2d 28 79 01 18 8f 53 56 a5 e8 58 0f 0f 2c 05 a9 cb f1 f3 dc ad 78 a3 67 5f b7 d8 ca aa a9 0a cc f6 72 4e aa 3d c5 de c8 77 8a 9c e2 ea 18 ea d1 4b 84 e0";
         String req2 = "00 00 00 00 00 00 00 01 9d 3f b3 e3 d3 b6 39 6b 18 4e 24 c3 81 84 ef 44 10 46 d6 f1 7a 51 8d cc 71 20 e3 d6 c9 b9 ce 03 2f 67 a8 fc 91 d8 67 82 98 f0 e1 15 cb 36 0f 2a 50 78 ea df 8c 3b dd ea 88 e3 57 2a c5";
         String req3 = "00 00 00 00 00 00 00 02 c6 17 c4 94 7c fd a1 fb a9 3d da 6c 74 22 94 86 fe 45 76 4b f2 02 29 2f cf ab 04 c6 21 63 9a 21 b5 d1 ae 0c 27 38 af ea 4e 60 39 0c f7 9c 6d 43 7f 55 2a 29 12 64 d5 31 61 c8 f5 24 f4 7d 85 64 ce e1 f3 d3 b7";
@@ -296,7 +296,7 @@ class CryptoTest implements ICompressorAcquirer {
             frag = new TransportFragment.Fragment(packet.getPayload());
             if (fragments.addFragment(frag)) {
                 InstructionPB.Instruction recvInst = fragments.getAssembly();
-                assert  recvInst != null;
+                assert recvInst != null;
                 System.out.println("resp " + idx + " : ");
                 System.out.println("fragmentId : " + frag.getId());
                 System.out.println("---");

@@ -11,6 +11,28 @@ import com.toocol.ssh.utilities.utils.CharUtil;
  */
 public record MoreHelper() {
 
+    public boolean support(char inChar) {
+        for (SupportChar support : SupportChar.values()) {
+            if (inChar == support.ch && !support.subCmd) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean supportSub(char inChar) {
+        for (SupportChar support : SupportChar.values()) {
+            if (inChar == support.ch && support.subCmd) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean supportEdit(char inChar) {
+        return CharUtil.isAsciiPrintable(inChar);
+    }
+
     public enum SupportChar {
         h('h', "more help", false),
         SPACE(CharUtil.SPACE, "Display next k lines of text [current screen size]", false),
@@ -34,8 +56,7 @@ public record MoreHelper() {
         COLON_N('n', "Go to kth next file [1]", true),
         COLON_P('p', "Go to kth previous file [1]", true),
         COLON_F('f', "Display current file name and line number", true),
-        DOT(CharUtil.DOT, "Repeat previous command", false)
-        ;
+        DOT(CharUtil.DOT, "Repeat previous command", false);
 
         public final char ch;
         public final String comment;
@@ -46,28 +67,6 @@ public record MoreHelper() {
             this.comment = comment;
             this.subCmd = subCmd;
         }
-    }
-
-    public boolean support(char inChar) {
-        for (SupportChar support : SupportChar.values()) {
-            if (inChar == support.ch && !support.subCmd) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean supportSub(char inChar) {
-        for (SupportChar support : SupportChar.values()) {
-            if (inChar == support.ch && support.subCmd) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean supportEdit(char inChar) {
-        return CharUtil.isAsciiPrintable(inChar);
     }
 
 }

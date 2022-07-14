@@ -2,6 +2,7 @@ package com.toocol.ssh;
 
 import com.toocol.ssh.core.cache.MoshSessionCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.ShellCharEventDispatcher;
 import com.toocol.ssh.core.term.core.TermCharEventDispatcher;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
@@ -11,7 +12,6 @@ import com.toocol.ssh.utilities.jni.JNILoader;
 import com.toocol.ssh.utilities.log.FileAppender;
 import com.toocol.ssh.utilities.log.Logger;
 import com.toocol.ssh.utilities.log.LoggerFactory;
-import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.utilities.utils.CastUtil;
 import com.toocol.ssh.utilities.utils.ClassScanner;
 import com.toocol.ssh.utilities.utils.MessageBox;
@@ -46,6 +46,20 @@ public class TermioApplication {
     private static CountDownLatch loadingLatch;
     private static List<Class<? extends AbstractVerticle>> verticleClassList = new ArrayList<>();
 
+    static {
+        /* Get the verticle which need to deploy in main class by annotation */
+        Set<Class<?>> annotatedClassList = new ClassScanner("com.toocol.ssh.core", clazz -> clazz.isAnnotationPresent(VerticleDeployment.class)).scan();
+        annotatedClassList.forEach(annotatedClass -> {
+            if (annotatedClass.getSuperclass().equals(AbstractVerticle.class)) {
+                verticleClassList.add(CastUtil.cast(annotatedClass));
+            } else {
+                Printer.printErr("Skip deploy verticle " + annotatedClass.getName() + ", please extends AbstractVerticle");
+            }
+        });
+        initialLatch = new CountDownLatch(verticleClassList.size());
+        loadingLatch = new CountDownLatch(1);
+    }
+
     public static void main(String[] args) {
         /* Block the Ctrl+C */
         Signal.handle(new Signal("INT"), signal -> {
@@ -59,20 +73,6 @@ public class TermioApplication {
         LoggerFactory.init(vertx);
         addShutdownHook(vertx);
         waitingStart(vertx);
-    }
-
-    static {
-        /* Get the verticle which need to deploy in main class by annotation */
-        Set<Class<?>> annotatedClassList = new ClassScanner("com.toocol.ssh.core", clazz -> clazz.isAnnotationPresent(VerticleDeployment.class)).scan();
-        annotatedClassList.forEach(annotatedClass -> {
-            if (annotatedClass.getSuperclass().equals(AbstractVerticle.class)) {
-                verticleClassList.add(CastUtil.cast(annotatedClass));
-            } else {
-                Printer.printErr("Skip deploy verticle " + annotatedClass.getName() + ", please extends AbstractVerticle");
-            }
-        });
-        initialLatch = new CountDownLatch(verticleClassList.size());
-        loadingLatch = new CountDownLatch(1);
     }
 
     private static void componentInitialise() {

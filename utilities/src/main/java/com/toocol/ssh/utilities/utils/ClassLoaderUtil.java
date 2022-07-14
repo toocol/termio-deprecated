@@ -6,7 +6,6 @@ package com.toocol.ssh.utilities.utils;
  */
 public class ClassLoaderUtil {
     /**
-     *
      * Get {@link ClassLoader}<br>
      * Get as following sequence：<br>
      *

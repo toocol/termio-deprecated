@@ -29,10 +29,9 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
  */
 public final class BlockingDfHandler extends BlockingMessageHandler<byte[]> {
 
-    private final SftpChannelProvider sftpChannelProvider = SftpChannelProvider.getInstance();
-
     public static final int DF_TYPE_FILE = 1;
     public static final int DF_TYPE_BYTE = 2;
+    private final SftpChannelProvider sftpChannelProvider = SftpChannelProvider.getInstance();
 
     public BlockingDfHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);

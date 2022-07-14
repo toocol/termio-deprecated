@@ -73,7 +73,6 @@ public record TermPrinter(Term term) {
         Printer.println();
     }
 
-
     public void printScene(boolean resize) {
         Term term = Term.getInstance();
         int[] oldPosition = term.getCursorPosition();
@@ -142,7 +141,7 @@ public record TermPrinter(Term term) {
     synchronized void cleanDisplay() {
         term.setCursorPosition(0, Term.executeLine + 1);
         int windowWidth = term.getWidth();
-        while (term.getCursorPosition()[1] < term.getHeight() - 1) {
+        while (term.getCursorPosition()[1] < term.getHeight() - 2) {
             Printer.println(" ".repeat(windowWidth));
         }
     }

@@ -1,18 +1,18 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
-import com.toocol.ssh.utilities.utils.StrUtil;
-import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
+import com.toocol.ssh.utilities.utils.StrUtil;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.toocol.ssh.utilities.utils.FilePathUtil.*;
 import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
+import static com.toocol.ssh.utilities.utils.FilePathUtil.*;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -46,7 +46,7 @@ public class ShellDfCmdProcessor extends ShellCommandProcessor {
                 if (singleCurrentPaths.length <= 1) {
                     remotePath.append(ROOT_FOLDER_PREFIX).append(inputPath.substring(1));
                 } else {
-                    for (int idx = 0; idx <= singleCurrentPaths.length - 2; idx ++) {
+                    for (int idx = 0; idx <= singleCurrentPaths.length - 2; idx++) {
                         if (StringUtils.isEmpty(singleCurrentPaths[idx])) {
                             continue;
                         }

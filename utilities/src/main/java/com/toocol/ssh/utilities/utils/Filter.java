@@ -7,11 +7,11 @@ package com.toocol.ssh.utilities.utils;
  */
 @FunctionalInterface
 public interface Filter<T> {
-	/**
-	 * is accept obj
-	 *
-	 * @param t the obj to accept
-	 * @return is accept obj
-	 */
-	boolean accept(T t);
+    /**
+     * is accept obj
+     *
+     * @param t the obj to accept
+     * @return is accept obj
+     */
+    boolean accept(T t);
 }

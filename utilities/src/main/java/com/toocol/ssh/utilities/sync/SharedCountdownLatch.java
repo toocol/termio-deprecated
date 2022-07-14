@@ -12,12 +12,11 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class SharedCountdownLatch {
 
+    private static final Map<String, CountDownLatch> sharedCountdownLatchMap = new HashMap<>();
+    private static final ReentrantLock lock = new ReentrantLock();
     private SharedCountdownLatch() {
 
     }
-
-    private static final Map<String, CountDownLatch> sharedCountdownLatchMap = new HashMap<>();
-    private static final ReentrantLock lock = new ReentrantLock();
 
     public static void countdown(Class<?> awaitClass, Class<?> workClass) {
         lock.lock();

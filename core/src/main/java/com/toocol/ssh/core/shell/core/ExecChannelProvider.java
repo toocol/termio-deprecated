@@ -2,8 +2,8 @@ package com.toocol.ssh.core.shell.core;
 
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.Session;
-import com.toocol.ssh.utilities.utils.Castable;
 import com.toocol.ssh.core.cache.SshSessionCache;
+import com.toocol.ssh.utilities.utils.Castable;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -21,7 +21,7 @@ public final class ExecChannelProvider implements Castable {
     }
 
     public ChannelExec getChannelExec(Long sessionId) throws Exception {
-        Session session= sshSessionCache.getSession(sessionId);
+        Session session = sshSessionCache.getSession(sessionId);
         if (session == null) {
             throw new RuntimeException("Session is null, sessionId = " + sessionId);
         }

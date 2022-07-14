@@ -18,6 +18,14 @@ public record TermioLogger(Class<?> clazz, StringBuilder logBuilder,
 
     private static boolean skip = true;
 
+    public static void skip() {
+        skip = true;
+    }
+
+    public static void nonSkip() {
+        skip = false;
+    }
+
     @Override
     public void info(String message, Object... params) {
         if (skip) {
@@ -40,14 +48,6 @@ public record TermioLogger(Class<?> clazz, StringBuilder logBuilder,
             return;
         }
         log(message, ERROR, params);
-    }
-
-    public static void skip() {
-        skip = true;
-    }
-
-    public static void nonSkip() {
-        skip = false;
     }
 
     private synchronized void log(String message, String level, Object... params) {

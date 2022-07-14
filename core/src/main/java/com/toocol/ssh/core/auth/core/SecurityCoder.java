@@ -48,34 +48,6 @@ public record SecurityCoder(String key) {
         return instance;
     }
 
-    public String decode(String origin) {
-        if (StringUtils.isEmpty(origin)) {
-            return StrUtil.EMPTY;
-        }
-        if (StringUtils.isEmpty(key)) {
-            return origin;
-        }
-        try {
-            return decryptData(key, origin);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    public String encode(String origin) {
-        if (StringUtils.isEmpty(origin)) {
-            return StrUtil.EMPTY;
-        }
-        if (StringUtils.isEmpty(key)) {
-            return origin;
-        }
-        try {
-            return encryptData(key, origin);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     private static String encryptData(String key, String message) throws Exception {
         KeyGenerator keygen = getKeyGenerator(key);
         SecretKey secretKey = new SecretKeySpec(keygen.generateKey().getEncoded(), ALGORITHM);
@@ -122,5 +94,33 @@ public record SecurityCoder(String key) {
             }
         }
         return null;
+    }
+
+    public String decode(String origin) {
+        if (StringUtils.isEmpty(origin)) {
+            return StrUtil.EMPTY;
+        }
+        if (StringUtils.isEmpty(key)) {
+            return origin;
+        }
+        try {
+            return decryptData(key, origin);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public String encode(String origin) {
+        if (StringUtils.isEmpty(origin)) {
+            return StrUtil.EMPTY;
+        }
+        if (StringUtils.isEmpty(key)) {
+            return origin;
+        }
+        try {
+            return encryptData(key, origin);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

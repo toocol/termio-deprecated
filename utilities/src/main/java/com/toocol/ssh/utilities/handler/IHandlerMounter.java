@@ -1,8 +1,8 @@
 package com.toocol.ssh.utilities.handler;
 
 import com.toocol.ssh.utilities.annotation.RegisterHandler;
-import com.toocol.ssh.utilities.utils.MessageBox;
 import com.toocol.ssh.utilities.utils.Castable;
+import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 
@@ -17,11 +17,11 @@ public interface IHandlerMounter extends Castable {
     /**
      * assemble the handler to the eventBus
      *
-     * @param vertx the vertx system object
-     * @param context the verticle's executor
+     * @param vertx    the vertx system object
+     * @param context  the verticle's executor
      * @param parallel whether the handlers is handle parallel
-     * @param injects objs to inject
-     * @param <T>  generic type
+     * @param injects  objs to inject
+     * @param <T>      generic type
      */
     @SuppressWarnings("all")
     default <T> void mountHandler(Vertx vertx, Context context, boolean parallel) {
@@ -60,10 +60,10 @@ public interface IHandlerMounter extends Castable {
     /**
      * assemble the handler to the eventBus
      *
-     * @param vertx the vertx system object
+     * @param vertx   the vertx system object
      * @param context the verticle's executor
      */
     default void mountHandler(Vertx vertx, Context context) {
-        mountHandler(vertx, context,false);
+        mountHandler(vertx, context, false);
     }
 }

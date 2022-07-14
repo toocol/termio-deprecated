@@ -41,18 +41,16 @@ public final class Shell extends AbstractDevice {
 
     static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#])");
     static final Console CONSOLE = Console.get();
-
-    private ConsoleReader reader;
-
-    {
-        try {
-            reader = new ConsoleReader(System.in, null, null);
-        } catch (Exception e) {
-            MessageBox.setExitMessage("Create console reader failed.");
-            System.exit(-1);
-        }
-    }
-
+    final Term term = Term.getInstance();
+    final ShellPrinter shellPrinter;
+    final ShellReader shellReader;
+    final ShellHistoryCmdHelper historyCmdHelper;
+    final MoreHelper moreHelper;
+    final EscapeHelper escapeHelper;
+    final VimHelper vimHelper;
+    final ShellCharEventDispatcher shellCharEventDispatcher;
+    final Set<String> tabFeedbackRec = new HashSet<>();
+    final StringBuilder cmd = new StringBuilder();
     /**
      * the session's id that shell belongs to.
      */
@@ -61,6 +59,22 @@ public final class Shell extends AbstractDevice {
      * the EventBus of vert.x system.
      */
     private final EventBus eventBus;
+    volatile StringBuffer localLastCmd = new StringBuffer();
+    volatile StringBuffer remoteCmd = new StringBuffer();
+    volatile StringBuffer currentPrint = new StringBuffer();
+    volatile StringBuffer selectHistoryCmd = new StringBuffer();
+    volatile StringBuffer localLastInput = new StringBuffer();
+    volatile StringBuffer lastRemoteCmd = new StringBuffer();
+    volatile StringBuffer lastExecuteCmd = new StringBuffer();
+    volatile Status status = Status.NORMAL;
+    volatile ShellProtocol protocol;
+    volatile AtomicReference<String> prompt = new AtomicReference<>();
+    volatile AtomicReference<String> fullPath = new AtomicReference<>();
+    volatile String sshWelcome = null;
+    volatile String moshWelcome = null;
+    volatile String user = null;
+    volatile String bottomLinePrint = StrUtil.EMPTY;
+    private ConsoleReader reader;
     /**
      * the output/input Stream belong to JSch's channelShell;
      */
@@ -74,77 +88,14 @@ public final class Shell extends AbstractDevice {
      * Mosh session
      */
     private MoshSession moshSession;
-
     private volatile boolean returnWrite = false;
     private volatile boolean promptNow = false;
 
-    final Term term = Term.getInstance();
-    final ShellPrinter shellPrinter;
-    final ShellReader shellReader;
-    final ShellHistoryCmdHelper historyCmdHelper;
-    final MoreHelper moreHelper;
-    final EscapeHelper escapeHelper;
-    final VimHelper vimHelper;
-    final ShellCharEventDispatcher shellCharEventDispatcher;
-
-    volatile StringBuffer localLastCmd = new StringBuffer();
-    volatile StringBuffer remoteCmd = new StringBuffer();
-    volatile StringBuffer currentPrint = new StringBuffer();
-    volatile StringBuffer selectHistoryCmd = new StringBuffer();
-    volatile StringBuffer localLastInput = new StringBuffer();
-    volatile StringBuffer lastRemoteCmd = new StringBuffer();
-    volatile StringBuffer lastExecuteCmd = new StringBuffer();
-    volatile Status status = Status.NORMAL;
-    volatile ShellProtocol protocol;
-
-    final Set<String> tabFeedbackRec = new HashSet<>();
-
-    final StringBuilder cmd = new StringBuilder();
-    volatile AtomicReference<String> prompt = new AtomicReference<>();
-    volatile AtomicReference<String> fullPath = new AtomicReference<>();
-    volatile String sshWelcome = null;
-    volatile String moshWelcome = null;
-    volatile String user = null;
-    volatile String bottomLinePrint = StrUtil.EMPTY;
-
-    public enum Status {
-        /**
-         * The status of Shell.
-         */
-        NORMAL(1, "Shell is under normal cmd input status."),
-        TAB_ACCOMPLISH(2, "Shell is under tab key to auto-accomplish address status."),
-        VIM_BEFORE(3, "Shell is before Vim/Vi edit status."),
-        VIM_UNDER(4, "Shell is under Vim/Vi edit status."),
-        MORE_BEFORE(5, "Shell is before more cmd process status."),
-        MORE_PROC(6, "Shell is under more cmd process status."),
-        MORE_EDIT(7, "Shell is under more regular expression or cmd edit status."),
-        MORE_SUB(8, "Shell is under more :sub cmd status."),
-        ;
-
-        Status(int status, String comment) {
-            this.status = status;
-            this.comment = comment;
-        }
-
-        public final int status;
-        public final String comment;
-    }
-
-    public void resetIO(ShellProtocol protocol) {
-        this.protocol = protocol;
+    {
         try {
-            switch (protocol) {
-                case SSH -> {
-                    this.inputStream = channelShell.getInputStream();
-                    this.outputStream = channelShell.getOutputStream();
-                }
-                case MOSH -> {
-                    this.inputStream = moshSession.getInputStream();
-                    this.outputStream = moshSession.getOutputStream();
-                }
-            }
+            reader = new ConsoleReader(System.in, null, null);
         } catch (Exception e) {
-            MessageBox.setExitMessage("Reset IO failed: " + e.getMessage());
+            MessageBox.setExitMessage("Create console reader failed.");
             System.exit(-1);
         }
     }
@@ -179,6 +130,25 @@ public final class Shell extends AbstractDevice {
 
         this.resetIO(ShellProtocol.SSH);
         this.shellReader.initReader();
+    }
+
+    public void resetIO(ShellProtocol protocol) {
+        this.protocol = protocol;
+        try {
+            switch (protocol) {
+                case SSH -> {
+                    this.inputStream = channelShell.getInputStream();
+                    this.outputStream = channelShell.getOutputStream();
+                }
+                case MOSH -> {
+                    this.inputStream = moshSession.getInputStream();
+                    this.outputStream = moshSession.getOutputStream();
+                }
+            }
+        } catch (Exception e) {
+            MessageBox.setExitMessage("Reset IO failed: " + e.getMessage());
+            System.exit(-1);
+        }
     }
 
     public boolean print(String msg) {
@@ -511,6 +481,10 @@ public final class Shell extends AbstractDevice {
         return prompt.get();
     }
 
+    public void setPrompt(String prompt) {
+        this.prompt.set(prompt);
+    }
+
     public String getLastRemoteCmd() {
         return lastRemoteCmd.toString();
     }
@@ -527,24 +501,20 @@ public final class Shell extends AbstractDevice {
         return user;
     }
 
-    public AtomicReference<String> getFullPath() {
-        return fullPath;
-    }
-
-    public long getSessionId() {
-        return sessionId;
-    }
-
     public void setUser(String user) {
         this.user = user;
     }
 
-    public void setPrompt(String prompt) {
-        this.prompt.set(prompt);
+    public AtomicReference<String> getFullPath() {
+        return fullPath;
     }
 
     public void setFullPath(String fullPath) {
         this.fullPath.set(fullPath);
+    }
+
+    public long getSessionId() {
+        return sessionId;
     }
 
     public ChannelShell getChannelShell() {
@@ -561,5 +531,27 @@ public final class Shell extends AbstractDevice {
 
     public ShellProtocol getProtocol() {
         return this.protocol;
+    }
+
+    public enum Status {
+        /**
+         * The status of Shell.
+         */
+        NORMAL(1, "Shell is under normal cmd input status."),
+        TAB_ACCOMPLISH(2, "Shell is under tab key to auto-accomplish address status."),
+        VIM_BEFORE(3, "Shell is before Vim/Vi edit status."),
+        VIM_UNDER(4, "Shell is under Vim/Vi edit status."),
+        MORE_BEFORE(5, "Shell is before more cmd process status."),
+        MORE_PROC(6, "Shell is under more cmd process status."),
+        MORE_EDIT(7, "Shell is under more regular expression or cmd edit status."),
+        MORE_SUB(8, "Shell is under more :sub cmd status."),
+        ;
+
+        public final int status;
+        public final String comment;
+        Status(int status, String comment) {
+            this.status = status;
+            this.comment = comment;
+        }
     }
 }

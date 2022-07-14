@@ -13,11 +13,10 @@ import java.util.Map;
 public class MoshSessionCache {
 
     private static MoshSessionCache INSTANCE = null;
+    private final Map<Long, MoshSession> moshSessionMap = new HashMap<>();
 
     private MoshSessionCache() {
     }
-
-    private final Map<Long, MoshSession> moshSessionMap = new HashMap<>();
 
     public static synchronized MoshSessionCache getInstance() {
         if (INSTANCE == null) {

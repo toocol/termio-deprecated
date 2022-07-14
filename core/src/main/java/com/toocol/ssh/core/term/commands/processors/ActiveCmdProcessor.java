@@ -25,8 +25,9 @@ public final class ActiveCmdProcessor extends TermioCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         ArrayList<Integer> paramList = new ArrayList<>();
-        String[] split = cmd.trim().replaceAll(" {2,}"," ").split(" ");
-        if (split.length<=1){
+        String[] split = cmd.trim().replaceAll(" {2,}", " ").split(" ");
+        
+        if (split.length <= 1) {
             resultAndMsg.first(false).second("No connection properties selected.");
             return;
         }
