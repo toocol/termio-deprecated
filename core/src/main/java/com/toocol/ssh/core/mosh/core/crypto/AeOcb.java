@@ -27,137 +27,6 @@ public final class AeOcb {
             31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
     };
 
-    public static class Block {
-        long l;
-        long r;
-
-        Block(long l, long r) {
-            this.l = l;
-            this.r = r;
-        }
-
-        byte[] getBytes() {
-            byte[] bytes = new byte[16];
-            byte[] lBytes = ByteOrder.longBytes(l);
-            byte[] rBytes = ByteOrder.longBytes(r);
-            System.arraycopy(lBytes, 0, bytes, 0, 8);
-            System.arraycopy(rBytes, 0, bytes, 8, 8);
-            return bytes;
-        }
-
-        static Block doubleBlock(Block bl) {
-            Block b = zeroBlock();
-            long t = bl.l >> 63;
-            b.l = (bl.l + bl.l) ^ (bl.r >>> 63);
-            b.r = (bl.r + bl.r) ^ (t & 135);
-            return b;
-        }
-
-        static Block xorBlock(Block x, Block y) {
-            Block b = zeroBlock();
-            b.l = x.l ^ y.l;
-            b.r = x.r ^ y.r;
-            return b;
-        }
-
-        static Block zeroBlock() {
-            return new Block(0, 0);
-        }
-
-        static Block fromBytes(byte[] bytes) {
-            Block block = zeroBlock();
-            byte[] bytes8 = new byte[8];
-            System.arraycopy(bytes, 0, bytes8, 0, 8);
-            block.l = ByteOrder.toLong(bytes8);
-            System.arraycopy(bytes, 8, bytes8, 0, 8);
-            block.r = ByteOrder.toLong(bytes8);
-            return block;
-        }
-
-        /**
-         * if native byte order is little-endian, swap the bytes array;
-         */
-        static Block swapIfLe(Block b) {
-            if (ByteOrder.littleEndian()) {
-                return new Block(
-                        ByteOrder.toLong(bswap64(b.l)),
-                        ByteOrder.toLong(bswap64(b.r))
-                );
-            } else {
-                return new Block(b.l, b.r);
-            }
-        }
-
-        static Block genOffset(long[] ktopStr, int bot) {
-            Block rval = zeroBlock();
-            if (bot != 0) {
-                rval.l = (ktopStr[0] << bot) | (ktopStr[1] >>> (64 - bot));
-                rval.r = (ktopStr[1] << bot) | (ktopStr[2] >>> (64 - bot));
-            } else {
-                rval.l = ktopStr[0];
-                rval.r = ktopStr[1];
-            }
-            return swapIfLe(rval);
-        }
-
-        static boolean unequalBlocks(Block x, Block y) {
-            return (((x).l ^ (y).l) | ((x).r ^ (y).r)) != 0;
-        }
-    }
-
-    public static class AeCtx {
-        static final String ALGORITHM = "AES";
-        static final String AES_TYPE = "AES/ECB/NoPadding";
-
-        final Block[] l = new Block[L_TABLE_SIZE];
-        final long[] ktopStr = new long[3];
-
-        Block offset;
-        Block checksum;
-        Block lstar;
-        Block ldollor;
-        Block adCheckSum;
-        Block adOffset;
-        Block cachedTop;
-        int adBlocksProcessed;
-        int blocksProcessed;
-        Cipher encryptCipher;
-        Cipher decryptCipher;
-
-        void setCipher(byte[] key) throws Exception {
-            SecretKeySpec keySpec = new SecretKeySpec(key, ALGORITHM);
-
-            encryptCipher = Cipher.getInstance(AES_TYPE);
-            encryptCipher.init(Cipher.ENCRYPT_MODE, keySpec);
-
-            decryptCipher = Cipher.getInstance(AES_TYPE);
-            decryptCipher.init(Cipher.DECRYPT_MODE, keySpec);
-        }
-
-        byte[] encrypt(byte[] origin) throws Exception {
-            return encryptCipher.doFinal(origin);
-        }
-
-        byte[] decrypt(byte[] origin) throws Exception {
-            return decryptCipher.doFinal(origin);
-        }
-
-        void encryptBlock(Block[] block, int bulks) throws Exception {
-            for (int i = 0; i < bulks; i++) {
-                block[i] = fromBytes(encrypt(block[i].getBytes()));
-            }
-        }
-
-        void decryptBlock(Block[] block, int bulks) throws Exception {
-            for (int i = 0; i < bulks; i++) {
-                block[i] = fromBytes(decrypt(block[i].getBytes()));
-            }
-        }
-
-        public AeCtx() {
-        }
-    }
-
     public static int aeInit(AeCtx ctx, byte[] key, int keyLen, int nonceLen, int tagLen) {
         if (keyLen != OCB_KEY_LEN) {
             return AE_NOT_SUPPORTED;
@@ -620,5 +489,136 @@ public final class AeOcb {
 
     static void processAd(AeCtx ctx, byte[] ad, int adLen, int finalise) {
 
+    }
+
+    public static class Block {
+        long l;
+        long r;
+
+        Block(long l, long r) {
+            this.l = l;
+            this.r = r;
+        }
+
+        static Block doubleBlock(Block bl) {
+            Block b = zeroBlock();
+            long t = bl.l >> 63;
+            b.l = (bl.l + bl.l) ^ (bl.r >>> 63);
+            b.r = (bl.r + bl.r) ^ (t & 135);
+            return b;
+        }
+
+        static Block xorBlock(Block x, Block y) {
+            Block b = zeroBlock();
+            b.l = x.l ^ y.l;
+            b.r = x.r ^ y.r;
+            return b;
+        }
+
+        static Block zeroBlock() {
+            return new Block(0, 0);
+        }
+
+        static Block fromBytes(byte[] bytes) {
+            Block block = zeroBlock();
+            byte[] bytes8 = new byte[8];
+            System.arraycopy(bytes, 0, bytes8, 0, 8);
+            block.l = ByteOrder.toLong(bytes8);
+            System.arraycopy(bytes, 8, bytes8, 0, 8);
+            block.r = ByteOrder.toLong(bytes8);
+            return block;
+        }
+
+        /**
+         * if native byte order is little-endian, swap the bytes array;
+         */
+        static Block swapIfLe(Block b) {
+            if (ByteOrder.littleEndian()) {
+                return new Block(
+                        ByteOrder.toLong(bswap64(b.l)),
+                        ByteOrder.toLong(bswap64(b.r))
+                );
+            } else {
+                return new Block(b.l, b.r);
+            }
+        }
+
+        static Block genOffset(long[] ktopStr, int bot) {
+            Block rval = zeroBlock();
+            if (bot != 0) {
+                rval.l = (ktopStr[0] << bot) | (ktopStr[1] >>> (64 - bot));
+                rval.r = (ktopStr[1] << bot) | (ktopStr[2] >>> (64 - bot));
+            } else {
+                rval.l = ktopStr[0];
+                rval.r = ktopStr[1];
+            }
+            return swapIfLe(rval);
+        }
+
+        static boolean unequalBlocks(Block x, Block y) {
+            return (((x).l ^ (y).l) | ((x).r ^ (y).r)) != 0;
+        }
+
+        byte[] getBytes() {
+            byte[] bytes = new byte[16];
+            byte[] lBytes = ByteOrder.longBytes(l);
+            byte[] rBytes = ByteOrder.longBytes(r);
+            System.arraycopy(lBytes, 0, bytes, 0, 8);
+            System.arraycopy(rBytes, 0, bytes, 8, 8);
+            return bytes;
+        }
+    }
+
+    public static class AeCtx {
+        static final String ALGORITHM = "AES";
+        static final String AES_TYPE = "AES/ECB/NoPadding";
+
+        final Block[] l = new Block[L_TABLE_SIZE];
+        final long[] ktopStr = new long[3];
+
+        Block offset;
+        Block checksum;
+        Block lstar;
+        Block ldollor;
+        Block adCheckSum;
+        Block adOffset;
+        Block cachedTop;
+        int adBlocksProcessed;
+        int blocksProcessed;
+        Cipher encryptCipher;
+        Cipher decryptCipher;
+
+        public AeCtx() {
+        }
+
+        void setCipher(byte[] key) throws Exception {
+            SecretKeySpec keySpec = new SecretKeySpec(key, ALGORITHM);
+
+            encryptCipher = Cipher.getInstance(AES_TYPE);
+            encryptCipher.init(Cipher.ENCRYPT_MODE, keySpec);
+
+            decryptCipher = Cipher.getInstance(AES_TYPE);
+            decryptCipher.init(Cipher.DECRYPT_MODE, keySpec);
+        }
+
+        byte[] encrypt(byte[] origin) throws Exception {
+            return encryptCipher.doFinal(origin);
+        }
+
+        byte[] decrypt(byte[] origin) throws Exception {
+            return decryptCipher.doFinal(origin);
+        }
+
+        void encryptBlock(Block[] block, int bulks) throws Exception {
+            for (int i = 0; i < bulks; i++) {
+                block[i] = fromBytes(encrypt(block[i].getBytes()));
+            }
+        }
+
+        void decryptBlock(Block[] block, int bulks) throws Exception {
+            for (int i = 0; i < bulks; i++) {
+                block[i] = fromBytes(decrypt(block[i].getBytes()));
+            }
+        }
     }
 }

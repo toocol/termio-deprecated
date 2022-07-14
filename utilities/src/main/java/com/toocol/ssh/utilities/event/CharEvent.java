@@ -18,9 +18,12 @@ public enum CharEvent {
     CTRL_U(CharUtil.CTRL_U),
     ESCAPE(CharUtil.ESCAPE),
     ASCII_PRINTABLE('\0'),
-    CHINESE_CHARACTER('\0')
-    ;
+    CHINESE_CHARACTER('\0');
     public final char represent;
+
+    CharEvent(char represent) {
+        this.represent = represent;
+    }
 
     public static CharEvent eventOf(char ch) {
         if (CharUtil.isAsciiPrintable(ch)) {
@@ -35,9 +38,5 @@ public enum CharEvent {
             }
         }
         return null;
-    }
-
-    CharEvent(char represent) {
-        this.represent = represent;
     }
 }

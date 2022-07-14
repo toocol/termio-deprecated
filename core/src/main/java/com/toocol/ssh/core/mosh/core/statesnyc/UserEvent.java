@@ -13,27 +13,26 @@ import java.util.Objects;
  * @version: 0.0.1
  */
 public abstract class UserEvent implements Asable {
+    protected final UserEventType type;
+
     public UserEvent(UserEventType type) {
         this.type = type;
     }
-
-    public enum UserEventType {
-        USER_BYTE_TYPE(0),
-        RESIZE_TYPE(1)
-        ;
-        public final int idx;
-
-        UserEventType(int idx) {
-            this.idx = idx;
-        }
-    }
-
-    protected final UserEventType type;
 
     public abstract String name();
 
     public UserEventType type() {
         return type;
+    }
+
+    public enum UserEventType {
+        USER_BYTE_TYPE(0),
+        RESIZE_TYPE(1);
+        public final int idx;
+
+        UserEventType(int idx) {
+            this.idx = idx;
+        }
     }
 
     public static final class UserBytes extends UserEvent {

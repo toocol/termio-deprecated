@@ -1,7 +1,7 @@
 package com.toocol.ssh.core.shell.commands;
 
-import com.toocol.ssh.utilities.utils.Tuple2;
 import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -18,8 +18,8 @@ public abstract class ShellCommandProcessor {
      * process the shell command
      *
      * @param eventBus event bus
-     * @param shell shell
-     * @param isBreak break the shell accept cycle
+     * @param shell    shell
+     * @param isBreak  break the shell accept cycle
      * @return final cmd should be executed
      */
     public abstract Tuple2<String, Long> process(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String cmd);

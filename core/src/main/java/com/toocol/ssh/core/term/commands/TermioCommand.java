@@ -63,17 +63,6 @@ public enum TermioCommand implements ICommand {
         return Optional.ofNullable(termioCommand);
     }
 
-    public final <T> void processCmd(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
-        if (this.commandProcessor == null) {
-            return;
-        }
-        this.commandProcessor.process(eventBus, cmd, resultAndMsg);
-    }
-
-    public String cmd() {
-        return cmd;
-    }
-
     public static String help() {
         AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.displayBackGroundColor);
         helpBuilder.append("Termio commands:\t[param] means optional param\n");
@@ -98,6 +87,17 @@ public enum TermioCommand implements ICommand {
             }
         }
         return null;
+    }
+
+    public final <T> void processCmd(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
+        if (this.commandProcessor == null) {
+            return;
+        }
+        this.commandProcessor.process(eventBus, cmd, resultAndMsg);
+    }
+
+    public String cmd() {
+        return cmd;
     }
 
     public String getSpecify() {

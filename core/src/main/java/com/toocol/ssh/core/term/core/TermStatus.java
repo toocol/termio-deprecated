@@ -7,8 +7,7 @@ package com.toocol.ssh.core.term.core;
  */
 public enum TermStatus {
     TERMIO(),
-    SHELL()
-    ;
+    SHELL();
 
     TermStatus() {
     }

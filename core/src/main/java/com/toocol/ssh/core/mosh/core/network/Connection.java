@@ -16,26 +16,20 @@ import static com.toocol.ssh.core.mosh.core.network.NetworkConstants.*;
  */
 public final class Connection {
 
+    final Transport.Addr addr;
+    final DatagramSocket socket;
+    final Crypto.Session encryptSession;
+    final Crypto.Session decryptSession;
+    final MoshPacket sendPacket;
+    final Crypto.Message sendMessage;
+    final MoshPacket receivePacket;
+    final Crypto.Message receiveMessage;
     private short savedTimestamp;
     private long savedTimestampReceivedAt;
     private long expectedReceiverSeq;
-
     private long lastHeard;
     private long lastPortChoice;
     private long lastRoundtripSuccess;
-
-    final Transport.Addr addr;
-
-    final DatagramSocket socket;
-
-    final Crypto.Session encryptSession;
-    final Crypto.Session decryptSession;
-
-    final MoshPacket sendPacket;
-    final Crypto.Message sendMessage;
-
-    final MoshPacket receivePacket;
-    final Crypto.Message receiveMessage;
 
     public Connection(Transport.Addr addr, DatagramSocket socket) {
         Crypto.Base64Key key = new Crypto.Base64Key(addr.key());

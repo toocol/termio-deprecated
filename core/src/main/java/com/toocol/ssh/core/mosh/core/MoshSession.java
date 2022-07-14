@@ -23,19 +23,12 @@ import java.net.SocketException;
  */
 public final class MoshSession implements Loggable {
 
-    private static class IO {
-        private MoshOutputStream outputStream;
-        private MoshInputStream inputStream;
-    }
-
     private final IO io;
     private final Vertx vertx;
     private final Transport<CompleteTerminal> transport;
     private final long sessionId;
-
     private DatagramSocket socket;
     private volatile boolean connected = false;
-
     public MoshSession(Vertx vertx, long sessionId, String host, int port, String key) {
         this.vertx = vertx;
         this.io = new IO();
@@ -125,5 +118,10 @@ public final class MoshSession implements Loggable {
 
     public long getSessionId() {
         return sessionId;
+    }
+
+    private static class IO {
+        private MoshOutputStream outputStream;
+        private MoshInputStream inputStream;
     }
 }

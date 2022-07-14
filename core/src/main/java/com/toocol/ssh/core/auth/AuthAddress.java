@@ -6,7 +6,7 @@ import com.toocol.ssh.utilities.address.IAddress;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-public enum AuthAddress implements IAddress{
+public enum AuthAddress implements IAddress {
     /**
      * add ssh credential.
      */

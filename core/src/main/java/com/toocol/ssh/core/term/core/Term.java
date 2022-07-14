@@ -16,30 +16,27 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class Term extends AbstractDevice {
 
     public static final String PROMPT = " [termio] > ";
-    static final Console CONSOLE = Console.get();
-
     public static final int TOP_MARGIN = 3;
     public static final int LEFT_MARGIN = 0;
     public static final int TEXT_LEFT_MARGIN = 1;
-
+    static final Console CONSOLE = Console.get();
+    private static final Term INSTANCE = new Term();
     public static volatile int WIDTH = CONSOLE.getWindowWidth();
     public static volatile int HEIGHT = CONSOLE.getWindowHeight();
-
-    ConsoleReader reader;
-    EventBus eventBus;
+    public static volatile TermStatus status = TermStatus.TERMIO;
+    public static TermTheme theme = TermTheme.DARK_THEME;
+    public static int executeLine = 0;
     final EscapeHelper escapeHelper;
     final TermHistoryCmdHelper historyCmdHelper;
     final TermReader termReader;
     final TermPrinter termPrinter;
     final TermCharEventDispatcher termCharEventDispatcher;
-
-    public Term() {
-        escapeHelper = new EscapeHelper();
-        historyCmdHelper = new TermHistoryCmdHelper();
-        termReader = new TermReader(this);
-        termPrinter = new TermPrinter(this);
-        termCharEventDispatcher = new TermCharEventDispatcher();
-    }
+    ConsoleReader reader;
+    EventBus eventBus;
+    volatile StringBuilder lineBuilder = new StringBuilder();
+    volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
+    int displayZoneBottom = 0;
+    char lastChar = '\0';
 
     {
         try {
@@ -49,21 +46,25 @@ public final class Term extends AbstractDevice {
             System.exit(-1);
         }
     }
-
-    private static final Term INSTANCE = new Term();
+    public Term() {
+        escapeHelper = new EscapeHelper();
+        historyCmdHelper = new TermHistoryCmdHelper();
+        termReader = new TermReader(this);
+        termPrinter = new TermPrinter(this);
+        termCharEventDispatcher = new TermCharEventDispatcher();
+    }
 
     public static void setEventBus(EventBus eventBus) {
         INSTANCE.eventBus = eventBus;
     }
 
-    public static volatile TermStatus status = TermStatus.TERMIO;
-    public static TermTheme theme = TermTheme.DARK_THEME;
-    public static int executeLine = 0;
+    public static Term getInstance() {
+        return INSTANCE;
+    }
 
-    volatile StringBuilder lineBuilder = new StringBuilder();
-    volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
-    int displayZoneBottom = 0;
-    char lastChar = '\0';
+    public static int getPromptLen() {
+        return PROMPT.length() + LEFT_MARGIN;
+    }
 
     public void printScene(boolean resize) {
         termPrinter.printScene(resize);
@@ -115,14 +116,6 @@ public final class Term extends AbstractDevice {
         return termReader.readLine();
     }
 
-    public static Term getInstance() {
-        return INSTANCE;
-    }
-
-    public static int getPromptLen() {
-        return PROMPT.length() + LEFT_MARGIN;
-    }
-
     public int getWidth() {
         return WIDTH;
     }
@@ -133,7 +126,7 @@ public final class Term extends AbstractDevice {
 
     public int[] getCursorPosition() {
         String[] coord = CONSOLE.getCursorPosition().split(",");
-        return new int[] {Integer.parseInt(coord[0]), Integer.parseInt(coord[1])};
+        return new int[]{Integer.parseInt(coord[0]), Integer.parseInt(coord[1])};
     }
 
     public void setCursorPosition(int x, int y) {

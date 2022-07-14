@@ -6,6 +6,19 @@ package com.toocol.ssh.utilities.jni;
  */
 public final class TermioJNI {
 
+    private static final TermioJNI INSTANCE;
+
+    static {
+        INSTANCE = new TermioJNI();
+    }
+
+    private TermioJNI() {
+    }
+
+    public static TermioJNI getInstance() {
+        return INSTANCE;
+    }
+
     public native String chooseFiles();
 
     public native String chooseDirectory();
@@ -27,15 +40,4 @@ public final class TermioJNI {
     public native void cursorLeft();
 
     public native void cursorRight();
-
-    private TermioJNI() {}
-
-    private static final TermioJNI INSTANCE;
-    static {
-        INSTANCE = new TermioJNI();
-    }
-
-    public static TermioJNI getInstance() {
-        return INSTANCE;
-    }
 }

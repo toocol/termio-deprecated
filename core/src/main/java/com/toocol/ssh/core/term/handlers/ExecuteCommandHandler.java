@@ -25,11 +25,11 @@ import static com.toocol.ssh.core.term.TermAddress.EXECUTE_OUTSIDE;
  */
 public final class ExecuteCommandHandler extends NonBlockingMessageHandler {
 
+    private final Term term = Term.getInstance();
+
     public ExecuteCommandHandler(Vertx vertx, Context context) {
         super(vertx, context);
     }
-
-    private final Term term = Term.getInstance();
 
     @Override
     public IAddress consume() {

@@ -27,7 +27,7 @@ public final class BlockingCheckFileExistHandler extends BlockingMessageHandler<
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<Void> promise, Message<T> message) throws Exception{
+    protected <T> void handleBlocking(Promise<Void> promise, Message<T> message) throws Exception {
         String filePath = cast(message.body());
         boolean success = FileUtil.checkAndCreateFile(filePath);
         if (!success) {

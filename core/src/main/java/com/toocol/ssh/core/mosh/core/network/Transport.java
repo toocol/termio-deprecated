@@ -20,32 +20,14 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 @SuppressWarnings("all")
 public final class Transport<RemoteState extends State> implements Loggable {
-
-
-    public record Addr(String serverHost, int port, String key) {
-        public String serverHost() {
-            return serverHost;
-        }
-
-        public int port() {
-            return port;
-        }
-
-        public String key() {
-            return key;
-        }
-    }
-
     public final Addr addr;
     private final RemoteState state;
     private final TransportFragment.Pool receivePool = new TransportFragment.Pool();
     private final TransportFragment.FragmentAssembly fragments = new TransportFragment.FragmentAssembly(receivePool);
     private final List<TimestampedState<RemoteState>> receiveStates = new ArrayList<>();
     private final Queue<InstructionPB.Instruction> instQueue = new ConcurrentLinkedDeque<>();
-
     private TransportSender<UserStream> sender;
     private Connection connection;
-
     public Transport(String serverHost, int port, String key, RemoteState initalRemoteState) {
         this.addr = new Addr(serverHost, port, key);
         this.state = initalRemoteState;
@@ -91,7 +73,6 @@ public final class Transport<RemoteState extends State> implements Loggable {
     }
 
     private void recv() {
-        // Ensure that there is only one packet to be process at a time
         while (!instQueue.isEmpty()) {
             InstructionPB.Instruction inst = instQueue.poll();
 
@@ -158,6 +139,20 @@ public final class Transport<RemoteState extends State> implements Loggable {
         // when sender's throwaway num equals receiver's ackNum there were problems
         receiveStates.removeIf(next -> next.num < throwawayNum);
         assert receiveStates.size() > 0;
+    }
+
+    public record Addr(String serverHost, int port, String key) {
+        public String serverHost() {
+            return serverHost;
+        }
+
+        public int port() {
+            return port;
+        }
+
+        public String key() {
+            return key;
+        }
     }
 
 }

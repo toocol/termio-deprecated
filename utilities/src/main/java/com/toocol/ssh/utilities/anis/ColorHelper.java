@@ -11,7 +11,7 @@ public final class ColorHelper {
     }
 
     public static String background(String msg, int color) {
-       return "\u001b[48;5;" + color + "m" + msg + "\u001b[0m";
+        return "\u001b[48;5;" + color + "m" + msg + "\u001b[0m";
     }
 
 }

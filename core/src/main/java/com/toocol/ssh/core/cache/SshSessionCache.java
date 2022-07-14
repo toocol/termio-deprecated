@@ -14,10 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SshSessionCache {
 
-    public Set<ChannelShell> allChannelShell() {
-        return new HashSet<>(channelShellMap.values());
-    }
-
+    private static final SshSessionCache INSTANCE = new SshSessionCache();
     /**
      * the map stored all alive ssh session.
      */
@@ -30,8 +27,6 @@ public class SshSessionCache {
 
     private SshSessionCache() {
     }
-
-    private static final SshSessionCache INSTANCE = new SshSessionCache();
 
     public static SshSessionCache getInstance() {
         return INSTANCE;
@@ -50,6 +45,10 @@ public class SshSessionCache {
                 })
                 .toList()
                 .size();
+    }
+
+    public Set<ChannelShell> allChannelShell() {
+        return new HashSet<>(channelShellMap.values());
     }
 
     public synchronized Map<Long, Session> getSessionMap() {
@@ -88,6 +87,7 @@ public class SshSessionCache {
         }
         return !sessionMap.get(sessionId).isConnected() || !channelShellMap.get(sessionId).isConnected();
     }
+
     public void putSession(Long sessionId, Session session) {
         sessionMap.put(sessionId, session);
     }

@@ -10,7 +10,7 @@ public class CmdUtil {
     public static boolean isCdCmd(String cmd) {
         String clearLastCmd = cmd
                 .trim()
-                .replaceAll(" {2,}"," ")
+                .replaceAll(" {2,}", " ")
                 .replaceAll(StrUtil.CR, StrUtil.EMPTY)
                 .replaceAll(StrUtil.LF, StrUtil.EMPTY);
 
@@ -27,7 +27,7 @@ public class CmdUtil {
     public static boolean isMoreCmd(String cmd) {
         String clearLastCmd = cmd
                 .trim()
-                .replaceAll(" {2,}"," ")
+                .replaceAll(" {2,}", " ")
                 .replaceAll(StrUtil.CR, StrUtil.EMPTY)
                 .replaceAll(StrUtil.LF, StrUtil.EMPTY);
 

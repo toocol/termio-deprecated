@@ -6,7 +6,7 @@ import com.toocol.ssh.utilities.address.IAddress;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-public enum MoshAddress implements IAddress{
+public enum MoshAddress implements IAddress {
     /**
      * establish the Mosh session
      */
@@ -22,8 +22,7 @@ public enum MoshAddress implements IAddress{
     /**
      * mosh close local udp socket
      */
-    CLOSE_LOCAL_SOCKET("mosh.close.local.socket")
-    ;
+    CLOSE_LOCAL_SOCKET("mosh.close.local.socket");
 
     /**
      * the address string of message

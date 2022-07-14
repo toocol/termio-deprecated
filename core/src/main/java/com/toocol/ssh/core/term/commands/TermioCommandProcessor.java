@@ -13,9 +13,9 @@ public abstract class TermioCommandProcessor implements Loggable {
     /**
      * process command
      *
-     * @param eventBus event bus
-     * @param cmd      cmd
-     * @param resultAndMsg    resultAndMsg
+     * @param eventBus     event bus
+     * @param cmd          cmd
+     * @param resultAndMsg resultAndMsg
      */
     public abstract void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg);
 

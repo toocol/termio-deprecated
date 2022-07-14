@@ -20,9 +20,8 @@ public final class MoshOutputStream extends PipedOutputStream {
     private static final int DEFAULT_BUFF_SIZE = 1024 * 10;
 
     final byte[] buff = new byte[DEFAULT_BUFF_SIZE];
-
-    private int curlen = 0;
     private final Transport transport;
+    private int curlen = 0;
     private volatile boolean close = false;
 
     public MoshOutputStream(PipedInputStream in, Transport transport) throws IOException {

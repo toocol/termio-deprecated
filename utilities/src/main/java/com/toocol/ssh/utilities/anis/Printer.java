@@ -13,11 +13,8 @@ import java.util.concurrent.CountDownLatch;
  * @date 2021/2/19 16:20
  */
 public final class Printer {
-    public volatile static boolean LOADING_ACCOMPLISH = false;
     public static final PrintStream PRINTER = System.out;
-
     private static final Console CONSOLE = Console.get();
-
     private static final String[] patterns = new String[]{
             "-",
             "\\",
@@ -25,6 +22,7 @@ public final class Printer {
             "/",
             "-"
     };
+    public volatile static boolean LOADING_ACCOMPLISH = false;
 
     public static void print(String msg) {
         PRINTER.print(msg);

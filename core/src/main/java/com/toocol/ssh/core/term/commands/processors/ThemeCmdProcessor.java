@@ -1,9 +1,9 @@
 package com.toocol.ssh.core.term.commands.processors;
 
 import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
-import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.core.TermTheme;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 
@@ -15,7 +15,7 @@ import io.vertx.core.eventbus.EventBus;
 public class ThemeCmdProcessor extends TermioCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
-        String[] split = cmd.trim().replaceAll(" {2,}"," ").split(" ");
+        String[] split = cmd.trim().replaceAll(" {2,}", " ").split(" ");
         if (split.length != 2) {
             resultAndMsg.first(false).second("Please select the theme [dark/light]");
             return;

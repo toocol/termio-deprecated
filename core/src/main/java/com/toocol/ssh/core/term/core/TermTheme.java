@@ -48,15 +48,6 @@ public enum TermTheme {
     public final int executeFrontColor;
     public final int errorMsgColor;
 
-    public static TermTheme nameOf(String name) {
-        for (TermTheme theme : values()) {
-            if (theme.name.equals(name)) {
-                return theme;
-            }
-        }
-        return null;
-    }
-
     TermTheme(
             String name,
             int executeBackgroundColor,
@@ -83,5 +74,14 @@ public enum TermTheme {
         this.connectionPromptColor = connectionPromptColor;
         this.executeFrontColor = executeFrontColor;
         this.errorMsgColor = errorMsgColor;
+    }
+
+    public static TermTheme nameOf(String name) {
+        for (TermTheme theme : values()) {
+            if (theme.name.equals(name)) {
+                return theme;
+            }
+        }
+        return null;
     }
 }

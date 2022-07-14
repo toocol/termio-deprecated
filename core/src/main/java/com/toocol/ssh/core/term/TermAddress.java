@@ -6,7 +6,7 @@ import com.toocol.ssh.utilities.address.IAddress;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-public enum TermAddress implements IAddress{
+public enum TermAddress implements IAddress {
     /**
      * execute outside command
      */
@@ -27,8 +27,7 @@ public enum TermAddress implements IAddress{
     /**
      * deal with the termio command echo and prompt display.
      */
-    TERMINAL_ECHO("ssh.term.echo")
-    ;
+    TERMINAL_ECHO("ssh.term.echo");
 
     /**
      * the address string of message

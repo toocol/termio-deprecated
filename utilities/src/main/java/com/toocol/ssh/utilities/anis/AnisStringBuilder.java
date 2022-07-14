@@ -41,7 +41,7 @@ public final class AnisStringBuilder {
         if (StringUtils.isEmpty(str)) {
             return this;
         }
-        if (this.front != - 1) {
+        if (this.front != -1) {
             str = ColorHelper.front(str, this.front);
         }
         if (this.background != -1) {

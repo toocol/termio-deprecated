@@ -6,9 +6,9 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.Session;
-import com.toocol.ssh.utilities.utils.Castable;
-import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.core.cache.SshSessionCache;
+import com.toocol.ssh.utilities.anis.Printer;
+import com.toocol.ssh.utilities.utils.Castable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -34,7 +34,7 @@ public final class SftpChannelProvider implements Castable {
         @Override
         @Nonnull
         public ChannelSftp load(@Nullable Long sessionId) throws Exception {
-            Session session= sshSessionCache.getSession(sessionId);
+            Session session = sshSessionCache.getSession(sessionId);
             if (session == null) {
                 throw new RuntimeException("Session is null, sessionId = " + session);
             }

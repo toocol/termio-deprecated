@@ -16,6 +16,12 @@ import java.util.Base64;
 @SuppressWarnings("all")
 public final class Crypto {
 
+    private static long counter = 0;
+
+    public synchronized static long unique() {
+        return counter++;
+    }
+
     public static class Nonce {
         public static final int NONCE_LEN = 12;
 
@@ -224,12 +230,6 @@ public final class Crypto {
             System.arraycopy(plaintextBuffer.data, 0, text, 0, ptLen);
             return message.resetData(nonce, text);
         }
-    }
-
-    private static long counter = 0;
-
-    public synchronized static long unique() {
-        return counter++;
     }
 
 }

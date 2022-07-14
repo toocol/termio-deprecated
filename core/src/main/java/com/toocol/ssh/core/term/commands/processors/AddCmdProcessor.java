@@ -3,8 +3,8 @@ package com.toocol.ssh.core.term.commands.processors;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.term.commands.TermioCommandProcessor;
-import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.utils.RegexUtils;
 import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
@@ -22,7 +22,7 @@ public class AddCmdProcessor extends TermioCommandProcessor {
 
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
-        String[] split = cmd.trim().replaceAll(" {2,}"," ").split("--");
+        String[] split = cmd.trim().replaceAll(" {2,}", " ").split("--");
         if (split.length != 2) {
             resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add --host@user -c=password [-p=port]'.");
             return;
@@ -51,7 +51,7 @@ public class AddCmdProcessor extends TermioCommandProcessor {
             resultAndMsg.first(false).second("Wrong host format, just supporting Ip address.");
             return;
         }
-        String password= passwordParam[1];
+        String password = passwordParam[1];
         int port;
         if (params.length == 3) {
             try {

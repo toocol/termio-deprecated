@@ -1,9 +1,9 @@
 package com.toocol.ssh.core.cache;
 
 import com.toocol.ssh.core.auth.core.SshCredential;
-import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.json.JsonArray;
 
@@ -20,6 +20,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class CredentialCache {
 
     private static CredentialCache instance;
+    private final Set<SshCredential> CREDENTIAL_SET = new TreeSet<>(Comparator.comparingInt(credential -> -1 * credential.getHost().hashCode()));
+    private final ReadWriteLock READ_WRITE_LOCK = new ReentrantReadWriteLock();
 
     private CredentialCache() {
 
@@ -31,9 +33,6 @@ public class CredentialCache {
         }
         return instance;
     }
-
-    private final Set<SshCredential> CREDENTIAL_SET = new TreeSet<>(Comparator.comparingInt(credential -> -1 * credential.getHost().hashCode()));
-    private final ReadWriteLock READ_WRITE_LOCK = new ReentrantReadWriteLock();
 
     public int credentialsSize() {
         Lock lock = READ_WRITE_LOCK.readLock();

@@ -9,7 +9,7 @@ public interface Asable {
 
     @SuppressWarnings("all")
     default <T> T as() {
-        return (T)this;
+        return (T) this;
     }
 
 }

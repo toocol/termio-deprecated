@@ -17,12 +17,11 @@ public class FileAppender {
 
     private static final String FILE_PATH = "./termio.log";
     private static final Queue<String> LOG_QUEUE = new ConcurrentLinkedDeque<>();
+    private static volatile boolean opened = false;
 
     protected static String filePath() {
         return FileUtil.relativeToFixed(FILE_PATH);
     }
-
-    private static volatile boolean opened = false;
 
     public static void close() {
         opened = false;

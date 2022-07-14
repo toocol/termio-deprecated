@@ -6,7 +6,7 @@ import com.toocol.ssh.utilities.address.IAddress;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-public enum SshAddress implements IAddress{
+public enum SshAddress implements IAddress {
     /**
      * establish the ssh session
      */
@@ -14,8 +14,7 @@ public enum SshAddress implements IAddress{
     /**
      * active the ssh session
      */
-    ACTIVE_SSH_SESSION("ssh.active.session")
-    ;
+    ACTIVE_SSH_SESSION("ssh.active.session");
 
     /**
      * the address string of message

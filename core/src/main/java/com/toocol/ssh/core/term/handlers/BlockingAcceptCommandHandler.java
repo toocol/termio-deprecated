@@ -1,10 +1,10 @@
 package com.toocol.ssh.core.term.handlers;
 
-import com.toocol.ssh.utilities.anis.Printer;
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
-import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -24,12 +24,11 @@ import static com.toocol.ssh.core.term.TermAddress.EXECUTE_OUTSIDE;
  */
 public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<Boolean> {
 
-    private final Term term = Term.getInstance();
-
     public static final int FIRST_IN = 0;
     public static final int NORMAL_BACK = 1;
     public static final int ACCEPT_ERROR = 2;
     public static final int CONNECT_FAILED = 3;
+    private final Term term = Term.getInstance();
 
     public BlockingAcceptCommandHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);

@@ -5,16 +5,13 @@ package com.toocol.ssh.utilities.utils;
  * @date 2022/3/31 12:14
  */
 public class SnowflakeGuidGenerator {
-    private static SnowflakeGuidGenerator instance;
-
     public static final int LONG_BITS = 64;
     public static final int UNIQUE_ID_BITS = 2;
     public static final int SEQUENCE_BITS = 16;
     public static final int TIMESTAMP_SHIFT_BITS = SEQUENCE_BITS + UNIQUE_ID_BITS;
     public static final int UNIQUE_ID_SHIFT_BITS = SEQUENCE_BITS;
-
     private static final long MAX_SEQUENCE_PER_MILLIS = -1L >>> (LONG_BITS - SEQUENCE_BITS);
-
+    private static SnowflakeGuidGenerator instance;
     private long sequence = 1;
     private long lastTimestamp = 0;
 

@@ -13,24 +13,11 @@ import java.util.zip.Inflater;
 public final class Compressor {
 
     private static Compressor compressor;
-
-    /**
-     * When we send packet to mosh-server and receive packet from mosh-server, we have to set the nowrap to false.
-     */
-    public enum Mode {
-        WRAP(true, true),
-        NO_WRAP(false, false)
-        ;
-        private final boolean compressNowrap;
-        private final boolean decompressNowrap;
-
-        Mode(boolean compressNowrap, boolean decompressNowrap) {
-            this.compressNowrap = compressNowrap;
-            this.decompressNowrap = decompressNowrap;
-        }
-    }
-
     private static Mode mode = Mode.NO_WRAP;
+
+    private Compressor() {
+
+    }
 
     static synchronized Compressor get() {
         if (compressor == null) {
@@ -39,8 +26,12 @@ public final class Compressor {
         return compressor;
     }
 
-    private Compressor() {
+    public static void wrap() {
+        mode = Mode.WRAP;
+    }
 
+    public static void noWrap() {
+        mode = Mode.NO_WRAP;
     }
 
     public byte[] compress(byte[] bytes) {
@@ -107,12 +98,19 @@ public final class Compressor {
         return output;
     }
 
-    public static void wrap() {
-        mode = Mode.WRAP;
-    }
+    /**
+     * When we send packet to mosh-server and receive packet from mosh-server, we have to set the nowrap to false.
+     */
+    public enum Mode {
+        WRAP(true, true),
+        NO_WRAP(false, false);
+        private final boolean compressNowrap;
+        private final boolean decompressNowrap;
 
-    public static void noWrap() {
-        mode = Mode.NO_WRAP;
+        Mode(boolean compressNowrap, boolean decompressNowrap) {
+            this.compressNowrap = compressNowrap;
+            this.decompressNowrap = decompressNowrap;
+        }
     }
 
 }
