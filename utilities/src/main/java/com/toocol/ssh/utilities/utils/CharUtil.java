@@ -15,19 +15,23 @@ public final class CharUtil {
     /**
      * {@code up-arrow} translated
      */
-    public static final char UP_ARROW = '\u0010';
+    public static final char UP_ARROW = '\uAAAA';
     /**
      * {@code down-arrow} translated
      */
-    public static final char DOWN_ARROW = '\u0011';
+    public static final char DOWN_ARROW = '\uBBBB';
+    /**
+     * {@code down-arrow} translated
+     */
+    public static final char RIGHT_ARROW = '\uCCCC';
     /**
      * {@code up-arrow} translated
      */
-    public static final char LEFT_ARROW = '\u0012';
+    public static final char LEFT_ARROW = '\uDDDD';
     /**
-     * {@code down-arrow} translated
+     * {@code Ctrl+A}
      */
-    public static final char RIGHT_ARROW = '\u0013';
+    public static final char CTRL_A = '\u0001';
     /**
      * {@code Ctrl+B}
      */
@@ -41,13 +45,93 @@ public final class CharUtil {
      */
     public static final char CTRL_D = '\u0004';
     /**
-     * {@code Ctrl+U}
+     * {@code Ctrl+E}
      */
-    public static final char CTRL_U = '\u0015';
+    public static final char CTRL_E = '\u0005';
+    /**
+     * {@code Ctrl+F}
+     */
+    public static final char CTRL_F = '\u0006';
+    /**
+     * {@code Ctrl+G}
+     */
+    public static final char CTRL_G = '\u0007';
+    /**
+     * {@code Ctrl+H}
+     */
+    public static final char CTRL_H = '\b';
+    /**
+     * {@code Ctrl+I}
+     */
+    public static final char CTRL_I = '\t';
+    /**
+     * {@code Ctrl+J}
+     */
+    public static final char CTRL_J = '\n';
+    /**
+     * {@code Ctrl+K}
+     */
+    public static final char CTRL_K = '\u000B';
     /**
      * {@code Ctrl+L}
      */
     public static final char CTRL_L = '\f';
+    /**
+     * {@code Ctrl+M}
+     */
+    public static final char CTRL_M = '\r';
+    /**
+     * {@code Ctrl+N}
+     */
+    public static final char CTRL_N = '\u000E';
+    /**
+     * {@code Ctrl+O}
+     */
+    public static final char CTRL_O = '\u000F';
+    /**
+     * {@code Ctrl+P}
+     */
+    public static final char CTRL_P = '\u0010';
+    /**
+     * {@code Ctrl+Q}
+     */
+    public static final char CTRL_Q = '\u0011';
+    /**
+     * {@code Ctrl+R}
+     */
+    public static final char CTRL_R = '\u0012';
+    /**
+     * {@code Ctrl+S}
+     */
+    public static final char CTRL_S = '\u0013';
+    /**
+     * {@code Ctrl+T}
+     */
+    public static final char CTRL_T = '\u0014';
+    /**
+     * {@code Ctrl+U}
+     */
+    public static final char CTRL_U = '\u0015';
+    /**
+     * {@code Ctrl+V}
+     */
+    public static final char CTRL_V = '\u0016';
+    /**
+     * {@code Ctrl+W}
+     */
+    public static final char CTRL_W = '\u0017';
+    /**
+     * {@code Ctrl+X}
+     */
+    public static final char CTRL_X = '\u0018';
+    /**
+     * {@code Ctrl+Y}
+     */
+    public static final char CTRL_Y = '\u0019';
+    /**
+     * {@code Ctrl+Z}
+     */
+    public static final char CTRL_Z = '\u001A';
     /**
      * {@code backspace}
      */

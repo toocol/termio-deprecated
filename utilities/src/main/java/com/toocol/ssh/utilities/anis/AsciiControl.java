@@ -42,24 +42,16 @@ public class AsciiControl {
     public static final String DEL = "\u007F";
     public static final String UNKNOWN = "�";
 
-    public static final String[][] REPLACES = new String[][]{
-            {"\u001B[?25h", "\\u001B\\[\\?25h"},
-            {"\u001B\u0012\u0019\"\u0017", "\\u001B\\u0012\\u0019\"\\u0017"}
-    };
-    public static final String[] IGNORES = new String[]{
-            "\u001B[?25l"
+    // this two ANSI Escape Sequences was useless under Windows console.
+    public static final String[][] IGNORES = new String[][]{
+            {"\u001B[?25h", "\\u001B\\[\\?25h"},     // make cursor invisible
+            {"\u001B[?25l", "\\u001B\\[\\?25l"}      // make cursor visible
     };
 
-    public static String ignoreAndReplace(String source) {
-        for (String[] replace : REPLACES) {
+    public static String ignore(String source) {
+        for (String[] replace : IGNORES) {
             if (source.endsWith(replace[0]))
                 source = source.replaceAll(replace[1], StrUtil.EMPTY);
-        }
-        for (String ignore : IGNORES) {
-            if (source.endsWith(ignore)) {
-                source = StrUtil.EMPTY;
-                break;
-            }
         }
         return source;
     }

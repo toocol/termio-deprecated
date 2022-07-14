@@ -137,7 +137,7 @@ public final class WindowsConsole extends Console {
         if (StringUtils.isEmpty(source)) {
             return StrUtil.EMPTY;
         }
-        source = AsciiControl.ignoreAndReplace(source);
+        source = AsciiControl.ignore(source);
         if (source.equals(AsciiControl.ESCAPE)) {
             source = StrUtil.EMPTY;
         }
