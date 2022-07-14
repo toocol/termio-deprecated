@@ -15,7 +15,10 @@ import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static com.toocol.ssh.core.ssh.SshAddress.ACTIVE_SSH_SESSION;
@@ -27,7 +30,7 @@ import static com.toocol.ssh.core.ssh.SshAddress.ACTIVE_SSH_SESSION;
  * @date: 2022/4/23 20:49
  * @version: 0.0.1
  */
-public final class BlockingActiveSshSessionHandler extends BlockingMessageHandler<String> {
+public final class BlockingActiveSshSessionHandler extends BlockingMessageHandler<JsonObject> {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();
@@ -39,58 +42,71 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<String> promise, Message<T> message) throws Exception {
-        int index = cast(message.body());
-        SshCredential credential = credentialCache.getCredential(index);
-        assert credential != null;
+    protected <T> void handleBlocking(Promise<JsonObject> promise, Message<T> message) throws Exception {
+        JsonObject ret = new JsonObject();
+        JsonArray success = new JsonArray();
+        JsonArray failed = new JsonArray();
+        JsonArray index = cast(message.body());
+        info(index.toString());
+        for (Object o : index) {
+            SshCredential credential = credentialCache.getCredential( Integer.parseInt(o.toString()));
+            assert credential != null;
+            try {
+                long sessionId = sshSessionCache.containSession(credential.getHost());
 
-        try {
-            long sessionId = sshSessionCache.containSession(credential.getHost());
+                if (sessionId == 0) {
+                    sessionId = factory.createSession(credential);
 
-            if (sessionId == 0) {
-                sessionId = factory.createSession(credential);
-
-                Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
-                shell.setUser(credential.getUser());
-                shell.initialFirstCorrespondence(ShellProtocol.SSH);
-                shellCache.putShell(sessionId, shell);
-            } else {
-                long newSessionId = factory.invokeSession(sessionId, credential);
-
-                if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
                     Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
                     shell.setUser(credential.getUser());
                     shell.initialFirstCorrespondence(ShellProtocol.SSH);
                     shellCache.putShell(sessionId, shell);
                 } else {
-                    shellCache.getShell(sessionId).resetIO(ShellProtocol.SSH);
+                    long newSessionId = factory.invokeSession(sessionId, credential);
+                    if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
+                        Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
+                        shell.setUser(credential.getUser());
+                        shell.initialFirstCorrespondence(ShellProtocol.SSH);
+                        shellCache.putShell(sessionId, shell);
+                    } else {
+                        shellCache.getShell(sessionId).resetIO(ShellProtocol.SSH);
+                    }
+                    sessionId = newSessionId;
+                    Optional.ofNullable(sshSessionCache.getChannelShell(sessionId)).ifPresent(channelShell -> {
+                        int width = Term.getInstance().getWidth();
+                        int height = Term.getInstance().getHeight();
+                        channelShell.setPtySize(width, height, width, height);
+                    });
+
+                    System.gc();
+                    if (sessionId > 0) {
+                        success.add(credential.getHost()+"@"+credential.getUser());
+                    } else {
+                        failed.add(credential.getHost()+"@"+credential.getUser());
+                    }
                 }
-                sessionId = newSessionId;
+
+            } catch (Exception e) {
+
             }
 
-            Optional.ofNullable(sshSessionCache.getChannelShell(sessionId)).ifPresent(channelShell -> {
-                int width = Term.getInstance().getWidth();
-                int height = Term.getInstance().getHeight();
-                channelShell.setPtySize(width, height, width, height);
-            });
-
-            System.gc();
-            if (sessionId > 0) {
-                promise.complete("Active session success, " + credential.getHost() + "@" + credential.getUser());
-            } else {
-                promise.fail("Active session failed, " + credential.getHost() + "@" + credential.getUser());
-            }
-        } catch (Exception e) {
-            promise.complete(null);
         }
-    }
+        ret.put("success",success);
+        ret.put("failed",failed);
+        promise.complete(ret);
+
+        }
+
+
+
+
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(AsyncResult<JsonObject> asyncResult, Message<T> message) throws Exception {
         if (asyncResult.succeeded()) {
             Term term = Term.getInstance();
             term.printScene(false);
-            term.printDisplay(asyncResult.result());
+            term.printDisplay(String.valueOf(asyncResult.result()));
             message.reply(true);
         } else {
             message.reply(false);
