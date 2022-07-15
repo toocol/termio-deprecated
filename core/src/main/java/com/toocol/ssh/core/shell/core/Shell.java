@@ -12,6 +12,7 @@ import com.toocol.ssh.utilities.action.AbstractDevice;
 import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
+import com.toocol.ssh.utilities.functional.Executable;
 import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.CmdUtil;
 import com.toocol.ssh.utilities.utils.MessageBox;
@@ -279,7 +280,7 @@ public final class Shell extends AbstractDevice implements Loggable {
     }
 
     @SuppressWarnings("all")
-    public void initialFirstCorrespondence(ShellProtocol protocol) {
+    public void initialFirstCorrespondence(ShellProtocol protocol, Executable executable) {
         this.protocol = protocol;
         try {
             CountDownLatch mainLatch = new CountDownLatch(2);
@@ -313,7 +314,6 @@ public final class Shell extends AbstractDevice implements Loggable {
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
-                    mainLatch.countDown();
                     promise.complete();
                 }
             }, false);
@@ -355,27 +355,25 @@ public final class Shell extends AbstractDevice implements Loggable {
                         }
 
                         if (StringUtils.isNoneEmpty(prompt.get())) {
-                            mainLatch.countDown();
                             break;
                         }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
+                    assert prompt.get() != null;
+                    extractUserFromPrompt();
+                    fullPath.set("/" + user);
+
+                    resetIO(protocol);
+                    executable.execute();
                     promise.complete();
                 }
             }, false);
 
-            mainLatch.await();
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        assert prompt.get() != null;
-        extractUserFromPrompt();
-        fullPath.set("/" + user);
-
-        resetIO(protocol);
     }
 
     private void checkConnection() {

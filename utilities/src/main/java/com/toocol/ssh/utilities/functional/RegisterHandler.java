@@ -1,4 +1,4 @@
-package com.toocol.ssh.utilities.annotation;
+package com.toocol.ssh.utilities.functional;
 
 import com.toocol.ssh.utilities.handler.AbstractMessageHandler;
 
