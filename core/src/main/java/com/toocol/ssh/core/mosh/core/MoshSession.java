@@ -29,6 +29,7 @@ public final class MoshSession implements Loggable {
     private final long sessionId;
     private DatagramSocket socket;
     private volatile boolean connected = false;
+
     public MoshSession(Vertx vertx, long sessionId, String host, int port, String key) {
         this.vertx = vertx;
         this.io = new IO();
@@ -73,16 +74,19 @@ public final class MoshSession implements Loggable {
         transport.pushBackEvent(new UserEvent.Resize(width, height));
     }
 
-    public InputStream getInputStream() throws IOException {
+    public synchronized InputStream getInputStream() throws IOException {
         if (!connected) {
             throw new IOException("Mosh session is not connected, sessionId = " + sessionId);
+        }
+        if (this.io.nonNull()) {
+            this.io.close();
         }
         this.io.inputStream = new MoshInputStream();
         setOutputStream(new MoshOutputStream(this.io.inputStream, transport));
         return this.io.inputStream;
     }
 
-    public OutputStream getOutputStream() throws IOException {
+    public synchronized OutputStream getOutputStream() throws IOException {
         if (!connected) {
             throw new IOException("Mosh session is not connected, sessionId = " + sessionId);
         }
@@ -123,5 +127,18 @@ public final class MoshSession implements Loggable {
     private static class IO {
         private MoshOutputStream outputStream;
         private MoshInputStream inputStream;
+
+        public boolean nonNull() {
+            return outputStream != null && inputStream != null;
+        }
+
+        public void close() {
+            try {
+                outputStream.close();
+                inputStream.close();
+            } catch (IOException e) {
+                // do nothing
+            }
+        }
     }
 }

@@ -13,7 +13,7 @@ import io.vertx.core.AbstractVerticle;
  * @date: 2022/4/30 19:29
  * @version: 0.0.1
  */
-@VerticleDeployment(worker = true, workerPoolSize = 1, workerPoolName = "mosh-tick-worker-pool")
+@VerticleDeployment(worker = true, workerPoolName = "mosh-tick-worker-pool")
 @RegisterHandler(handlers = {
         BlockingTickHandler.class
 })
@@ -21,7 +21,7 @@ public final class TickVerticle extends AbstractVerticle implements IHandlerMoun
 
     @Override
     public void start() throws Exception {
-        mountHandler(vertx, context, true);
+        mountHandler(vertx, context);
     }
 
 }

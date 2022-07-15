@@ -7,7 +7,6 @@ import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.utils.PomUtil;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.units.qual.A;
 
 import static com.toocol.ssh.core.term.core.Term.CONSOLE;
 

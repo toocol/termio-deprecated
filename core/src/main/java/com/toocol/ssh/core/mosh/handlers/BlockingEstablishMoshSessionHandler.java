@@ -13,6 +13,7 @@ import com.toocol.ssh.core.term.core.TermStatus;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
 import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.annotation.Order;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.AsyncResult;
@@ -31,6 +32,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  * @date: 2022/4/28 23:44
  * @version: 0.0.1
  */
+@Order
 public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHandler<Long> {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
@@ -59,7 +61,7 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
                 try {
                     eventBus.send(MOSH_TICK.address(), sessionId);
 
-                    Shell shell = new Shell(sessionId, eventBus, session);
+                    Shell shell = new Shell(sessionId, vertx, eventBus, session);
                     shell.setUser(credential.getUser());
                     shell.initialFirstCorrespondence(ShellProtocol.MOSH);
                     shellCache.putShell(sessionId, shell);

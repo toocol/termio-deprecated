@@ -6,6 +6,11 @@ package com.toocol.ssh.utilities.log;
  */
 public interface Loggable {
 
+    default void debug(String message, Object... params) {
+        Logger logger = LoggerFactory.getLogger(this.getClass());
+        logger.debug(message, params);
+    }
+
     default void info(String message, Object... params) {
         Logger logger = LoggerFactory.getLogger(this.getClass());
         logger.info(message, params);

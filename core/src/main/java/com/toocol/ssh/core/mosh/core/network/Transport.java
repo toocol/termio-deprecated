@@ -28,6 +28,7 @@ public final class Transport<RemoteState extends State> implements Loggable {
     private final Queue<InstructionPB.Instruction> instQueue = new ConcurrentLinkedDeque<>();
     private TransportSender<UserStream> sender;
     private Connection connection;
+
     public Transport(String serverHost, int port, String key, RemoteState initalRemoteState) {
         this.addr = new Addr(serverHost, port, key);
         this.state = initalRemoteState;

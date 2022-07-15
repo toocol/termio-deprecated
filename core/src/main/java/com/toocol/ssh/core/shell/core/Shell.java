@@ -12,9 +12,11 @@ import com.toocol.ssh.utilities.action.AbstractDevice;
 import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
+import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.CmdUtil;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import com.toocol.ssh.utilities.utils.StrUtil;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import jline.console.ConsoleReader;
@@ -37,7 +39,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/3 20:57
  */
-public final class Shell extends AbstractDevice {
+public final class Shell extends AbstractDevice implements Loggable {
 
     static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#])");
     static final Console CONSOLE = Console.get();
@@ -56,9 +58,14 @@ public final class Shell extends AbstractDevice {
      */
     private final long sessionId;
     /**
+     * vert.x system
+     */
+    private final Vertx vertx;
+    /**
      * the EventBus of vert.x system.
      */
     private final EventBus eventBus;
+
     volatile StringBuffer localLastCmd = new StringBuffer();
     volatile StringBuffer remoteCmd = new StringBuffer();
     volatile StringBuffer currentPrint = new StringBuffer();
@@ -100,8 +107,9 @@ public final class Shell extends AbstractDevice {
         }
     }
 
-    public Shell(long sessionId, EventBus eventBus, MoshSession moshSession) {
+    public Shell(long sessionId, Vertx vertx, EventBus eventBus, MoshSession moshSession) {
         this.sessionId = sessionId;
+        this.vertx = vertx;
         this.eventBus = eventBus;
         this.moshSession = moshSession;
         this.shellPrinter = new ShellPrinter(this);
@@ -116,8 +124,9 @@ public final class Shell extends AbstractDevice {
         this.shellReader.initReader();
     }
 
-    public Shell(long sessionId, EventBus eventBus, ChannelShell channelShell) {
+    public Shell(long sessionId, Vertx vertx, EventBus eventBus, ChannelShell channelShell) {
         this.sessionId = sessionId;
+        this.vertx = vertx;
         this.eventBus = eventBus;
         this.channelShell = channelShell;
         this.shellPrinter = new ShellPrinter(this);
@@ -290,7 +299,8 @@ public final class Shell extends AbstractDevice {
                 });
             }
 
-            new Thread(() -> {
+            vertx.executeBlocking(promise -> {
+                debug("Write blocking thread: {}", Thread.currentThread().getName());
                 try {
                     do {
                         if (returnWrite) {
@@ -304,10 +314,12 @@ public final class Shell extends AbstractDevice {
                     e.printStackTrace();
                 } finally {
                     mainLatch.countDown();
+                    promise.complete();
                 }
-            }).start();
+            }, false);
 
-            new Thread(() -> {
+            vertx.executeBlocking(promise -> {
+                debug("Read blocking thread: {}", Thread.currentThread().getName());
                 try {
                     byte[] tmp = new byte[1024];
                     long startTime = System.currentTimeMillis();
@@ -349,8 +361,10 @@ public final class Shell extends AbstractDevice {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    promise.complete();
                 }
-            }).start();
+            }, false);
 
             mainLatch.await();
         } catch (Exception e) {
@@ -549,6 +563,7 @@ public final class Shell extends AbstractDevice {
 
         public final int status;
         public final String comment;
+
         Status(int status, String comment) {
             this.status = status;
             this.comment = comment;

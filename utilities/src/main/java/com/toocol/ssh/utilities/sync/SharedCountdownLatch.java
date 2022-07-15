@@ -14,6 +14,7 @@ public class SharedCountdownLatch {
 
     private static final Map<String, CountDownLatch> sharedCountdownLatchMap = new HashMap<>();
     private static final ReentrantLock lock = new ReentrantLock();
+
     private SharedCountdownLatch() {
 
     }

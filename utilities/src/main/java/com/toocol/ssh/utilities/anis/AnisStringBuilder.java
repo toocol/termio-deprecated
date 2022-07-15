@@ -8,13 +8,12 @@ import org.apache.commons.lang3.StringUtils;
  * @date 2022/4/26 19:14
  */
 public final class AnisStringBuilder {
-    private ColorMode colorMode = ColorMode.COLOR_256;
-
     private final StringBuilder builder = new StringBuilder();
+
+    private ColorMode colorMode = ColorMode.COLOR_256;
 
     private int bg256 = -1;
     private int ft256 = -1;
-
     private int bgR = -1;
     private int bgG = -1;
     private int bgB = -1;

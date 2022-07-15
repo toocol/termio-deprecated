@@ -9,6 +9,7 @@ import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.annotation.Order;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -18,7 +19,6 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-import java.util.ArrayList;
 import java.util.Optional;
 
 import static com.toocol.ssh.core.ssh.SshAddress.ACTIVE_SSH_SESSION;
@@ -30,6 +30,7 @@ import static com.toocol.ssh.core.ssh.SshAddress.ACTIVE_SSH_SESSION;
  * @date: 2022/4/23 20:49
  * @version: 0.0.1
  */
+@Order
 public final class BlockingActiveSshSessionHandler extends BlockingMessageHandler<JsonObject> {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
@@ -49,7 +50,7 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
         JsonArray index = cast(message.body());
         info(index.toString());
         for (Object o : index) {
-            SshCredential credential = credentialCache.getCredential( Integer.parseInt(o.toString()));
+            SshCredential credential = credentialCache.getCredential(Integer.parseInt(o.toString()));
             assert credential != null;
             try {
                 long sessionId = sshSessionCache.containSession(credential.getHost());
@@ -57,14 +58,14 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
                 if (sessionId == 0) {
                     sessionId = factory.createSession(credential);
 
-                    Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
+                    Shell shell = new Shell(sessionId, vertx, eventBus, sshSessionCache.getChannelShell(sessionId));
                     shell.setUser(credential.getUser());
                     shell.initialFirstCorrespondence(ShellProtocol.SSH);
                     shellCache.putShell(sessionId, shell);
                 } else {
                     long newSessionId = factory.invokeSession(sessionId, credential);
                     if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
-                        Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
+                        Shell shell = new Shell(sessionId, vertx, eventBus, sshSessionCache.getChannelShell(sessionId));
                         shell.setUser(credential.getUser());
                         shell.initialFirstCorrespondence(ShellProtocol.SSH);
                         shellCache.putShell(sessionId, shell);
@@ -80,9 +81,9 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
 
                     System.gc();
                     if (sessionId > 0) {
-                        success.add(credential.getHost()+"@"+credential.getUser());
+                        success.add(credential.getHost() + "@" + credential.getUser());
                     } else {
-                        failed.add(credential.getHost()+"@"+credential.getUser());
+                        failed.add(credential.getHost() + "@" + credential.getUser());
                     }
                 }
 
@@ -91,14 +92,11 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
             }
 
         }
-        ret.put("success",success);
-        ret.put("failed",failed);
+        ret.put("success", success);
+        ret.put("failed", failed);
         promise.complete(ret);
 
-        }
-
-
-
+    }
 
 
     @Override

@@ -20,6 +20,7 @@ public final class MoshPacket {
     private byte[] payload;
     private short timestamp;
     private short timestampReply;
+
     public MoshPacket() {
     }
 

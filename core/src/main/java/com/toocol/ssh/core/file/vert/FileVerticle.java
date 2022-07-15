@@ -16,7 +16,7 @@ import io.vertx.core.AbstractVerticle;
  * @email joezane.cn@gmail.com
  * @date 2021/2/19 16:27
  */
-@VerticleDeployment(weight = 10, worker = true, workerPoolSize = 2, workerPoolName = "file-worker-pool")
+@VerticleDeployment(weight = 10, worker = true, workerPoolSize = 5, workerPoolName = "file-worker-pool")
 @RegisterHandler(handlers = {
         BlockingCheckFileExistHandler.class,
         BlockingReadFileHandler.class,

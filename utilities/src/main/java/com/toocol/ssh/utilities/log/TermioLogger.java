@@ -12,6 +12,7 @@ import java.util.Date;
 public record TermioLogger(Class<?> clazz, StringBuilder logBuilder,
                            SimpleDateFormat simpleDateFormat) implements Logger {
 
+    private static final String DEBUG = "DEBUG";
     private static final String INFO = "INFO";
     private static final String WARN = "WARN";
     private static final String ERROR = "ERROR";
@@ -24,6 +25,14 @@ public record TermioLogger(Class<?> clazz, StringBuilder logBuilder,
 
     public static void nonSkip() {
         skip = false;
+    }
+
+    @Override
+    public void debug(String message, Object... params) {
+        if (skip) {
+            return;
+        }
+        log(message, DEBUG, params);
     }
 
     @Override

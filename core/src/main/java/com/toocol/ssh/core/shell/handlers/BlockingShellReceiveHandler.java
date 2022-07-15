@@ -38,7 +38,6 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  */
 public final class BlockingShellReceiveHandler extends BlockingMessageHandler<Long> {
 
-    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();
 
     public BlockingShellReceiveHandler(Vertx vertx, Context context, boolean parallel) {
