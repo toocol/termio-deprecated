@@ -21,6 +21,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.toocol.ssh.core.ssh.SshAddress.ACTIVE_SSH_SESSION;
@@ -51,6 +52,7 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
         JsonArray failed = new JsonArray();
         JsonArray index = cast(message.body());
         info(index.toString());
+        AtomicInteger rec = new AtomicInteger();
         for (Object o : index) {
             SshCredential credential = credentialCache.getCredential(Integer.parseInt(o.toString()));
             assert credential != null;
@@ -69,6 +71,12 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
                         success.add(credential.getHost() + "@" + credential.getUser());
                     } else {
                         failed.add(credential.getHost() + "@" + credential.getUser());
+                    }
+
+                    if (rec.incrementAndGet() == index.size()) {
+                        ret.put("success", success);
+                        ret.put("failed", failed);
+                        promise.complete(ret);
                     }
                 };
 
@@ -97,10 +105,6 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
                 // do nothing
             }
         }
-
-        ret.put("success", success);
-        ret.put("failed", failed);
-        promise.complete(ret);
     }
 
     @Override
