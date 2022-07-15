@@ -4,6 +4,7 @@ import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.CmdFeedbackHelper;
 import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
@@ -16,6 +17,7 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
@@ -57,8 +59,14 @@ public final class BlockingExecuteCmdInShellHandler extends BlockingMessageHandl
 
         Shell shell = shellCache.getShell(sessionId);
 
-        InputStream inputStream = shell.getInputStream();
-        shell.writeAndFlush((cmd + StrUtil.LF).getBytes(StandardCharsets.UTF_8));
+        InputStream inputStream = shell.getInputStream(ShellProtocol.SSH);
+        OutputStream outputStream = shell.getOutputStream(ShellProtocol.SSH);
+        if (outputStream == null) {
+            promise.complete("/");
+            return;
+        }
+        outputStream.write((cmd + StrUtil.LF).getBytes(StandardCharsets.UTF_8));
+        outputStream.flush();
 
         String feedback = new CmdFeedbackHelper(inputStream, cmd, shell, prefix).extractFeedback();
 

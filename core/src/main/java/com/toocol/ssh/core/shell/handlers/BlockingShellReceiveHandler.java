@@ -57,7 +57,9 @@ public final class BlockingShellReceiveHandler extends BlockingMessageHandler<Lo
         Shell shell = shellCache.getShell(sessionId);
 
         try {
-            shell.writeAndFlush("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
+            if (shell.getProtocol().equals(ShellProtocol.SSH)) {
+                shell.writeAndFlush("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
+            }
 
             while (true) {
                 String cmdRead = shell.readCmd();

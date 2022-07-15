@@ -46,7 +46,7 @@ record ShellPrinter(Shell shell) {
         if (shell.protocol.equals(ShellProtocol.MOSH)) {
             StringBuilder sb = new StringBuilder();
             for (String str : msg.split(splitChar)) {
-                if (str.contains(lastCmd) && StringUtils.isNotEmpty(lastCmd)) {
+                if ((str.startsWith(lastCmd) && StringUtils.isNotEmpty(lastCmd)) || str.contains(AsciiControl.BEL)) {
                     continue;
                 }
                 sb.append(str).append("\n");

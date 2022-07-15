@@ -3,6 +3,7 @@ package com.toocol.ssh.core.mosh.handlers;
 import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.ShellCache;
+import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.mosh.core.MoshSession;
 import com.toocol.ssh.core.mosh.core.MoshSessionFactory;
@@ -13,6 +14,7 @@ import com.toocol.ssh.core.term.core.TermStatus;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
 import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.functional.Ordered;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.utils.MessageBox;
@@ -35,6 +37,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
 @Ordered
 public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHandler<Long> {
 
+    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final CredentialCache credentialCache = CredentialCache.getInstance();
     private final MoshSessionFactory moshSessionFactory = MoshSessionFactory.factory(vertx);
     private final ShellCache shellCache = ShellCache.getInstance();
@@ -65,8 +68,9 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
                     shell.setUser(credential.getUser());
                     shell.initialFirstCorrespondence(ShellProtocol.MOSH, () -> {
                         shellCache.putShell(sessionId, shell);
-                        shell.printAfterEstablish();
+                        shell.setChannelShell(sshSessionCache.getChannelShell(sessionId));
 
+                        Printer.clear();
                         StatusCache.SHOW_WELCOME = true;
                         StatusCache.HANGED_QUIT = false;
 
