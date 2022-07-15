@@ -21,7 +21,7 @@ public final class SshVerticle extends AbstractVerticle implements IHandlerMount
 
     @Override
     public void start() throws Exception {
-        mountHandler(vertx, context, true);
+        mountHandler(vertx, context);
     }
 
 }

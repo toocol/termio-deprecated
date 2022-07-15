@@ -10,7 +10,7 @@ import io.vertx.core.AbstractVerticle;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/25 19:54
  */
-@VerticleDeployment(worker = true, workerPoolSize = 1, workerPoolName = "mosh-worker-pool")
+@VerticleDeployment(worker = true, workerPoolName = "mosh-worker-pool")
 @RegisterHandler(handlers = {
         BlockingEstablishMoshSessionHandler.class
 })

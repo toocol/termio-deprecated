@@ -46,6 +46,7 @@ public final class Term extends AbstractDevice {
             System.exit(-1);
         }
     }
+
     public Term() {
         escapeHelper = new EscapeHelper();
         historyCmdHelper = new TermHistoryCmdHelper();

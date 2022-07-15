@@ -1,5 +1,6 @@
 package com.toocol.ssh.utilities.handler;
 
+import com.toocol.ssh.utilities.annotation.Order;
 import com.toocol.ssh.utilities.annotation.RegisterHandler;
 import com.toocol.ssh.utilities.utils.Castable;
 import com.toocol.ssh.utilities.utils.MessageBox;
@@ -24,7 +25,7 @@ public interface IHandlerMounter extends Castable {
      * @param <T>      generic type
      */
     @SuppressWarnings("all")
-    default <T> void mountHandler(Vertx vertx, Context context, boolean parallel) {
+    default <T> void mountHandler(Vertx vertx, Context context) {
         Class<? extends IHandlerMounter> clazz = this.getClass();
         RegisterHandler registerHandler = clazz.getAnnotation(RegisterHandler.class);
         if (registerHandler == null) {
@@ -45,6 +46,7 @@ public interface IHandlerMounter extends Castable {
 
                     Constructor<? extends BlockingMessageHandler<?>> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, Context.class, boolean.class));
                     declaredConstructor.setAccessible(true);
+                    boolean parallel = handlerClass.getAnnotation(Order.class) == null;
                     BlockingMessageHandler<?> commandHandler = declaredConstructor.newInstance(vertx, context, parallel);
                     vertx.eventBus().consumer(commandHandler.consume().address(), commandHandler::handle);
 
@@ -55,15 +57,5 @@ public interface IHandlerMounter extends Castable {
                 System.exit(-1);
             }
         });
-    }
-
-    /**
-     * assemble the handler to the eventBus
-     *
-     * @param vertx   the vertx system object
-     * @param context the verticle's executor
-     */
-    default void mountHandler(Vertx vertx, Context context) {
-        mountHandler(vertx, context, false);
     }
 }

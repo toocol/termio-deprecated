@@ -141,7 +141,7 @@ public record TermPrinter(Term term) {
     synchronized void cleanDisplay() {
         term.setCursorPosition(0, Term.executeLine + 1);
         int windowWidth = term.getWidth();
-        while (term.getCursorPosition()[1] < term.getHeight() - 2) {
+        while (term.getCursorPosition()[1] < term.getHeight() - 3) {
             Printer.println(" ".repeat(windowWidth));
         }
     }
@@ -233,6 +233,63 @@ public record TermPrinter(Term term) {
     }
 
     synchronized void printTest() {
-        cleanDisplay();
+        Printer.clear();
+        Printer.print("Hello World~");
+        AnisStringBuilder builder = new AnisStringBuilder()
+                .front(100, 100, 100)
+                .append("Hello you~", 10, 10);
+        Printer.print(builder.toString());
+//        String msg = "\u001B[0m\u001B[1;49r\u001B[?25l\u001B[49;1H\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\u001B[r\u001B[38;1Hroot     2293686       1  0 15:12 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2293737       1  0 15:12 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2293772       1  0 15:12 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2293903       1  0 15:17 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2293963       1  0 15:17 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2293995       1  0 15:17 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2294147       1  0 15:23 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2297072       1  0 20:21 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2298135       1  0 22:05 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2298213       1  0 22:06 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2298264       1  0 22:06 pts/0    00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2298365 2298265  0 22:10 pts/11   00:00:00 grep --color=auto \u001B[0;1;31mmosh\n" +
+//                "\u001B[0m[root@vultrguest /]# \u001B[?25h";
+//        Printer.print(msg);
+//        msg = "\u001B[0m\u001B[1;49r\u001B[?25l\u001B[49;1H\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\n" +
+//                "\u001B[r\u001B[38;1Hroot     2293686       1  0 15:12 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2293737       1  0 15:12 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2293772       1  0 15:12 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2293903       1  0 15:17 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2293963       1  0 15:17 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2293995       1  0 15:17 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2294147       1  0 15:23 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2297072       1  0 20:21 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2298135       1  0 22:05 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2298213       1  0 22:06 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2298264       1  0 22:06 pts/0    00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+//                "root     2298367 2298265  0 22:10 pts/11   00:00:00 grep --color=auto \u001B[0;1;31mmosh\n" +
+//                "\u001B[0m[root@vultrguest /]# \u001B[?25h";
+//        Printer.print(msg);
     }
 }

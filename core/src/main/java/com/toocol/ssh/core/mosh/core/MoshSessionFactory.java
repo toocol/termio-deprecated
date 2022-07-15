@@ -85,7 +85,7 @@ public final class MoshSessionFactory implements Loggable {
             InputStream inputStream = shell.getInputStream();
             AtomicBoolean failed = new AtomicBoolean(false);
 
-            new Thread(() -> {
+            vertx.executeBlocking(promise -> {
                 byte[] tmp = new byte[1024];
                 while (true) {
                     try {
@@ -101,6 +101,7 @@ public final class MoshSessionFactory implements Loggable {
                                     String[] split = line.split(" ");
                                     portKey.first(Integer.parseInt(split[2])).second(split[3]);
                                     latch.countDown();
+                                    promise.tryComplete();
                                     return;
                                 }
                             }
@@ -108,20 +109,22 @@ public final class MoshSessionFactory implements Loggable {
                     } catch (Exception e) {
                         failed.set(true);
                         latch.countDown();
+                        promise.tryComplete();
                     }
-
                 }
-            }).start();
+            }, false);
 
-            new Thread(() -> {
+            vertx.executeBlocking(promise -> {
                 try {
                     OutputStream outputStream = shell.getOutputStream();
                     outputStream.write("mosh-server\n".getBytes(StandardCharsets.UTF_8));
                     outputStream.flush();
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    promise.complete();
                 }
-            }).start();
+            }, false);
 
             boolean suc = latch.await(20, TimeUnit.SECONDS);
             if (!suc || failed.get()) {

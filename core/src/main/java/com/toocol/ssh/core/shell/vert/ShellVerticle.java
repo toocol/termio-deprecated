@@ -11,7 +11,7 @@ import io.vertx.core.AbstractVerticle;
  * @date: 2022/4/21 22:48
  * @version: 0.0.1
  */
-@VerticleDeployment(worker = true, workerPoolSize = 5, workerPoolName = "shell-worker-pool")
+@VerticleDeployment(worker = true, workerPoolName = "shell-worker-pool")
 @RegisterHandler(handlers = {
         BlockingShellDisplayHandler.class,
         BlockingShellReceiveHandler.class,
@@ -24,7 +24,7 @@ public final class ShellVerticle extends AbstractVerticle implements IHandlerMou
 
     @Override
     public void start() throws Exception {
-        mountHandler(vertx, context, true);
+        mountHandler(vertx, context);
     }
 
 }

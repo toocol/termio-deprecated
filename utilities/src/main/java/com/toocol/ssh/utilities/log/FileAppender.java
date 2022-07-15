@@ -33,7 +33,7 @@ public class FileAppender {
             if (ar.succeeded()) {
                 opened = true;
                 AsyncFile ws = ar.result();
-                new Thread(() -> {
+                vertx.executeBlocking(promise -> {
                     while (true) {
                         while (!LOG_QUEUE.isEmpty()) {
                             ws.write(Buffer.buffer(LOG_QUEUE.poll()));
@@ -41,7 +41,7 @@ public class FileAppender {
 
                         if (!opened) {
                             ws.close();
-                            return;
+                            break;
                         }
 
                         try {
@@ -50,7 +50,8 @@ public class FileAppender {
                             e.printStackTrace();
                         }
                     }
-                }).start();
+                    promise.complete();
+                });
             }
         });
     }

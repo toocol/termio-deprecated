@@ -23,7 +23,7 @@ public final class SocketVerticle extends AbstractVerticle implements IHandlerMo
 
     @Override
     public void start() throws Exception {
-        mountHandler(vertx, context, true);
+        mountHandler(vertx, context);
     }
 
 }

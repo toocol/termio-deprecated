@@ -13,6 +13,7 @@ import com.toocol.ssh.core.term.core.TermStatus;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
 import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.annotation.Order;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -31,6 +32,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
+@Order
 public final class BlockingEstablishSshSessionHandler extends BlockingMessageHandler<Long> {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
@@ -60,7 +62,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
                 StatusCache.HANGED_ENTER = false;
                 sessionId = factory.createSession(credential);
 
-                Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
+                Shell shell = new Shell(sessionId, vertx, eventBus, sshSessionCache.getChannelShell(sessionId));
                 shell.setUser(credential.getUser());
                 shell.initialFirstCorrespondence(ShellProtocol.SSH);
                 shellCache.putShell(sessionId, shell);
@@ -69,7 +71,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
                 long newSessionId = factory.invokeSession(sessionId, credential);
 
                 if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
-                    Shell shell = new Shell(sessionId, eventBus, sshSessionCache.getChannelShell(sessionId));
+                    Shell shell = new Shell(sessionId, vertx, eventBus, sshSessionCache.getChannelShell(sessionId));
                     shell.setUser(credential.getUser());
                     shell.initialFirstCorrespondence(ShellProtocol.SSH);
                     shellCache.putShell(sessionId, shell);
