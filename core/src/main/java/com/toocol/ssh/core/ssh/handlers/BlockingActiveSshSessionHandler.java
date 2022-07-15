@@ -9,7 +9,8 @@ import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.annotation.Order;
+import com.toocol.ssh.utilities.functional.Executable;
+import com.toocol.ssh.utilities.functional.Ordered;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -20,6 +21,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.toocol.ssh.core.ssh.SshAddress.ACTIVE_SSH_SESSION;
 
@@ -30,7 +33,7 @@ import static com.toocol.ssh.core.ssh.SshAddress.ACTIVE_SSH_SESSION;
  * @date: 2022/4/23 20:49
  * @version: 0.0.1
  */
-@Order
+@Ordered
 public final class BlockingActiveSshSessionHandler extends BlockingMessageHandler<JsonObject> {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
@@ -49,55 +52,60 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
         JsonArray failed = new JsonArray();
         JsonArray index = cast(message.body());
         info(index.toString());
+        AtomicInteger rec = new AtomicInteger();
         for (Object o : index) {
             SshCredential credential = credentialCache.getCredential(Integer.parseInt(o.toString()));
             assert credential != null;
             try {
-                long sessionId = sshSessionCache.containSession(credential.getHost());
+                AtomicReference<Long> sessionId = new AtomicReference<>(sshSessionCache.containSession(credential.getHost()));
 
-                if (sessionId == 0) {
-                    sessionId = factory.createSession(credential);
-
-                    Shell shell = new Shell(sessionId, vertx, eventBus, sshSessionCache.getChannelShell(sessionId));
-                    shell.setUser(credential.getUser());
-                    shell.initialFirstCorrespondence(ShellProtocol.SSH);
-                    shellCache.putShell(sessionId, shell);
-                } else {
-                    long newSessionId = factory.invokeSession(sessionId, credential);
-                    if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
-                        Shell shell = new Shell(sessionId, vertx, eventBus, sshSessionCache.getChannelShell(sessionId));
-                        shell.setUser(credential.getUser());
-                        shell.initialFirstCorrespondence(ShellProtocol.SSH);
-                        shellCache.putShell(sessionId, shell);
-                    } else {
-                        shellCache.getShell(sessionId).resetIO(ShellProtocol.SSH);
-                    }
-                    sessionId = newSessionId;
-                    Optional.ofNullable(sshSessionCache.getChannelShell(sessionId)).ifPresent(channelShell -> {
+                Executable execute = () -> {
+                    Optional.ofNullable(sshSessionCache.getChannelShell(sessionId.get())).ifPresent(channelShell -> {
                         int width = Term.getInstance().getWidth();
                         int height = Term.getInstance().getHeight();
                         channelShell.setPtySize(width, height, width, height);
                     });
 
                     System.gc();
-                    if (sessionId > 0) {
+                    if (sessionId.get() > 0) {
                         success.add(credential.getHost() + "@" + credential.getUser());
                     } else {
                         failed.add(credential.getHost() + "@" + credential.getUser());
                     }
+
+                    if (rec.incrementAndGet() == index.size()) {
+                        ret.put("success", success);
+                        ret.put("failed", failed);
+                        promise.complete(ret);
+                    }
+                };
+
+                if (sessionId.get() == 0) {
+                    sessionId.set(factory.createSession(credential));
+
+                    Shell shell = new Shell(sessionId.get(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
+                    shell.setUser(credential.getUser());
+                    shellCache.putShell(sessionId.get(), shell);
+                    shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
+                } else {
+                    long newSessionId = factory.invokeSession(sessionId.get(), credential);
+                    if (newSessionId != sessionId.get() || !shellCache.contains(newSessionId)) {
+                        Shell shell = new Shell(sessionId.get(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
+                        shell.setUser(credential.getUser());
+                        shellCache.putShell(sessionId.get(), shell);
+                        sessionId.set(newSessionId);
+                        shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
+                    } else {
+                        shellCache.getShell(sessionId.get()).resetIO(ShellProtocol.SSH);
+                        sessionId.set(newSessionId);
+                        execute.execute();
+                    }
                 }
-
             } catch (Exception e) {
-
+                // do nothing
             }
-
         }
-        ret.put("success", success);
-        ret.put("failed", failed);
-        promise.complete(ret);
-
     }
-
 
     @Override
     protected <T> void resultBlocking(AsyncResult<JsonObject> asyncResult, Message<T> message) throws Exception {

@@ -4,8 +4,8 @@ import com.toocol.ssh.core.file.handlers.BlockingCheckFileExistHandler;
 import com.toocol.ssh.core.file.handlers.BlockingChooseDirectoryHandler;
 import com.toocol.ssh.core.file.handlers.BlockingChooseFileHandler;
 import com.toocol.ssh.core.file.handlers.BlockingReadFileHandler;
-import com.toocol.ssh.utilities.annotation.RegisterHandler;
-import com.toocol.ssh.utilities.annotation.VerticleDeployment;
+import com.toocol.ssh.utilities.functional.RegisterHandler;
+import com.toocol.ssh.utilities.functional.VerticleDeployment;
 import com.toocol.ssh.utilities.handler.IHandlerMounter;
 import io.vertx.core.AbstractVerticle;
 

@@ -13,7 +13,8 @@ import com.toocol.ssh.core.term.core.TermStatus;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.annotation.Order;
+import com.toocol.ssh.utilities.functional.Executable;
+import com.toocol.ssh.utilities.functional.Ordered;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -22,6 +23,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
 import static com.toocol.ssh.core.shell.ShellAddress.RECEIVE_SHELL;
@@ -32,7 +34,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-@Order
+@Ordered
 public final class BlockingEstablishSshSessionHandler extends BlockingMessageHandler<Long> {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
@@ -56,48 +58,54 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
         assert credential != null;
 
         try {
-            long sessionId = sshSessionCache.containSession(credential.getHost());
+            final AtomicReference<Long> sessionId = new AtomicReference<>(sshSessionCache.containSession(credential.getHost()));
 
-            if (sessionId == 0) {
+            // execute in the final
+            Executable execute = () -> {
+                Optional.ofNullable(sshSessionCache.getChannelShell(sessionId.get())).ifPresent(channelShell -> {
+                    int width = Term.getInstance().getWidth();
+                    int height = Term.getInstance().getHeight();
+                    channelShell.setPtySize(width, height, width, height);
+                });
+                StatusCache.HANGED_QUIT = false;
+
+                if (sessionId.get() > 0) {
+                    promise.complete(sessionId.get());
+                } else {
+                    promise.fail("Session establish failed.");
+                }
+            };
+
+            if (sessionId.get() == 0) {
                 StatusCache.HANGED_ENTER = false;
-                sessionId = factory.createSession(credential);
+                sessionId.set(factory.createSession(credential));
 
-                Shell shell = new Shell(sessionId, vertx, eventBus, sshSessionCache.getChannelShell(sessionId));
+                Shell shell = new Shell(sessionId.get(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
                 shell.setUser(credential.getUser());
-                shell.initialFirstCorrespondence(ShellProtocol.SSH);
-                shellCache.putShell(sessionId, shell);
+                shellCache.putShell(sessionId.get(), shell);
+                shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
             } else {
                 StatusCache.HANGED_ENTER = true;
-                long newSessionId = factory.invokeSession(sessionId, credential);
+                long newSessionId = factory.invokeSession(sessionId.get(), credential);
 
-                if (newSessionId != sessionId || !shellCache.contains(newSessionId)) {
-                    Shell shell = new Shell(sessionId, vertx, eventBus, sshSessionCache.getChannelShell(sessionId));
+                if (newSessionId != sessionId.get() || !shellCache.contains(newSessionId)) {
+                    Shell shell = new Shell(sessionId.get(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
                     shell.setUser(credential.getUser());
-                    shell.initialFirstCorrespondence(ShellProtocol.SSH);
-                    shellCache.putShell(sessionId, shell);
+                    shellCache.putShell(sessionId.get(), shell);
+                    sessionId.set(newSessionId);
+                    shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
                 } else {
                     Shell shell = shellCache.getShell(newSessionId);
                     if (shell.getChannelShell() == null) {
                         /* If the connection is established through Mosh, it needs to be set the ChannelShell*/
-                        shell.setChannelShell(sshSessionCache.getChannelShell(sessionId));
+                        shell.setChannelShell(sshSessionCache.getChannelShell(sessionId.get()));
                     }
                     shell.resetIO(ShellProtocol.SSH);
+                    sessionId.set(newSessionId);
+                    execute.execute();
                 }
-                sessionId = newSessionId;
             }
 
-            Optional.ofNullable(sshSessionCache.getChannelShell(sessionId)).ifPresent(channelShell -> {
-                int width = Term.getInstance().getWidth();
-                int height = Term.getInstance().getHeight();
-                channelShell.setPtySize(width, height, width, height);
-            });
-            StatusCache.HANGED_QUIT = false;
-
-            if (sessionId > 0) {
-                promise.complete(sessionId);
-            } else {
-                promise.fail("Session establish failed.");
-            }
         } catch (Exception e) {
             promise.complete(null);
         } finally {

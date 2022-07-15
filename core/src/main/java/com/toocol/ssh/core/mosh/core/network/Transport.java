@@ -6,7 +6,7 @@ import com.toocol.ssh.core.mosh.core.statesnyc.State;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserStream;
 import com.toocol.ssh.core.term.core.Term;
-import com.toocol.ssh.utilities.annotation.DiffThread;
+import com.toocol.ssh.utilities.functional.DiffThread;
 import com.toocol.ssh.utilities.execeptions.NetworkException;
 import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.Timestamp;

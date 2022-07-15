@@ -7,7 +7,7 @@ import com.toocol.ssh.core.shell.core.ShellCharEventDispatcher;
 import com.toocol.ssh.core.term.core.TermCharEventDispatcher;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.utilities.anis.Printer;
-import com.toocol.ssh.utilities.annotation.VerticleDeployment;
+import com.toocol.ssh.utilities.functional.VerticleDeployment;
 import com.toocol.ssh.utilities.jni.JNILoader;
 import com.toocol.ssh.utilities.log.FileAppender;
 import com.toocol.ssh.utilities.log.Logger;

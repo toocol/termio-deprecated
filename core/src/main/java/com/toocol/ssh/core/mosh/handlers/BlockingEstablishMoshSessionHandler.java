@@ -13,7 +13,7 @@ import com.toocol.ssh.core.term.core.TermStatus;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
 import com.toocol.ssh.utilities.address.IAddress;
-import com.toocol.ssh.utilities.annotation.Order;
+import com.toocol.ssh.utilities.functional.Ordered;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.AsyncResult;
@@ -32,7 +32,7 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  * @date: 2022/4/28 23:44
  * @version: 0.0.1
  */
-@Order
+@Ordered
 public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHandler<Long> {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
@@ -63,22 +63,23 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
 
                     Shell shell = new Shell(sessionId, vertx, eventBus, session);
                     shell.setUser(credential.getUser());
-                    shell.initialFirstCorrespondence(ShellProtocol.MOSH);
-                    shellCache.putShell(sessionId, shell);
-                    shell.printAfterEstablish();
+                    shell.initialFirstCorrespondence(ShellProtocol.MOSH, () -> {
+                        shellCache.putShell(sessionId, shell);
+                        shell.printAfterEstablish();
 
-                    StatusCache.SHOW_WELCOME = true;
-                    StatusCache.HANGED_QUIT = false;
+                        StatusCache.SHOW_WELCOME = true;
+                        StatusCache.HANGED_QUIT = false;
 
-                    BlockingMonitorTerminalHandler.sessionId = sessionId;
-                    Term.status = TermStatus.SHELL;
+                        BlockingMonitorTerminalHandler.sessionId = sessionId;
+                        Term.status = TermStatus.SHELL;
 
-                    eventBus.send(DISPLAY_SHELL.address(), sessionId);
-                    eventBus.send(RECEIVE_SHELL.address(), sessionId);
+                        eventBus.send(DISPLAY_SHELL.address(), sessionId);
+                        eventBus.send(RECEIVE_SHELL.address(), sessionId);
+
+                        System.gc();
+                    });
                 } catch (Exception e) {
                     eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
-                } finally {
-                    System.gc();
                 }
             } else {
                 eventBus.send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);

@@ -4,8 +4,8 @@ import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
 import com.toocol.ssh.core.term.handlers.ExecuteCommandHandler;
-import com.toocol.ssh.utilities.annotation.RegisterHandler;
-import com.toocol.ssh.utilities.annotation.VerticleDeployment;
+import com.toocol.ssh.utilities.functional.RegisterHandler;
+import com.toocol.ssh.utilities.functional.VerticleDeployment;
 import com.toocol.ssh.utilities.handler.IHandlerMounter;
 import io.vertx.core.AbstractVerticle;
 

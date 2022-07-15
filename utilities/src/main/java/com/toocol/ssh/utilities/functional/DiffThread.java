@@ -1,4 +1,4 @@
-package com.toocol.ssh.utilities.annotation;
+package com.toocol.ssh.utilities.functional;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

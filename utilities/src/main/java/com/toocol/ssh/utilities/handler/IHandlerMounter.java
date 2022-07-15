@@ -1,7 +1,7 @@
 package com.toocol.ssh.utilities.handler;
 
-import com.toocol.ssh.utilities.annotation.Order;
-import com.toocol.ssh.utilities.annotation.RegisterHandler;
+import com.toocol.ssh.utilities.functional.Ordered;
+import com.toocol.ssh.utilities.functional.RegisterHandler;
 import com.toocol.ssh.utilities.utils.Castable;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.Context;
@@ -46,7 +46,7 @@ public interface IHandlerMounter extends Castable {
 
                     Constructor<? extends BlockingMessageHandler<?>> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, Context.class, boolean.class));
                     declaredConstructor.setAccessible(true);
-                    boolean parallel = handlerClass.getAnnotation(Order.class) == null;
+                    boolean parallel = handlerClass.getAnnotation(Ordered.class) == null;
                     BlockingMessageHandler<?> commandHandler = declaredConstructor.newInstance(vertx, context, parallel);
                     vertx.eventBus().consumer(commandHandler.consume().address(), commandHandler::handle);
 

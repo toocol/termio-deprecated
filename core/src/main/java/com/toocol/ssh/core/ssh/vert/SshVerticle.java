@@ -2,8 +2,8 @@ package com.toocol.ssh.core.ssh.vert;
 
 import com.toocol.ssh.core.ssh.handlers.BlockingActiveSshSessionHandler;
 import com.toocol.ssh.core.ssh.handlers.BlockingEstablishSshSessionHandler;
-import com.toocol.ssh.utilities.annotation.RegisterHandler;
-import com.toocol.ssh.utilities.annotation.VerticleDeployment;
+import com.toocol.ssh.utilities.functional.RegisterHandler;
+import com.toocol.ssh.utilities.functional.VerticleDeployment;
 import com.toocol.ssh.utilities.handler.IHandlerMounter;
 import io.vertx.core.AbstractVerticle;
 
