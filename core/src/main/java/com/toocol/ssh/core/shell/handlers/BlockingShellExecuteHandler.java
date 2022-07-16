@@ -36,11 +36,11 @@ import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 15:25
  */
-public final class BlockingShellReceiveHandler extends BlockingMessageHandler<Long> {
+public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Long> {
 
     private final ShellCache shellCache = ShellCache.getInstance();
 
-    public BlockingShellReceiveHandler(Vertx vertx, Context context, boolean parallel) {
+    public BlockingShellExecuteHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 
@@ -57,7 +57,9 @@ public final class BlockingShellReceiveHandler extends BlockingMessageHandler<Lo
         Shell shell = shellCache.getShell(sessionId);
 
         try {
-            shell.writeAndFlush("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
+            if (shell.getProtocol().equals(ShellProtocol.SSH)) {
+                shell.writeAndFlush("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
+            }
 
             while (true) {
                 String cmdRead = shell.readCmd();

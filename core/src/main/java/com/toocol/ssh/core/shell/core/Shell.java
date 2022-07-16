@@ -78,10 +78,11 @@ public final class Shell extends AbstractDevice implements Loggable {
     volatile ShellProtocol protocol;
     volatile AtomicReference<String> prompt = new AtomicReference<>();
     volatile AtomicReference<String> fullPath = new AtomicReference<>();
-    volatile String sshWelcome = null;
-    volatile String moshWelcome = null;
+    volatile StringBuilder sshWelcome = new StringBuilder();
+    volatile StringBuilder moshWelcome = new StringBuilder();
     volatile String user = null;
     volatile String bottomLinePrint = StrUtil.EMPTY;
+    volatile String tabAccomplishLastStroke = StrUtil.EMPTY;
     private ConsoleReader reader;
     /**
      * the output/input Stream belong to JSch's channelShell;
@@ -168,8 +169,11 @@ public final class Shell extends AbstractDevice implements Loggable {
             extractUserFromPrompt();
             if (status.equals(Status.VIM_UNDER)) {
                 status = Status.NORMAL;
-            } else if (status.equals(Status.MORE_PROC) || status.equals(Status.MORE_EDIT) || status.equals(Status.MORE_SUB)) {
+                localLastCmd.delete(0, localLastCmd.length());
+            } else if (status.equals(Status.MORE_BEFORE) || status.equals(Status.MORE_PROC)
+                    || status.equals(Status.MORE_EDIT) || status.equals(Status.MORE_SUB)) {
                 status = Status.NORMAL;
+                localLastCmd.delete(0, localLastCmd.length());
             }
         }
 
@@ -195,7 +199,6 @@ public final class Shell extends AbstractDevice implements Loggable {
         }
 
         selectHistoryCmd.delete(0, selectHistoryCmd.length());
-        localLastCmd.delete(0, localLastCmd.length());
         return hasPrint;
     }
 
@@ -264,8 +267,8 @@ public final class Shell extends AbstractDevice implements Loggable {
 
     public void printWelcome() {
         switch (protocol) {
-            case SSH -> Printer.print(sshWelcome);
-            case MOSH -> Printer.print(moshWelcome);
+            case SSH -> Printer.print(sshWelcome.toString());
+            case MOSH -> Printer.print(moshWelcome.toString());
         }
     }
 
@@ -276,7 +279,7 @@ public final class Shell extends AbstractDevice implements Loggable {
         } else {
             Printer.println("Session established.");
         }
-        Printer.println("Use protocol " + protocol.name() + ".\n");
+        Printer.println("\nUse protocol " + protocol.name() + ".\n");
     }
 
     @SuppressWarnings("all")
@@ -301,7 +304,6 @@ public final class Shell extends AbstractDevice implements Loggable {
             }
 
             vertx.executeBlocking(promise -> {
-                debug("Write blocking thread: {}", Thread.currentThread().getName());
                 try {
                     do {
                         if (returnWrite) {
@@ -309,8 +311,10 @@ public final class Shell extends AbstractDevice implements Loggable {
                         }
                     } while (!promptNow);
 
-                    outputStream.write(StrUtil.LF.getBytes(StandardCharsets.UTF_8));
-                    outputStream.flush();
+                    if (protocol.equals(ShellProtocol.SSH)) {
+                        outputStream.write(StrUtil.LF.getBytes(StandardCharsets.UTF_8));
+                        outputStream.flush();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
@@ -319,7 +323,6 @@ public final class Shell extends AbstractDevice implements Loggable {
             }, false);
 
             vertx.executeBlocking(promise -> {
-                debug("Read blocking thread: {}", Thread.currentThread().getName());
                 try {
                     byte[] tmp = new byte[1024];
                     long startTime = System.currentTimeMillis();
@@ -338,15 +341,13 @@ public final class Shell extends AbstractDevice implements Loggable {
                             if (matcher.find()) {
                                 prompt.set(matcher.group(0).replaceAll("\\[\\?1034h", "") + StrUtil.SPACE);
                                 returnWrite = true;
-                                break;
                             } else {
                                 if (this.protocol.equals(ShellProtocol.SSH)) {
-                                    sshWelcome = inputStr;
+                                    sshWelcome.append(inputStr);
                                 } else if (this.protocol.equals(ShellProtocol.MOSH)) {
-                                    moshWelcome = inputStr;
+                                    moshWelcome.append(inputStr);
                                 }
                                 returnWrite = true;
-                                break;
                             }
                         }
 
@@ -486,7 +487,7 @@ public final class Shell extends AbstractDevice implements Loggable {
     }
 
     public String getSshWelcome() {
-        return StringUtils.isEmpty(sshWelcome) ? null : sshWelcome;
+        return StringUtils.isEmpty(sshWelcome) ? null : sshWelcome.toString();
     }
 
     public String getPrompt() {
@@ -539,6 +540,36 @@ public final class Shell extends AbstractDevice implements Loggable {
 
     public InputStream getInputStream() {
         return inputStream;
+    }
+
+    public OutputStream getOutputStream(ShellProtocol protocol) {
+        try {
+            if (protocol.equals(this.protocol)) {
+                return outputStream;
+            } else if (protocol.equals(ShellProtocol.MOSH)) {
+                return moshSession.getOutputStream();
+            } else if (protocol.equals(ShellProtocol.SSH)) {
+                return channelShell.getOutputStream();
+            }
+        } catch (Exception e) {
+            // do nothing
+        }
+        return null;
+    }
+
+    public InputStream getInputStream(ShellProtocol protocol) {
+        try {
+            if (protocol.equals(this.protocol)) {
+                return inputStream;
+            } else if (protocol.equals(ShellProtocol.MOSH)) {
+                return moshSession.getInputStream();
+            } else if (protocol.equals(ShellProtocol.SSH)) {
+                return channelShell.getInputStream();
+            }
+        } catch (Exception e) {
+            // do nothing
+        }
+        return null;
     }
 
     public ShellProtocol getProtocol() {

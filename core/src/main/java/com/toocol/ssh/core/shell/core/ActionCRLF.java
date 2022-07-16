@@ -18,6 +18,7 @@ public final class ActionCRLF extends ShellCharAction {
     @Override
     public boolean act(Shell shell, CharEvent charEvent, char inChar) {
         if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
+            shell.tabAccomplishLastStroke = StrUtil.EMPTY;
             shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(shell.remoteCmd).append(StrUtil.CRLF);
         }
 

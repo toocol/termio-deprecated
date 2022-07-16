@@ -81,7 +81,7 @@ public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Lo
                 if (hasPrint && StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
                     cmdHasFeedbackWhenJustExit = true;
                 }
-                SharedCountdownLatch.countdown(BlockingShellReceiveHandler.class, this.getClass());
+                SharedCountdownLatch.countdown(BlockingShellExecuteHandler.class, this.getClass());
             }
 
             if (StatusCache.HANGED_QUIT) {

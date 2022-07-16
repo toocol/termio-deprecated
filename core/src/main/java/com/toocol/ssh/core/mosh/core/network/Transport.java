@@ -6,8 +6,8 @@ import com.toocol.ssh.core.mosh.core.statesnyc.State;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserStream;
 import com.toocol.ssh.core.term.core.Term;
-import com.toocol.ssh.utilities.functional.DiffThread;
 import com.toocol.ssh.utilities.execeptions.NetworkException;
+import com.toocol.ssh.utilities.functional.DiffThread;
 import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.Timestamp;
 import io.vertx.core.datagram.DatagramPacket;
@@ -107,8 +107,6 @@ public final class Transport<RemoteState extends State> implements Loggable {
             byte[] diff = inst.getDiff().toByteArray();
             boolean dataAcked = false;
             if (diff != null && diff.length > 0) {
-                info("Receive packet oldNum = {}, newNum = {}, ackNum = {}, throwawayNum = {}, diff = {}",
-                        inst.getOldNum(), inst.getNewNum(), inst.getAckNum(), inst.getThrowawayNum(), inst.getDiff().toStringUtf8());
                 if (inst.getAckNum() == 2) {
                     return;
                 }

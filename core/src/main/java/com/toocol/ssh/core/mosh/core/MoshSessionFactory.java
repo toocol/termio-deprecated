@@ -117,7 +117,7 @@ public final class MoshSessionFactory implements Loggable {
             vertx.executeBlocking(promise -> {
                 try {
                     OutputStream outputStream = shell.getOutputStream();
-                    outputStream.write("mosh-server\n".getBytes(StandardCharsets.UTF_8));
+                    outputStream.write("export HISTCONTROL=ignoreboth\nmosh-server\n".getBytes(StandardCharsets.UTF_8));
                     outputStream.flush();
                 } catch (IOException e) {
                     e.printStackTrace();

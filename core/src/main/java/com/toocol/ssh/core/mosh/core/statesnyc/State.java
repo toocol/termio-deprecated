@@ -7,15 +7,13 @@ package com.toocol.ssh.core.mosh.core.statesnyc;
  */
 public abstract class State<T extends State<?>> {
 
-    public void subtract(T prefix) {
-    }
+    public void subtract(T prefix) {}
 
     public byte[] diffFrom(T existing) {
         return new byte[0];
     }
 
-    public void pushBack(UserEvent event) {
-    }
+    public void pushBack(UserEvent event) {}
 
     public T copy() {
         return null;
@@ -26,6 +24,5 @@ public abstract class State<T extends State<?>> {
         return 0;
     }
 
-    public void applyString(byte[] diff, long ackNum) {
-    }
+    public void applyString(byte[] diff, long ackNum) {}
 }

@@ -96,13 +96,13 @@ public final class WindowsConsole extends Console {
                     line = line.replaceAll("\\n{2,}", "\n");
                     for (String sp : line.split("\n")) {
                         sp = doClearString(sp);
-                        if (StringUtils.isNotEmpty(sp)) {
+                        if (sp != null) {
                             builder.append(sp).append("\n");
                         }
                     }
                 } else {
                     line = doClearString(line);
-                    if (StringUtils.isNotEmpty(line)) {
+                    if (line != null) {
                         builder.append(line).append("\n");
                     }
                 }
@@ -112,13 +112,13 @@ public final class WindowsConsole extends Console {
                 msg = msg.replaceAll("\\n{2,}", "\n");
                 for (String sp : msg.split("\n")) {
                     sp = doClearString(sp);
-                    if (StringUtils.isNotEmpty(sp)) {
+                    if (sp != null) {
                         builder.append(sp).append("\n");
                     }
                 }
             } else {
                 msg = doClearString(msg);
-                if (StringUtils.isNotEmpty(msg)) {
+                if (msg != null) {
                     builder.append(msg).append("\n");
                 }
             }
