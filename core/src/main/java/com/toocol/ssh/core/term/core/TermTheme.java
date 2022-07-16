@@ -18,6 +18,8 @@ public enum TermTheme {
             15,
             105,
             231,
+            167,
+            36,
             167
     ),
     LIGHT_THEME(
@@ -32,6 +34,8 @@ public enum TermTheme {
             0,
             105,
             235,
+            167,
+            36,
             167
     ),
     ;
@@ -47,6 +51,8 @@ public enum TermTheme {
     public final int connectionPromptColor;
     public final int executeFrontColor;
     public final int errorMsgColor;
+    public final int activeSuccessMsgColor;
+    public final int activeFailedMsgColor;
 
     TermTheme(
             String name,
@@ -60,7 +66,9 @@ public enum TermTheme {
             int infoBarBackgroundColor,
             int connectionPromptColor,
             int executeFrontColor,
-            int errorMsgColor
+            int errorMsgColor,
+            int activeSuccessMsgColor,
+            int activeFailedMsgColor
     ) {
         this.name = name;
         this.executeBackgroundColor = executeBackgroundColor;
@@ -74,6 +82,8 @@ public enum TermTheme {
         this.connectionPromptColor = connectionPromptColor;
         this.executeFrontColor = executeFrontColor;
         this.errorMsgColor = errorMsgColor;
+        this.activeSuccessMsgColor =activeSuccessMsgColor;
+        this.activeFailedMsgColor =activeFailedMsgColor;
     }
 
     public static TermTheme nameOf(String name) {
