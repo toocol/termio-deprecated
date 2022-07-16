@@ -30,12 +30,6 @@ record ShellPrinter(Shell shell) {
         String lastCmd = shell.localLastCmd.toString().trim();
         if (shell.localLastCmd.toString().trim().equals(msg.trim())) {
             return false;
-        } else if (msg.startsWith("\b\u001B[K")) {
-            String[] split = msg.split(splitChar);
-            if (split.length == 1) {
-                return false;
-            }
-            msg = split[1];
         } else if (msg.startsWith(lastCmd) && StringUtils.isNotEmpty(lastCmd)) {
             // SSH: cd command's echo is like this: cd /\r\n[host@user address]
             msg = msg.substring(lastCmd.length());
@@ -116,7 +110,9 @@ record ShellPrinter(Shell shell) {
         if (msg.contains(AsciiControl.ESCAPE) && shell.protocol.equals(ShellProtocol.SSH)) {
             return;
         }
-        msg = msg.replaceAll("\b", "");
+        if (msg.equals(shell.tabAccomplishLastStroke)) {
+            return;
+        }
         if (StringUtils.isNotEmpty(shell.currentPrint)
                 && msg.contains(shell.currentPrint)
                 && !msg.replaceAll(AsciiControl.BEL, "").equals(shell.currentPrint.toString())

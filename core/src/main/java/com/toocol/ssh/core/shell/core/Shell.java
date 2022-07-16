@@ -82,6 +82,7 @@ public final class Shell extends AbstractDevice implements Loggable {
     volatile StringBuilder moshWelcome = new StringBuilder();
     volatile String user = null;
     volatile String bottomLinePrint = StrUtil.EMPTY;
+    volatile String tabAccomplishLastStroke = StrUtil.EMPTY;
     private ConsoleReader reader;
     /**
      * the output/input Stream belong to JSch's channelShell;
@@ -168,6 +169,7 @@ public final class Shell extends AbstractDevice implements Loggable {
             extractUserFromPrompt();
             if (status.equals(Status.VIM_UNDER)) {
                 status = Status.NORMAL;
+                localLastCmd.delete(0, localLastCmd.length());
             } else if (status.equals(Status.MORE_BEFORE) || status.equals(Status.MORE_PROC)
                     || status.equals(Status.MORE_EDIT) || status.equals(Status.MORE_SUB)) {
                 status = Status.NORMAL;
@@ -277,7 +279,7 @@ public final class Shell extends AbstractDevice implements Loggable {
         } else {
             Printer.println("Session established.");
         }
-        Printer.println("Use protocol " + protocol.name() + ".\n");
+        Printer.println("\nUse protocol " + protocol.name() + ".\n");
     }
 
     @SuppressWarnings("all")
@@ -302,7 +304,6 @@ public final class Shell extends AbstractDevice implements Loggable {
             }
 
             vertx.executeBlocking(promise -> {
-                debug("Write blocking thread: {}", Thread.currentThread().getName());
                 try {
                     do {
                         if (returnWrite) {
@@ -322,7 +323,6 @@ public final class Shell extends AbstractDevice implements Loggable {
             }, false);
 
             vertx.executeBlocking(promise -> {
-                debug("Read blocking thread: {}", Thread.currentThread().getName());
                 try {
                     byte[] tmp = new byte[1024];
                     long startTime = System.currentTimeMillis();

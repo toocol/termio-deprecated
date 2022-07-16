@@ -233,6 +233,7 @@ public record TermPrinter(Term term) {
     }
 
     synchronized void printTest() {
-
+        Printer.clear();
+        Printer.print("Helle\bo world~");
     }
 }

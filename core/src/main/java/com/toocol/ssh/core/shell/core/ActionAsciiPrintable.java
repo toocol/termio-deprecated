@@ -36,6 +36,7 @@ public final class ActionAsciiPrintable extends ShellCharAction {
                 String removal = "\u007F".repeat(shell.remoteCmd.length());
                 shell.remoteCmd.insert(index, inChar);
                 shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(shell.remoteCmd);
+                shell.tabAccomplishLastStroke = ASCIIStrCache.toString(inChar);
                 removal += shell.remoteCmd.toString();
                 shell.writeAndFlush(removal.getBytes(StandardCharsets.UTF_8));
                 remoteCursorOffset = true;
@@ -53,6 +54,7 @@ public final class ActionAsciiPrintable extends ShellCharAction {
             if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
                 shell.remoteCmd.append(inChar);
                 shell.localLastCmd.append(inChar);
+                shell.tabAccomplishLastStroke = ASCIIStrCache.toString(inChar);
                 shell.writeAndFlush(inChar);
             } else {
                 shell.cmd.append(inChar);

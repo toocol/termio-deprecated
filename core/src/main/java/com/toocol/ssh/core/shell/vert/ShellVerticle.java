@@ -14,7 +14,7 @@ import io.vertx.core.AbstractVerticle;
 @VerticleDeployment(worker = true, workerPoolName = "shell-worker-pool")
 @RegisterHandler(handlers = {
         BlockingShellDisplayHandler.class,
-        BlockingShellReceiveHandler.class,
+        BlockingShellExecuteHandler.class,
         BlockingExecuteSingleCmdHandler.class,
         BlockingExecuteCmdInShellHandler.class,
         BlockingDfHandler.class,
