@@ -24,96 +24,84 @@ public final class ActiveCmdProcessor extends TermioCommandProcessor {
 
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
-        ArrayList<Integer> paramList = new ArrayList<>();
+        List<Integer> idxs = new ArrayList<>();
         String[] split = cmd.trim().replaceAll(" {2,}", " ").split(" ");
-
-        if (split.length <= 1) {
-            resultAndMsg.first(false).second("No connection properties selected.");
-            return;
-        }
-        if (split.length == 2) {
-            if (split[1].contains("-")) {
-                String[] strings = split[1].trim().split("-");
-                if (strings.length > 2) {
-                    resultAndMsg.first(false).second("the input format must be num-num");
-                    return;
+        try {
+            if (split.length <= 1) {
+                resultAndMsg.first(false).second("No connection properties selected");
+                return;
+            } else if (split.length == 2) {
+                if (split[1].contains("-")) {
+                    String[] nums = split[1].trim().split("-");
+                    if (nums.length > 2) {
+                        resultAndMsg.first(false).second("the input format must be num-num");
+                        return;
+                    } else {
+                        for (String num : nums) {
+                            if (!StringUtils.isNumeric(num)) {
+                                resultAndMsg.first(false).second("The input parameters must be numeric.");
+                                return;
+                            }
+                        }
+                        int start = Integer.parseInt(nums[0]);
+                        int end = Integer.parseInt(nums[1]);
+                        if (start > end) {
+                            resultAndMsg.first(false).second("The input parameters must be from small to large");
+                            return;
+                        } else {
+                            for (int i = start; i <= end; i++) {
+                                idxs.add(i);
+                            }
+                        }
+                    }
+                } else {
+                    if (!StringUtils.isNumeric(split[1])) {
+                        resultAndMsg.first(false).second("The input parameters must be numeric.");
+                        return;
+                    } else {
+                        int idx = Integer.parseInt(split[1]);
+                        if (idx <= 0) {
+                            resultAndMsg.first(false).second("The input number must > 0.");
+                            return;
+                        }
+                        if (idx > credentialCache.credentialsSize()) {
+                            resultAndMsg.first(false).second("The input number exceeds stored credentials' size, max number should be " + credentialCache.credentialsSize() + ".");
+                            return;
+                        } else {
+                            idxs.add(idx);
+                        }
+                    }
                 }
-                for (String string : strings) {
-                    if (!StringUtils.isNumeric(string)) {
+            } else {
+                List<String> list = Arrays.stream(split).filter(e -> !e.equals("active")).collect(Collectors.toList());
+                for (String s : list) {
+                    if (!StringUtils.isNumeric(s)) {
                         resultAndMsg.first(false).second("The input parameters must be numeric.");
                         return;
                     }
-                }
-                try {
-                    int start = Integer.parseInt(strings[0]);
-                    int end = Integer.parseInt(strings[1]);
-                    numberCompare(start, end);
-                    for (int i = start; i < end + 1; i++) {
-                        paramList.add(i);
+                    int idx = Integer.parseInt(s);
+                    if (idx <= 0) {
+                        resultAndMsg.first(false).second("The input number must > 0.");
+                        return;
                     }
-                    JsonArray jsonArray = new JsonArray(paramList.stream().distinct().collect(Collectors.toList()));
-                    eventBus.send(ACTIVE_SSH_SESSION.address(), jsonArray);
-                } catch (Exception e) {
-                    resultAndMsg.first(false).second("Number is too long.");
+                    if (idx > credentialCache.credentialsSize()) {
+                        resultAndMsg.first(false).second("The input number exceeds stored credentials' size, max number should be " + credentialCache.credentialsSize() + ".");
+                        return;
+                    } else {
+                        idxs.add(idx);
+                    }
                 }
-            }
-            try {
-                if (!StringUtils.isNumeric(split[1])) {
-                    resultAndMsg.first(false).second("The input parameters must be numeric.");
-                    return;
-                }
-                int idx = Integer.parseInt(split[1]);
-                if (idx <= 0) {
-                    resultAndMsg.first(false).second("The input number must > 0.");
-                    return;
-                }
-                if (idx > credentialCache.credentialsSize()) {
-                    resultAndMsg.first(false).second("The input number exceeds stored credentials' size, max number should be " + credentialCache.credentialsSize() + ".");
-                    return;
-                }
-                paramList.add(idx);
-                JsonArray jsonArray = new JsonArray(paramList);
-                eventBus.send(ACTIVE_SSH_SESSION.address(), jsonArray);
-            } catch (Exception e) {
-                resultAndMsg.first(false).second("Number is too long.");
             }
 
+        } catch (Exception e) {
+            resultAndMsg.first(false).second("the input number is too long");
         }
-        List<String> list = Arrays.stream(split).filter(e -> !e.equals("active")).collect(Collectors.toList());
-        for (String s : list) {
-            if (!StringUtils.isNumeric(s)) {
-                resultAndMsg.first(false).second("The input parameters must be numeric.");
-                return;
-            }
-            try {
-                int idx = Integer.parseInt(s);
-                if (idx <= 0) {
-                    resultAndMsg.first(false).second("The input number must > 0.");
-                    return;
-                }
-                if (idx > credentialCache.credentialsSize()) {
-                    resultAndMsg.first(false).second("The input number exceeds stored credentials' size, max number should be " + credentialCache.credentialsSize() + ".");
-                    return;
-                }
-                paramList.add(idx);
-                JsonArray jsonArray = new JsonArray(paramList);
-                eventBus.send(ACTIVE_SSH_SESSION.address(), jsonArray);
-            } catch (Exception e) {
-                resultAndMsg.first(false).second("Number is too long.");
-            }
-        }
-
-
-    }
-
-    public void numberCompare(int numOne, int numTwo) {
-        if (numOne > numTwo) {
-            int reference = numOne;
-            numOne = numTwo;
-            numTwo = reference;
-        }
+        JsonArray jsonArray = new JsonArray(idxs.stream().distinct().collect(Collectors.toList()));
+        eventBus.send(ACTIVE_SSH_SESSION.address(), jsonArray);
     }
 }
+
+
 
 
 

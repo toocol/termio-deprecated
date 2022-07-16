@@ -8,7 +8,9 @@ import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.core.ssh.core.SshSessionFactory;
 import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.core.term.core.TermTheme;
 import com.toocol.ssh.utilities.address.IAddress;
+import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.functional.Executable;
 import com.toocol.ssh.utilities.functional.Ordered;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
@@ -20,6 +22,7 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -40,6 +43,7 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
     private final ShellCache shellCache = ShellCache.getInstance();
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final SshSessionFactory factory = SshSessionFactory.factory();
+    public static TermTheme theme = TermTheme.DARK_THEME;
 
     public BlockingActiveSshSessionHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -51,10 +55,10 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
         JsonArray success = new JsonArray();
         JsonArray failed = new JsonArray();
         JsonArray index = cast(message.body());
-        info(index.toString());
         AtomicInteger rec = new AtomicInteger();
-        for (Object o : index) {
-            SshCredential credential = credentialCache.getCredential(Integer.parseInt(o.toString()));
+
+        for (int i = 0; i < index.size(); i++) {
+            SshCredential credential = credentialCache.getCredential(index.getInteger(i));
             assert credential != null;
             try {
                 AtomicReference<Long> sessionId = new AtomicReference<>(sshSessionCache.containSession(credential.getHost()));
@@ -82,7 +86,6 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
 
                 if (sessionId.get() == 0) {
                     sessionId.set(factory.createSession(credential));
-
                     Shell shell = new Shell(sessionId.get(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
                     shell.setUser(credential.getUser());
                     shellCache.putShell(sessionId.get(), shell);
@@ -102,7 +105,13 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
                     }
                 }
             } catch (Exception e) {
-                // do nothing
+                failed.add(credential.getHost() + "@" + credential.getUser());
+                if (rec.incrementAndGet() == index.size()) {
+                    ret.put("success", success);
+                    ret.put("failed", failed);
+                    promise.complete(ret);
+                }
+
             }
         }
     }
@@ -112,7 +121,50 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
         if (asyncResult.succeeded()) {
             Term term = Term.getInstance();
             term.printScene(false);
-            term.printDisplay(String.valueOf(asyncResult.result()));
+            JsonObject activeMsg = asyncResult.result();
+            AnisStringBuilder anisStringBuilderSuccess = new AnisStringBuilder();
+            AnisStringBuilder anisStringBuilderSuccessMsg = new AnisStringBuilder();
+            AnisStringBuilder anisStringBuilderFailed = new AnisStringBuilder();
+            AnisStringBuilder anisStringBuilderFailedMsg = new AnisStringBuilder();
+            int width = term.getWidth();
+            for (Map.Entry<String, Object> stringObjectEntry : activeMsg) {
+                if (stringObjectEntry.getKey() == "success") {
+                    anisStringBuilderSuccess.append(stringObjectEntry.getKey() + "\n");
+                    String value = stringObjectEntry.getValue().toString();
+                    String[] split = value.replace("[", "").replace("]", "").replace("\"", "").split(",");
+                    for (int i = 0; i < split.length; i++) {
+                        if (width < 24 * 3) {
+                            if (i != 0 & i % 2 == 0) {
+                                anisStringBuilderSuccessMsg.append("\n");
+                            }
+                        } else {
+                            if (i != 0 & i % 3 == 0) {
+                                anisStringBuilderSuccessMsg.append("\n");
+                            }
+                        }
+                        anisStringBuilderSuccessMsg.front(theme.activeSuccessMsgColor).background(theme.displayBackGroundColor).append(split[i] + "    ");
+                    }
+                } else {
+                    anisStringBuilderFailed.deFront().append("\n" + stringObjectEntry.getKey() + "\n");
+                    String value = stringObjectEntry.getValue().toString();
+                    String[] split = value.replace("[", "").replace("]", "").replace("\"", "").split(",");
+                    for (int j = 0; j < split.length; j++) {
+                        if (width < 24 * 3) {
+                            if (j != 0 & j % 2 == 0) {
+                                anisStringBuilderFailedMsg.append("\n");
+                            }
+                        } else {
+                            if (j != 0 && j % 3 == 0) {
+                                anisStringBuilderFailedMsg.append("\n");
+                            }
+                        }
+                        anisStringBuilderFailedMsg.front(theme.activeFailedMsgColor).background(theme.displayBackGroundColor).append(split[j]);
+                    }
+
+                }
+            }
+            AnisStringBuilder append = anisStringBuilderSuccess.append(anisStringBuilderSuccessMsg.toString()).append(anisStringBuilderFailed.toString()).append(anisStringBuilderFailedMsg.toString());
+            term.printDisplay(append.toString());
             message.reply(true);
         } else {
             message.reply(false);
