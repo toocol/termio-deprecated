@@ -252,13 +252,36 @@ class CryptoTest implements ICompressorAcquirer {
         printParseMessage(req4, resp4, 4, session, null);
     }
 
+    @Test
+    public void moshClientDump() throws DecoderException {
+        String[] payloads = new String[]{
+                "00:00:00:00:00:00:00:8c:dd:f2:51:61:bb:b5:5a:0f:ad:27:87:f1:0d:8e:b7:18:1d:c4:26:0d:e9:a9:3f:91:0b:8e:5f:0e:8d:22:dc:50:2e:a8:72:9d:06:96:a2:bf:c4:0d:0f:94:15:61:61:9d:15:15:f2:f2:fd:f1:02:4f:9c:87:6b:c0:98:da:96:73:2a:1d:d3:c3:67:b0:4d:32",
+                "00:00:00:00:00:00:00:8d:9c:be:f1:32:85:9d:c0:9b:8d:a0:55:70:e0:8b:fe:5e:31:d3:e1:7d:94:79:49:6a:6a:52:0f:f8:c2:25:de:bf:31:96:5e:09:f7:65:ea:47:d4:7a:ba:21:00:07:96:8e:da:ca:e0:b3:2c:c2:5d:40:ce:c6:28:c4:ea:f4:0d:24:41:fc:b5:ed:14:c0:a0:99:26:44:a4:d0:15:30",
+        };
+        String key = "T9LSlLfIS+KPQsMwXXqSFQ";
+        Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
+        for (int i = 0; i < payloads.length; i++) {
+            printParseMessage(payloads[i], null, i, session, UserInputPB.keystroke);
+        }
+    }
+
     private void printParseMessage(String reqHex, String respHex, int idx, Crypto.Session session, GeneratedMessage.GeneratedExtension<?, ?> extension) throws DecoderException {
         byte[] reqBytes = null;
         byte[] respBytes = null;
-        if (StringUtils.isNotEmpty(reqHex))
-            reqBytes = Hex.decodeHex(reqHex.replaceAll(" ", ""));
-        if (StringUtils.isNotEmpty(respHex))
-            respBytes = Hex.decodeHex(respHex.replaceAll(" ", ""));
+        if (StringUtils.isNotEmpty(reqHex)) {
+            if (reqHex.contains(" ")) {
+                reqBytes = Hex.decodeHex(reqHex.replaceAll(" ", ""));
+            } else if (reqHex.contains(":")) {
+                reqBytes = Hex.decodeHex(reqHex.replaceAll(":", ""));
+            }
+        }
+        if (StringUtils.isNotEmpty(respHex)) {
+            if (respHex.contains(" ")) {
+                respBytes = Hex.decodeHex(respHex.replaceAll(" ", ""));
+            } else if (respHex.contains(":")) {
+                respBytes = Hex.decodeHex(respHex.replaceAll(":", ""));
+            }
+        }
 
         TransportFragment.Pool pool = new TransportFragment.Pool();
         pool.init();
