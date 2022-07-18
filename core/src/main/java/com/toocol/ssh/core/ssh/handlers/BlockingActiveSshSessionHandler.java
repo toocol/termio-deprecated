@@ -118,57 +118,55 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
 
     @Override
     protected <T> void resultBlocking(AsyncResult<JsonObject> asyncResult, Message<T> message) throws Exception {
+
         if (asyncResult.succeeded()) {
             Term term = Term.getInstance();
             term.printScene(false);
             JsonObject activeMsg = asyncResult.result();
-            AnisStringBuilder anisStringBuilderSuccess = new AnisStringBuilder();
-            AnisStringBuilder anisStringBuilderSuccessMsg = new AnisStringBuilder();
-            AnisStringBuilder anisStringBuilderFailed = new AnisStringBuilder();
-            AnisStringBuilder anisStringBuilderFailedMsg = new AnisStringBuilder();
+            AnisStringBuilder anisStringBuilder = new AnisStringBuilder();
             int width = term.getWidth();
             for (Map.Entry<String, Object> stringObjectEntry : activeMsg) {
                 if (stringObjectEntry.getKey() == "success") {
-                    anisStringBuilderSuccess.append(stringObjectEntry.getKey() + "\n");
+                    anisStringBuilder.append(stringObjectEntry.getKey() + ":" + "\n");
                     String value = stringObjectEntry.getValue().toString();
                     String[] split = value.replace("[", "").replace("]", "").replace("\"", "").split(",");
                     for (int i = 0; i < split.length; i++) {
                         if (width < 24 * 3) {
                             if (i != 0 & i % 2 == 0) {
-                                anisStringBuilderSuccessMsg.append("\n");
+                                anisStringBuilder.append("\n");
                             }
                         } else {
                             if (i != 0 & i % 3 == 0) {
-                                anisStringBuilderSuccessMsg.append("\n");
+                                anisStringBuilder.append("\n");
                             }
                         }
-                        anisStringBuilderSuccessMsg.front(theme.activeSuccessMsgColor).background(theme.displayBackGroundColor).append(split[i] + "    ");
+                        anisStringBuilder.front(theme.activeSuccessMsgColor).background(theme.displayBackGroundColor).append(split[i] + "    ");
                     }
                 } else {
-                    anisStringBuilderFailed.deFront().append("\n" + stringObjectEntry.getKey() + "\n");
+                    anisStringBuilder.deFront().append("\n" + stringObjectEntry.getKey() + ":" + "\n");
                     String value = stringObjectEntry.getValue().toString();
                     String[] split = value.replace("[", "").replace("]", "").replace("\"", "").split(",");
                     for (int j = 0; j < split.length; j++) {
                         if (width < 24 * 3) {
                             if (j != 0 & j % 2 == 0) {
-                                anisStringBuilderFailedMsg.append("\n");
+                                anisStringBuilder.append("\n");
                             }
                         } else {
                             if (j != 0 && j % 3 == 0) {
-                                anisStringBuilderFailedMsg.append("\n");
+                                anisStringBuilder.append("\n");
                             }
                         }
-                        anisStringBuilderFailedMsg.front(theme.activeFailedMsgColor).background(theme.displayBackGroundColor).append(split[j]);
+                        anisStringBuilder.front(theme.activeFailedMsgColor).background(theme.displayBackGroundColor).append(split[j] + "    ");
                     }
 
                 }
             }
-            AnisStringBuilder append = anisStringBuilderSuccess.append(anisStringBuilderSuccessMsg.toString()).append(anisStringBuilderFailed.toString()).append(anisStringBuilderFailedMsg.toString());
-            term.printDisplay(append.toString());
+            term.printDisplay(anisStringBuilder.toString());
             message.reply(true);
         } else {
             message.reply(false);
         }
+
     }
 
     @Override
