@@ -40,7 +40,7 @@ record ShellPrinter(Shell shell) {
         if (shell.protocol.equals(ShellProtocol.MOSH)) {
             StringBuilder sb = new StringBuilder();
             for (String str : msg.split(splitChar)) {
-                if ((str.startsWith(lastCmd) && StringUtils.isNotEmpty(lastCmd)) || str.contains(AsciiControl.BEL)) {
+                if ((str.equals(lastCmd) && StringUtils.isNotEmpty(lastCmd)) || str.contains(AsciiControl.BEL)) {
                     continue;
                 }
                 sb.append(str).append("\n");
@@ -57,18 +57,42 @@ record ShellPrinter(Shell shell) {
         String tmp = msg;
         if (tmp.contains(shell.prompt.get())) {
 
-            Matcher matcher = PROMPT_ECHO_PATTERN.matcher(msg);
-            if (matcher.find()) {
-                String promptAndEcho = matcher.group(0);
-                String[] split = promptAndEcho.split("# ");
-                if (split.length == 1) {
-                    shell.currentPrint.delete(0, shell.currentPrint.length());
-                } else if (split.length > 1) {
-                    shell.currentPrint.delete(0, shell.currentPrint.length()).append(split[1]);
+            if (tmp.contains(splitChar)) {
+                String[] split = tmp.split(splitChar);
+                for (int i = 0; i < split.length; i++) {
+                    Matcher matcher = PROMPT_ECHO_PATTERN.matcher(split[i]);
+                    if (matcher.find() && i == split.length - 1) {
+                        String promptAndEcho = matcher.group(0);
+                        String[] splitPrompt = promptAndEcho.split("# ");
+                        if (splitPrompt.length == 1) {
+                            shell.currentPrint.delete(0, shell.currentPrint.length());
+                        } else if (splitPrompt.length > 1) {
+                            StringBuffer currentPrint = shell.currentPrint.delete(0, shell.currentPrint.length());
+                            String clean = clean(splitPrompt[1]);
+                            if (!"^C".equals(clean)) {
+                                currentPrint.append(clean);
+                            }
+                        }
+                    } else if (matcher.find()) {
+                        shell.currentPrint.delete(0, shell.currentPrint.length());
+                    }
                 }
-            }
+            } else {
+                Matcher matcher = PROMPT_ECHO_PATTERN.matcher(msg);
+                if (matcher.find()) {
+                    String promptAndEcho = matcher.group(0);
+                    String[] split = promptAndEcho.split("# ");
+                    if (split.length == 1) {
+                        shell.currentPrint.delete(0, shell.currentPrint.length());
+                    } else if (split.length > 1) {
+                        StringBuffer currentPrint = shell.currentPrint.delete(0, shell.currentPrint.length());
+                        String clean = clean(split[1]);
+                        if (!"^C".equals(clean)) {
+                            currentPrint.append(clean);
+                        }
+                    }
+                }
 
-            if (!tmp.contains(splitChar)) {
                 int[] cursorPosition = shell.term.getCursorPosition();
                 if (cursorPosition[0] != 0) {
                     shell.term.setCursorPosition(0, cursorPosition[1]);
@@ -104,42 +128,52 @@ record ShellPrinter(Shell shell) {
     }
 
     void printInTabAccomplish(String msg) {
+        boolean bel = msg.contains(AsciiControl.BEL);
+        msg = msg.replaceAll(AsciiControl.BEL, EMPTY);
+        msg = msg.replaceAll(AsciiControl.BS, EMPTY);
+        if (shell.protocol.equals(ShellProtocol.MOSH)) {
+            msg = msg.replaceAll("25l", EMPTY);
+        }
         if (StringUtils.isEmpty(msg)) {
             return;
         }
         if (msg.contains(AsciiControl.ESCAPE) && shell.protocol.equals(ShellProtocol.SSH)) {
+            if (bel) Printer.bel();
             return;
         }
         if (msg.equals(shell.tabAccomplishLastStroke)) {
+            if (bel) Printer.bel();
             return;
         }
+        String splitChar = shell.getProtocol().equals(ShellProtocol.SSH) ? CRLF : LF;
         if (StringUtils.isNotEmpty(shell.currentPrint)
                 && msg.contains(shell.currentPrint)
-                && !msg.replaceAll(AsciiControl.BEL, "").equals(shell.currentPrint.toString())
-                && !msg.contains(CRLF)) {
-            String tmp = msg.replaceAll(AsciiControl.BEL, "");
-            shell.remoteCmd.delete(0, shell.remoteCmd.length()).append(tmp);
-            shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(tmp);
-            shell.currentPrint.delete(0, shell.currentPrint.length()).append(tmp);
+                && !msg.equals(shell.currentPrint.toString())
+                && !msg.contains(splitChar)) {
+            shell.remoteCmd.delete(0, shell.remoteCmd.length()).append(clean(msg));
+            shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(clean(msg));
+            shell.currentPrint.delete(0, shell.currentPrint.length()).append(clean(msg));
             if (!msg.contains("]# ")) {
                 shell.clearShellLineWithPrompt();
             }
+            if (bel) Printer.bel();
             Printer.print(msg);
             return;
         } else if (StringUtils.isNotEmpty(shell.localLastInput.toString())
                 && msg.startsWith(shell.localLastInput.toString())
-                && !msg.replaceAll(AsciiControl.BEL, "").equals(shell.localLastInput.toString())
-                && !msg.contains(CRLF)) {
-            msg = msg.replaceAll(AsciiControl.BEL, "");
+                && !msg.equals(shell.localLastInput.toString())
+                && !msg.contains(splitChar)) {
             String tmp = msg.substring(shell.localLastInput.length());
-            shell.remoteCmd.append(tmp);
-            shell.localLastCmd.append(tmp);
-            shell.currentPrint.append(tmp);
+            shell.remoteCmd.append(clean(tmp));
+            shell.localLastCmd.append(clean(tmp));
+            shell.currentPrint.append(clean(tmp));
+            if (bel) Printer.bel();
             Printer.print(tmp);
             return;
         } else {
             if (msg.trim().equals(shell.localLastCmd.toString().replaceAll("\t", ""))) {
                 if (msg.endsWith(SPACE)) {
+                    if (bel) Printer.bel();
                     Printer.print(SPACE);
                 }
                 return;
@@ -157,12 +191,12 @@ record ShellPrinter(Shell shell) {
                     }
                 } else if (split.length == 2) {
                     msg = split[1];
-                    if (!msg.contains(CRLF)) {
+                    if (!msg.contains(splitChar)) {
                         Printer.print(msg);
                         shell.remoteCmd.append(msg);
                         String newVal = shell.localLastCmd.toString().replaceAll("\t", "") + msg;
-                        shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(newVal);
-                        shell.currentPrint.append(msg);
+                        shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(clean(newVal));
+                        shell.currentPrint.append(clean(msg));
                         return;
                     }
                 } else {
@@ -172,16 +206,17 @@ record ShellPrinter(Shell shell) {
             if (StringUtils.isEmpty(msg)) {
                 return;
             }
-            if (!msg.contains(CRLF)) {
+            if (!msg.contains(splitChar)) {
+                if (bel) Printer.bel();
                 Printer.print(msg);
-                shell.remoteCmd.append(msg);
+                shell.remoteCmd.append(clean(msg));
                 String newVal = shell.localLastCmd.toString().replaceAll("\t", "") + msg;
-                shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(newVal);
-                shell.currentPrint.append(msg);
+                shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(clean(newVal));
+                shell.currentPrint.append(clean(msg));
                 return;
             }
 
-            String[] split = msg.split("\r\n");
+            String[] split = msg.split(splitChar);
             if (split.length != 0) {
                 shell.bottomLinePrint = split[split.length - 1];
                 for (String input : split) {
@@ -189,41 +224,47 @@ record ShellPrinter(Shell shell) {
                         continue;
                     }
                     if (input.split("#").length == 2) {
-                        shell.remoteCmd.delete(0, shell.remoteCmd.length()).append(input.split("#")[1].trim());
-                        shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(msg.split("#")[1].trim());
+                        shell.remoteCmd.delete(0, shell.remoteCmd.length()).append(clean(input.split("#")[1].trim()));
+                        shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(clean(msg.split("#")[1].trim()));
                     }
                     if (shell.tabFeedbackRec.contains(input)) {
                         continue;
                     }
                     Printer.print(CRLF + input);
-                    shell.tabFeedbackRec.add(input);
+                    shell.tabFeedbackRec.add(clean(input));
                 }
                 return;
             }
-            if (msg.startsWith(CRLF)) {
-                msg = msg.replaceFirst("\r\n", "");
+            if (msg.startsWith(splitChar)) {
+                msg = msg.replaceFirst(splitChar, "");
             }
         }
 
         shell.bottomLinePrint = msg;
 
-        shell.currentPrint.append(msg);
+        shell.currentPrint.append(clean(msg));
+        if (bel) Printer.bel();
         Printer.print(msg);
     }
 
     void printInMore(String msg) {
-        if (shell.localLastInput.toString().trim().equals(msg.replaceAll("\r\n", ""))) {
+        String splitChar = shell.getProtocol().equals(ShellProtocol.SSH) ? CRLF : LF;
+        if (shell.localLastInput.toString().trim().equals(msg.replaceAll(splitChar, ""))) {
             return;
         }
-        if (shell.selectHistoryCmd.toString().trim().equals(msg.replaceAll("\r\n", ""))) {
+        if (shell.selectHistoryCmd.toString().trim().equals(msg.replaceAll(splitChar, ""))) {
             return;
         }
-        if (msg.contains(CRLF)) {
-            String[] split = msg.split(CRLF);
+        if (msg.contains(splitChar)) {
+            String[] split = msg.split(splitChar);
             shell.bottomLinePrint = split[split.length - 1];
         } else {
             shell.bottomLinePrint = msg;
         }
         Printer.print(msg);
+    }
+
+    private String clean(String str) {
+        return AsciiControl.clean(str);
     }
 }

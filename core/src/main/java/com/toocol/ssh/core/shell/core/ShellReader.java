@@ -23,6 +23,7 @@ record ShellReader(Shell shell, ConsoleReader reader) {
             }
             try {
                 shell.historyCmdHelper.reset();
+                shell.localLastCmd.delete(0, shell.localLastCmd.length());
                 shell.cmd.delete(0, shell.cmd.length());
                 shell.writeAndFlush(CharUtil.CTRL_C);
                 shell.status = Shell.Status.NORMAL;

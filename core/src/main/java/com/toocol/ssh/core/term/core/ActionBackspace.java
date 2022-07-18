@@ -18,7 +18,7 @@ public final class ActionBackspace extends TermCharAction {
     public boolean act(Term term, CharEvent charEvent, char inChar) {
         int[] cursorPosition = term.getCursorPosition();
         if (cursorPosition[0] == Term.getPromptLen()) {
-            Printer.voice();
+            Printer.bel();
             return false;
         }
         char deleteChar;

@@ -2,6 +2,7 @@ package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.event.CharEvent;
+import com.toocol.ssh.utilities.utils.ASCIIStrCache;
 import com.toocol.ssh.utilities.utils.CharUtil;
 
 import java.nio.charset.StandardCharsets;
@@ -20,7 +21,7 @@ public final class ActionBackspace extends ShellCharAction {
     public boolean act(Shell shell, CharEvent charEvent, char inChar) {
         int[] cursorPosition = shell.term.getCursorPosition();
         if (cursorPosition[0] <= shell.prompt.get().length()) {
-            Printer.voice();
+            Printer.bel();
             shell.status = Shell.Status.NORMAL;
             return false;
         }
@@ -33,6 +34,7 @@ public final class ActionBackspace extends ShellCharAction {
                 shell.remoteCmd.deleteCharAt(index);
                 shell.localLastCmd.delete(0, shell.localLastCmd.length()).append(shell.remoteCmd);
                 removal += shell.remoteCmd.toString();
+                shell.tabAccomplishLastStroke = ASCIIStrCache.toString(inChar);
                 shell.writeAndFlush(removal.getBytes(StandardCharsets.UTF_8));
                 remoteCursorOffset = true;
             }

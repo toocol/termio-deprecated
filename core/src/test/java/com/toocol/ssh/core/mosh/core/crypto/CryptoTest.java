@@ -254,11 +254,25 @@ class CryptoTest implements ICompressorAcquirer {
 
     @Test
     public void moshClientDump() throws DecoderException {
+        String key = "T9LSlLfIS+KPQsMwXXqSFQ";
         String[] payloads = new String[]{
                 "00:00:00:00:00:00:00:8c:dd:f2:51:61:bb:b5:5a:0f:ad:27:87:f1:0d:8e:b7:18:1d:c4:26:0d:e9:a9:3f:91:0b:8e:5f:0e:8d:22:dc:50:2e:a8:72:9d:06:96:a2:bf:c4:0d:0f:94:15:61:61:9d:15:15:f2:f2:fd:f1:02:4f:9c:87:6b:c0:98:da:96:73:2a:1d:d3:c3:67:b0:4d:32",
                 "00:00:00:00:00:00:00:8d:9c:be:f1:32:85:9d:c0:9b:8d:a0:55:70:e0:8b:fe:5e:31:d3:e1:7d:94:79:49:6a:6a:52:0f:f8:c2:25:de:bf:31:96:5e:09:f7:65:ea:47:d4:7a:ba:21:00:07:96:8e:da:ca:e0:b3:2c:c2:5d:40:ce:c6:28:c4:ea:f4:0d:24:41:fc:b5:ed:14:c0:a0:99:26:44:a4:d0:15:30",
         };
-        String key = "T9LSlLfIS+KPQsMwXXqSFQ";
+        Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
+        for (int i = 0; i < payloads.length; i++) {
+            printParseMessage(payloads[i], null, i, session, UserInputPB.keystroke);
+        }
+    }
+
+    @Test
+    public void moshClientDump2() throws DecoderException {
+        String key = "+vjwtzPJDsiJ8NNGrOlDSA";
+        String[] payloads = new String[]{
+                "00:00:00:00:00:00:00:1e:b4:63:b9:dc:3d:d8:ce:58:d1:bc:27:53:fb:4a:ab:e7:47:17:84:0a:5e:12:b8:5a:6d:2d:94:5e:40:1e:61:62:e9:79:0a:fb:6c:42:99:a9:10:46:e2:28:d3:e0:2b:fd:12:9b:72:bc:2f:fb:2d:c2:8f:8c:f0:e7:51:aa:6a:dd:c7:bc:50:f2:ac:05:1f:2f:ba:3d:9c:28:6d:5c:0d:fb:6d:ea:60:a6:4a:da:0b:8d:d2:b1:2c:ed:a4:48:9c:dc:24:ae:96:3e:f7:77:de:b1:45:31:44:2e:83:2e:3b:e6:cb:02:8d:b5:f4:47:e8:47:9a:9b:43:d5:ce:1e:bc:e0:32:6f:03:c8:6b:7e:dc:26:67:30:8b:49:25:0a:ed:58:3f:cc:b9:7a:5a:91:61:ae:cb:19:26:8b:ce:31:11:c4:bf:a0:d2:de:cd:d3:e3:8c:bb:47:c4:23:04:c4:bd:4a:80:2e:a7:d4:d8:0c:31:da:33:39:f7:e7:d9:66:70:7f:2c:5a:b2:69:2c:68:78:55:bc:b4:62:78:62:0b:e7:37:79:a8:c9:d3:75:89:61:73:da:fd:4c:cd:df:83:b8:7f",
+                "00:00:00:00:00:00:00:1f:60:02:dc:74:c4:33:16:c5:0c:e4:84:89:5c:19:aa:ac:f5:8d:70:67:41:57:eb:b0:ee:71:72:f0:f6:60:23:8a:12:f5:de:c1:83:5c:85:df:42:7d:4b:9b:b8:9c:5a:45:40:06:a7:2e:47:fa:e5:63:a9:66:70:d0:31:93:db:66:31:52:dd",
+                "00:00:00:00:00:00:00:20:04:f0:7e:87:40:6d:ae:c0:a5:92:0d:5f:8e:d4:6e:3e:9c:9b:84:39:8f:59:63:c7:5a:a7:01:7f:f2:ad:9c:93:e3:fa:08:17:72:79:da:b4:2c:ae:e3:a7:52:cb:44:b8:f5:08:10:98:97:46"
+        };
         Crypto.Session session = new Crypto.Session(new Crypto.Base64Key(key));
         for (int i = 0; i < payloads.length; i++) {
             printParseMessage(payloads[i], null, i, session, UserInputPB.keystroke);

@@ -48,11 +48,24 @@ public class AsciiControl {
             {"\u001B[?25l", "\\u001B\\[\\?25l"}      // make cursor visible
     };
 
+    public static final String[] CLEAN_PATTERNS = new String[]{
+            "\\u001b\\[#?=?[0-9]*[a-zA-Z]",
+            "\\u001b\\[[0-9]+;[0-9]+[a-zA-Z]",
+            "\\u001b\\[[0-9]+;[0-9]+;.+m",
+    };
+
     public static String ignore(String source) {
         for (String[] replace : IGNORES) {
-            if (source.endsWith(replace[0]))
+            if (source.contains(replace[0]))
                 source = source.replaceAll(replace[1], StrUtil.EMPTY);
         }
         return source;
+    }
+
+    public static String clean(String str) {
+        for (String cleanPattern : CLEAN_PATTERNS) {
+            str = str.replaceAll(cleanPattern, StrUtil.EMPTY);
+        }
+        return str;
     }
 }

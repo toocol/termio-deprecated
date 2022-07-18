@@ -42,7 +42,7 @@ public final class Printer {
                 .append(msg));
     }
 
-    public static void voice() {
+    public static void bel() {
         PRINTER.print(AsciiControl.BEL);
     }
 

@@ -50,7 +50,7 @@ public final class ActionAsciiPrintable extends ShellCharAction {
             shell.term.setCursorPosition(cursorPosition[0] + 1, cursorPosition[1]);
             shell.term.showCursor();
         } else {
-            // normal print
+            // cursor hasn't moved
             if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
                 shell.remoteCmd.append(inChar);
                 shell.localLastCmd.append(inChar);
