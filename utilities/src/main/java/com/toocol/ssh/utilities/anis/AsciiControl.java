@@ -49,7 +49,7 @@ public class AsciiControl {
     };
 
     public static final String[] CLEAN_PATTERNS = new String[]{
-            "\\u001b\\[#?=?[0-9]*[a-zA-Z]",
+            "\\u001b\\[#?=?\\??[0-9]*[a-zA-Z]",
             "\\u001b\\[[0-9]+;[0-9]+[a-zA-Z]",
             "\\u001b\\[[0-9]+;[0-9]+;.+m",
     };
