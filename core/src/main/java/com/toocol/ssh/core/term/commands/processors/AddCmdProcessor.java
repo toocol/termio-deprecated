@@ -41,7 +41,7 @@ public class AddCmdProcessor extends TermioCommandProcessor {
         }
         String user = hostUser[0];
         String host = hostUser[1];
-        if (!RegexUtils.matchIp(host)) {
+        if (!RegexUtils.matchIp(host) || !RegexUtils.matchDomain(host)) {
             resultAndMsg.first(false).second("Wrong host format, just supporting Ip address.");
             return;
         }
