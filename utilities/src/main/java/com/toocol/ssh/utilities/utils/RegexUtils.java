@@ -21,6 +21,7 @@ public class RegexUtils {
         return switch (matchType) {
             case MATCH_IP -> matchIp(text);
             case MATCH_EMAIL -> matchEmail(text);
+            case MATCH_DOMAIN -> matchDomain(text);
             default -> false;
         };
     }
