@@ -1,6 +1,7 @@
 package com.toocol.ssh.utilities.console;
 
 import com.toocol.ssh.utilities.anis.AsciiControl;
+import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.jni.TermioJNI;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -87,6 +88,19 @@ public final class WindowsConsole extends Console {
         return innerClearUnsupportedCharacter(bytes);
     }
 
+    @Override
+    public void rollingProcessing(String msg) {
+        if (AsciiControl.detectRolling(msg)) {
+            int cnt = 0;
+            for (char ch : msg.toCharArray()) {
+                if (ch == '\n') cnt++;
+            }
+            for (int i = 0; i < cnt; i++) {
+                Printer.println("");
+            }
+        }
+    }
+
     private byte[] innerClearUnsupportedCharacter(byte[] bytes) {
         StringBuilder builder = new StringBuilder();
         String msg = new String(bytes, StandardCharsets.UTF_8);
@@ -138,9 +152,6 @@ public final class WindowsConsole extends Console {
             return StrUtil.EMPTY;
         }
         source = AsciiControl.ignore(source);
-        if (source.equals(AsciiControl.ESCAPE)) {
-            source = StrUtil.EMPTY;
-        }
         return source;
     }
 }

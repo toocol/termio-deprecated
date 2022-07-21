@@ -2,6 +2,7 @@ package com.toocol.ssh.core.shell.core;
 
 import com.toocol.ssh.utilities.anis.AsciiControl;
 import com.toocol.ssh.utilities.anis.Printer;
+import com.toocol.ssh.utilities.utils.CharUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.regex.Matcher;
@@ -28,6 +29,13 @@ record ShellPrinter(Shell shell) {
         }
         String splitChar = shell.getProtocol().equals(ShellProtocol.SSH) ? CRLF : LF;
         String lastCmd = shell.localLastCmd.toString().trim();
+        if (lastCmd.equals("top")) {
+            Printer.print(msg);
+            return true;
+        }
+        if (StringUtils.isEmpty(lastCmd) && clean(msg).startsWith(AsciiControl.LF)) {
+            msg = msg.replaceFirst(AsciiControl.LF, "");
+        }
         if (shell.localLastCmd.toString().trim().equals(msg.trim())) {
             return false;
         } else if (msg.startsWith(lastCmd) && StringUtils.isNotEmpty(lastCmd)) {
@@ -46,6 +54,9 @@ record ShellPrinter(Shell shell) {
                 sb.append(str).append("\n");
             }
             if (sb.length() > 0 && sb.toString().contains(shell.getPrompt())) {
+                sb.deleteCharAt(sb.length() - 1);
+            }
+            if (!msg.endsWith(AsciiControl.LF) && sb.charAt(sb.length() - 1) == CharUtil.LF) {
                 sb.deleteCharAt(sb.length() - 1);
             }
             msg = sb.toString();
@@ -69,7 +80,7 @@ record ShellPrinter(Shell shell) {
                         } else if (splitPrompt.length > 1) {
                             StringBuffer currentPrint = shell.currentPrint.delete(0, shell.currentPrint.length());
                             String clean = clean(splitPrompt[1]);
-                            if (!"^C".equals(clean)) {
+                            if (!"^C".equals(clean) && !lastCmd.equals(clean)) {
                                 currentPrint.append(clean);
                             }
                         }
@@ -87,7 +98,7 @@ record ShellPrinter(Shell shell) {
                     } else if (split.length > 1) {
                         StringBuffer currentPrint = shell.currentPrint.delete(0, shell.currentPrint.length());
                         String clean = clean(split[1]);
-                        if (!"^C".equals(clean)) {
+                        if (!"^C".equals(clean) && !(lastCmd.startsWith("cd"))) {
                             currentPrint.append(clean);
                         }
                     }
@@ -106,8 +117,10 @@ record ShellPrinter(Shell shell) {
         } else {
             shell.bottomLinePrint = msg;
         }
-
         Printer.print(msg);
+        if (shell.localLastCmd.toString().equals(Shell.RESIZE_COMMAND)) {
+            Printer.print(shell.currentPrint.toString());
+        }
         return true;
     }
 

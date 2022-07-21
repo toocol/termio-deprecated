@@ -5,9 +5,11 @@ import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.core.Shell;
+import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.handler.BlockingMessageHandler;
+import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.sync.SharedCountdownLatch;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -25,7 +27,7 @@ import static com.toocol.ssh.core.shell.ShellAddress.DISPLAY_SHELL;
  * @date 2022/3/31 15:44
  */
 @SuppressWarnings("all")
-public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Long> {
+public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Long> implements Loggable {
 
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();
@@ -78,6 +80,10 @@ public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Lo
                 }
 
                 boolean hasPrint = shell.print(new String(tmp, 0, i, StandardCharsets.UTF_8));
+                if (hasPrint) {
+                    int[] position = Term.getInstance().getCursorPosition();
+                    debug("Current cursor position(line, column): {}, {}", position[1], position[0]);
+                }
                 if (hasPrint && StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
                     cmdHasFeedbackWhenJustExit = true;
                 }

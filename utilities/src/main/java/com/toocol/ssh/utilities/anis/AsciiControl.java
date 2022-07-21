@@ -2,6 +2,9 @@ package com.toocol.ssh.utilities.anis;
 
 import com.toocol.ssh.utilities.utils.StrUtil;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/7/2 19:00
@@ -54,6 +57,11 @@ public class AsciiControl {
             "\\u001b\\[[0-9]+;[0-9]+;.+m",
     };
 
+    public static final String ANIS_ESCAPE_POSITION = "\\u001b\\[#?\\??[0-9]*;?[0-9]*[fjklhrABCDEFGJH]";
+    public static final String ANIS_ESCAPE_MOSH_ROLLING = "\\u001b\\[0m\\u001b\\[[0-9]*;[0-9]*r\\u001b\\[[0-9]*;[0-9]*H";
+
+    public static final Pattern ANIS_ESCAPE_MOSH_ROLLING_PATTERN = Pattern.compile(ANIS_ESCAPE_MOSH_ROLLING);
+
     public static String ignore(String source) {
         for (String[] replace : IGNORES) {
             if (source.contains(replace[0]))
@@ -62,10 +70,19 @@ public class AsciiControl {
         return source;
     }
 
+    public static boolean detectRolling(String msg) {
+        Matcher matcher = ANIS_ESCAPE_MOSH_ROLLING_PATTERN.matcher(msg);
+        return matcher.find();
+    }
+
     public static String clean(String str) {
         for (String cleanPattern : CLEAN_PATTERNS) {
             str = str.replaceAll(cleanPattern, StrUtil.EMPTY);
         }
         return str;
+    }
+
+    public static String cleanPositionAnisEscape(String str) {
+        return str.replaceAll(ANIS_ESCAPE_POSITION, StrUtil.EMPTY);
     }
 }

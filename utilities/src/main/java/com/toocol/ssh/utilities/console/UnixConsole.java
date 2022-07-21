@@ -67,4 +67,9 @@ public final class UnixConsole extends Console {
     public byte[] cleanUnsupportedCharacter(byte[] bytes) {
         return bytes;
     }
+
+    @Override
+    public void rollingProcessing(String msg) {
+
+    }
 }

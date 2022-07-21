@@ -9,11 +9,13 @@ import com.toocol.ssh.core.shell.handlers.BlockingDfHandler;
 import com.toocol.ssh.core.term.core.EscapeHelper;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.action.AbstractDevice;
+import com.toocol.ssh.utilities.anis.AsciiControl;
 import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.execeptions.RemoteDisconnectException;
 import com.toocol.ssh.utilities.functional.Executable;
 import com.toocol.ssh.utilities.log.Loggable;
+import com.toocol.ssh.utilities.utils.CharUtil;
 import com.toocol.ssh.utilities.utils.CmdUtil;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import com.toocol.ssh.utilities.utils.StrUtil;
@@ -44,6 +46,7 @@ public final class Shell extends AbstractDevice implements Loggable {
 
     static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#])");
     static final Console CONSOLE = Console.get();
+    static final String RESIZE_COMMAND = AsciiControl.DC2 + CharUtil.BRACKET_START + "resize";
     final Term term = Term.getInstance();
     final ShellPrinter shellPrinter;
     final ShellReader shellReader;
@@ -254,6 +257,7 @@ public final class Shell extends AbstractDevice implements Loggable {
                 moshSession.resize(width, height);
             }
         }
+        localLastCmd.delete(0, localLastCmd.length()).append(RESIZE_COMMAND);
     }
 
     public boolean hasWelcome() {

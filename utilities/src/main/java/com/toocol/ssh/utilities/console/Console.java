@@ -46,4 +46,6 @@ public abstract class Console {
 
     public abstract byte[] cleanUnsupportedCharacter(byte[] bytes);
 
+    public abstract void rollingProcessing(String msg);
+
 }

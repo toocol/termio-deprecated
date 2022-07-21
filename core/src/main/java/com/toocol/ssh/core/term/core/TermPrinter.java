@@ -234,6 +234,51 @@ public record TermPrinter(Term term) {
 
     synchronized void printTest() {
         Printer.clear();
-        Printer.print("Helle\bo world~");
+        String msg = "\u001B[0m\u001B[1;46r\u001B[46;1H\n" +
+                "\u001B[r\u001B[30;1Hroot     2402148       1  0 00:02 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2402375       1  0 00:03 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2402561       1  0 00:08 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2402865       1  0 00:22 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2402986       1  0 00:23 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403088       1  0 00:23 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403197       1  0 00:24 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403275       1  0 00:25 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403403       1  0 00:27 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403471       1  0 00:29 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403521       1  0 00:30 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403579       1  0 00:31 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403651       1  0 00:33 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403734       1  0 00:34 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403815       1  0 00:36 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403890       1  0 00:37 pts/0    00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2404001 2403891  0 00:39 pts/16   00:00:00 grep --color=auto \u001B[0;1;31mmosh\n" +
+                "\u001B[0m[root@vultrguest v2ray]# ";
+        Printer.print(msg);
+        int cnt = 0;
+        for (char ch : msg.toCharArray()) {
+            if (ch == '\n') cnt++;
+        }
+        for (int i = 0; i < cnt - 1; i++) {
+            Printer.println("");
+        }
+        Printer.print("\u001B[0m\u001B[1;46r\u001B[46;1H\n" +
+                "\u001B[r\u001B[30;1Hroot     2402148       1  0 00:02 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2402375       1  0 00:03 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2402561       1  0 00:08 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2402865       1  0 00:22 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2402986       1  0 00:23 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403088       1  0 00:23 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403197       1  0 00:24 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403275       1  0 00:25 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403403       1  0 00:27 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403471       1  0 00:29 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403521       1  0 00:30 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403579       1  0 00:31 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403651       1  0 00:33 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403734       1  0 00:34 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403815       1  0 00:36 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2403890       1  0 00:37 pts/0    00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
+                "root     2404060 2403891  0 00:40 pts/16   00:00:00 grep --color=auto \u001B[0;1;31mmosh\n" +
+                "\u001B[0m[root@vultrguest v2ray]# ");
     }
 }

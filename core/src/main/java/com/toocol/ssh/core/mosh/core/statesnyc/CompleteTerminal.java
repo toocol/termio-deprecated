@@ -7,6 +7,7 @@ import com.toocol.ssh.core.mosh.core.proto.HostInputPB;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.log.Loggable;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,7 +42,6 @@ public class CompleteTerminal extends State<CompleteTerminal> implements Loggabl
                 HostInputPB.Instruction instruction = input.getInstruction(i);
                 if (instruction.hasExtension(HostInputPB.hostbytes)) {
                     ByteString hostString = instruction.getExtension(HostInputPB.hostbytes).getHoststring();
-                    info("Host String: " + hostString.toStringUtf8());
                     act(hostString.toByteArray(), ackNum);
                 } else if (instruction.hasExtension(HostInputPB.resize)) {
                     HostInputPB.ResizeMessage resize = instruction.getExtension(HostInputPB.resize);
@@ -75,6 +75,8 @@ public class CompleteTerminal extends State<CompleteTerminal> implements Loggabl
                 cnt++;
             }
         }
+
+        info("Host String: " + new String(bytes, StandardCharsets.UTF_8));
 
         acked.put(ackNum, bytes);
 
