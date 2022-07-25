@@ -27,6 +27,7 @@ public record TermPrinter(Term term) {
 
     public static volatile String DISPLAY_BUFF = StrUtil.EMPTY;
     public static volatile String COMMAND_BUFF = StrUtil.EMPTY;
+    private static final HistoryOutputInfoHelper historyOutputInfoHelper = HistoryOutputInfoHelper.getInstance();
 
     private static long totalMemory() {
         return RUNTIME.totalMemory() / 1024 / 1024;
@@ -157,6 +158,7 @@ public record TermPrinter(Term term) {
     }
 
     synchronized void printDisplay(String msg) {
+        historyOutputInfoHelper.add(msg);
         if (StringUtils.isEmpty(msg)) {
             DISPLAY_BUFF = StrUtil.EMPTY;
             cleanDisplay();
@@ -180,6 +182,31 @@ public record TermPrinter(Term term) {
         term.setCursorPosition(Term.getPromptLen() + term.lineBuilder.length(), Term.executeLine);
         term.showCursor();
     }
+    synchronized void printDisplay(String msg,Boolean judgment) {
+        if (judgment) {
+            if (StringUtils.isEmpty(msg)) {
+                DISPLAY_BUFF = StrUtil.EMPTY;
+                cleanDisplay();
+                term.setCursorPosition(Term.getPromptLen() + term.lineBuilder.length(), Term.executeLine);
+                return;
+            }
+            DISPLAY_BUFF = msg;
+            term.hideCursor();
+            cleanDisplay();
+            int idx = 0;
+            String[] split = msg.split("\n");
+            printDisplayBackground(split.length);
+            for (String line : split) {
+                term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx++);
+                Printer.println(new AnisStringBuilder()
+                        .background(Term.theme.displayBackGroundColor)
+                        .append(line)
+                        .toString());
+            }
+            term.displayZoneBottom = term.getCursorPosition()[1] + 1;
+            term.setCursorPosition(Term.getPromptLen() + term.lineBuilder.length(), Term.executeLine);
+            term.showCursor();
+        }}
 
     synchronized void printDisplayBuffer() {
         if (StringUtils.isEmpty(DISPLAY_BUFF)) {

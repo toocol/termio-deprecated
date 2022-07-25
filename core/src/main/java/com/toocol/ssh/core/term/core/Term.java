@@ -83,6 +83,10 @@ public final class Term extends AbstractDevice {
         termPrinter.printDisplay(msg);
     }
 
+    public void printDisplay(String msg,Boolean judgment) {
+        termPrinter.printDisplay(msg,judgment);
+    }
+
     public void printErr(String msg) {
         termPrinter.printDisplay(
                 new AnisStringBuilder()

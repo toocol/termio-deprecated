@@ -37,7 +37,7 @@ import static com.toocol.ssh.core.ssh.SshAddress.ACTIVE_SSH_SESSION;
  * @version: 0.0.1
  */
 @Ordered
-public final class BlockingActiveSshSessionHandler extends BlockingMessageHandler<JsonObject> {
+public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandler<JsonObject> {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();
