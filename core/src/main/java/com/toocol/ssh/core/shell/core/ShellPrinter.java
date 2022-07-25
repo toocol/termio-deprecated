@@ -33,6 +33,7 @@ record ShellPrinter(Shell shell) {
             Printer.print(msg);
             return true;
         }
+//        Shell.CONSOLE.rollingProcessing(msg);
         if (StringUtils.isEmpty(lastCmd) && clean(msg).startsWith(AsciiControl.LF)) {
             msg = msg.replaceFirst(AsciiControl.LF, "");
         }
@@ -51,6 +52,7 @@ record ShellPrinter(Shell shell) {
                 if ((str.equals(lastCmd) && StringUtils.isNotEmpty(lastCmd)) || str.contains(AsciiControl.BEL)) {
                     continue;
                 }
+                str = shell.fillPrompt(str);
                 sb.append(str).append("\n");
             }
             if (sb.length() > 0 && sb.toString().contains(shell.getPrompt())) {

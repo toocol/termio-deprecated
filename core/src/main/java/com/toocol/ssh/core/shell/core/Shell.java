@@ -87,6 +87,7 @@ public final class Shell extends AbstractDevice implements Loggable {
     volatile String bottomLinePrint = StrUtil.EMPTY;
     volatile String tabAccomplishLastStroke = StrUtil.EMPTY;
     private ConsoleReader reader;
+    private Pattern promptCursorPattern;
     /**
      * the output/input Stream belong to JSch's channelShell;
      */
@@ -168,7 +169,11 @@ public final class Shell extends AbstractDevice implements Loggable {
     public boolean print(String msg) {
         Matcher matcher = PROMPT_PATTERN.matcher(msg.trim());
         if (matcher.find()) {
-            prompt.set(matcher.group(0) + StrUtil.SPACE);
+            String oldPrompt = prompt.get();
+            prompt.set(AsciiControl.clean(matcher.group(0) + StrUtil.SPACE));
+            if (!oldPrompt.equals(prompt.get())) {
+                generateCursorPosPattern();
+            }
             extractUserFromPrompt();
             if (status.equals(Status.VIM_UNDER)) {
                 status = Status.NORMAL;
@@ -203,6 +208,11 @@ public final class Shell extends AbstractDevice implements Loggable {
 
         selectHistoryCmd.delete(0, selectHistoryCmd.length());
         return hasPrint;
+    }
+
+    private void generateCursorPosPattern() {
+        String patternStr = StrUtil.fullFillParam(AsciiControl.ANIS_ESCAPE_CURSOR_LOCATION, prompt.get().length() + 1);
+        promptCursorPattern = Pattern.compile(patternStr);
     }
 
     public String readCmd() throws Exception {
@@ -258,6 +268,25 @@ public final class Shell extends AbstractDevice implements Loggable {
             }
         }
         localLastCmd.delete(0, localLastCmd.length()).append(RESIZE_COMMAND);
+    }
+
+    public String fillPrompt(String msg) {
+        if (protocol.equals(ShellProtocol.SSH)) {
+            return msg;
+        }
+        // TODO: there was a special case like "[r[49;1H[root@vultrguest /]# cd[50;18H~[50;22H" should be deal with
+        Matcher matcher = promptCursorPattern.matcher(msg);
+        Matcher matcherPrompt = PROMPT_PATTERN.matcher(msg);
+        if (matcher.find() && !matcherPrompt.find()) {
+            String group = matcher.group(0);
+            String lineStr = group.split(";")[0].trim().replaceAll("\\[", "");
+            if (StringUtils.isNumeric(lineStr)) {
+                int line = Integer.parseInt(lineStr);
+                String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(line);
+                msg = msg.replace(group, setToHead + prompt.get() + group);
+            }
+        }
+        return msg;
     }
 
     public boolean hasWelcome() {
@@ -367,6 +396,7 @@ public final class Shell extends AbstractDevice implements Loggable {
                     e.printStackTrace();
                 } finally {
                     assert prompt.get() != null;
+                    generateCursorPosPattern();
                     extractUserFromPrompt();
                     fullPath.set("/" + user);
 
