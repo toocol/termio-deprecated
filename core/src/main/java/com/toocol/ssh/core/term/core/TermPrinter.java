@@ -234,7 +234,13 @@ public record TermPrinter(Term term) {
 
     synchronized void printTest() {
         Printer.clear();
-        String msg = "\u001B[0m\u001B[1;46r\u001B[46;1H\n" +
+        String msg = "[0m\u001B[1;46r\u001B[46;1H\n" +
+                "\u001B[r\u001B[45;1H[root@vultrguest /]# ls\n" +
+                "\u001B[0;1;36mbin\u001B[0m  \u001B[0;1;34mboot\u001B[0m  \u001B[0;1;34mdata\u001B[0m  \u001B[0;1;34mdev\u001B[0m  \u001B[0;1;34metc\u001B[0m  \u001B[0;1;34mhome\u001B[0m  \u001B[0;1;36mlib\u001B[0m  \u001B[0;1;36mlib64\u001B[0m  \u001B[0;1;34mlost+found\u001B[0m  \u001B[0;1;34mmedia\u001B[0m  \u001B[0;1;34mmnt\u001B[0m  \u001B[0;1;34mopt\u001B[0m  \u001B[0;1;34mproc\u001B[0m  \u001B[0;1;34mroot\u001B[0m  \u001B[0;1;34mrun\u001B[0m  \u001B[0;1;36msbin\u001B[0m  \u001B[0;1;34msrv\u001B[0m  \u001B[0;1;34msys\u001B[0m  \u001B[0;30;42mtmp\u001B[0m  \u001B[0;1;34musr\u001B[0m  \u001B[0;1;34mvar\u001B[50;22H\u001B[0m";
+        Printer.print(msg);
+        CONSOLE.rollingProcessing(msg);
+
+        msg = "\u001B[0m\u001B[1;46r\u001B[46;1H\n" +
                 "\u001B[r\u001B[30;1Hroot     2402148       1  0 00:02 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
                 "root     2402375       1  0 00:03 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
                 "root     2402561       1  0 00:08 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
@@ -254,13 +260,7 @@ public record TermPrinter(Term term) {
                 "root     2404001 2403891  0 00:39 pts/16   00:00:00 grep --color=auto \u001B[0;1;31mmosh\n" +
                 "\u001B[0m[root@vultrguest v2ray]# ";
         Printer.print(msg);
-        int cnt = 0;
-        for (char ch : msg.toCharArray()) {
-            if (ch == '\n') cnt++;
-        }
-        for (int i = 0; i < cnt - 1; i++) {
-            Printer.println("");
-        }
+        CONSOLE.rollingProcessing(msg);
         Printer.print("\u001B[0m\u001B[1;46r\u001B[46;1H\n" +
                 "\u001B[r\u001B[30;1Hroot     2402148       1  0 00:02 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +
                 "root     2402375       1  0 00:03 ?        00:00:00 \u001B[0;1;31mmosh\u001B[0m-server\n" +

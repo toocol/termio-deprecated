@@ -71,6 +71,9 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
     private void monitorTerminalSize() {
         int terminalWidth = console.getWindowWidth();
         int terminalHeight = console.getWindowHeight();
+        if (terminalWidth < 0 || terminalHeight < 0) {
+            return;
+        }
 
         if (Term.WIDTH != terminalWidth || Term.HEIGHT != terminalHeight) {
             Term.WIDTH = terminalWidth;
