@@ -88,7 +88,7 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
                 nextSendTime = -1;
                 minDelayClock = -1;
             }
-        } else if (now >= nextSendTime || now >= nextAckTime) {
+        } else {
             sendToReceiver(diff);
             minDelayClock = -1;
         }
