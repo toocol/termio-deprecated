@@ -274,17 +274,55 @@ public final class Shell extends AbstractDevice implements Loggable {
         if (protocol.equals(ShellProtocol.SSH)) {
             return msg;
         }
-        // TODO: there was a special case like "[r[49;1H[root@vultrguest /]# cd[50;18H~[50;22H" should be deal with
         Matcher matcher = promptCursorPattern.matcher(msg);
-        Matcher matcherPrompt = PROMPT_PATTERN.matcher(msg);
-        if (matcher.find() && !matcherPrompt.find()) {
-            String group = matcher.group(0);
-            String lineStr = group.split(";")[0].trim().replaceAll("\\[", "");
-            if (StringUtils.isNumeric(lineStr)) {
-                int line = Integer.parseInt(lineStr);
-                String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(line);
-                msg = msg.replace(group, setToHead + prompt.get() + group);
+        if (matcher.find()) {
+            Matcher doubleCursorMatcher = AsciiControl.ANIS_ESCAPE_DOUBLE_CURSOR_PATTERN.matcher(msg);
+            if (doubleCursorMatcher.find()) {
+                String changePathStr = doubleCursorMatcher.group(0);
+                int[] pos = AsciiControl.extractCursorPosition(changePathStr);
+                String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(pos[0]);
+                msg = msg.replace(changePathStr, setToHead + prompt.get() + changePathStr);
+
+                int col = pos[1];
+                prompt.set(prompt.get().substring(0, col - 1) + AsciiControl.cleanCursorMode(changePathStr) + "]# ");
+                generateCursorPosPattern();
+                return msg;
             }
+
+            Matcher matcherPrompt = PROMPT_PATTERN.matcher(msg);
+            if (!matcherPrompt.find()) {
+                String group = matcher.group(0);
+                int[] pos = AsciiControl.extractCursorPosition(group);
+                String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(pos[0]);
+                msg = msg.replace(group, setToHead + prompt.get() + group);
+                return msg;
+            } else {
+                String group = matcher.group(0);
+                int[] lastPos = AsciiControl.extractCursorPosition(msg);
+                int[] pos = AsciiControl.extractCursorPosition(group);
+                if (pos[0] - lastPos[0] == 1) {
+                    String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(pos[0]);
+                    msg = msg + setToHead + prompt.get();
+                    return msg;
+                }
+            }
+        }
+
+        Matcher cursorBracketKMatcher = AsciiControl.ANIS_ESCAPE_CURSOR_BRACKET_K_PATTERN.matcher(msg);
+        if (cursorBracketKMatcher.find()) {
+            String changePathStr = cursorBracketKMatcher.group(0);
+            int[] pos = AsciiControl.extractCursorPosition(changePathStr);
+            String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(pos[0]);
+            msg = msg.replace(changePathStr, setToHead + prompt.get() + changePathStr);
+
+            int col = pos[1];
+            // there still have problem
+            if (col >= prompt.get().length()) {
+                return msg;
+            }
+            prompt.set(prompt.get().substring(0, col - 1) + AsciiControl.cleanCursorMode(changePathStr));
+            generateCursorPosPattern();
+            return msg;
         }
         return msg;
     }

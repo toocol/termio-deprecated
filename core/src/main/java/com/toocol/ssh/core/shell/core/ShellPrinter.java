@@ -81,8 +81,11 @@ record ShellPrinter(Shell shell) {
                             shell.currentPrint.delete(0, shell.currentPrint.length());
                         } else if (splitPrompt.length > 1) {
                             StringBuffer currentPrint = shell.currentPrint.delete(0, shell.currentPrint.length());
+                            if (splitPrompt[1].startsWith(lastCmd)) {
+                                splitPrompt[1] = splitPrompt[1].replaceFirst(lastCmd, "");
+                            }
                             String clean = clean(splitPrompt[1]);
-                            if (!"^C".equals(clean) && !lastCmd.equals(clean)) {
+                            if (!"^C".equals(clean) && !lastCmd.equals(clean) && !shell.prompt.get().startsWith(clean)) {
                                 currentPrint.append(clean);
                             }
                         }
