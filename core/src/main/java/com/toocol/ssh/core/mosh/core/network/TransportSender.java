@@ -153,8 +153,8 @@ public final class TransportSender<MyState extends State<MyState>> implements Lo
         builder.setDiff(ByteString.copyFrom(diff));
         builder.setChaff(ByteString.copyFrom(makeChaff()));
         InstructionPB.Instruction inst = builder.build();
-//        info("Send packet oldNum = {}, newNum = {}, ackNum = {}, throwawayNum = {}, diff = {}",
-//                inst.getOldNum(), newNum, ackNum, inst.getThrowawayNum(), inst.getDiff().toString());
+        info("Send packet oldNum = {}, newNum = {}, ackNum = {}, throwawayNum = {}",
+                inst.getOldNum(), newNum, ackNum, inst.getThrowawayNum());
 
         if (newNum == -1) {
             shutdownTries++;

@@ -57,10 +57,15 @@ public class AsciiControl {
             "\\u001b\\[[0-9]+;[0-9]+;.+m",
     };
 
+    public static final String ANIS_CLEAR_ALL_MODE = "\u001b[0m";
+
     public static final String ANIS_ESCAPE_POSITION = "\\u001b\\[#?\\??[0-9]*;?[0-9]*[fjklhrABCDEFGJH]";
     public static final String ANIS_ESCAPE_MOSH_ROLLING = "\\u001b\\[0m\\u001b\\[[0-9]*;[0-9]*r\\u001b\\[[0-9]*;[0-9]*H";
+    public static final String ANIS_ESCAPE_CURSOR_LOCATION = "\\u001b\\[[0-9]+;{}H";
+    public static final String ANIS_ESCAPE_DOUBLE_CURSOR_LOCATION = "\\u001b\\[[0-9]+;[0-9]+H[a-zA-Z0-9_~]+\\u001b\\[[0-9]+;[0-9]+H";
 
     public static final Pattern ANIS_ESCAPE_MOSH_ROLLING_PATTERN = Pattern.compile(ANIS_ESCAPE_MOSH_ROLLING);
+    public static final Pattern ANIS_ESCAPE_DOUBLE_CURSOR_PATTERN = Pattern.compile(ANIS_ESCAPE_DOUBLE_CURSOR_LOCATION);
 
     public static String ignore(String source) {
         for (String[] replace : IGNORES) {
@@ -84,5 +89,9 @@ public class AsciiControl {
 
     public static String cleanPositionAnisEscape(String str) {
         return str.replaceAll(ANIS_ESCAPE_POSITION, StrUtil.EMPTY);
+    }
+
+    public static String setCursorToLineHead(int line) {
+        return AsciiControl.ESCAPE + "[" + line + ";0H";
     }
 }

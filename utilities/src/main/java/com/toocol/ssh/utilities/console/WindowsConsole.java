@@ -95,7 +95,7 @@ public final class WindowsConsole extends Console {
             for (char ch : msg.toCharArray()) {
                 if (ch == '\n') cnt++;
             }
-            for (int i = 0; i < cnt + 2; i++) {
+            for (int i = 0; i < cnt; i++) {
                 Printer.println("");
             }
         }
