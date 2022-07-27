@@ -38,7 +38,7 @@ public record CmdFeedbackHelper(InputStream inputStream, String cmd, Shell shell
                         && !cleanedMsg.contains(AsciiControl.ESCAPE)) {
                     feedback = msg;
                 } else if (matcher.find()) {
-                    shell.setPrompt(matcher.group(0) + StrUtil.SPACE);
+                    shell.setPrompt(AsciiControl.clean(matcher.group(0) + StrUtil.SPACE));
                     shell.extractUserFromPrompt();
                 }
 

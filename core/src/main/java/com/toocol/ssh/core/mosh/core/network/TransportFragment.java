@@ -19,8 +19,8 @@ public final class TransportFragment {
 
     @NotThreadSafe
     public final static class Pool extends AbstractObjectsPool<Fragment> {
-        private static final int NUM_FRAGMENTS = 5;
-        private static final int MAX_FRAGMENTS = 10;
+        private static final int NUM_FRAGMENTS = 20;
+        private static final int MAX_FRAGMENTS = 40;
 
         @Override
         protected int numObjects() {

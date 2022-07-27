@@ -13,7 +13,7 @@ public final class TimestampedState<T extends State> {
 
     public long timestamp;
     public long num;
-    public T state;
+    public transient T state;
 
     public TimestampedState(long timestamp, long num, T state) {
         this.timestamp = timestamp;

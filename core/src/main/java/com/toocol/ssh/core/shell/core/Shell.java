@@ -87,6 +87,7 @@ public final class Shell extends AbstractDevice implements Loggable {
     volatile String bottomLinePrint = StrUtil.EMPTY;
     volatile String tabAccomplishLastStroke = StrUtil.EMPTY;
     private ConsoleReader reader;
+    private Pattern promptCursorPattern;
     /**
      * the output/input Stream belong to JSch's channelShell;
      */
@@ -168,7 +169,11 @@ public final class Shell extends AbstractDevice implements Loggable {
     public boolean print(String msg) {
         Matcher matcher = PROMPT_PATTERN.matcher(msg.trim());
         if (matcher.find()) {
-            prompt.set(matcher.group(0) + StrUtil.SPACE);
+            String oldPrompt = prompt.get();
+            prompt.set(AsciiControl.clean(matcher.group(0) + StrUtil.SPACE));
+            if (!oldPrompt.equals(prompt.get())) {
+                generateCursorPosPattern();
+            }
             extractUserFromPrompt();
             if (status.equals(Status.VIM_UNDER)) {
                 status = Status.NORMAL;
@@ -203,6 +208,11 @@ public final class Shell extends AbstractDevice implements Loggable {
 
         selectHistoryCmd.delete(0, selectHistoryCmd.length());
         return hasPrint;
+    }
+
+    private void generateCursorPosPattern() {
+        String patternStr = StrUtil.fullFillParam(AsciiControl.ANIS_ESCAPE_CURSOR_LOCATION, prompt.get().length() + 1);
+        promptCursorPattern = Pattern.compile(patternStr);
     }
 
     public String readCmd() throws Exception {
@@ -258,6 +268,63 @@ public final class Shell extends AbstractDevice implements Loggable {
             }
         }
         localLastCmd.delete(0, localLastCmd.length()).append(RESIZE_COMMAND);
+    }
+
+    public String fillPrompt(String msg) {
+        if (protocol.equals(ShellProtocol.SSH)) {
+            return msg;
+        }
+        Matcher matcher = promptCursorPattern.matcher(msg);
+        if (matcher.find()) {
+            Matcher doubleCursorMatcher = AsciiControl.ANIS_ESCAPE_DOUBLE_CURSOR_PATTERN.matcher(msg);
+            if (doubleCursorMatcher.find()) {
+                String changePathStr = doubleCursorMatcher.group(0);
+                int[] pos = AsciiControl.extractCursorPosition(changePathStr);
+                String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(pos[0]);
+                msg = msg.replace(changePathStr, setToHead + prompt.get() + changePathStr);
+
+                int col = pos[1];
+                prompt.set(prompt.get().substring(0, col - 1) + AsciiControl.cleanCursorMode(changePathStr) + "]# ");
+                generateCursorPosPattern();
+                return msg;
+            }
+
+            Matcher matcherPrompt = PROMPT_PATTERN.matcher(msg);
+            if (!matcherPrompt.find()) {
+                String group = matcher.group(0);
+                int[] pos = AsciiControl.extractCursorPosition(group);
+                String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(pos[0]);
+                msg = msg.replace(group, setToHead + prompt.get() + group);
+                return msg;
+            } else {
+                String group = matcher.group(0);
+                int[] lastPos = AsciiControl.extractCursorPosition(msg);
+                int[] pos = AsciiControl.extractCursorPosition(group);
+                if (pos[0] - lastPos[0] == 1) {
+                    String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(pos[0]);
+                    msg = msg + setToHead + prompt.get();
+                    return msg;
+                }
+            }
+        }
+
+        Matcher cursorBracketKMatcher = AsciiControl.ANIS_ESCAPE_CURSOR_BRACKET_K_PATTERN.matcher(msg);
+        if (cursorBracketKMatcher.find()) {
+            String changePathStr = cursorBracketKMatcher.group(0);
+            int[] pos = AsciiControl.extractCursorPosition(changePathStr);
+            String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(pos[0]);
+            msg = msg.replace(changePathStr, setToHead + prompt.get() + changePathStr);
+
+            int col = pos[1];
+            // there still have problem
+            if (col >= prompt.get().length()) {
+                return msg;
+            }
+            prompt.set(prompt.get().substring(0, col - 1) + AsciiControl.cleanCursorMode(changePathStr));
+            generateCursorPosPattern();
+            return msg;
+        }
+        return msg;
     }
 
     public boolean hasWelcome() {
@@ -367,6 +434,7 @@ public final class Shell extends AbstractDevice implements Loggable {
                     e.printStackTrace();
                 } finally {
                     assert prompt.get() != null;
+                    generateCursorPosPattern();
                     extractUserFromPrompt();
                     fullPath.set("/" + user);
 
