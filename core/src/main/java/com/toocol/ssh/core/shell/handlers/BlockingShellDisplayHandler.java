@@ -82,7 +82,6 @@ public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Lo
                 boolean hasPrint = shell.print(new String(tmp, 0, i, StandardCharsets.UTF_8));
                 if (hasPrint) {
                     int[] position = Term.getInstance().getCursorPosition();
-                    debug("Current cursor position(line, column): {}, {}", position[1], position[0]);
                 }
                 if (hasPrint && StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
                     cmdHasFeedbackWhenJustExit = true;

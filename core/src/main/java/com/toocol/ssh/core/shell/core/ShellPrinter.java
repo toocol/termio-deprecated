@@ -33,6 +33,7 @@ record ShellPrinter(Shell shell) {
             Printer.print(msg);
             return true;
         }
+//        Shell.CONSOLE.rollingProcessing(msg);
         if (StringUtils.isEmpty(lastCmd) && clean(msg).startsWith(AsciiControl.LF)) {
             msg = msg.replaceFirst(AsciiControl.LF, "");
         }
@@ -51,6 +52,7 @@ record ShellPrinter(Shell shell) {
                 if ((str.equals(lastCmd) && StringUtils.isNotEmpty(lastCmd)) || str.contains(AsciiControl.BEL)) {
                     continue;
                 }
+                str = shell.fillPrompt(str);
                 sb.append(str).append("\n");
             }
             if (sb.length() > 0 && sb.toString().contains(shell.getPrompt())) {
@@ -79,8 +81,11 @@ record ShellPrinter(Shell shell) {
                             shell.currentPrint.delete(0, shell.currentPrint.length());
                         } else if (splitPrompt.length > 1) {
                             StringBuffer currentPrint = shell.currentPrint.delete(0, shell.currentPrint.length());
+                            if (splitPrompt[1].startsWith(lastCmd)) {
+                                splitPrompt[1] = splitPrompt[1].replaceFirst(lastCmd, "");
+                            }
                             String clean = clean(splitPrompt[1]);
-                            if (!"^C".equals(clean) && !lastCmd.equals(clean)) {
+                            if (!"^C".equals(clean) && !lastCmd.equals(clean) && !shell.prompt.get().startsWith(clean)) {
                                 currentPrint.append(clean);
                             }
                         }

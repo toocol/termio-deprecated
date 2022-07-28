@@ -61,7 +61,8 @@ public class CompleteTerminal extends State<CompleteTerminal> implements Loggabl
     private void act(byte[] bytes, long ackNum) {
         bytes = CONSOLE.cleanUnsupportedCharacter(bytes);
 
-        if (acked.containsKey(ackNum) && acked.get(ackNum).length >= bytes.length) {
+        // Special judgment is required when ackNum is equal to 1
+        if (acked.containsKey(ackNum) && acked.get(ackNum).length >= bytes.length && ackNum != 1) {
             return;
         }
 
