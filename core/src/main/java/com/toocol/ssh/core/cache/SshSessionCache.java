@@ -2,10 +2,10 @@ package com.toocol.ssh.core.cache;
 
 import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.Session;
+import com.toocol.ssh.core.ssh.core.SshSession;
 
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -16,14 +16,9 @@ public class SshSessionCache {
 
     private static final SshSessionCache INSTANCE = new SshSessionCache();
     /**
-     * the map stored all alive ssh session.
+     * the map stored all alive ssh session(include Session and ChannelShell)
      */
-    private final Map<Long, Session> sessionMap = new ConcurrentHashMap<>();
-
-    /**
-     * the map stored all alive ssh channelShell.
-     */
-    private final Map<Long, ChannelShell> channelShellMap = new ConcurrentHashMap<>();
+    private final Map<Long, SshSession> sshSessionMap = new ConcurrentHashMap<>();
 
     private SshSessionCache() {
     }
@@ -33,26 +28,14 @@ public class SshSessionCache {
     }
 
     public static int getAlive() {
-        return INSTANCE.sessionMap.entrySet().stream()
-                .filter(entry -> entry.getValue().isConnected())
-                .map(Map.Entry::getKey)
-                .filter(sessionId -> {
-                    ChannelShell channelShell = INSTANCE.channelShellMap.get(sessionId);
-                    if (channelShell == null) {
-                        return false;
-                    }
-                    return channelShell.isConnected();
-                })
+        return INSTANCE.sshSessionMap.entrySet().stream()
+                .filter(entry -> entry.getValue().alive())
                 .toList()
                 .size();
     }
 
-    public Set<ChannelShell> allChannelShell() {
-        return new HashSet<>(channelShellMap.values());
-    }
-
-    public synchronized Map<Long, Session> getSessionMap() {
-        return sessionMap;
+    public synchronized Map<Long, SshSession> getSessionMap() {
+        return sshSessionMap;
     }
 
     public boolean isAlive(String ip) {
@@ -60,17 +43,11 @@ public class SshSessionCache {
         if (sessionId == 0) {
             return false;
         }
-        boolean sessionConnected = sessionMap.get(sessionId).isConnected();
-        if (!sessionConnected) {
-            stop(sessionId);
-            return false;
-        } else {
-            return channelShellMap.get(sessionId).isConnected();
-        }
+        return sshSessionMap.get(sessionId).alive();
     }
 
     public long containSession(String ip) {
-        return sessionMap.entrySet().stream()
+        return sshSessionMap.entrySet().stream()
                 .filter(entry -> ip.equals(entry.getValue().getHost()))
                 .map(Map.Entry::getKey)
                 .findAny()
@@ -78,65 +55,66 @@ public class SshSessionCache {
     }
 
     public boolean containSessionId(long sessionId) {
-        return sessionMap.containsKey(sessionId);
+        return sshSessionMap.containsKey(sessionId);
     }
 
     public boolean isDisconnect(long sessionId) {
-        if (!sessionMap.containsKey(sessionId)) {
+        if (!sshSessionMap.containsKey(sessionId)) {
             return false;
         }
-        return !sessionMap.get(sessionId).isConnected() || !channelShellMap.get(sessionId).isConnected();
+        return !sshSessionMap.get(sessionId).alive();
     }
 
-    public void putSession(Long sessionId, Session session) {
-        sessionMap.put(sessionId, session);
+    public void putSshSession(Long sessionId, SshSession session) {
+        sshSessionMap.put(sessionId, session);
+    }
+
+    public void setSession(Long sessionId, Session session) {
+        sshSessionMap.computeIfPresent(sessionId, (k, v) -> {
+            v.setSession(session);
+            return v;
+        });
+    }
+
+    public void setChannelShell(Long sessionId, ChannelShell channelShell) {
+        sshSessionMap.computeIfPresent(sessionId, (k, v) -> {
+            v.setChannelShell(channelShell);
+            return v;
+        });
     }
 
     public Session getSession(Long sessionId) {
-        return sessionMap.get(sessionId);
-    }
-
-    public void putChannelShell(Long sessionId, ChannelShell channelShell) {
-        channelShellMap.put(sessionId, channelShell);
+        return Optional.ofNullable(sshSessionMap.get(sessionId)).map(SshSession::getSession).orElse(null);
     }
 
     public ChannelShell getChannelShell(Long sessionId) {
-        return channelShellMap.get(sessionId);
+        return Optional.ofNullable(sshSessionMap.get(sessionId)).map(SshSession::getChannelShell).orElse(null);
     }
 
     public synchronized void stopChannelShell(long sessionId) {
-        channelShellMap.computeIfPresent(sessionId, (k, v) -> {
-            v.disconnect();
-            return null;
+        sshSessionMap.computeIfPresent(sessionId, (k, v) -> {
+            v.stopChannelShell();
+            return v;
         });
     }
 
     public synchronized void stop(long sessionId) {
-        channelShellMap.computeIfPresent(sessionId, (k, v) -> {
-            v.disconnect();
-            return null;
-        });
-        sessionMap.computeIfPresent(sessionId, (k, v) -> {
-            v.disconnect();
+        sshSessionMap.computeIfPresent(sessionId, (k, v) -> {
+            v.stop();
             return null;
         });
     }
 
     public synchronized void stop(String host) {
         long sessionId = containSession(host);
-        channelShellMap.computeIfPresent(sessionId, (k, v) -> {
-            v.disconnect();
-            return null;
-        });
-        sessionMap.computeIfPresent(sessionId, (k, v) -> {
-            v.disconnect();
+        sshSessionMap.computeIfPresent(sessionId, (k, v) -> {
+            v.stop();
             return null;
         });
         ShellCache.getInstance().stop(sessionId);
     }
 
     public synchronized void stopAll() {
-        channelShellMap.forEach((k, v) -> v.disconnect());
-        sessionMap.forEach((k, v) -> v.disconnect());
+        sshSessionMap.forEach((k, v) -> v.stop());
     }
 }

@@ -44,12 +44,14 @@ public final class SshSessionFactory implements Castable, Loggable {
         session.connect();
 
         sessionId = guidGenerator.nextId();
-        sshSessionCache.putSession(sessionId, session);
 
         ChannelShell channelShell = cast(session.openChannel("shell"));
         channelShell.setPtyType("xterm");
         channelShell.connect();
-        sshSessionCache.putChannelShell(sessionId, channelShell);
+
+        SshSession sshSession = new SshSession(sessionId, session, channelShell);
+        sshSessionCache.putSshSession(sessionId, sshSession);
+
         info("Establish ssh session, sessionId = {}, host = {}, user = {}",
                 sessionId, credential.getHost(), credential.getUser());
         return sessionId;
@@ -72,7 +74,7 @@ public final class SshSessionFactory implements Castable, Loggable {
                 session.setTimeout(30000);
                 session.connect();
 
-                sshSessionCache.putSession(sessionId, session);
+                sshSessionCache.setSession(sessionId, session);
             }
             reopenChannelShell = true;
             warn("Invoke ssh session failed, re-establish ssh session, sessionId = {}, host = {}, user = {}",
@@ -89,14 +91,14 @@ public final class SshSessionFactory implements Castable, Loggable {
             channelShell = cast(session.openChannel("shell"));
             channelShell.setPtyType("xterm");
             channelShell.connect();
-            sshSessionCache.putChannelShell(sessionId, channelShell);
+            sshSessionCache.setChannelShell(sessionId, channelShell);
 
         } else if (channelShell.isClosed() || !channelShell.isConnected()) {
 
             channelShell = cast(session.openChannel("shell"));
             channelShell.setPtyType("xterm");
             channelShell.connect();
-            sshSessionCache.putChannelShell(sessionId, channelShell);
+            sshSessionCache.setChannelShell(sessionId, channelShell);
 
         }
 

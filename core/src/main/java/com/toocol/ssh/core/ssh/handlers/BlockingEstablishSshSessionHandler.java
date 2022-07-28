@@ -83,6 +83,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
                 Shell shell = new Shell(sessionId.get(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
                 shell.setUser(credential.getUser());
                 shellCache.putShell(sessionId.get(), shell);
+                shell.setJumpServer(credential.isJumpServer());
                 shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
             } else {
                 StatusCache.HANGED_ENTER = true;
@@ -93,6 +94,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
                     shell.setUser(credential.getUser());
                     shellCache.putShell(sessionId.get(), shell);
                     sessionId.set(newSessionId);
+                    shell.setJumpServer(credential.isJumpServer());
                     shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
                 } else {
                     Shell shell = shellCache.getShell(newSessionId);

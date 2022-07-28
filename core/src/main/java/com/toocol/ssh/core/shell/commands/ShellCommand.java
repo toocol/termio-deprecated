@@ -32,6 +32,7 @@ public enum ShellCommand implements ICommand {
     CMD_HANG("hang", new ShellHangCmdProcessor(), "Will not close the connection, exit shell with connection running in the background."),
     CMD_UF("uf", new ShellUfCmdProcessor(), "Batch upload local files to remote connection."),
     CMD_DF("df", new ShellDfCmdProcessor(), "Batch download remote files to local."),
+    CMD_LC("lc", new ShellLcCmdProcessor(), "List all the connection properties to quick switch."),
     CMD_CLEAR("clear", new ShellClearCmdProcessor(), null),
     ;
 
