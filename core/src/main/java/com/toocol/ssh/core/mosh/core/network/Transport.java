@@ -106,8 +106,6 @@ public final class Transport<RemoteState extends State> implements Loggable {
 
             byte[] diff = inst.getDiff().toByteArray();
             boolean dataAcked = false;
-            info("Receive packet oldNum = {}, newNum = {}, ackNum = {}, throwawayNum = {}",
-                    inst.getOldNum(), inst.getNewNum(), inst.getAckNum(), inst.getThrowawayNum());
             if (diff != null && diff.length > 0) {
                 newState.state.applyString(diff, inst.getAckNum());
 

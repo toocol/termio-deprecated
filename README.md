@@ -1,13 +1,15 @@
 
+<!--
 <div align="center" >
     <img src="https://raw.githubusercontent.com/Joezeo/terminatio/8a94449d3ee343151a397fe7b7db4fad212fa00b/github.svg">
 </div>
+-->
 
 <h1 align="center"> Termio </h1>
 
 <div align="center">
 
-<big>***A light and handy command-line ssh client.***</big>
+<big>***A light and handy command-line ssh/mosh client.***</big>  
 
 </div>
 
@@ -18,10 +20,10 @@
 
 </div>
 
-### Profile
-> The program is mainly based on Java OpenJDK 17 with Vert.x and JSch, it's a lightweight command line SSH terminal tool;   
->  
-> Provide SSH login **credential storage** and **fast login**, as well as the **async sftp function**;  
+### About Termio
+Termio it's a lightweight command line `SSH/Mosh` terminal tool operated based on some simple commands in terminal; 
+
+Provide SSH/Mosh `credential storage`, `async sftp`, `quick session switch`, `advanced history command`, `function plugin extension` etc.
 
 ### Build with source code 
 ```
