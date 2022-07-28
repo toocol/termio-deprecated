@@ -3,7 +3,9 @@ package com.toocol.ssh.core.cache;
 import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.Session;
 import com.toocol.ssh.core.ssh.core.SshSession;
+import com.toocol.ssh.utilities.functional.Switchable;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -116,5 +118,12 @@ public class SshSessionCache {
 
     public synchronized void stopAll() {
         sshSessionMap.forEach((k, v) -> v.stop());
+    }
+
+    public Collection<Switchable> getAllSwitchable() {
+        return sshSessionMap.values()
+                .stream()
+                .map(sshSession -> (Switchable) sshSession)
+                .toList();
     }
 }

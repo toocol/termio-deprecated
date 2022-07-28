@@ -97,4 +97,9 @@ public class SshSession implements Switchable {
     public boolean alive() {
         return session.isConnected() && channelShell.isConnected();
     }
+
+    @Override
+    public int weight() {
+        return 0;
+    }
 }

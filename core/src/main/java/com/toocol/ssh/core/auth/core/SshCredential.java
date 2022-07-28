@@ -172,6 +172,11 @@ public class SshCredential implements Serializable, Switchable {
         return false;
     }
 
+    @Override
+    public int weight() {
+        return 0;
+    }
+
     public static final class SshCredentialBuilder {
         private String host;
         private String user;
@@ -180,10 +185,6 @@ public class SshCredential implements Serializable, Switchable {
         private boolean jumpServer;
 
         private SshCredentialBuilder() {
-        }
-
-        public static SshCredentialBuilder aSshCredential() {
-            return new SshCredentialBuilder();
         }
 
         public SshCredentialBuilder host(String host) {

@@ -4,6 +4,7 @@ import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.anis.Printer;
+import com.toocol.ssh.utilities.functional.Switchable;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.json.JsonArray;
 
@@ -173,5 +174,9 @@ public class CredentialCache {
             lock.unlock();
         }
         return null;
+    }
+
+    public Collection<Switchable> getAllSwitchable() {
+        return new ArrayList<>(CREDENTIAL_SET);
     }
 }
