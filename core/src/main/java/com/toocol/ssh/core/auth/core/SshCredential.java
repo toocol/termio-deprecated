@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.auth.core;
 
+import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.utilities.functional.Switchable;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -154,17 +155,17 @@ public class SshCredential implements Serializable, Switchable {
 
     @Override
     public String uri() {
-        return null;
+        return user + "@" + host;
     }
 
     @Override
     public String protocol() {
-        return null;
+        return ShellProtocol.SSH.name();
     }
 
     @Override
     public String currentPath() {
-        return null;
+        return "*";
     }
 
     @Override
@@ -174,7 +175,7 @@ public class SshCredential implements Serializable, Switchable {
 
     @Override
     public int weight() {
-        return 0;
+        return 1;
     }
 
     public static final class SshCredentialBuilder {

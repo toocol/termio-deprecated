@@ -129,6 +129,7 @@ public final class Shell extends AbstractDevice implements Loggable {
 
         this.resetIO(ShellProtocol.MOSH);
         this.shellReader.initReader();
+        this.quickSwitchHelper.initialize();
     }
 
     public Shell(long sessionId, Vertx vertx, EventBus eventBus, ChannelShell channelShell) {
@@ -147,6 +148,7 @@ public final class Shell extends AbstractDevice implements Loggable {
 
         this.resetIO(ShellProtocol.SSH);
         this.shellReader.initReader();
+        this.quickSwitchHelper.initialize();
     }
 
     public void resetIO(ShellProtocol protocol) {
@@ -353,6 +355,10 @@ public final class Shell extends AbstractDevice implements Loggable {
             Printer.println("Session established.");
         }
         Printer.println("\nUse protocol " + protocol.name() + ".\n");
+    }
+
+    public void switchSession() {
+        this.quickSwitchHelper.switchSession();
     }
 
     @SuppressWarnings("all")

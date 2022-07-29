@@ -21,6 +21,9 @@ record ShellReader(Shell shell, ConsoleReader reader) {
             if (Term.status.equals(TermStatus.TERMIO)) {
                 return;
             }
+            if (shell.status.equals(Shell.Status.QUICK_SWITCH)) {
+                return;
+            }
             try {
                 shell.historyCmdHelper.reset();
                 shell.localLastCmd.delete(0, shell.localLastCmd.length());

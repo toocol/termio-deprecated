@@ -1,6 +1,7 @@
 package com.toocol.ssh.utilities.anis;
 
 import com.toocol.ssh.utilities.utils.ASCIIStrCache;
+import com.toocol.ssh.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -122,6 +123,16 @@ public final class AnisStringBuilder {
 
     public AnisStringBuilder append(AnisStringBuilder ansiSb) {
         builder.append(ansiSb.toString());
+        return this;
+    }
+
+    public AnisStringBuilder crlf() {
+        builder.append(StrUtil.CRLF);
+        return this;
+    }
+
+    public AnisStringBuilder tab() {
+        builder.append(StrUtil.TAB);
         return this;
     }
 

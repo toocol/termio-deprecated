@@ -35,6 +35,8 @@ public interface Switchable extends Asable, Comparable<Switchable> {
 
     @Override
     default int compareTo(Switchable o) {
-        return this.weight() - o.weight();
+        int aliveThis = alive() ? 1 : 0;
+        int aliveO = o.alive() ? 1 : 0;
+        return aliveThis == aliveO ? (this.weight() == o.weight() ? this.uri().compareTo(o.uri()) : this.weight() - o.weight()) : aliveO - aliveThis;
     }
 }

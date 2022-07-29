@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ShellLcCmdProcessor extends ShellCommandProcessor {
     @Override
     public Tuple2<String, Long> process(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String cmd) {
-        return null;
+        shell.switchSession();
+        return new Tuple2<>(null, null);
     }
 }
