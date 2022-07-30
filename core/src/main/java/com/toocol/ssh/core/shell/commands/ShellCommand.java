@@ -12,7 +12,6 @@ import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -86,10 +85,6 @@ public enum ShellCommand implements ICommand {
             }
 
             result = this.commandProcessor.process(eventBus, shell, isBreak, msg);
-
-            if (!this.equals(CMD_DF) && !this.equals(CMD_UF)) {
-                shell.writeAndFlush(StrUtil.LF.getBytes(StandardCharsets.UTF_8));
-            }
         } catch (RemoteDisconnectException e) {
             isBreak.set(true);
             result.second(shell.getSessionId());

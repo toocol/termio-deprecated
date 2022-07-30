@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.shell.commands.processors;
 
+import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.shell.commands.ShellCommandProcessor;
 import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.utilities.utils.Tuple2;
@@ -17,7 +18,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ShellLcCmdProcessor extends ShellCommandProcessor {
     @Override
     public Tuple2<String, Long> process(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String cmd) {
-        shell.switchSession();
-        return new Tuple2<>(null, null);
+        boolean changeSession = shell.switchSession();
+        isBreak.set(changeSession);
+        StatusCache.SWITCH_SESSION = changeSession;
+        return new Tuple2<>(null, shell.getSessionId());
     }
 }

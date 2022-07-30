@@ -96,6 +96,7 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
                     return;
                 }
                 sshSessionCache.stop(sessionId);
+                shellCache.initializeQuickSessionSwitchHelper();
             }
         });
     }

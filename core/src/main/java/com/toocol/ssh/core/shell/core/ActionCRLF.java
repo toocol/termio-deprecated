@@ -18,7 +18,8 @@ public final class ActionCRLF extends ShellCharAction {
     @Override
     public boolean act(Shell shell, CharEvent charEvent, char inChar) {
         if (shell.status.equals(Shell.Status.QUICK_SWITCH)) {
-            return false;
+            shell.quickSwitchHelper.changeSession();
+            return true;
         }
         if (shell.status.equals(Shell.Status.TAB_ACCOMPLISH)) {
             shell.tabAccomplishLastStroke = StrUtil.EMPTY;

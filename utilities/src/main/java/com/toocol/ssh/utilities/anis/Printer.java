@@ -3,6 +3,7 @@ package com.toocol.ssh.utilities.anis;
 import com.toocol.ssh.utilities.console.Console;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import com.toocol.ssh.utilities.utils.OsUtil;
+import com.toocol.ssh.utilities.utils.StrUtil;
 
 import java.io.PrintStream;
 import java.util.concurrent.CountDownLatch;
@@ -47,9 +48,15 @@ public final class Printer {
     }
 
     public static void virtualBackspace() {
-        print("\b");
-        print(" ");
-        print("\b");
+        print(StrUtil.BACKSPACE);
+        print(StrUtil.SPACE);
+        print(StrUtil.BACKSPACE);
+    }
+
+    public static void virtualBackspace(int cnt) {
+        for (int i = 0; i < cnt; i++) {
+            virtualBackspace();
+        }
     }
 
     @SuppressWarnings("all")

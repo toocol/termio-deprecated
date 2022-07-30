@@ -69,6 +69,7 @@ public final class Shell extends AbstractDevice implements Loggable {
      * the EventBus of vert.x system.
      */
     private final EventBus eventBus;
+    private final String host;
     ConsoleReader reader;
     volatile StringBuffer localLastCmd = new StringBuffer();
     volatile StringBuffer remoteCmd = new StringBuffer();
@@ -115,6 +116,8 @@ public final class Shell extends AbstractDevice implements Loggable {
 
     public Shell(long sessionId, Vertx vertx, EventBus eventBus, MoshSession moshSession) {
         this.sessionId = sessionId;
+        this.host = moshSession.getHost();
+        this.user = moshSession.getUser();
         this.vertx = vertx;
         this.eventBus = eventBus;
         this.moshSession = moshSession;
@@ -129,11 +132,12 @@ public final class Shell extends AbstractDevice implements Loggable {
 
         this.resetIO(ShellProtocol.MOSH);
         this.shellReader.initReader();
-        this.quickSwitchHelper.initialize();
     }
 
-    public Shell(long sessionId, Vertx vertx, EventBus eventBus, ChannelShell channelShell) {
+    public Shell(long sessionId, String host, String user, Vertx vertx, EventBus eventBus, ChannelShell channelShell) {
         this.sessionId = sessionId;
+        this.host = host;
+        this.user = user;
         this.vertx = vertx;
         this.eventBus = eventBus;
         this.channelShell = channelShell;
@@ -148,7 +152,6 @@ public final class Shell extends AbstractDevice implements Loggable {
 
         this.resetIO(ShellProtocol.SSH);
         this.shellReader.initReader();
-        this.quickSwitchHelper.initialize();
     }
 
     public void resetIO(ShellProtocol protocol) {
@@ -350,15 +353,19 @@ public final class Shell extends AbstractDevice implements Loggable {
     public void printAfterEstablish() {
         Printer.clear();
         if (StatusCache.HANGED_ENTER) {
-            Printer.println("Invoke hanged session.");
+            Printer.println("Invoke hanged session: " + user + "@" + host);
         } else {
-            Printer.println("Session established.");
+            Printer.println("Session established: " + user + "@" + host);
         }
         Printer.println("\nUse protocol " + protocol.name() + ".\n");
     }
 
-    public void switchSession() {
-        this.quickSwitchHelper.switchSession();
+    public void initializeSwitchSessionHelper() {
+        this.quickSwitchHelper.initialize();
+    }
+
+    public boolean switchSession() {
+        return this.quickSwitchHelper.switchSession();
     }
 
     @SuppressWarnings("all")
@@ -665,6 +672,18 @@ public final class Shell extends AbstractDevice implements Loggable {
 
     public ShellProtocol getProtocol() {
         return this.protocol;
+    }
+
+    public String uri() {
+        return user + "@" + host;
+    }
+
+    public EventBus getEventBus() {
+        return eventBus;
+    }
+
+    public Vertx getVertx() {
+        return vertx;
     }
 
     public enum Status {

@@ -24,7 +24,7 @@ public final class ActionUpDownArrow extends ShellCharAction {
             } else {
                 shell.quickSwitchHelper.downSession();
             }
-            return false;
+            return true;
         }
         shell.status = Shell.Status.NORMAL;
 

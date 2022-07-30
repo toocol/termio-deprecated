@@ -3,13 +3,12 @@ package com.toocol.ssh.core.auth.core;
 import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.utilities.functional.Switchable;
 import io.vertx.core.json.JsonObject;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author ZhaoZhe
@@ -83,36 +82,6 @@ public class SshCredential implements Serializable, Switchable {
         return map;
     }
 
-    @Override
-    public String toString() {
-        return "SshCredential{" +
-                "host='" + host + '\'' +
-                ", user='" + user + '\'' +
-                ", password='" + password + '\'' +
-                ", port=" + port +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        SshCredential that = (SshCredential) o;
-
-        return new EqualsBuilder().append(port, that.port).append(host, that.host).append(user, that.user).append(password, that.password).isEquals();
-    }
-
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(host).append(user).append(password).append(port).toHashCode();
-    }
-
     public String getHost() {
         return host;
     }
@@ -176,6 +145,19 @@ public class SshCredential implements Serializable, Switchable {
     @Override
     public int weight() {
         return 1;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || (getClass() != o.getClass() && !(o instanceof Switchable))) return false;
+        Switchable that = (Switchable) o;
+        return Objects.equals(uri(), that.uri());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(host, user);
     }
 
     public static final class SshCredentialBuilder {

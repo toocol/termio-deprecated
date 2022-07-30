@@ -7,6 +7,7 @@ import com.toocol.ssh.core.shell.core.Shell;
 import com.toocol.ssh.core.shell.core.ShellProtocol;
 import com.toocol.ssh.utilities.functional.Switchable;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -15,7 +16,9 @@ import java.util.Optional;
  */
 public class SshSession implements Switchable {
 
+    private final long createTime = System.currentTimeMillis();
     private final long sessionId;
+
     private String host;
     private String user;
     private Session session;
@@ -101,5 +104,18 @@ public class SshSession implements Switchable {
     @Override
     public int weight() {
         return 0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || (getClass() != o.getClass() && !(o instanceof Switchable))) return false;
+        Switchable that = (Switchable) o;
+        return Objects.equals(uri(), that.uri());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(host, user);
     }
 }

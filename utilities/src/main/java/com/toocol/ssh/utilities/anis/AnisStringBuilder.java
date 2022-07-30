@@ -136,6 +136,16 @@ public final class AnisStringBuilder {
         return this;
     }
 
+    public AnisStringBuilder space() {
+        builder.append(StrUtil.SPACE);
+        return this;
+    }
+
+    public AnisStringBuilder space(int cnt) {
+        builder.append(StrUtil.SPACE.repeat(cnt));
+        return this;
+    }
+
     public AnisStringBuilder clearStr() {
         builder.delete(0, builder.length());
         return this;

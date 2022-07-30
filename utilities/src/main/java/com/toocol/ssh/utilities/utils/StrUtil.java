@@ -32,6 +32,10 @@ public final class StrUtil extends StringUtils {
      */
     public static final String TAB = "\t";
     /**
+     * {@code "\b"}
+     */
+    public static final String BACKSPACE = "\b";
+    /**
      * {@code "null"}
      */
     public static final String NULL = "null";

@@ -88,6 +88,26 @@ public class CredentialCache {
         }
     }
 
+    public int indexOf(String host, String user) {
+        Lock lock = READ_WRITE_LOCK.readLock();
+        lock.lock();
+        try {
+            int index = 1;
+            for (SshCredential sshCredential : CREDENTIAL_SET) {
+                if (sshCredential.getHost().equals(host) && sshCredential.getUser().equals(user)) {
+                    return index;
+                }
+                index++;
+            }
+        } catch (Exception e) {
+            MessageBox.setExitMessage("Credential operation error.");
+            System.exit(-1);
+        } finally {
+            lock.unlock();
+        }
+        return -1;
+    }
+
     public SshCredential getCredential(int index) {
         Lock lock = READ_WRITE_LOCK.readLock();
         lock.lock();
