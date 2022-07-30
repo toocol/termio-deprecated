@@ -25,12 +25,13 @@ import static com.toocol.ssh.core.ssh.SshAddress.ESTABLISH_SSH_SESSION;
  */
 public final class SessionQuickSwitchHelper implements Loggable, IStacktraceParser {
     private static final int VIEWPORT_LEN = 5;
-    private static final int HELP_INFO_LINE = VIEWPORT_LEN + 2;
-    private static final int BOTTOM_LINE_OFFSET = VIEWPORT_LEN + 3;
+    private static final int HELP_INFO_LINE = VIEWPORT_LEN + 3;
+    private static final int BOTTOM_LINE_OFFSET = VIEWPORT_LEN + 4;
     private static final int SCROLLABLE = VIEWPORT_LEN / 2 + 1;
     private static final int[] PART_PROPORTION = new int[]{1, 3, 2, 2, 2};
+    private static final String[] PART_HEADS = new String[]{"   No.", "address", "path", "protocol", "status"};
     private static final String PROMPT = " Quick session switch > {} <";
-    private static final String HELP_INFO = " Press '↑'/'↓' key to choose session to switch, 'Enter' to confirm, 'Esc' to quit.";
+    private static final String HELP_INFO = " Press '↑'/'↓' key to choose session to switch, '←'/'→' to change group, 'Enter' to confirm, 'Esc' to quit.";
     private static final Term term = Term.getInstance();
 
     private final int[] recordCursorPos = new int[2];
@@ -170,7 +171,10 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
         int width = term.getWidth();
         for (int i = 0; i < 5; i++) {
             partLength[i] = width * PART_PROPORTION[i] / 10;
+            builder.append(PART_HEADS[i]).space(partLength[i] - PART_HEADS[i].length());
         }
+        Printer.println(builder.toString());
+        builder.clearStr();
         for (int i = viewportStart; i < Math.min(viewportStart + VIEWPORT_LEN, switchableList.length); i++) {
             Switchable switchable = switchableList[i];
             int idx = i + 1;
@@ -191,7 +195,7 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
                     .append(uri).space(partLength[1] - uri.length())
                     .append(curPath).space(partLength[2] - curPath.length())
                     .append(protocol).space(partLength[3] - protocol.length())
-                    .append(alive).crlf();
+                    .append(alive).space(partLength[4] - alive.length()).crlf();
             Printer.print(builder.toString());
             builder.clearStr();
         }
