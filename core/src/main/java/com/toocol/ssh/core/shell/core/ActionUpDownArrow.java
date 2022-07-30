@@ -18,6 +18,14 @@ public final class ActionUpDownArrow extends ShellCharAction {
 
     @Override
     public boolean act(Shell shell, CharEvent charEvent, char inChar) {
+        if (shell.status.equals(Shell.Status.QUICK_SWITCH)) {
+            if (inChar == CharUtil.UP_ARROW) {
+                shell.quickSwitchHelper.upSession();
+            } else {
+                shell.quickSwitchHelper.downSession();
+            }
+            return true;
+        }
         shell.status = Shell.Status.NORMAL;
 
         if (inChar == CharUtil.UP_ARROW) {

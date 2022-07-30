@@ -17,6 +17,9 @@ public final class ActionTab extends ShellCharAction {
 
     @Override
     public boolean act(Shell shell, CharEvent charEvent, char inChar) {
+        if (shell.status.equals(Shell.Status.QUICK_SWITCH)) {
+            return false;
+        }
         if (shell.bottomLinePrint.contains(shell.prompt.get())) {
             int[] cursorPosition = shell.term.getCursorPosition();
             shell.term.setCursorPosition(shell.currentPrint.length() + shell.prompt.get().length(), cursorPosition[1]);

@@ -2,6 +2,7 @@ package com.toocol.ssh.core.auth.handlers;
 
 import com.toocol.ssh.core.auth.core.SecurityCoder;
 import com.toocol.ssh.core.cache.CredentialCache;
+import com.toocol.ssh.core.cache.ShellCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.utilities.address.IAddress;
 import com.toocol.ssh.utilities.handler.NonBlockingMessageHandler;
@@ -37,7 +38,8 @@ public final class DeleteCredentialHandler extends NonBlockingMessageHandler {
         int index = cast(message.body());
         String host = credentialCache.deleteCredential(index);
         if (StringUtils.isNotEmpty(host)) {
-            SshSessionCache.getInstance().stop(host);
+            long sessionId = SshSessionCache.getInstance().containSession(host);
+            ShellCache.getInstance().stop(sessionId);
         }
 
         String filePath = FileUtil.relativeToFixed("./.credentials");

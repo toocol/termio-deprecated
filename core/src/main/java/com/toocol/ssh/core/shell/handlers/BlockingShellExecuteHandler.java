@@ -185,6 +185,11 @@ public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Lo
         if (StatusCache.HANGED_QUIT) {
             // hang up the session
             info("Hang up session, sessionId = {}", sessionId);
+        } else if (StatusCache.SWITCH_SESSION) {
+            info("Hang up this session waiting to switch, sessionId = {}", sessionId);
+            StatusCache.SWITCH_SESSION = false;
+            StatusCache.SWITCH_SESSION_WAIT_HANG_PREVIOUS = true;
+            return;
         } else {
             shellCache.stop(sessionId);
             info("Destroy session, sessionId = {}", sessionId);

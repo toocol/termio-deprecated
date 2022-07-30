@@ -51,6 +51,10 @@ public class ShellCache {
         });
     }
 
+    public void initializeQuickSessionSwitchHelper() {
+        shellMap.forEach((id, shell) -> shell.initializeSwitchSessionHelper());
+    }
+
     public void stop(long sessionId, ShellProtocol protocol) {
         shellMap.computeIfPresent(sessionId, (k, v) -> {
             switch (protocol) {
