@@ -41,8 +41,8 @@ public class AddCmdProcessor extends TermioCommandProcessor {
         }
         String user = hostUser[0];
         String host = hostUser[1];
-        if (!RegexUtils.matchIp(host) || !RegexUtils.matchDomain(host)) {
-            resultAndMsg.first(false).second("Wrong host format, just supporting Ip address.");
+        if (!RegexUtils.matchIp(host) && !RegexUtils.matchDomain(host)) {
+            resultAndMsg.first(false).second("Wrong host format, just supporting Ip/Domain address.");
             return;
         }
 
@@ -69,7 +69,14 @@ public class AddCmdProcessor extends TermioCommandProcessor {
             port = 22;
         }
 
-        SshCredential credential = SshCredential.builder().host(host).user(user).password(password).port(port).build();
+        boolean jumpServer = false;
+        for (String param : params) {
+            if ("-j".equals(param)) {
+                jumpServer = true;
+            }
+        }
+
+        SshCredential credential = SshCredential.builder().host(host).user(user).password(password).port(port).jumpServer(jumpServer).build();
         if (credentialCache.containsCredential(credential)) {
             resultAndMsg.first(false).second("Connection property already exist.");
             return;

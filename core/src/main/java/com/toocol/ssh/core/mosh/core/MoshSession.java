@@ -5,6 +5,7 @@ import com.toocol.ssh.core.mosh.core.network.MoshOutputStream;
 import com.toocol.ssh.core.mosh.core.network.Transport;
 import com.toocol.ssh.core.mosh.core.statesnyc.CompleteTerminal;
 import com.toocol.ssh.core.mosh.core.statesnyc.UserEvent;
+import com.toocol.ssh.utilities.functional.Switchable;
 import com.toocol.ssh.utilities.log.Loggable;
 import com.toocol.ssh.utilities.utils.IpUtil;
 import io.vertx.core.Vertx;
@@ -16,24 +17,30 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
+import java.util.Objects;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/25 19:58
  */
-public final class MoshSession implements Loggable {
+public final class MoshSession implements Loggable, Switchable {
 
     private final IO io;
     private final Vertx vertx;
     private final Transport<CompleteTerminal> transport;
     private final long sessionId;
+    private final String host;
     private DatagramSocket socket;
+
+    private volatile String user;
     private volatile boolean connected = false;
 
-    public MoshSession(Vertx vertx, long sessionId, String host, int port, String key) {
+    public MoshSession(Vertx vertx, long sessionId, String host, String user, int port, String key) {
         this.vertx = vertx;
         this.io = new IO();
         this.sessionId = sessionId;
+        this.host = host;
+        this.user = user;
         this.transport = new Transport<>(host, port, key, new CompleteTerminal());
     }
 
@@ -116,12 +123,58 @@ public final class MoshSession implements Loggable {
         }
     }
 
+    public String getHost() {
+        return host;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
     public boolean isConnected() {
         return connected;
     }
 
     public long getSessionId() {
         return sessionId;
+    }
+
+    @Override
+    public String uri() {
+        return null;
+    }
+
+    @Override
+    public String protocol() {
+        return null;
+    }
+
+    @Override
+    public String currentPath() {
+        return null;
+    }
+
+    @Override
+    public boolean alive() {
+        return false;
+    }
+
+    @Override
+    public int weight() {
+        return 0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || (getClass() != o.getClass() && !(o instanceof Switchable))) return false;
+        Switchable that = (Switchable) o;
+        return Objects.equals(uri(), that.uri());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(host, user);
     }
 
     private static class IO {

@@ -19,6 +19,9 @@ public final class ActionBackspace extends ShellCharAction {
 
     @Override
     public boolean act(Shell shell, CharEvent charEvent, char inChar) {
+        if (shell.status.equals(Shell.Status.QUICK_SWITCH)) {
+            return false;
+        }
         int[] cursorPosition = shell.term.getCursorPosition();
         if (cursorPosition[0] <= shell.prompt.get().length()) {
             Printer.bel();

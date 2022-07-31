@@ -27,4 +27,8 @@ public class StatusCache {
 
     public volatile static boolean EXHIBIT_WAITING_BEFORE_COMMAND_PREPARE = false;
 
+    public volatile static boolean SWITCH_SESSION = false;
+
+    public volatile static boolean SWITCH_SESSION_WAIT_HANG_PREVIOUS = false;
+
 }

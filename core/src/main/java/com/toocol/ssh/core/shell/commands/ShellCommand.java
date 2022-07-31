@@ -12,7 +12,6 @@ import com.toocol.ssh.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +31,7 @@ public enum ShellCommand implements ICommand {
     CMD_HANG("hang", new ShellHangCmdProcessor(), "Will not close the connection, exit shell with connection running in the background."),
     CMD_UF("uf", new ShellUfCmdProcessor(), "Batch upload local files to remote connection."),
     CMD_DF("df", new ShellDfCmdProcessor(), "Batch download remote files to local."),
+    CMD_LC("lc", new ShellLcCmdProcessor(), "List all the connection properties to quick switch."),
     CMD_CLEAR("clear", new ShellClearCmdProcessor(), null),
     ;
 
@@ -85,10 +85,6 @@ public enum ShellCommand implements ICommand {
             }
 
             result = this.commandProcessor.process(eventBus, shell, isBreak, msg);
-
-            if (!this.equals(CMD_DF) && !this.equals(CMD_UF)) {
-                shell.writeAndFlush(StrUtil.LF.getBytes(StandardCharsets.UTF_8));
-            }
         } catch (RemoteDisconnectException e) {
             isBreak.set(true);
             result.second(shell.getSessionId());

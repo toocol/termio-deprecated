@@ -15,34 +15,38 @@ public final class StrUtil extends StringUtils {
      * {@code "."}
      */
     public static final String DOT = ".";
-
     /**
      * {@code "/"}
      */
     public static final String SLASH = "/";
-
     /**
      * {@code "\r"} <br>
      */
     public static final String CR = "\r";
-
     /**
      * {@code "\n"}
      */
     public static final String LF = "\n";
-
+    /**
+     * {@code "\t"}
+     */
+    public static final String TAB = "\t";
+    /**
+     * {@code "\b"}
+     */
+    public static final String BACKSPACE = "\b";
+    /**
+     * {@code "null"}
+     */
     public static final String NULL = "null";
-
     /**
      * {@code ""}
      */
     public static final String EMPTY = "";
-
     /**
      * {@code " "}
      */
     public static final String SPACE = " ";
-
     /**
      * {@code "\r\n"} <br>
      */

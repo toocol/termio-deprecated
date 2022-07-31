@@ -4,6 +4,7 @@ import com.toocol.ssh.core.auth.core.SshCredential;
 import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.anis.Printer;
+import com.toocol.ssh.utilities.functional.Switchable;
 import com.toocol.ssh.utilities.utils.MessageBox;
 import io.vertx.core.json.JsonArray;
 
@@ -85,6 +86,26 @@ public class CredentialCache {
         } finally {
             lock.unlock();
         }
+    }
+
+    public int indexOf(String host, String user) {
+        Lock lock = READ_WRITE_LOCK.readLock();
+        lock.lock();
+        try {
+            int index = 1;
+            for (SshCredential sshCredential : CREDENTIAL_SET) {
+                if (sshCredential.getHost().equals(host) && sshCredential.getUser().equals(user)) {
+                    return index;
+                }
+                index++;
+            }
+        } catch (Exception e) {
+            MessageBox.setExitMessage("Credential operation error.");
+            System.exit(-1);
+        } finally {
+            lock.unlock();
+        }
+        return -1;
     }
 
     public SshCredential getCredential(int index) {
@@ -173,5 +194,9 @@ public class CredentialCache {
             lock.unlock();
         }
         return null;
+    }
+
+    public Collection<Switchable> getAllSwitchable() {
+        return new ArrayList<>(CREDENTIAL_SET);
     }
 }

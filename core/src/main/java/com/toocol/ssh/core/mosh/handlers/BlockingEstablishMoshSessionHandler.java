@@ -69,6 +69,7 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
                     shell.initialFirstCorrespondence(ShellProtocol.MOSH, () -> {
                         shellCache.putShell(sessionId, shell);
                         shell.setChannelShell(sshSessionCache.getChannelShell(sessionId));
+                        shellCache.initializeQuickSessionSwitchHelper();
 
                         Printer.clear();
                         StatusCache.SHOW_WELCOME = true;

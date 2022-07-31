@@ -58,6 +58,8 @@ public class AsciiControl {
     };
 
     public static final String ANIS_CLEAR_ALL_MODE = "\u001b[0m";
+    public static final String ANIS_ERASE_LINE = "\u001b[K";
+    public static final String ANIS_ERASE_SCREEN = "\u001b[2J";
 
     public static final String ANIS_ESCAPE_POSITION = "\\u001b\\[#?\\??[0-9]*;?[0-9]*[fjklhrABCDEFGJH]";
     public static final String ANIS_ESCAPE_MOSH_ROLLING = "\\u001b\\[0m\\u001b\\[[0-9]*;[0-9]*r\\u001b\\[[0-9]*;[0-9]*H";

@@ -78,6 +78,7 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
                     }
 
                     if (rec.incrementAndGet() == index.size()) {
+                        shellCache.initializeQuickSessionSwitchHelper();
                         ret.put("success", success);
                         ret.put("failed", failed);
                         promise.complete(ret);
@@ -86,14 +87,14 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
 
                 if (sessionId.get() == 0) {
                     sessionId.set(factory.createSession(credential));
-                    Shell shell = new Shell(sessionId.get(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
+                    Shell shell = new Shell(sessionId.get(), credential.getHost(), credential.getUser(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
                     shell.setUser(credential.getUser());
                     shellCache.putShell(sessionId.get(), shell);
                     shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
                 } else {
                     long newSessionId = factory.invokeSession(sessionId.get(), credential);
                     if (newSessionId != sessionId.get() || !shellCache.contains(newSessionId)) {
-                        Shell shell = new Shell(sessionId.get(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
+                        Shell shell = new Shell(sessionId.get(), credential.getHost(), credential.getUser(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
                         shell.setUser(credential.getUser());
                         shellCache.putShell(sessionId.get(), shell);
                         sessionId.set(newSessionId);
@@ -126,7 +127,7 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
             AnisStringBuilder anisStringBuilder = new AnisStringBuilder();
             int width = term.getWidth();
             for (Map.Entry<String, Object> stringObjectEntry : activeMsg) {
-                if (stringObjectEntry.getKey() == "success") {
+                if ("success".equals(stringObjectEntry.getKey())) {
                     anisStringBuilder.append(stringObjectEntry.getKey() + ":" + "\n");
                     String value = stringObjectEntry.getValue().toString();
                     String[] split = value.replace("[", "").replace("]", "").replace("\"", "").split(",");

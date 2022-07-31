@@ -59,7 +59,7 @@ public final class MoshSessionFactory implements Loggable {
             if (portKey == null) {
                 return null;
             }
-            MoshSession moshSession = new MoshSession(vertx, sessionId, credential.getHost(), portKey._1(), portKey._2());
+            MoshSession moshSession = new MoshSession(vertx, sessionId, credential.getHost(), credential.getUser(), portKey._1(), portKey._2());
             moshSessionCache.put(moshSession);
             info("Create mosh session, key = {}, sessionId = {}, host = {}, user = {}",
                     portKey._2(), sessionId, credential.getHost(), credential.getUser());
