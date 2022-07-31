@@ -88,15 +88,15 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
 
     private void monitorSshSession() {
         sshSessionCache.getSessionMap().forEach((sessionId, session) -> {
-            session = sshSessionCache.getSession(sessionId);
             if (session == null) {
                 return;
             }
-            if (!session.isConnected()) {
+            if (!session.alive()) {
                 if (!sshSessionCache.containSessionId(sessionId)) {
                     return;
                 }
                 sshSessionCache.stop(sessionId);
+                shellCache.initializeQuickSessionSwitchHelper();
             }
         });
     }

@@ -21,6 +21,9 @@ record ShellReader(Shell shell, ConsoleReader reader) {
             if (Term.status.equals(TermStatus.TERMIO)) {
                 return;
             }
+            if (shell.status.equals(Shell.Status.QUICK_SWITCH)) {
+                return;
+            }
             try {
                 shell.historyCmdHelper.reset();
                 shell.localLastCmd.delete(0, shell.localLastCmd.length());
@@ -41,7 +44,13 @@ record ShellReader(Shell shell, ConsoleReader reader) {
             /*
              * Start to deal with arrow key.
              */
-            char finalChar = shell.escapeHelper.processArrowStream(inChar);
+            char finalChar;
+
+            if (shell.status.equals(Shell.Status.QUICK_SWITCH)) {
+                finalChar = shell.escapeHelper.processArrowBundle(inChar, shell, reader);
+            } else {
+                finalChar = shell.escapeHelper.processArrowStream(inChar);
+            }
 
             if (shell.status.equals(Shell.Status.VIM_UNDER)) {
 

@@ -27,7 +27,7 @@ public enum TermioCommand implements ICommand {
     CMD_CLEAR("flush", new FlushCmdProcessor(), "Flush the screen.", "Refresh and clear the screen"),
     CMD_EXIT("exit", new ExitCmdProcessor(), "Exit Termio.", "Exit termio."),
     CMD_THEME("theme", new ThemeCmdProcessor(), "Change the Termio's color theme.", "Change the color theme, current support [dark/light]\nExamples:\ntheme dark\ntheme light"),
-    CMD_ADD("add", new AddCmdProcessor(), "Add new ssh connection property.", "add --user@host -c=password [-p=port]\n\n-p=port is a optional parameter, the default port is 22."),
+    CMD_ADD("add", new AddCmdProcessor(), "Add new ssh connection property.", "add --user@host -c=password [-p=port] [-j]\n\n[-p=port] is a optional parameter, the default port is 22.\n[-j] If the remote connection is a JumpServer, you should add this extra parameter."),
     CMD_DELETE("delete", new DeleteCmdProcessor(), "Delete ssh connection property.", "Delete a certain connection property.\n\nExamples:\ndelete --1"),
     CMD_NUMBER("numbers", new NumberCmdProcessor(), "Select the connection properties.", "Input property index to connect"),
     CMD_ACTIVE("active", new ActiveCmdProcessor(), "Active the ssh connect session without enter the Shell.", "Active the selected ssh connect session, without enter the Shell.\n\nExamples:\nactive 1\nactive 1 3 4\nactive 1-10"),

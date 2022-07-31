@@ -43,7 +43,6 @@ import static com.toocol.ssh.core.shell.ShellAddress.START_DF_COMMAND;
  * @date: 2022/4/3 20:57
  */
 public final class Shell extends AbstractDevice implements Loggable {
-
     static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#])");
     static final Console CONSOLE = Console.get();
     static final String RESIZE_COMMAND = AsciiControl.DC2 + CharUtil.BRACKET_START + "resize";
@@ -54,6 +53,7 @@ public final class Shell extends AbstractDevice implements Loggable {
     final MoreHelper moreHelper;
     final EscapeHelper escapeHelper;
     final VimHelper vimHelper;
+    final SessionQuickSwitchHelper quickSwitchHelper;
     final ShellCharEventDispatcher shellCharEventDispatcher;
     final Set<String> tabFeedbackRec = new HashSet<>();
     final StringBuilder cmd = new StringBuilder();
@@ -69,7 +69,8 @@ public final class Shell extends AbstractDevice implements Loggable {
      * the EventBus of vert.x system.
      */
     private final EventBus eventBus;
-
+    private final String host;
+    ConsoleReader reader;
     volatile StringBuffer localLastCmd = new StringBuffer();
     volatile StringBuffer remoteCmd = new StringBuffer();
     volatile StringBuffer currentPrint = new StringBuffer();
@@ -86,7 +87,6 @@ public final class Shell extends AbstractDevice implements Loggable {
     volatile String user = null;
     volatile String bottomLinePrint = StrUtil.EMPTY;
     volatile String tabAccomplishLastStroke = StrUtil.EMPTY;
-    private ConsoleReader reader;
     private Pattern promptCursorPattern;
     /**
      * the output/input Stream belong to JSch's channelShell;
@@ -101,6 +101,7 @@ public final class Shell extends AbstractDevice implements Loggable {
      * Mosh session
      */
     private MoshSession moshSession;
+    private boolean jumpServer = false;
     private volatile boolean returnWrite = false;
     private volatile boolean promptNow = false;
 
@@ -115,6 +116,8 @@ public final class Shell extends AbstractDevice implements Loggable {
 
     public Shell(long sessionId, Vertx vertx, EventBus eventBus, MoshSession moshSession) {
         this.sessionId = sessionId;
+        this.host = moshSession.getHost();
+        this.user = moshSession.getUser();
         this.vertx = vertx;
         this.eventBus = eventBus;
         this.moshSession = moshSession;
@@ -124,14 +127,17 @@ public final class Shell extends AbstractDevice implements Loggable {
         this.moreHelper = new MoreHelper();
         this.escapeHelper = new EscapeHelper();
         this.vimHelper = new VimHelper();
+        this.quickSwitchHelper = new SessionQuickSwitchHelper(this);
         this.shellCharEventDispatcher = new ShellCharEventDispatcher();
 
         this.resetIO(ShellProtocol.MOSH);
         this.shellReader.initReader();
     }
 
-    public Shell(long sessionId, Vertx vertx, EventBus eventBus, ChannelShell channelShell) {
+    public Shell(long sessionId, String host, String user, Vertx vertx, EventBus eventBus, ChannelShell channelShell) {
         this.sessionId = sessionId;
+        this.host = host;
+        this.user = user;
         this.vertx = vertx;
         this.eventBus = eventBus;
         this.channelShell = channelShell;
@@ -141,6 +147,7 @@ public final class Shell extends AbstractDevice implements Loggable {
         this.moreHelper = new MoreHelper();
         this.escapeHelper = new EscapeHelper();
         this.vimHelper = new VimHelper();
+        this.quickSwitchHelper = new SessionQuickSwitchHelper(this);
         this.shellCharEventDispatcher = new ShellCharEventDispatcher();
 
         this.resetIO(ShellProtocol.SSH);
@@ -346,17 +353,32 @@ public final class Shell extends AbstractDevice implements Loggable {
     public void printAfterEstablish() {
         Printer.clear();
         if (StatusCache.HANGED_ENTER) {
-            Printer.println("Invoke hanged session.");
+            Printer.println("Invoke hanged session: " + user + "@" + host);
         } else {
-            Printer.println("Session established.");
+            Printer.println("Session established: " + user + "@" + host);
         }
         Printer.println("\nUse protocol " + protocol.name() + ".\n");
+    }
+
+    public void initializeSwitchSessionHelper() {
+        this.quickSwitchHelper.initialize();
+    }
+
+    public boolean switchSession() {
+        return this.quickSwitchHelper.switchSession();
     }
 
     @SuppressWarnings("all")
     public void initialFirstCorrespondence(ShellProtocol protocol, Executable executable) {
         this.protocol = protocol;
         try {
+            if (jumpServer) {
+                prompt.set(StrUtil.EMPTY);
+                resetIO(protocol);
+                executable.execute();
+                return;
+            }
+
             CountDownLatch mainLatch = new CountDownLatch(2);
 
             JsonObject request = new JsonObject();
@@ -546,6 +568,10 @@ public final class Shell extends AbstractDevice implements Loggable {
         return true;
     }
 
+    public void setJumpServer(boolean isJumpServer) {
+        this.jumpServer = isJumpServer;
+    }
+
     public void clearRemoteCmd() {
         remoteCmd.delete(0, remoteCmd.length());
     }
@@ -590,8 +616,8 @@ public final class Shell extends AbstractDevice implements Loggable {
         this.user = user;
     }
 
-    public AtomicReference<String> getFullPath() {
-        return fullPath;
+    public String getFullPath() {
+        return fullPath.get();
     }
 
     public void setFullPath(String fullPath) {
@@ -648,6 +674,18 @@ public final class Shell extends AbstractDevice implements Loggable {
         return this.protocol;
     }
 
+    public String uri() {
+        return user + "@" + host;
+    }
+
+    public EventBus getEventBus() {
+        return eventBus;
+    }
+
+    public Vertx getVertx() {
+        return vertx;
+    }
+
     public enum Status {
         /**
          * The status of Shell.
@@ -660,7 +698,7 @@ public final class Shell extends AbstractDevice implements Loggable {
         MORE_PROC(6, "Shell is under more cmd process status."),
         MORE_EDIT(7, "Shell is under more regular expression or cmd edit status."),
         MORE_SUB(8, "Shell is under more :sub cmd status."),
-        ;
+        QUICK_SWITCH(9, "List all connection properties to quick switch session.");
 
         public final int status;
         public final String comment;

@@ -1,20 +1,21 @@
 package com.toocol.ssh.core.auth.core;
 
+import com.toocol.ssh.core.shell.core.ShellProtocol;
+import com.toocol.ssh.utilities.functional.Switchable;
 import io.vertx.core.json.JsonObject;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author ZhaoZhe
  * @email joezane.cn@gmail.com
  * @date 2021/2/19 16:57
  */
-public class SshCredential implements Serializable {
+public class SshCredential implements Serializable, Switchable {
 
     @Serial
     private static final long serialVersionUID = 1184930928749870706L;
@@ -35,8 +36,20 @@ public class SshCredential implements Serializable {
      * the port of target server.
      */
     private int port;
+    /**
+     * whether the connection is a JumpServer
+     */
+    private boolean jumpServer;
 
     public SshCredential() {
+    }
+
+    public SshCredential(String host, String user, String password, int port, boolean jumpServer) {
+        this.host = host;
+        this.user = user;
+        this.password = password;
+        this.port = port;
+        this.jumpServer = jumpServer;
     }
 
     public SshCredential(String host, String user, String password, int port) {
@@ -51,7 +64,8 @@ public class SshCredential implements Serializable {
                 jsonObject.getString("host"),
                 jsonObject.getString("user"),
                 jsonObject.getString("password"),
-                jsonObject.getInteger("port")
+                jsonObject.getInteger("port"),
+                jsonObject.getBoolean("jumpServer", false)
         );
     }
 
@@ -66,36 +80,6 @@ public class SshCredential implements Serializable {
         map.put("password", password);
         map.put("port", port);
         return map;
-    }
-
-    @Override
-    public String toString() {
-        return "SshCredential{" +
-                "host='" + host + '\'' +
-                ", user='" + user + '\'' +
-                ", password='" + password + '\'' +
-                ", port=" + port +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        SshCredential that = (SshCredential) o;
-
-        return new EqualsBuilder().append(port, that.port).append(host, that.host).append(user, that.user).append(password, that.password).isEquals();
-    }
-
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(host).append(user).append(password).append(port).toHashCode();
     }
 
     public String getHost() {
@@ -130,17 +114,60 @@ public class SshCredential implements Serializable {
         this.port = port;
     }
 
+    public boolean isJumpServer() {
+        return jumpServer;
+    }
+
+    public void setJumpServer(boolean jumpServer) {
+        this.jumpServer = jumpServer;
+    }
+
+    @Override
+    public String uri() {
+        return user + "@" + host;
+    }
+
+    @Override
+    public String protocol() {
+        return ShellProtocol.SSH.name();
+    }
+
+    @Override
+    public String currentPath() {
+        return "*";
+    }
+
+    @Override
+    public boolean alive() {
+        return false;
+    }
+
+    @Override
+    public int weight() {
+        return 1;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || (getClass() != o.getClass() && !(o instanceof Switchable))) return false;
+        Switchable that = (Switchable) o;
+        return Objects.equals(uri(), that.uri());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(host, user);
+    }
+
     public static final class SshCredentialBuilder {
         private String host;
         private String user;
         private String password;
         private int port;
+        private boolean jumpServer;
 
         private SshCredentialBuilder() {
-        }
-
-        public static SshCredentialBuilder aSshCredential() {
-            return new SshCredentialBuilder();
         }
 
         public SshCredentialBuilder host(String host) {
@@ -163,12 +190,18 @@ public class SshCredential implements Serializable {
             return this;
         }
 
+        public SshCredentialBuilder jumpServer(boolean jumpServer) {
+            this.jumpServer = jumpServer;
+            return this;
+        }
+
         public SshCredential build() {
             SshCredential sshCredential = new SshCredential();
             sshCredential.setHost(host);
             sshCredential.setUser(user);
             sshCredential.setPassword(password);
             sshCredential.setPort(port);
+            sshCredential.setJumpServer(jumpServer);
             return sshCredential;
         }
     }

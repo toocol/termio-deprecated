@@ -55,9 +55,10 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
     protected <T> void handleBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         int index = cast(message.body());
         SshCredential credential = credentialCache.getCredential(index);
-        assert credential != null;
 
         try {
+            assert credential != null;
+
             final AtomicReference<Long> sessionId = new AtomicReference<>(sshSessionCache.containSession(credential.getHost()));
 
             // execute in the final
@@ -68,6 +69,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
                     channelShell.setPtySize(width, height, width, height);
                 });
                 StatusCache.HANGED_QUIT = false;
+                shellCache.initializeQuickSessionSwitchHelper();
 
                 if (sessionId.get() > 0) {
                     promise.complete(sessionId.get());
@@ -80,19 +82,21 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
                 StatusCache.HANGED_ENTER = false;
                 sessionId.set(factory.createSession(credential));
 
-                Shell shell = new Shell(sessionId.get(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
+                Shell shell = new Shell(sessionId.get(), credential.getHost(),credential.getUser(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
                 shell.setUser(credential.getUser());
                 shellCache.putShell(sessionId.get(), shell);
+                shell.setJumpServer(credential.isJumpServer());
                 shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
             } else {
                 StatusCache.HANGED_ENTER = true;
                 long newSessionId = factory.invokeSession(sessionId.get(), credential);
 
                 if (newSessionId != sessionId.get() || !shellCache.contains(newSessionId)) {
-                    Shell shell = new Shell(sessionId.get(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
+                    Shell shell = new Shell(sessionId.get(), credential.getHost(), credential.getUser(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
                     shell.setUser(credential.getUser());
                     shellCache.putShell(sessionId.get(), shell);
                     sessionId.set(newSessionId);
+                    shell.setJumpServer(credential.isJumpServer());
                     shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
                 } else {
                     Shell shell = shellCache.getShell(newSessionId);
