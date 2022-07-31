@@ -25,12 +25,9 @@ import static com.toocol.ssh.core.ssh.SshAddress.ESTABLISH_SSH_SESSION;
  */
 public final class SessionQuickSwitchHelper implements Loggable, IStacktraceParser {
     private static final int VIEWPORT_LEN = 5;
-    private static final int HELP_INFO_LINE = VIEWPORT_LEN + 3;
-    private static final int BOTTOM_LINE_OFFSET = VIEWPORT_LEN + 4;
     private static final int SCROLLABLE = VIEWPORT_LEN / 2 + 1;
     private static final int[] PART_PROPORTION = new int[]{1, 3, 2, 2, 2};
     private static final String[] PART_HEADS = new String[]{"   No.", "address", "path", "protocol", "status"};
-    private static final String PROMPT = " Quick session switch > {} <";
     private static final String HELP_INFO = " Press '↑'/'↓' key to choose session to switch, '←'/'→' to change group, 'Enter' to confirm, 'Esc' to quit.";
     private static final Term term = Term.getInstance();
 
@@ -46,6 +43,8 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
     private Switchable chosen;
     private int indicator;
     private int viewportStart;
+    private int helpInfoLine;
+    private int bottomLineOffset;
 
     public SessionQuickSwitchHelper(Shell shell) {
         this.shell = shell;
@@ -79,24 +78,26 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
             int[] cursorPosition = term.getCursorPosition();
             int offset = 0;
             int height = term.getHeight();
-            if (cursorPosition[1] > height - BOTTOM_LINE_OFFSET + 1) {
-                for (; offset < BOTTOM_LINE_OFFSET - 1; offset++) {
+            if (cursorPosition[1] > height - bottomLineOffset + 1) {
+                for (; offset < bottomLineOffset - 1; offset++) {
                     Printer.println(AsciiControl.ANIS_ERASE_LINE);
                 }
             }
+
+            String promptBase  = shell.getPrompt() + "> {} <";
 
             cursorPosition = term.getCursorPosition();
             term.hideCursor();
             recordCursorPos[0] = shell.getPrompt().length();
             recordCursorPos[1] = cursorPosition[1] - 1 - offset;
-            term.setCursorPosition(0, recordCursorPos[1] + HELP_INFO_LINE);
+            term.setCursorPosition(0, recordCursorPos[1] + helpInfoLine);
             Printer.print(HELP_INFO);
 
             while (!quit) {
-                String prompt = StrUtil.fullFillParam(PROMPT, indicator + viewportStart);
-                term.setCursorPosition(0, recordCursorPos[1] + 1);
+                String prompt = StrUtil.fullFillParam(promptBase, indicator + viewportStart);
+                term.setCursorPosition(0, recordCursorPos[1]);
                 Printer.println(prompt);
-                term.setCursorPosition(0, recordCursorPos[1] + 2);
+                term.setCursorPosition(0, recordCursorPos[1] + 1);
                 printSwitchPanel();
                 term.setCursorPosition(24, recordCursorPos[1] + 1);
 
@@ -163,6 +164,8 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
         this.indicator = 1;
         this.viewportStart = 0;
         this.chosen = null;
+        this.helpInfoLine = Math.min(VIEWPORT_LEN + 2, switchableList.length + 2);
+        this.bottomLineOffset = Math.min(VIEWPORT_LEN + 3, switchableList.length + 3);
     }
 
     private void printSwitchPanel() {
@@ -175,14 +178,17 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
         }
         Printer.println(builder.toString());
         builder.clearStr();
-        for (int i = viewportStart; i < Math.min(viewportStart + VIEWPORT_LEN, switchableList.length); i++) {
+        int range = Math.min(viewportStart + VIEWPORT_LEN, switchableList.length);
+        for (int i = viewportStart; i < range; i++) {
             Switchable switchable = switchableList[i];
             int idx = i + 1;
             String prefix;
             if (indicator + viewportStart == idx) {
                 chosen = switchable;
                 prefix = " > ";
-            } else {
+            } else if (idx != switchableList.length && i == range - 1) {
+                prefix = " ..";
+            }else {
                 prefix = "   ";
             }
             String index = "[" + (idx < 10 ? "0" + idx : idx) + "]";
@@ -203,7 +209,7 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
 
     private void cleanSwitchPanel() {
         term.setCursorPosition(0, recordCursorPos[1]);
-        for (int i = 0; i < BOTTOM_LINE_OFFSET; i++) {
+        for (int i = 0; i < bottomLineOffset; i++) {
             if (i == 0) {
                 Printer.print(AsciiControl.ANIS_ERASE_LINE);
                 Printer.println(shell.getPrompt());
