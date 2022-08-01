@@ -9,7 +9,7 @@
     </parent>
     <artifactId>core</artifactId>
     <name>core</name>
-    <version>0.0.1</version>
+    <version>${revision}</version>
 
     <packaging>jar</packaging>
 
@@ -17,6 +17,7 @@
         <dependency>
             <groupId>com.toocol.termio</groupId>
             <artifactId>utilities</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.jcraft</groupId>
@@ -45,37 +46,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${maven-shade-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <outputFile>${project.build.directory}/${project.artifactId}.jar</outputFile>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/DEPENDENCIES</exclude>
-                                        <exclude>META-INF/LICENSE*</exclude>
-                                        <exclude>META-INF/NOTICE*</exclude>
-                                        <exclude>META-INF/MANIFEST*</exclude>
-                                        <exclude>META-INF/*.properties</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

@@ -8,6 +8,8 @@ starter/.credentials
 starter/.vertx/
 starter/arthas-output
 *.log
+pom-xml-flattened
+.flattened-pom.xml
 
 ### STS ###
 .apt_generated

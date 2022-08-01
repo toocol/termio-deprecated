@@ -9,7 +9,7 @@
     </parent>
     <artifactId>starter</artifactId>
     <name>starter</name>
-    <version>0.0.1</version>
+    <version>${revision}</version>
 
     <packaging>jar</packaging>
 
@@ -17,6 +17,7 @@
         <dependency>
             <groupId>com.toocol.termio</groupId>
             <artifactId>core</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
@@ -38,13 +39,13 @@
                                 <filter>
                                     <artifact>com.toocol.termio:utilities</artifact>
                                     <includes>
-                                        <include>com/toocol/ssh/**</include>
+                                        <include>com/toocol/termio/**</include>
                                     </includes>
                                 </filter>
                                 <filter>
                                     <artifact>com.toocol.termio:core</artifact>
                                     <includes>
-                                        <include>com/toocol/ssh/**</include>
+                                        <include>com/toocol/termio/**</include>
                                     </includes>
                                 </filter>
                                 <filter>

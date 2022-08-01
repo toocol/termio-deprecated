@@ -1,45 +1,45 @@
 //
 // Created by user on 2022/4/14.
 //
-#include "com_toocol_ssh_common_jni_TermioJNI.h"
+#include "com_toocol_termio_common_jni_TermioJNI.h"
 #include <conio.h>
 
 /*
- * Class:     com_toocol_ssh_common_jni_TerminatioJNI
+ * Class:     com_toocol_termio_common_jni_TerminatioJNI
  * Method:    getCh
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_com_toocol_ssh_common_jni_TerminatioJNI_getCh
+JNIEXPORT jint JNICALL Java_com_toocol_termio_common_jni_TerminatioJNI_getCh
   (JNIEnv *env, jobject obj) {
     return -1;
 }
 
 /*
- * Class:     com_toocol_ssh_common_jni_TerminatioJNI
+ * Class:     com_toocol_termio_common_jni_TerminatioJNI
  * Method:    chooseFiles
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_com_toocol_ssh_common_jni_TerminatioJNI_chooseFiles
+JNIEXPORT jstring JNICALL Java_com_toocol_termio_common_jni_TerminatioJNI_chooseFiles
   (JNIEnv *env, jobject obj) {
     return 0;
 }
 
 /*
- * Class:     com_toocol_ssh_common_jni_TerminatioJNI
+ * Class:     com_toocol_termio_common_jni_TerminatioJNI
  * Method:    getWindowWidth
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_com_toocol_ssh_common_jni_TerminatioJNI_getWindowWidth
+JNIEXPORT jint JNICALL Java_com_toocol_termio_common_jni_TerminatioJNI_getWindowWidth
   (JNIEnv *env, jobject obj) {
     return 0;
 }
 
 /*
- * Class:     com_toocol_ssh_common_jni_TerminatioJNI
+ * Class:     com_toocol_termio_common_jni_TerminatioJNI
  * Method:    getWindowHeight
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_com_toocol_ssh_common_jni_TerminatioJNI_getWindowHeight
+JNIEXPORT jint JNICALL Java_com_toocol_termio_common_jni_TerminatioJNI_getWindowHeight
   (JNIEnv *env, jobject obj) {
     return 0;
 }
