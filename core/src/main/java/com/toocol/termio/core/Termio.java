@@ -7,7 +7,6 @@ import com.toocol.termio.core.shell.core.ShellCharEventDispatcher;
 import com.toocol.termio.core.term.core.TermCharEventDispatcher;
 import com.toocol.termio.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.termio.utilities.anis.Printer;
-import com.toocol.termio.utilities.functional.Ignore;
 import com.toocol.termio.utilities.functional.VerticleDeployment;
 import com.toocol.termio.utilities.jni.JNILoader;
 import com.toocol.termio.utilities.log.FileAppender;
@@ -24,10 +23,12 @@ import io.vertx.core.eventbus.EventBus;
 import sun.misc.Signal;
 
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.toocol.termio.core.term.TermAddress.ACCEPT_COMMAND;
 import static com.toocol.termio.core.term.TermAddress.MONITOR_TERMINAL;
@@ -37,15 +38,21 @@ import static com.toocol.termio.core.term.TermAddress.MONITOR_TERMINAL;
  * @date 2022/8/1 10:13
  */
 public class Termio {
-    private static final long BLOCKED_CHECK_INTERVAL = 30 * 24 * 60 * 60 * 1000L;
-    private static final Logger logger = LoggerFactory.getLogger(Termio.class);
+    public enum RunType {
+        CONSOLE,
+        DESKTOP
+    }
 
-    private static CountDownLatch initialLatch;
-    private static CountDownLatch loadingLatch;
-    private static List<Class<? extends AbstractVerticle>> verticleClassList = new ArrayList<>();
+    protected static final long BLOCKED_CHECK_INTERVAL = 30 * 24 * 60 * 60 * 1000L;
+    protected static final Logger logger = LoggerFactory.getLogger(Termio.class);
 
-    private static Vertx vertx;
-    private static EventBus eventBus;
+    protected static CountDownLatch initialLatch;
+    protected static CountDownLatch loadingLatch;
+    protected static List<Class<? extends AbstractVerticle>> verticleClassList = new ArrayList<>();
+
+    protected static RunType runType;
+    protected static Vertx vertx;
+    protected static EventBus eventBus;
 
     static {
         /* Get the verticle which need to deploy in main class by annotation */
@@ -62,6 +69,7 @@ public class Termio {
     }
 
     public static void run() {
+        runType = RunType.CONSOLE;
         /* Block the Ctrl+C */
         Signal.handle(new Signal("INT"), signal -> {
         });
@@ -73,23 +81,12 @@ public class Termio {
         eventBus = vertx.eventBus();
 
         LoggerFactory.init(vertx);
-        addShutdownHook(vertx);
-        waitingStart(vertx);
+        addShutdownHook();
+        waitingStart();
     }
 
-    public static Vertx run(Class<?> runClass, PrintStream printStream) {
-        /* Block the Ctrl+C */
-        Signal.handle(new Signal("INT"), signal -> {
-        });
-
-        componentInitialise(printStream);
-        loadingLatch.countDown();
-
-        Ignore ignore = runClass.getAnnotation(Ignore.class);
-        Vertx vertx = prepareVertxEnvironment(Arrays.stream(ignore.ignore()).collect(Collectors.toSet()));
-        LoggerFactory.init(vertx);
-        addShutdownHook(vertx);
-        return vertx;
+    public static RunType runType() {
+        return runType;
     }
 
     public static Vertx vertx() {
@@ -100,14 +97,16 @@ public class Termio {
         return eventBus;
     }
 
-    private static void componentInitialise(PrintStream printStream) {
-        JNILoader.load();
+    protected static void componentInitialise(PrintStream printStream) {
+        if (runType.equals(RunType.CONSOLE)) {
+            JNILoader.load();
+        }
         TermCharEventDispatcher.init();
         ShellCharEventDispatcher.init();
         Printer.setPrinter(printStream);
     }
 
-    private static Vertx prepareVertxEnvironment(Set<Class<? extends AbstractVerticle>> ignore) {
+    protected static Vertx prepareVertxEnvironment(Set<Class<? extends AbstractVerticle>> ignore) {
         /* Because this program involves a large number of IO operations, increasing the blocking check time, we don't need it */
         VertxOptions options = new VertxOptions()
                 .setBlockedThreadCheckInterval(BLOCKED_CHECK_INTERVAL);
@@ -115,10 +114,10 @@ public class Termio {
 
         /* Deploy the verticle */
         if (ignore != null && !ignore.isEmpty()) {
-            verticleClassList = verticleClassList
+            verticleClassList = new ArrayList<>(verticleClassList
                     .stream()
                     .filter(clazz -> !ignore.contains(clazz))
-                    .toList();
+                    .toList());
         }
         verticleClassList.sort(Comparator.comparingInt(clazz -> -1 * clazz.getAnnotation(VerticleDeployment.class).weight()));
         verticleClassList.forEach(verticleClass -> {
@@ -132,6 +131,7 @@ public class Termio {
                             initialLatch.countDown();
                         } else {
                             MessageBox.setExitMessage("Termio start up failed, verticle = " + verticleClass.getSimpleName());
+                            Printer.print("Termio start up failed, verticle = " + verticleClass.getSimpleName());
                             vertx.close();
                             System.exit(-1);
                         }
@@ -141,7 +141,7 @@ public class Termio {
         return vertx;
     }
 
-    private static void addShutdownHook(Vertx vertx) {
+    protected static void addShutdownHook() {
         /* Add shutdown hook */
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
@@ -161,7 +161,7 @@ public class Termio {
         }));
     }
 
-    private static void waitingStart(Vertx vertx) {
+    protected static void waitingStart() {
         try {
             boolean ret = initialLatch.await(30, TimeUnit.SECONDS);
             if (!ret) {
