@@ -1,5 +1,6 @@
 package com.toocol.ssh.core.term.core;
 
+import com.toocol.ssh.core.Termio;
 import com.toocol.ssh.utilities.action.AbstractDevice;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.console.Console;
@@ -32,7 +33,7 @@ public final class Term extends AbstractDevice {
     final TermPrinter termPrinter;
     final TermCharEventDispatcher termCharEventDispatcher;
     ConsoleReader reader;
-    EventBus eventBus;
+    EventBus eventBus = Termio.eventBus();
     volatile StringBuilder lineBuilder = new StringBuilder();
     volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
     int displayZoneBottom = 0;
@@ -53,10 +54,6 @@ public final class Term extends AbstractDevice {
         termReader = new TermReader(this);
         termPrinter = new TermPrinter(this);
         termCharEventDispatcher = new TermCharEventDispatcher();
-    }
-
-    public static void setEventBus(EventBus eventBus) {
-        INSTANCE.eventBus = eventBus;
     }
 
     public static Term getInstance() {

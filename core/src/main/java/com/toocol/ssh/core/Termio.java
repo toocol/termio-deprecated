@@ -7,6 +7,7 @@ import com.toocol.ssh.core.shell.core.ShellCharEventDispatcher;
 import com.toocol.ssh.core.term.core.TermCharEventDispatcher;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.utilities.anis.Printer;
+import com.toocol.ssh.utilities.functional.Ignore;
 import com.toocol.ssh.utilities.functional.VerticleDeployment;
 import com.toocol.ssh.utilities.jni.JNILoader;
 import com.toocol.ssh.utilities.log.FileAppender;
@@ -19,15 +20,14 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.eventbus.EventBus;
 import sun.misc.Signal;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.toocol.ssh.core.term.TermAddress.ACCEPT_COMMAND;
 import static com.toocol.ssh.core.term.TermAddress.MONITOR_TERMINAL;
@@ -43,6 +43,9 @@ public class Termio {
     private static CountDownLatch initialLatch;
     private static CountDownLatch loadingLatch;
     private static List<Class<? extends AbstractVerticle>> verticleClassList = new ArrayList<>();
+
+    private static Vertx vertx;
+    private static EventBus eventBus;
 
     static {
         /* Get the verticle which need to deploy in main class by annotation */
@@ -66,13 +69,15 @@ public class Termio {
         componentInitialise(System.out);
         Printer.printLoading(loadingLatch);
 
-        Vertx vertx = prepareVertxEnvironment();
+        vertx = prepareVertxEnvironment(null);
+        eventBus = vertx.eventBus();
+
         LoggerFactory.init(vertx);
         addShutdownHook(vertx);
         waitingStart(vertx);
     }
 
-    public static void runBackend(PrintStream printStream) {
+    public static Vertx run(Class<?> runClass, PrintStream printStream) {
         /* Block the Ctrl+C */
         Signal.handle(new Signal("INT"), signal -> {
         });
@@ -80,10 +85,19 @@ public class Termio {
         componentInitialise(printStream);
         loadingLatch.countDown();
 
-        Vertx vertx = prepareVertxEnvironment();
+        Ignore ignore = runClass.getAnnotation(Ignore.class);
+        Vertx vertx = prepareVertxEnvironment(Arrays.stream(ignore.ignore()).collect(Collectors.toSet()));
         LoggerFactory.init(vertx);
         addShutdownHook(vertx);
-        waitingStart(vertx);
+        return vertx;
+    }
+
+    public static Vertx vertx() {
+        return vertx;
+    }
+
+    public static EventBus eventBus() {
+        return eventBus;
     }
 
     private static void componentInitialise(PrintStream printStream) {
@@ -93,13 +107,19 @@ public class Termio {
         Printer.setPrinter(printStream);
     }
 
-    private static Vertx prepareVertxEnvironment() {
+    private static Vertx prepareVertxEnvironment(Set<Class<? extends AbstractVerticle>> ignore) {
         /* Because this program involves a large number of IO operations, increasing the blocking check time, we don't need it */
         VertxOptions options = new VertxOptions()
                 .setBlockedThreadCheckInterval(BLOCKED_CHECK_INTERVAL);
         final Vertx vertx = Vertx.vertx(options);
 
         /* Deploy the verticle */
+        if (ignore != null && !ignore.isEmpty()) {
+            verticleClassList = verticleClassList
+                    .stream()
+                    .filter(clazz -> !ignore.contains(clazz))
+                    .toList();
+        }
         verticleClassList.sort(Comparator.comparingInt(clazz -> -1 * clazz.getAnnotation(VerticleDeployment.class).weight()));
         verticleClassList.forEach(verticleClass -> {
                     VerticleDeployment deploy = verticleClass.getAnnotation(VerticleDeployment.class);

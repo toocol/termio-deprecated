@@ -1,6 +1,5 @@
 package com.toocol.ssh.core.term.vert;
 
-import com.toocol.ssh.core.term.core.Term;
 import com.toocol.ssh.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.ssh.core.term.handlers.BlockingMonitorTerminalHandler;
 import com.toocol.ssh.core.term.handlers.ExecuteCommandHandler;
@@ -23,7 +22,6 @@ public final class TermVerticle extends AbstractVerticle implements IHandlerMoun
 
     @Override
     public void start() throws Exception {
-        Term.setEventBus(vertx.eventBus());
         mountHandler(vertx, context);
     }
 
