@@ -17,6 +17,7 @@
         <dependency>
             <groupId>com.toocol.termio</groupId>
             <artifactId>core</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
