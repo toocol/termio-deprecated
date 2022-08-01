@@ -1,5 +1,6 @@
-package com.toocol.ssh.utilities.console;
+package utilities.console;
 
+import com.toocol.ssh.utilities.console.Console;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;

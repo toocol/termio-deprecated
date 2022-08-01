@@ -1,5 +1,7 @@
-package com.toocol.ssh.utilities.log;
+package utilities.log;
 
+import com.toocol.ssh.utilities.log.Logger;
+import com.toocol.ssh.utilities.log.LoggerFactory;
 import org.junit.jupiter.api.Test;
 
 /**
