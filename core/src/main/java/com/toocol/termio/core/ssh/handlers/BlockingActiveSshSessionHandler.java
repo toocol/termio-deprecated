@@ -1,0 +1,176 @@
+package com.toocol.termio.core.ssh.handlers;
+
+import com.toocol.termio.core.auth.core.SshCredential;
+import com.toocol.termio.core.cache.CredentialCache;
+import com.toocol.termio.core.cache.ShellCache;
+import com.toocol.termio.core.cache.SshSessionCache;
+import com.toocol.termio.core.shell.core.Shell;
+import com.toocol.termio.core.shell.core.ShellProtocol;
+import com.toocol.termio.core.ssh.core.SshSessionFactory;
+import com.toocol.termio.core.term.core.Term;
+import com.toocol.termio.core.term.core.TermTheme;
+import com.toocol.termio.utilities.address.IAddress;
+import com.toocol.termio.utilities.anis.AnisStringBuilder;
+import com.toocol.termio.utilities.functional.Executable;
+import com.toocol.termio.utilities.functional.Ordered;
+import com.toocol.termio.utilities.handler.BlockingMessageHandler;
+import com.toocol.termio.core.ssh.SshAddress;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
+/**
+ * Active an ssh session without enter the Shell.
+ *
+ * @author ：JoeZane (joezane.cn@gmail.com)
+ * @date: 2022/4/23 20:49
+ * @version: 0.0.1
+ */
+@Ordered
+public final class BlockingActiveSshSessionHandler extends BlockingMessageHandler<JsonObject> {
+
+    private final CredentialCache credentialCache = CredentialCache.getInstance();
+    private final ShellCache shellCache = ShellCache.getInstance();
+    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
+    private final SshSessionFactory factory = SshSessionFactory.factory();
+    public static TermTheme theme = TermTheme.DARK_THEME;
+
+    public BlockingActiveSshSessionHandler(Vertx vertx, Context context, boolean parallel) {
+        super(vertx, context, parallel);
+    }
+
+    @Override
+    protected <T> void handleBlocking(Promise<JsonObject> promise, Message<T> message) throws Exception {
+        JsonObject ret = new JsonObject();
+        JsonArray success = new JsonArray();
+        JsonArray failed = new JsonArray();
+        JsonArray index = cast(message.body());
+        AtomicInteger rec = new AtomicInteger();
+
+        for (int i = 0; i < index.size(); i++) {
+            SshCredential credential = credentialCache.getCredential(index.getInteger(i));
+            assert credential != null;
+            try {
+                AtomicReference<Long> sessionId = new AtomicReference<>(sshSessionCache.containSession(credential.getHost()));
+
+                Executable execute = () -> {
+                    Optional.ofNullable(sshSessionCache.getChannelShell(sessionId.get())).ifPresent(channelShell -> {
+                        int width = Term.getInstance().getWidth();
+                        int height = Term.getInstance().getHeight();
+                        channelShell.setPtySize(width, height, width, height);
+                    });
+
+                    System.gc();
+                    if (sessionId.get() > 0) {
+                        success.add(credential.getHost() + "@" + credential.getUser());
+                    } else {
+                        failed.add(credential.getHost() + "@" + credential.getUser());
+                    }
+
+                    if (rec.incrementAndGet() == index.size()) {
+                        shellCache.initializeQuickSessionSwitchHelper();
+                        ret.put("success", success);
+                        ret.put("failed", failed);
+                        promise.complete(ret);
+                    }
+                };
+
+                if (sessionId.get() == 0) {
+                    sessionId.set(factory.createSession(credential));
+                    Shell shell = new Shell(sessionId.get(), credential.getHost(), credential.getUser(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
+                    shell.setUser(credential.getUser());
+                    shellCache.putShell(sessionId.get(), shell);
+                    shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
+                } else {
+                    long newSessionId = factory.invokeSession(sessionId.get(), credential);
+                    if (newSessionId != sessionId.get() || !shellCache.contains(newSessionId)) {
+                        Shell shell = new Shell(sessionId.get(), credential.getHost(), credential.getUser(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
+                        shell.setUser(credential.getUser());
+                        shellCache.putShell(sessionId.get(), shell);
+                        sessionId.set(newSessionId);
+                        shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
+                    } else {
+                        shellCache.getShell(sessionId.get()).resetIO(ShellProtocol.SSH);
+                        sessionId.set(newSessionId);
+                        execute.execute();
+                    }
+                }
+            } catch (Exception e) {
+                failed.add(credential.getHost() + "@" + credential.getUser());
+                if (rec.incrementAndGet() == index.size()) {
+                    ret.put("success", success);
+                    ret.put("failed", failed);
+                    promise.complete(ret);
+                }
+
+            }
+        }
+    }
+
+    @Override
+    protected <T> void resultBlocking(AsyncResult<JsonObject> asyncResult, Message<T> message) throws Exception {
+
+        if (asyncResult.succeeded()) {
+            Term term = Term.getInstance();
+            term.printScene(false);
+            JsonObject activeMsg = asyncResult.result();
+            AnisStringBuilder anisStringBuilder = new AnisStringBuilder();
+            int width = term.getWidth();
+            for (Map.Entry<String, Object> stringObjectEntry : activeMsg) {
+                if ("success".equals(stringObjectEntry.getKey())) {
+                    anisStringBuilder.append(stringObjectEntry.getKey() + ":" + "\n");
+                    String value = stringObjectEntry.getValue().toString();
+                    String[] split = value.replace("[", "").replace("]", "").replace("\"", "").split(",");
+                    for (int i = 0; i < split.length; i++) {
+                        if (width < 24 * 3) {
+                            if (i != 0 & i % 2 == 0) {
+                                anisStringBuilder.append("\n");
+                            }
+                        } else {
+                            if (i != 0 & i % 3 == 0) {
+                                anisStringBuilder.append("\n");
+                            }
+                        }
+                        anisStringBuilder.front(theme.activeSuccessMsgColor).background(theme.displayBackGroundColor).append(split[i] + "    ");
+                    }
+                } else {
+                    anisStringBuilder.deFront().append("\n" + stringObjectEntry.getKey() + ":" + "\n");
+                    String value = stringObjectEntry.getValue().toString();
+                    String[] split = value.replace("[", "").replace("]", "").replace("\"", "").split(",");
+                    for (int j = 0; j < split.length; j++) {
+                        if (width < 24 * 3) {
+                            if (j != 0 & j % 2 == 0) {
+                                anisStringBuilder.append("\n");
+                            }
+                        } else {
+                            if (j != 0 && j % 3 == 0) {
+                                anisStringBuilder.append("\n");
+                            }
+                        }
+                        anisStringBuilder.front(theme.activeFailedMsgColor).background(theme.displayBackGroundColor).append(split[j] + "    ");
+                    }
+
+                }
+            }
+            term.printDisplay(anisStringBuilder.toString());
+            message.reply(true);
+        } else {
+            message.reply(false);
+        }
+
+    }
+
+    @Override
+    public IAddress consume() {
+        return SshAddress.ACTIVE_SSH_SESSION;
+    }
+}

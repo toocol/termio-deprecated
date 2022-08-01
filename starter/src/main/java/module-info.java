@@ -1,4 +1,6 @@
-module com.toocol.ssh.starter {
-    requires com.toocol.ssh.utilities;
-    requires com.toocol.ssh.core;
+module termio.starter {
+    requires termio.utilities;
+    requires termio.core;
+
+    exports com.toocol.termio.starter;
 }

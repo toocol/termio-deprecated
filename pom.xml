@@ -15,7 +15,7 @@
     </modules>
 
     <properties>
-        <main.class>com.toocol.ssh.TermioApplication</main.class>
+        <main.class>com.toocol.termio.starter.TermioApplication</main.class>
         <revision>0.0.1</revision>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
