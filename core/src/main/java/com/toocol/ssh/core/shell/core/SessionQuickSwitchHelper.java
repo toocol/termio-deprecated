@@ -25,7 +25,7 @@ import static com.toocol.ssh.core.ssh.SshAddress.ESTABLISH_SSH_SESSION;
  * @date 2022/7/28 14:39
  */
 public final class SessionQuickSwitchHelper implements Loggable, IStacktraceParser {
-    private static final int VIEWPORT_LEN = 7;
+    private static final int VIEWPORT_LEN = 5;
     private static final int SCROLLABLE = VIEWPORT_LEN / 2 + 1;
     private static final int[] PART_PROPORTION = new int[]{1, 3, 2, 2, 2};
     private static final String[] PART_HEADS = new String[]{"   No.", "address", "path", "protocol", "status"};
@@ -135,7 +135,11 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
     }
 
     public void downSession() {
-        if (indicator < SCROLLABLE || (viewportStart + indicator + SCROLLABLE > switchableList.length && viewportStart + indicator < switchableList.length)) {
+        if (indicator >= switchableList.length) {
+            return;
+        }
+        if ((indicator < SCROLLABLE)
+                || (viewportStart + indicator + SCROLLABLE > switchableList.length && viewportStart + indicator < switchableList.length)) {
             indicator++;
             return;
         }

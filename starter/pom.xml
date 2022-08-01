@@ -9,7 +9,7 @@
     </parent>
     <artifactId>starter</artifactId>
     <name>starter</name>
-    <version>0.0.1</version>
+    <version>${revision}</version>
 
     <packaging>jar</packaging>
 

@@ -14,7 +14,7 @@ import java.util.concurrent.CountDownLatch;
  * @date 2021/2/19 16:20
  */
 public final class Printer {
-    public static final PrintStream PRINTER = System.out;
+    private static PrintStream PRINTER;
     private static final Console CONSOLE = Console.get();
     private static final String[] patterns = new String[]{
             "-",
@@ -97,5 +97,9 @@ public final class Printer {
         } catch (Exception e) {
             // do nothing
         }
+    }
+
+    public static void setPrinter(PrintStream printer) {
+        Printer.PRINTER = printer;
     }
 }
