@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class Term extends AbstractDevice {
 
     public static final String PROMPT = " [termio] > ";
-    public static final int TOP_MARGIN = 3;
+    public static final int TOP_MARGIN = 1;
     public static final int LEFT_MARGIN = 0;
     public static final int TEXT_LEFT_MARGIN = 1;
     static final Console CONSOLE = Console.get();
@@ -111,6 +111,10 @@ public final class Term extends AbstractDevice {
 
     public void printTest() {
         termPrinter.printTest();
+    }
+
+    public void printColorPanel() {
+        termPrinter.printColorPanel();
     }
 
     public String readLine() {

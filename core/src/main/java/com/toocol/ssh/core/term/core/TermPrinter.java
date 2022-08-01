@@ -8,6 +8,8 @@ import com.toocol.ssh.utilities.utils.PomUtil;
 import com.toocol.ssh.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
+
 import static com.toocol.ssh.core.term.core.Term.CONSOLE;
 
 /**
@@ -70,7 +72,6 @@ public record TermPrinter(Term term) {
                 .front(Term.theme.infoBarFrontColor)
                 .append(merge);
         Printer.println(builder.toString());
-        Printer.println();
     }
 
     public void printScene(boolean resize) {
@@ -81,16 +82,48 @@ public record TermPrinter(Term term) {
             Printer.clear();
         }
         printInformationBar();
-        Printer.print("Properties:                                                                           \n");
+        String prompt = "Properties:";
+        AnisStringBuilder builder = new AnisStringBuilder();
+        int width = term.getWidth();
+        Printer.println(
+                builder.background(Term.theme.propertiesZoneBgColor)
+                        .space(width).crlf()
+                        .append(prompt).space(width - prompt.length())
+                        .toString()
+        );
+        builder.clearStr();
         if (credentialCache.credentialsSize() == 0) {
-            Printer.print("You have no connection properties, type 'help' to get more information.                         \n\n");
+            String msg = "You have no connection properties, type 'help' to get more information.";
+            Printer.print(
+                    builder.append(msg)
+                            .space(width - msg.length()).crlf()
+                            .space(width).crlf()
+                            .toString()
+            );
         } else {
             credentialCache.showCredentials();
         }
 
         for (int idx = 0; idx < Term.TOP_MARGIN; idx++) {
-            Printer.println();
+            Printer.println(builder.space(width).toString());
         }
+
+        String msg = "'←'/'→' to change groups.";
+        builder.clearColor().clearStr();
+        String[] groups = new String[] {"default", "group_1", "group_2", "group_3"};
+        int groupsLen = Arrays.stream(groups).mapToInt(String::length).sum();
+        builder.background(Term.theme.groupActiveBgColor).space(5).append(groups[0]).space(5)
+                .background(Term.theme.groupSplitBgColor).space()
+                .background(Term.theme.groupIdleBgColor)
+                .space(5).append(groups[1]).space(5).background(Term.theme.groupSplitBgColor).space()
+                .background(Term.theme.groupIdleBgColor)
+                .space(5).append(groups[2]).space(5).background(Term.theme.groupSplitBgColor).space()
+                .background(Term.theme.groupIdleBgColor)
+                .space(5).append(groups[3]).space(5)
+                .deBackground()
+                .space(width - (8 * 5 + 3) - groupsLen - msg.length())
+                .append(msg);
+        Printer.println(builder.toString());
 
         Term.executeLine = term.getCursorPosition()[1];
         term.printExecuteBackground();
@@ -295,5 +328,9 @@ public record TermPrinter(Term term) {
                 "\u001B[0mdrwxrwxrwt.   4 root root  4096 Jul 25 22:26 \u001B[0;30;42mtmp\n" +
                 "\u001B[0mdrwxr-xr-x.  13 root root  4096 Jun 18 16:48 \u001B[0;1;34musr\n" +
                 "\u001B[0mdrwxr-xr-x.  21 root root  4096 Jun 18 16:42 \u001B[0;1;34mvar\u001B[50;22H\u001B[0m");
+    }
+
+    public void printColorPanel() {
+
     }
 }

@@ -26,10 +26,6 @@
         <maven-shade-plugin.version>3.3.0</maven-shade-plugin.version>
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
 
-        <!-- second party dependency -->
-        <termio.utilities.version>0.0.1</termio.utilities.version>
-        <termio.core.version>0.0.1</termio.core.version>
-
         <!-- third party dependency -->
         <vertx.version>4.2.6</vertx.version>
         <jsch.version>0.1.55</jsch.version>
@@ -50,12 +46,12 @@
             <dependency>
                 <groupId>com.toocol.termio</groupId>
                 <artifactId>utilities</artifactId>
-                <version>${termio.utilities.version}</version>
+                <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.toocol.termio</groupId>
                 <artifactId>core</artifactId>
-                <version>${termio.core.version}</version>
+                <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>io.vertx</groupId>

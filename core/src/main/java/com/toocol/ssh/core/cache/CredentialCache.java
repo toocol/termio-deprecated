@@ -6,6 +6,7 @@ import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.anis.Printer;
 import com.toocol.ssh.utilities.functional.Switchable;
 import com.toocol.ssh.utilities.utils.MessageBox;
+import com.toocol.ssh.utilities.utils.StrUtil;
 import io.vertx.core.json.JsonArray;
 
 import java.util.*;
@@ -68,16 +69,26 @@ public class CredentialCache {
         lock.lock();
         try {
             AtomicInteger idx = new AtomicInteger(1);
+            Term term = Term.getInstance();
             CREDENTIAL_SET.forEach(credential -> {
                 int index = idx.getAndIncrement();
+                Printer.print(new AnisStringBuilder()
+                        .background(Term.theme.propertiesZoneBgColor)
+                        .append(StrUtil.SPACE.repeat(term.getWidth()))
+                        .toString()
+                );
+                term.setCursorPosition(0, term.getCursorPosition()[1]);
                 AnisStringBuilder builder = new AnisStringBuilder()
-                        .append("[" + (index < 10 ? "0" + index : index) + "]\t\t")
-                        .append(credential.getUser())
-                        .append("@")
-                        .front(Term.theme.hostHighlightColor).append(credential.getHost()).deFront();
+                        .background(Term.theme.propertiesZoneBgColor);
                 if (SshSessionCache.getInstance().isAlive(credential.getHost())) {
-                    builder.append("\t\t").front(Term.theme.sessionAliveColor).append("[alive]").deFront();
+                    builder.front(Term.theme.sessionAliveColor);
+                } else {
+                    builder.front(Term.theme.indexFrontColor);
                 }
+                builder.append("[" + (index < 10 ? "0" + index : index) + "]\t\t").deFront()
+                        .front(Term.theme.userHighlightColor).append(credential.getUser()).deFront()
+                        .front(Term.theme.atHighlightColor).append("@").deFront()
+                        .front(Term.theme.hostHighlightColor).append(credential.getHost()).deFront();
                 Printer.println(builder.toString());
             });
         } catch (Exception e) {

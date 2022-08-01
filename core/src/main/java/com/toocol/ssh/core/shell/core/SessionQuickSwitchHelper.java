@@ -4,6 +4,7 @@ import com.toocol.ssh.core.cache.CredentialCache;
 import com.toocol.ssh.core.cache.SshSessionCache;
 import com.toocol.ssh.core.cache.StatusCache;
 import com.toocol.ssh.core.term.core.Term;
+import com.toocol.ssh.core.term.core.TermTheme;
 import com.toocol.ssh.utilities.anis.AnisStringBuilder;
 import com.toocol.ssh.utilities.anis.AsciiControl;
 import com.toocol.ssh.utilities.anis.Printer;
@@ -30,6 +31,7 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
     private static final String[] PART_HEADS = new String[]{"   No.", "address", "path", "protocol", "status"};
     private static final String HELP_INFO = " Press '↑'/'↓' key to choose session to switch, '←'/'→' to change group, 'Enter' to confirm, 'Esc' to quit.";
     private static final Term term = Term.getInstance();
+    private static final TermTheme theme = Term.theme;
 
     private final int[] recordCursorPos = new int[2];
     private final CredentialCache credentialCache = CredentialCache.getInstance();
@@ -84,19 +86,27 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
                 }
             }
 
-            String promptBase  = shell.getPrompt() + "> {} <";
+            AnisStringBuilder promptBase = new AnisStringBuilder()
+                    .append(shell.getPrompt())
+                    .front(theme.lcCmdExecuteHighlightColor)
+                    .append("> {} <");
 
             cursorPosition = term.getCursorPosition();
             term.hideCursor();
             recordCursorPos[0] = shell.getPrompt().length();
             recordCursorPos[1] = cursorPosition[1] - 1 - offset;
             term.setCursorPosition(0, recordCursorPos[1] + helpInfoLine);
-            Printer.print(HELP_INFO);
+            int width = term.getWidth();
+            Printer.print(
+                    new AnisStringBuilder().background(theme.switchSessionPanelBottomBgColor)
+                            .append(HELP_INFO)
+                            .space(width - HELP_INFO.length())
+                            .toString()
+            );
 
             while (!quit) {
-                String prompt = StrUtil.fullFillParam(promptBase, indicator + viewportStart);
                 term.setCursorPosition(0, recordCursorPos[1]);
-                Printer.println(prompt);
+                Printer.println(StrUtil.fullFillParam(promptBase.toString(), indicator + viewportStart));
                 term.setCursorPosition(0, recordCursorPos[1] + 1);
                 printSwitchPanel();
                 term.setCursorPosition(24, recordCursorPos[1] + 1);
@@ -125,7 +135,11 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
     }
 
     public void downSession() {
-        if (indicator < SCROLLABLE || (viewportStart + indicator + SCROLLABLE > switchableList.length && viewportStart + indicator < switchableList.length)) {
+        if (indicator >= switchableList.length) {
+            return;
+        }
+        if ((indicator < SCROLLABLE)
+                || (viewportStart + indicator + SCROLLABLE > switchableList.length && viewportStart + indicator < switchableList.length)) {
             indicator++;
             return;
         }
@@ -172,23 +186,29 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
         AnisStringBuilder builder = new AnisStringBuilder();
         int[] partLength = new int[5];
         int width = term.getWidth();
+        int totalPartLength = 0;
         for (int i = 0; i < 5; i++) {
             partLength[i] = width * PART_PROPORTION[i] / 10;
-            builder.append(PART_HEADS[i]).space(partLength[i] - PART_HEADS[i].length());
+            builder.background(theme.switchSessionHeadBgColor)
+                    .front(theme.switchSessionHeadFrontColor)
+                    .append(PART_HEADS[i])
+                    .space(partLength[i] - PART_HEADS[i].length());
+            totalPartLength += partLength[i];
         }
-        Printer.println(builder.toString());
-        builder.clearStr();
+        Printer.println(builder.space(width - totalPartLength).toString());
+        builder.clearStr().clearColor();
         int range = Math.min(viewportStart + VIEWPORT_LEN, switchableList.length);
         for (int i = viewportStart; i < range; i++) {
             Switchable switchable = switchableList[i];
             int idx = i + 1;
             String prefix;
-            if (indicator + viewportStart == idx) {
+            boolean chosenSession = indicator + viewportStart == idx;
+            if (chosenSession) {
                 chosen = switchable;
                 prefix = " > ";
             } else if (idx != switchableList.length && i == range - 1) {
                 prefix = " ..";
-            }else {
+            } else {
                 prefix = "   ";
             }
             String index = "[" + (idx < 10 ? "0" + idx : idx) + "]";
@@ -196,14 +216,17 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
             String curPath = switchable.currentPath();
             String protocol = switchable.protocol();
             String alive = switchable.alive() ? "alive" : "disconnect";
-            builder.append(prefix)
+            builder.background(chosenSession ? theme.switchSessionChosenBgColor : theme.switchSessionPanelBodyBgColor)
+                    .front(chosenSession ? theme.switchSessionChosenFrontColor : -1)
+                    .append(prefix)
                     .append(index).space(partLength[0] - (prefix + index).length())
                     .append(uri).space(partLength[1] - uri.length())
                     .append(curPath).space(partLength[2] - curPath.length())
                     .append(protocol).space(partLength[3] - protocol.length())
-                    .append(alive).space(partLength[4] - alive.length()).crlf();
+                    .append(alive).space(partLength[4] - alive.length())
+                    .space(width - totalPartLength).crlf();
             Printer.print(builder.toString());
-            builder.clearStr();
+            builder.clearStr().clearColor();
         }
     }
 

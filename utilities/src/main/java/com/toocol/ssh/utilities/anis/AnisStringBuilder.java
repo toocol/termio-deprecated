@@ -132,18 +132,15 @@ public final class AnisStringBuilder {
     }
 
     public AnisStringBuilder tab() {
-        builder.append(StrUtil.TAB);
-        return this;
+        return append(StrUtil.TAB);
     }
 
     public AnisStringBuilder space() {
-        builder.append(StrUtil.SPACE);
-        return this;
+        return append(StrUtil.SPACE);
     }
 
     public AnisStringBuilder space(int cnt) {
-        builder.append(StrUtil.SPACE.repeat(cnt));
-        return this;
+        return append(StrUtil.SPACE.repeat(cnt));
     }
 
     public AnisStringBuilder clearStr() {
