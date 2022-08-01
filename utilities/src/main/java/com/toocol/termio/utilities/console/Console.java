@@ -7,7 +7,6 @@ import com.toocol.termio.utilities.utils.OsUtil;
  * @date 2022/4/24 11:45
  */
 public abstract class Console {
-
     private static Console console;
 
     public synchronized static Console get() {
@@ -20,6 +19,10 @@ public abstract class Console {
             console = null;
         }
         return console;
+    }
+
+    public synchronized static void setConsole(Console console) {
+        Console.console = console;
     }
 
     public abstract String chooseFiles();
