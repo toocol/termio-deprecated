@@ -26,7 +26,7 @@ public record TermReader(Term term) {
                     String cmd = term.lineBuilder.toString();
                     term.lineBuilder.delete(0, term.lineBuilder.length());
                     if (StringUtils.isEmpty(cmd) && term.lastChar != CharUtil.CR) {
-                        term.eventBus.send(TERMINAL_ECHO.address(), StrUtil.EMPTY);
+                        term.eventBus().send(TERMINAL_ECHO.address(), StrUtil.EMPTY);
                     }
                     term.lastChar = finalChar;
                     DynamicEchoHandler.lastInput = StrUtil.EMPTY;
@@ -36,7 +36,7 @@ public record TermReader(Term term) {
                 term.lastChar = finalChar;
                 term.printExecution(term.lineBuilder.toString());
 
-                term.eventBus.send(TERMINAL_ECHO.address(), term.lineBuilder.toString());
+                term.eventBus().send(TERMINAL_ECHO.address(), term.lineBuilder.toString());
             }
 
         } catch (Exception e) {
