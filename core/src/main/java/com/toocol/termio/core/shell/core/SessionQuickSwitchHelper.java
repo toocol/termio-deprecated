@@ -3,8 +3,8 @@ package com.toocol.termio.core.shell.core;
 import com.toocol.termio.core.cache.CredentialCache;
 import com.toocol.termio.core.cache.SshSessionCache;
 import com.toocol.termio.core.cache.StatusCache;
+import com.toocol.termio.core.ssh.SshAddress;
 import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.core.term.core.TermTheme;
 import com.toocol.termio.utilities.anis.AnisStringBuilder;
 import com.toocol.termio.utilities.anis.AsciiControl;
 import com.toocol.termio.utilities.anis.Printer;
@@ -12,7 +12,6 @@ import com.toocol.termio.utilities.execeptions.IStacktraceParser;
 import com.toocol.termio.utilities.functional.Switchable;
 import com.toocol.termio.utilities.log.Loggable;
 import com.toocol.termio.utilities.utils.StrUtil;
-import com.toocol.termio.core.ssh.SshAddress;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,7 +29,6 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
     private static final String[] PART_HEADS = new String[]{"   No.", "address", "path", "protocol", "status"};
     private static final String HELP_INFO = " Press '↑'/'↓' key to choose session to switch, '←'/'→' to change group, 'Enter' to confirm, 'Esc' to quit.";
     private static final Term term = Term.getInstance();
-    private static final TermTheme theme = Term.theme;
 
     private final int[] recordCursorPos = new int[2];
     private final CredentialCache credentialCache = CredentialCache.getInstance();
@@ -87,7 +85,7 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
 
             AnisStringBuilder promptBase = new AnisStringBuilder()
                     .append(shell.getPrompt())
-                    .front(theme.lcCmdExecuteHighlightColor)
+                    .front(Term.theme.lcCmdExecuteHighlightColor.color)
                     .append("> {} <");
 
             cursorPosition = term.getCursorPosition();
@@ -97,7 +95,7 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
             term.setCursorPosition(0, recordCursorPos[1] + helpInfoLine);
             int width = term.getWidth();
             Printer.print(
-                    new AnisStringBuilder().background(theme.switchSessionPanelBottomBgColor)
+                    new AnisStringBuilder().background(Term.theme.switchSessionPanelBottomBgColor.color)
                             .append(HELP_INFO)
                             .space(width - HELP_INFO.length())
                             .toString()
@@ -188,8 +186,8 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
         int totalPartLength = 0;
         for (int i = 0; i < 5; i++) {
             partLength[i] = width * PART_PROPORTION[i] / 10;
-            builder.background(theme.switchSessionHeadBgColor)
-                    .front(theme.switchSessionHeadFrontColor)
+            builder.background(Term.theme.switchSessionHeadBgColor.color)
+                    .front(Term.theme.switchSessionHeadFrontColor.color)
                     .append(PART_HEADS[i])
                     .space(partLength[i] - PART_HEADS[i].length());
             totalPartLength += partLength[i];
@@ -215,8 +213,8 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
             String curPath = switchable.currentPath();
             String protocol = switchable.protocol();
             String alive = switchable.alive() ? "alive" : "disconnect";
-            builder.background(chosenSession ? theme.switchSessionChosenBgColor : theme.switchSessionPanelBodyBgColor)
-                    .front(chosenSession ? theme.switchSessionChosenFrontColor : -1)
+            builder.background(chosenSession ? Term.theme.switchSessionChosenBgColor.color : Term.theme.switchSessionPanelBodyBgColor.color)
+                    .front(chosenSession ? Term.theme.switchSessionChosenFrontColor.color : -1)
                     .append(prefix)
                     .append(index).space(partLength[0] - (prefix + index).length())
                     .append(uri).space(partLength[1] - uri.length())

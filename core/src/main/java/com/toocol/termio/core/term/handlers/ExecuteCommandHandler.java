@@ -63,8 +63,9 @@ public final class ExecuteCommandHandler extends NonBlockingMessageHandler {
         }
 
         if (!isCommand && StringUtils.isNotEmpty(cmd)) {
-            AnisStringBuilder builder = new AnisStringBuilder().background(Term.theme.displayBackGroundColor)
-                    .front(Term.theme.commandHighlightColor)
+            AnisStringBuilder builder = new AnisStringBuilder()
+                    .background(Term.theme.displayBackGroundColor.color)
+                    .front(Term.theme.commandHighlightColor.color)
                     .append(cmd)
                     .deFront()
                     .append(": command not found.");

@@ -21,8 +21,8 @@ public class FlushCmdProcessor extends TermioCommandProcessor {
         Term.getInstance().setCursorPosition(Term.LEFT_MARGIN, Term.executeLine);
 
         AnisStringBuilder builder = new AnisStringBuilder()
-                .background(Term.theme.executeBackgroundColor)
-                .front(Term.theme.executeFrontColor)
+                .background(Term.theme.executeBackgroundColor.color)
+                .front(Term.theme.executeFrontColor.color)
                 .append(Term.PROMPT)
                 .append(" ".repeat(Term.getInstance().getWidth() - Term.getPromptLen() - Term.LEFT_MARGIN));
         Printer.print(builder.toString());

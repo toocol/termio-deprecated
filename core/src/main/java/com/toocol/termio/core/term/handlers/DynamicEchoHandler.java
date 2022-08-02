@@ -41,8 +41,8 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
     @Override
     public <T> void handleInline(Message<T> message) {
         String cmd = cast(message.body());
-        int backgroundColor = Term.theme.displayBackGroundColor;
-        int commandHighlightColor = Term.theme.commandHighlightColor;
+        int backgroundColor = Term.theme.displayBackGroundColor.color;
+        int commandHighlightColor = Term.theme.commandHighlightColor.color;
         String finalCmd = cmd.trim();
 
         TermioCommand command = COMMANDS.get(finalCmd);
@@ -69,9 +69,9 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
                 if (credential == null) {
                     connectionPrompt.append("the index corresponded connection not found.");
                 } else {
-                    String status = sshSessionCache.isAlive(credential.getHost()) ? ColorHelper.front("alive", Term.theme.sessionAliveColor) : "offline";
+                    String status = sshSessionCache.isAlive(credential.getHost()) ? ColorHelper.front("alive", Term.theme.sessionAliveColor.color) : "offline";
                     connectionPrompt
-                            .append("Host:").append(" ".repeat(15 - 5)).front(Term.theme.hostHighlightColor).append(credential.getHost()).deFront().append("\n")
+                            .append("Host:").append(" ".repeat(15 - 5)).front(Term.theme.hostHighlightColor.color).append(credential.getHost()).deFront().append("\n")
                             .append("User:").append(" ".repeat(15 - 5)).append(credential.getUser()).append("\n")
                             .append("Port:").append(" ".repeat(15 - 5)).append(credential.getPort()).append("\n")
                             .append("Type:").append(" ".repeat(15 - 5)).append("SSH").append("\n")
@@ -116,8 +116,8 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
     }
 
     private void spaceProcess(Term term, String cmd) {
-        int commandHighlightColor = Term.theme.commandHighlightColor;
-        int backgroundColor = Term.theme.displayBackGroundColor;
+        int commandHighlightColor = Term.theme.commandHighlightColor.color;
+        int backgroundColor = Term.theme.displayBackGroundColor.color;
 
         if (cmd.contains(StrUtil.SPACE)) {
             String[] split = cmd.split(StrUtil.SPACE);
