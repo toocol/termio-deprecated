@@ -69,8 +69,8 @@ public record TermPrinter(Term term) {
         }
 
         AnisStringBuilder builder = new AnisStringBuilder()
-                .background(Term.theme.infoBarBackgroundColor)
-                .front(Term.theme.infoBarFrontColor)
+                .background(Term.theme.infoBarBackgroundColor.color)
+                .front(Term.theme.infoBarFrontColor.color)
                 .append(merge);
         Printer.println(builder.toString());
     }
@@ -87,7 +87,7 @@ public record TermPrinter(Term term) {
         AnisStringBuilder builder = new AnisStringBuilder();
         int width = term.getWidth();
         Printer.println(
-                builder.background(Term.theme.propertiesZoneBgColor)
+                builder.background(Term.theme.propertiesZoneBgColor.color)
                         .space(width).crlf()
                         .append(prompt).space(width - prompt.length())
                         .toString()
@@ -113,13 +113,13 @@ public record TermPrinter(Term term) {
         builder.clearColor().clearStr();
         String[] groups = new String[] {"default", "group_1", "group_2", "group_3"};
         int groupsLen = Arrays.stream(groups).mapToInt(String::length).sum();
-        builder.background(Term.theme.groupActiveBgColor).space(5).append(groups[0]).space(5)
-                .background(Term.theme.groupSplitBgColor).space()
-                .background(Term.theme.groupIdleBgColor)
-                .space(5).append(groups[1]).space(5).background(Term.theme.groupSplitBgColor).space()
-                .background(Term.theme.groupIdleBgColor)
-                .space(5).append(groups[2]).space(5).background(Term.theme.groupSplitBgColor).space()
-                .background(Term.theme.groupIdleBgColor)
+        builder.background(Term.theme.groupActiveBgColor.color).space(5).append(groups[0]).space(5)
+                .background(Term.theme.groupSplitBgColor.color).space()
+                .background(Term.theme.groupIdleBgColor.color)
+                .space(5).append(groups[1]).space(5).background(Term.theme.groupSplitBgColor.color).space()
+                .background(Term.theme.groupIdleBgColor.color)
+                .space(5).append(groups[2]).space(5).background(Term.theme.groupSplitBgColor.color).space()
+                .background(Term.theme.groupIdleBgColor.color)
                 .space(5).append(groups[3]).space(5)
                 .deBackground()
                 .space(width - (8 * 5 + 3) - groupsLen - msg.length())
@@ -147,8 +147,8 @@ public record TermPrinter(Term term) {
     synchronized void printExecuteBackground() {
         term.setCursorPosition(Term.LEFT_MARGIN, Term.executeLine);
         AnisStringBuilder builder = new AnisStringBuilder()
-                .background(Term.theme.executeBackgroundColor)
-                .front(Term.theme.executeFrontColor)
+                .background(Term.theme.executeBackgroundColor.color)
+                .front(Term.theme.executeFrontColor.color)
                 .append(Term.PROMPT + " ".repeat(term.getWidth() - Term.getPromptLen() - Term.LEFT_MARGIN));
         Printer.print(builder.toString());
         term.showCursor();
@@ -160,8 +160,8 @@ public record TermPrinter(Term term) {
         term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
 
         AnisStringBuilder builder = new AnisStringBuilder()
-                .background(Term.theme.executeBackgroundColor)
-                .front(Term.theme.executeFrontColor)
+                .background(Term.theme.executeBackgroundColor.color)
+                .front(Term.theme.executeFrontColor.color)
                 .append(" ".repeat(term.getWidth() - Term.getPromptLen() - Term.LEFT_MARGIN));
         Printer.print(builder.toString());
         term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
@@ -183,7 +183,7 @@ public record TermPrinter(Term term) {
     synchronized void printDisplayBackground(int lines) {
         term.setCursorPosition(0, Term.executeLine + 1);
         AnisStringBuilder builder = new AnisStringBuilder()
-                .background(Term.theme.displayBackGroundColor)
+                .background(Term.theme.displayBackGroundColor.color)
                 .append(" ".repeat(term.getWidth() - Term.LEFT_MARGIN - Term.LEFT_MARGIN));
         for (int idx = 0; idx < lines + 2; idx++) {
             Printer.println(builder.toString());
@@ -207,7 +207,7 @@ public record TermPrinter(Term term) {
         for (String line : split) {
             term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx++);
             Printer.println(new AnisStringBuilder()
-                    .background(Term.theme.displayBackGroundColor)
+                    .background(Term.theme.displayBackGroundColor.color)
                     .append(line)
                     .toString());
         }
@@ -254,7 +254,7 @@ public record TermPrinter(Term term) {
         for (String line : split) {
             term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx++);
             Printer.println(new AnisStringBuilder()
-                    .background(Term.theme.displayBackGroundColor)
+                    .background(Term.theme.displayBackGroundColor.color)
                     .append(line)
                     .toString());
         }
@@ -278,7 +278,7 @@ public record TermPrinter(Term term) {
         for (String line : split) {
             term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx++);
             Printer.println(new AnisStringBuilder()
-                    .background(Term.theme.displayBackGroundColor)
+                    .background(Term.theme.displayBackGroundColor.color)
                     .append(line)
                     .toString());
         }
@@ -289,7 +289,7 @@ public record TermPrinter(Term term) {
 
     synchronized void printCommandBuffer() {
         term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
-        Printer.print(new AnisStringBuilder().background(Term.theme.executeBackgroundColor).front(Term.theme.executeFrontColor).append(COMMAND_BUFF).toString());
+        Printer.print(new AnisStringBuilder().background(Term.theme.executeBackgroundColor.color).front(Term.theme.executeFrontColor.color).append(COMMAND_BUFF).toString());
     }
 
     synchronized void printTest() {

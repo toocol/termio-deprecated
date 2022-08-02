@@ -17,14 +17,14 @@ public class ThemeCmdProcessor extends TermioCommandProcessor {
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         String[] split = cmd.trim().replaceAll(" {2,}", " ").split(" ");
         if (split.length != 2) {
-            resultAndMsg.first(false).second("Please select the theme [dark/light]");
+            resultAndMsg.first(false).second("Please select the theme, alternative themes:\n\n" + TermTheme.listTheme());
             return;
         }
 
         String theme = split[1];
         TermTheme termTheme = TermTheme.nameOf(theme);
         if (termTheme == null) {
-            resultAndMsg.first(false).second(theme + ": theme not found. support: [dark/light]");
+            resultAndMsg.first(false).second(theme + ": theme not found.  alternative themes:\n\n" + TermTheme.listTheme());
             return;
         }
 
