@@ -33,7 +33,6 @@ public final class Term extends AbstractDevice {
     final TermPrinter termPrinter;
     final TermCharEventDispatcher termCharEventDispatcher;
     ConsoleReader reader;
-    EventBus eventBus = Termio.eventBus();
     volatile StringBuilder lineBuilder = new StringBuilder();
     volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
     int displayZoneBottom = 0;
@@ -159,4 +158,7 @@ public final class Term extends AbstractDevice {
         CONSOLE.cursorBackLine(lines);
     }
 
+    public EventBus eventBus() {
+        return Termio.eventBus();
+    }
 }
