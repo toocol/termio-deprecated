@@ -47,7 +47,7 @@ public class FileAppender {
                         try {
                             Thread.sleep(1);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            // do nothing
                         }
                     }
                     promise.complete();

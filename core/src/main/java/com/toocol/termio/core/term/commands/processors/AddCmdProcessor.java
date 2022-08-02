@@ -21,21 +21,16 @@ public class AddCmdProcessor extends TermioCommandProcessor {
 
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
-        String[] split = cmd.trim().replaceAll(" {2,}", " ").split("--");
-        if (split.length != 2) {
-            resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add --host@user -c=password [-p=port]'.");
-            return;
-        }
+        String[] params = cmd.trim().replaceAll(" {2,}", " ").replaceFirst("add ", "").split(" ");
 
-        String[] params = split[1].split(" ");
         if (params.length < 2 || params.length > 3) {
-            resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add --host@user -c=password [-p=port]'.");
+            resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add host@user -c=password [-p=port]'.");
             return;
         }
 
         String[] hostUser = params[0].split("@");
         if (hostUser.length != 2) {
-            resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add --host@user -c=password [-p=port]'.");
+            resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add host@user -c=password [-p=port]'.");
             return;
         }
         String user = hostUser[0];
@@ -72,6 +67,7 @@ public class AddCmdProcessor extends TermioCommandProcessor {
         for (String param : params) {
             if ("-j".equals(param)) {
                 jumpServer = true;
+                break;
             }
         }
 

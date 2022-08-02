@@ -2,6 +2,7 @@ package com.toocol.termio.core.cache;
 
 import com.toocol.termio.core.auth.core.SshCredential;
 import com.toocol.termio.core.term.core.Term;
+import com.toocol.termio.core.term.core.TermTheme;
 import com.toocol.termio.utilities.anis.AnisStringBuilder;
 import com.toocol.termio.utilities.anis.Printer;
 import com.toocol.termio.utilities.functional.Switchable;
@@ -65,6 +66,7 @@ public class CredentialCache {
     }
 
     public void showCredentials() {
+        TermTheme theme = Term.theme;
         Lock lock = READ_WRITE_LOCK.readLock();
         lock.lock();
         try {
@@ -73,22 +75,22 @@ public class CredentialCache {
             CREDENTIAL_SET.forEach(credential -> {
                 int index = idx.getAndIncrement();
                 Printer.print(new AnisStringBuilder()
-                        .background(Term.theme.propertiesZoneBgColor)
+                        .background(theme.propertiesZoneBgColor.color)
                         .append(StrUtil.SPACE.repeat(term.getWidth()))
                         .toString()
                 );
                 term.setCursorPosition(0, term.getCursorPosition()[1]);
                 AnisStringBuilder builder = new AnisStringBuilder()
-                        .background(Term.theme.propertiesZoneBgColor);
+                        .background(theme.propertiesZoneBgColor.color);
                 if (SshSessionCache.getInstance().isAlive(credential.getHost())) {
-                    builder.front(Term.theme.sessionAliveColor);
+                    builder.front(theme.sessionAliveColor.color);
                 } else {
-                    builder.front(Term.theme.indexFrontColor);
+                    builder.front(theme.indexFrontColor.color);
                 }
                 builder.append("[" + (index < 10 ? "0" + index : index) + "]\t\t").deFront()
-                        .front(Term.theme.userHighlightColor).append(credential.getUser()).deFront()
-                        .front(Term.theme.atHighlightColor).append("@").deFront()
-                        .front(Term.theme.hostHighlightColor).append(credential.getHost()).deFront();
+                        .front(theme.userHighlightColor.color).append(credential.getUser()).deFront()
+                        .front(theme.atHighlightColor.color).append("@").deFront()
+                        .front(theme.hostHighlightColor.color).append(credential.getHost()).deFront();
                 Printer.println(builder.toString());
             });
         } catch (Exception e) {

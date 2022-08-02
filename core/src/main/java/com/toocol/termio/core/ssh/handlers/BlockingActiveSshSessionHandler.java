@@ -6,6 +6,7 @@ import com.toocol.termio.core.cache.ShellCache;
 import com.toocol.termio.core.cache.SshSessionCache;
 import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.shell.core.ShellProtocol;
+import com.toocol.termio.core.ssh.SshAddress;
 import com.toocol.termio.core.ssh.core.SshSessionFactory;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermTheme;
@@ -14,7 +15,6 @@ import com.toocol.termio.utilities.anis.AnisStringBuilder;
 import com.toocol.termio.utilities.functional.Executable;
 import com.toocol.termio.utilities.functional.Ordered;
 import com.toocol.termio.utilities.handler.BlockingMessageHandler;
-import com.toocol.termio.core.ssh.SshAddress;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
@@ -42,7 +42,6 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
     private final ShellCache shellCache = ShellCache.getInstance();
     private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
     private final SshSessionFactory factory = SshSessionFactory.factory();
-    public static TermTheme theme = TermTheme.DARK_THEME;
 
     public BlockingActiveSshSessionHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -118,7 +117,7 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
 
     @Override
     protected <T> void resultBlocking(AsyncResult<JsonObject> asyncResult, Message<T> message) throws Exception {
-
+        TermTheme theme = Term.theme;
         if (asyncResult.succeeded()) {
             Term term = Term.getInstance();
             term.printScene(false);
@@ -140,7 +139,9 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
                                 anisStringBuilder.append("\n");
                             }
                         }
-                        anisStringBuilder.front(theme.activeSuccessMsgColor).background(theme.displayBackGroundColor).append(split[i] + "    ");
+                        anisStringBuilder.front(theme.activeSuccessMsgColor.color)
+                                .background(theme.displayBackGroundColor.color)
+                                .append(split[i] + "    ");
                     }
                 } else {
                     anisStringBuilder.deFront().append("\n" + stringObjectEntry.getKey() + ":" + "\n");
@@ -156,7 +157,9 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
                                 anisStringBuilder.append("\n");
                             }
                         }
-                        anisStringBuilder.front(theme.activeFailedMsgColor).background(theme.displayBackGroundColor).append(split[j] + "    ");
+                        anisStringBuilder.front(theme.activeFailedMsgColor.color)
+                                .background(theme.displayBackGroundColor.color)
+                                .append(split[j] + "    ");
                     }
 
                 }
