@@ -15,7 +15,7 @@
     </modules>
 
     <properties>
-        <main.class>com.toocol.ssh.TermioApplication</main.class>
+        <main.class>com.toocol.termio.starter.TermioApplication</main.class>
         <revision>0.0.1</revision>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -25,10 +25,6 @@
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-shade-plugin.version>3.3.0</maven-shade-plugin.version>
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
-
-        <!-- second party dependency -->
-        <termio.utilities.version>0.0.1</termio.utilities.version>
-        <termio.core.version>0.0.1</termio.core.version>
 
         <!-- third party dependency -->
         <vertx.version>4.2.6</vertx.version>
@@ -47,16 +43,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.toocol.termio</groupId>
-                <artifactId>utilities</artifactId>
-                <version>${termio.utilities.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.toocol.termio</groupId>
-                <artifactId>core</artifactId>
-                <version>${termio.core.version}</version>
-            </dependency>
             <dependency>
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-core</artifactId>
@@ -150,6 +136,32 @@
                         <phase>compile</phase>
                         <goals>
                             <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.2.7</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
                         </goals>
                     </execution>
                 </executions>
