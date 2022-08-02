@@ -37,6 +37,7 @@
         <guava.version>31.1-jre</guava.version>
         <jackson.databind.version>2.12.6.1</jackson.databind.version>
         <protobuf.version>3.19.2</protobuf.version>
+        <org.ini4j.version>0.5.4</org.ini4j.version>
 
         <!-- test dependency -->
         <junit.jupiter.version>5.8.2</junit.jupiter.version>
@@ -88,6 +89,11 @@
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
                 <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ini4j</groupId>
+                <artifactId>ini4j</artifactId>
+                <version>${org.ini4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
