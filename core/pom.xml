@@ -9,7 +9,6 @@
     </parent>
     <artifactId>core</artifactId>
     <name>core</name>
-    <version>${revision}</version>
 
     <packaging>jar</packaging>
 

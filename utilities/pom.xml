@@ -9,7 +9,6 @@
     </parent>
     <artifactId>utilities</artifactId>
     <name>utilities</name>
-    <version>${revision}</version>
 
     <packaging>jar</packaging>
 
