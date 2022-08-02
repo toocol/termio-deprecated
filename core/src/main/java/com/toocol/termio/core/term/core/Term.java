@@ -83,8 +83,8 @@ public final class Term extends AbstractDevice {
     public void printErr(String msg) {
         termPrinter.printDisplay(
                 new AnisStringBuilder()
-                        .front(theme.errorMsgColor)
-                        .background(theme.displayBackGroundColor)
+                        .front(theme.errorMsgColor.color)
+                        .background(theme.displayBackGroundColor.color)
                         .append(msg)
                         .toString()
         );

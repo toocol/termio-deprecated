@@ -25,6 +25,7 @@
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-shade-plugin.version>3.3.0</maven-shade-plugin.version>
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
+        <flatten-maven-plugin>1.2.7</flatten-maven-plugin>
 
         <!-- third party dependency -->
         <vertx.version>4.2.6</vertx.version>
@@ -36,6 +37,7 @@
         <guava.version>31.1-jre</guava.version>
         <jackson.databind.version>2.12.6.1</jackson.databind.version>
         <protobuf.version>3.19.2</protobuf.version>
+        <org.ini4j.version>0.5.4</org.ini4j.version>
 
         <!-- test dependency -->
         <junit.jupiter.version>5.8.2</junit.jupiter.version>
@@ -87,6 +89,11 @@
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
                 <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ini4j</groupId>
+                <artifactId>ini4j</artifactId>
+                <version>${org.ini4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
@@ -147,7 +154,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
-                <version>1.2.7</version>
+                <version>${flatten-maven-plugin}</version>
                 <configuration>
                     <updatePomFile>true</updatePomFile>
                     <flattenMode>resolveCiFriendliesOnly</flattenMode>

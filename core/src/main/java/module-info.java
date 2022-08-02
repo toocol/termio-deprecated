@@ -11,6 +11,7 @@ module termio.core {
     requires jdk.unsupported;
     requires jsr305;
     requires java.desktop;
+    requires ini4j;
 
     exports com.toocol.termio.core;
     exports com.toocol.termio.core.cache;
