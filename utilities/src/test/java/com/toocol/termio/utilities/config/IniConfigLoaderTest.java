@@ -1,12 +1,12 @@
 package com.toocol.termio.utilities.config;
 
-import com.toocol.termio.utilities.utils.FileUtil;
 import org.ini4j.Ini;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -16,7 +16,7 @@ class IniConfigLoaderTest {
 
     @Test
     void read() {
-        IniConfigLoader.setConfigFileRootPath(FileUtil.relativeToFixed("../config"));
+        IniConfigLoader.setConfigFileRootPath("../config");
         assertDoesNotThrow(() -> {
             Collection<Ini> inis = IniConfigLoader.read();
             assertFalse(inis.isEmpty());
