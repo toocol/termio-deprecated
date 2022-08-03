@@ -9,7 +9,6 @@
     </parent>
     <artifactId>core</artifactId>
     <name>core</name>
-    <version>${revision}</version>
 
     <packaging>jar</packaging>
 
@@ -34,10 +33,6 @@
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.ini4j</groupId>
-            <artifactId>ini4j</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>

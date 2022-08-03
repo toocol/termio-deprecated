@@ -4,11 +4,13 @@ module termio.utilities {
     requires org.apache.commons.lang3;
     requires com.google.common;
     requires jsr305;
+    requires ini4j;
 
     exports com.toocol.termio.utilities.action;
     exports com.toocol.termio.utilities.address;
     exports com.toocol.termio.utilities.anis;
     exports com.toocol.termio.utilities.command;
+    exports com.toocol.termio.utilities.config;
     exports com.toocol.termio.utilities.console;
     exports com.toocol.termio.utilities.event;
     exports com.toocol.termio.utilities.execeptions;

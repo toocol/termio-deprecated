@@ -9,7 +9,6 @@
     </parent>
     <artifactId>utilities</artifactId>
     <name>utilities</name>
-    <version>${revision}</version>
 
     <packaging>jar</packaging>
 
@@ -35,6 +34,10 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.ini4j</groupId>
+            <artifactId>ini4j</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
