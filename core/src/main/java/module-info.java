@@ -15,7 +15,8 @@ module termio.core {
 
     exports com.toocol.termio.core;
     exports com.toocol.termio.core.cache;
-    exports com.toocol.termio.core.config;
+    exports com.toocol.termio.core.config.core;
+    exports com.toocol.termio.core.config.vert;
     exports com.toocol.termio.core.auth;
     exports com.toocol.termio.core.auth.core;
     exports com.toocol.termio.core.auth.handlers;

@@ -4,6 +4,7 @@ import com.toocol.termio.core.Termio;
 import com.toocol.termio.utilities.action.AbstractDevice;
 import com.toocol.termio.utilities.anis.AnisStringBuilder;
 import com.toocol.termio.utilities.console.Console;
+import com.toocol.termio.utilities.console.TerminalConsoleReader;
 import com.toocol.termio.utilities.utils.MessageBox;
 import io.vertx.core.eventbus.EventBus;
 import jline.console.ConsoleReader;
@@ -20,27 +21,27 @@ public final class Term extends AbstractDevice {
     public static final int TOP_MARGIN = 1;
     public static final int LEFT_MARGIN = 0;
     public static final int TEXT_LEFT_MARGIN = 1;
-    static final Console CONSOLE = Console.get();
     private static final Term INSTANCE = new Term();
+    static final Console CONSOLE = Console.get();
     public static volatile int WIDTH = CONSOLE.getWindowWidth();
     public static volatile int HEIGHT = CONSOLE.getWindowHeight();
     public static volatile TermStatus status = TermStatus.TERMIO;
     public static TermTheme theme = TermTheme.DARK_THEME;
     public static int executeLine = 0;
+    static TerminalConsoleReader reader;
     final EscapeHelper escapeHelper;
     final TermHistoryCmdHelper historyCmdHelper;
     final TermReader termReader;
     final TermPrinter termPrinter;
     final TermCharEventDispatcher termCharEventDispatcher;
-    ConsoleReader reader;
     volatile StringBuilder lineBuilder = new StringBuilder();
     volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
     int displayZoneBottom = 0;
     char lastChar = '\0';
 
-    {
+    static {
         try {
-            reader = new ConsoleReader();
+            reader = new TerminalConsoleReader();
         } catch (Exception e) {
             MessageBox.setExitMessage("Create console reader failed.");
             System.exit(-1);

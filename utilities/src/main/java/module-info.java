@@ -5,6 +5,7 @@ module termio.utilities {
     requires com.google.common;
     requires jsr305;
     requires ini4j;
+    requires jline;
 
     exports com.toocol.termio.utilities.action;
     exports com.toocol.termio.utilities.address;
