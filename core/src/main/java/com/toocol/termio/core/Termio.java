@@ -3,7 +3,9 @@ package com.toocol.termio.core;
 import com.toocol.termio.core.cache.MoshSessionCache;
 import com.toocol.termio.core.cache.SshSessionCache;
 import com.toocol.termio.core.cache.StatusCache;
+import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.shell.core.ShellCharEventDispatcher;
+import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermCharEventDispatcher;
 import com.toocol.termio.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.termio.utilities.anis.Printer;
@@ -76,6 +78,8 @@ public class Termio {
         });
 
         componentInitialise(System.out);
+        Term.initializeReader(null);
+        Shell.initializeReader(null);
         IniConfigLoader.setConfigFileRootPath("/config");
         IniConfigLoader.setConfigurePaths(new String[]{"com.toocol.termio.core.config.core"});
         Printer.printLoading(loadingLatch);

@@ -19,7 +19,7 @@ public record TermReader(Term term) {
         term.executeCursorOldX.set(term.getCursorPosition()[0]);
         try {
             while (true) {
-                char inChar = (char) term.reader.readCharacter();
+                char inChar = (char) term.reader.readChar();
                 char finalChar = term.escapeHelper.processArrowStream(inChar);
 
                 if (term.termCharEventDispatcher.dispatch(term, finalChar)) {
