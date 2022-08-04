@@ -13,6 +13,8 @@ module termio.core {
     requires java.desktop;
     requires ini4j;
 
+    opens com.toocol.termio.core.config.core to termio.utilities;
+
     exports com.toocol.termio.core;
     exports com.toocol.termio.core.cache;
     exports com.toocol.termio.core.config.core;
