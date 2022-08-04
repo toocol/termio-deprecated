@@ -1,16 +1,17 @@
 module termio.core {
     requires termio.utilities;
 
+    requires jdk.unsupported;
     requires com.google.protobuf;
     requires com.google.common;
+    requires org.apache.commons.io;
+    requires org.apache.commons.codec;
+    requires org.apache.commons.lang3;
+    requires java.desktop;
     requires io.vertx.core;
     requires jline;
-    requires org.apache.commons.io;
-    requires org.apache.commons.lang3;
     requires jsch;
-    requires jdk.unsupported;
     requires jsr305;
-    requires java.desktop;
     requires ini4j;
 
     opens com.toocol.termio.core.config.core to termio.utilities;

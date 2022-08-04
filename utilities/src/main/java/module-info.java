@@ -2,6 +2,7 @@ module termio.utilities {
     requires io.vertx.core;
     requires org.apache.commons.io;
     requires org.apache.commons.lang3;
+    requires org.apache.commons.codec;
     requires com.google.common;
     requires jsr305;
     requires ini4j;

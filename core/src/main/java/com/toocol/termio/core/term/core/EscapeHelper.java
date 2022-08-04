@@ -1,8 +1,8 @@
 package com.toocol.termio.core.term.core;
 
 import com.toocol.termio.core.shell.core.Shell;
+import com.toocol.termio.utilities.console.IConsoleReader;
 import com.toocol.termio.utilities.utils.CharUtil;
-import jline.console.ConsoleReader;
 import jline.internal.NonBlockingInputStream;
 
 /**
@@ -43,12 +43,15 @@ public final class EscapeHelper {
     /**
      * To see <a href="https://github.com/jline/jline2/issues/152">jline2/issues/152</a>
      */
-    public char processArrowBundle(char inChar, Shell shell, ConsoleReader reader) {
+    public char processArrowBundle(char inChar, Shell shell, IConsoleReader reader) {
         if (inChar != CharUtil.ESCAPE) {
             return inChar;
         }
         try {
             NonBlockingInputStream stream = (NonBlockingInputStream) reader.getInput();
+            if (stream == null) {
+                return inChar;
+            }
             // Value -2 is the special code meaning that stream reached its end
             if (stream.peek(100) <= -2) {
                 return CharUtil.ESCAPE;
@@ -56,7 +59,7 @@ public final class EscapeHelper {
 
             char inner;
             do {
-                inner = (char) reader.readCharacter();
+                inner = (char) reader.readChar();
             } while (inner == CharUtil.BRACKET_START);
 
             switch (inner) {

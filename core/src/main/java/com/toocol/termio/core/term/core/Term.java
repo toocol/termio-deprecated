@@ -4,10 +4,10 @@ import com.toocol.termio.core.Termio;
 import com.toocol.termio.utilities.action.AbstractDevice;
 import com.toocol.termio.utilities.anis.AnisStringBuilder;
 import com.toocol.termio.utilities.console.Console;
+import com.toocol.termio.utilities.console.IConsoleReader;
 import com.toocol.termio.utilities.console.TerminalConsoleReader;
 import com.toocol.termio.utilities.utils.MessageBox;
 import io.vertx.core.eventbus.EventBus;
-import jline.console.ConsoleReader;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,7 +28,7 @@ public final class Term extends AbstractDevice {
     public static volatile TermStatus status = TermStatus.TERMIO;
     public static TermTheme theme = TermTheme.DARK_THEME;
     public static int executeLine = 0;
-    static TerminalConsoleReader reader;
+    static IConsoleReader reader;
     final EscapeHelper escapeHelper;
     final TermHistoryCmdHelper historyCmdHelper;
     final TermReader termReader;
@@ -39,12 +39,16 @@ public final class Term extends AbstractDevice {
     int displayZoneBottom = 0;
     char lastChar = '\0';
 
-    static {
-        try {
-            reader = new TerminalConsoleReader();
-        } catch (Exception e) {
-            MessageBox.setExitMessage("Create console reader failed.");
-            System.exit(-1);
+    public static void initializeReader(IConsoleReader consoleReader) {
+        if (Termio.runType().equals(Termio.RunType.CONSOLE)) {
+            try {
+                reader = new TerminalConsoleReader();
+            } catch (Exception e) {
+                MessageBox.setExitMessage("Create console reader failed.");
+                System.exit(-1);
+            }
+        } else {
+            reader = consoleReader;
         }
     }
 
