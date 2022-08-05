@@ -1,6 +1,6 @@
 package com.toocol.termio.core.term.handlers;
 
-import com.toocol.termio.core.term.commands.TermioCommand;
+import com.toocol.termio.core.term.commands.TermCommand;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermPrinter;
 import com.toocol.termio.utilities.address.IAddress;
@@ -41,11 +41,11 @@ public final class ExecuteCommandHandler extends NonBlockingMessageHandler {
 
         Tuple2<Boolean, String> resultAndMessage = new Tuple2<>();
         AtomicBoolean isBreak = new AtomicBoolean();
-        boolean isCommand = TermioCommand.cmdOf(cmd)
-                .map(termioCommand -> {
+        boolean isCommand = TermCommand.cmdOf(cmd)
+                .map(termCommand -> {
                     try {
-                        termioCommand.processCmd(eventBus, cmd, resultAndMessage);
-                        if ((TermioCommand.CMD_NUMBER.equals(termioCommand) || TermioCommand.CMD_MOSH.equals(termioCommand))
+                        termCommand.processCmd(eventBus, cmd, resultAndMessage);
+                        if ((TermCommand.CMD_NUMBER.equals(termCommand) || TermCommand.CMD_MOSH.equals(termCommand))
                                 && StringUtils.isEmpty(resultAndMessage._2())) {
                             isBreak.set(true);
                         }

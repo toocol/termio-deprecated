@@ -8,7 +8,7 @@ import io.vertx.core.eventbus.EventBus;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/2 17:32
  */
-public abstract class TermioCommandProcessor implements Loggable {
+public abstract class TermCommandProcessor implements Loggable {
 
     /**
      * process command
