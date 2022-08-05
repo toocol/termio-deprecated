@@ -3,7 +3,7 @@ package com.toocol.termio.core.term.handlers;
 import com.toocol.termio.core.auth.core.SshCredential;
 import com.toocol.termio.core.cache.CredentialCache;
 import com.toocol.termio.core.cache.SshSessionCache;
-import com.toocol.termio.core.term.commands.TermioCommand;
+import com.toocol.termio.core.term.commands.TermCommand;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.anis.AnisStringBuilder;
@@ -26,7 +26,7 @@ import java.util.Map;
  */
 public final class DynamicEchoHandler extends NonBlockingMessageHandler {
 
-    private static final Map<String, TermioCommand> COMMANDS = TermioCommand.COMMANDS;
+    private static final Map<String, TermCommand> COMMANDS = TermCommand.COMMANDS;
 
     volatile public static String lastInput = StrUtil.EMPTY;
 
@@ -45,7 +45,7 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
         int commandHighlightColor = Term.theme.commandHighlightColor.color;
         String finalCmd = cmd.trim();
 
-        TermioCommand command = COMMANDS.get(finalCmd);
+        TermCommand command = COMMANDS.get(finalCmd);
         if (command == null) {
             if (StringUtils.isEmpty(finalCmd)) {
                 lastInput = StrUtil.EMPTY;
@@ -121,12 +121,12 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
 
         if (cmd.contains(StrUtil.SPACE)) {
             String[] split = cmd.split(StrUtil.SPACE);
-            TermioCommand splitCommand = COMMANDS.get(split[0]);
+            TermCommand splitCommand = COMMANDS.get(split[0]);
             if (splitCommand == null) {
                 AnisStringBuilder printMsg = new AnisStringBuilder().background(backgroundColor)
                         .append("Didn't find command '")
                         .front(commandHighlightColor).append(split[0]).deFront().append("'");
-                String alikeCommand = TermioCommand.findAlike(split[0]);
+                String alikeCommand = TermCommand.findAlike(split[0]);
                 if (alikeCommand != null) {
                     printMsg.append(", do you mean: ").front(commandHighlightColor).append(alikeCommand).deFront();
                 } else {
@@ -152,7 +152,7 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
         } else {
             AnisStringBuilder titleMsg = new AnisStringBuilder().background(backgroundColor).append("Alternative commands: ");
             AnisStringBuilder printMsg = new AnisStringBuilder().background(backgroundColor);
-            for (TermioCommand value : TermioCommand.values()) {
+            for (TermCommand value : TermCommand.values()) {
                 if (value.cmd().startsWith(cmd)) {
                     if (StringUtils.isNotEmpty(value.getSpecify())) {
                         printMsg.front(commandHighlightColor).append(value.cmd()).deFront().append(CharUtil.TAB);

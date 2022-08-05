@@ -1,7 +1,7 @@
 package com.toocol.termio.core.term.commands.processors;
 
 import com.toocol.termio.core.cache.CredentialCache;
-import com.toocol.termio.core.term.commands.TermioCommandProcessor;
+import com.toocol.termio.core.term.commands.TermCommandProcessor;
 import com.toocol.termio.utilities.utils.Tuple2;
 import com.toocol.termio.core.ssh.SshAddress;
 import io.vertx.core.eventbus.EventBus;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * @date: 2022/4/23 20:45
  * @version: 0.0.1
  */
-public final class ActiveCmdProcessor extends TermioCommandProcessor {
+public final class ActiveCmdProcessor extends TermCommandProcessor {
     private final CredentialCache credentialCache = CredentialCache.getInstance();
 
     @Override
@@ -72,7 +72,7 @@ public final class ActiveCmdProcessor extends TermioCommandProcessor {
                     }
                 }
             } else {
-                List<String> list = Arrays.stream(split).filter(e -> !e.equals("active")).collect(Collectors.toList());
+                List<String> list = Arrays.stream(split).filter(e -> !e.equals("active")).toList();
                 for (String s : list) {
                     if (!StringUtils.isNumeric(s)) {
                         resultAndMsg.first(false).second("The input parameters must be numeric.");

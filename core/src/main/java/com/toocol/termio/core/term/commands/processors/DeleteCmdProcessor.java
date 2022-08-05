@@ -1,7 +1,7 @@
 package com.toocol.termio.core.term.commands.processors;
 
 import com.toocol.termio.core.cache.CredentialCache;
-import com.toocol.termio.core.term.commands.TermioCommandProcessor;
+import com.toocol.termio.core.term.commands.TermCommandProcessor;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.utilities.anis.Printer;
 import com.toocol.termio.utilities.utils.Tuple2;
@@ -14,7 +14,7 @@ import static com.toocol.termio.core.auth.AuthAddress.DELETE_CREDENTIAL;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/1 18:55
  */
-public class DeleteCmdProcessor extends TermioCommandProcessor {
+public class DeleteCmdProcessor extends TermCommandProcessor {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
 

@@ -1,7 +1,7 @@
 package com.toocol.termio.core.term.commands.processors;
 
 import com.toocol.termio.core.cache.CredentialCache;
-import com.toocol.termio.core.term.commands.TermioCommandProcessor;
+import com.toocol.termio.core.term.commands.TermCommandProcessor;
 import com.toocol.termio.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
@@ -12,7 +12,7 @@ import static com.toocol.termio.core.mosh.MoshAddress.ESTABLISH_MOSH_SESSION;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/27 16:19
  */
-public class MoshCmdProcessor extends TermioCommandProcessor {
+public class MoshCmdProcessor extends TermCommandProcessor {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
 
