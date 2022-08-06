@@ -1,6 +1,6 @@
 package com.toocol.termio.core.term.commands.processors;
 
-import com.toocol.termio.core.term.commands.TermioCommandProcessor;
+import com.toocol.termio.core.term.commands.TermCommandProcessor;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermPrinter;
 import com.toocol.termio.utilities.anis.AnisStringBuilder;
@@ -13,7 +13,7 @@ import io.vertx.core.eventbus.EventBus;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 19:24
  */
-public class FlushCmdProcessor extends TermioCommandProcessor {
+public class FlushCmdProcessor extends TermCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         Printer.clear();

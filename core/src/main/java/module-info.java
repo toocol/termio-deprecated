@@ -1,21 +1,25 @@
 module termio.core {
     requires termio.utilities;
 
+    requires jdk.unsupported;
     requires com.google.protobuf;
     requires com.google.common;
+    requires org.apache.commons.io;
+    requires org.apache.commons.codec;
+    requires org.apache.commons.lang3;
+    requires java.desktop;
     requires io.vertx.core;
     requires jline;
-    requires org.apache.commons.io;
-    requires org.apache.commons.lang3;
     requires jsch;
-    requires jdk.unsupported;
     requires jsr305;
-    requires java.desktop;
     requires ini4j;
+
+    opens com.toocol.termio.core.config.core to termio.utilities;
 
     exports com.toocol.termio.core;
     exports com.toocol.termio.core.cache;
-    exports com.toocol.termio.core.config;
+    exports com.toocol.termio.core.config.core;
+    exports com.toocol.termio.core.config.vert;
     exports com.toocol.termio.core.auth;
     exports com.toocol.termio.core.auth.core;
     exports com.toocol.termio.core.auth.handlers;

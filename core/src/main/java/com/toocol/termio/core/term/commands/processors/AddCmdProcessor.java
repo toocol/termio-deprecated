@@ -2,7 +2,7 @@ package com.toocol.termio.core.term.commands.processors;
 
 import com.toocol.termio.core.auth.core.SshCredential;
 import com.toocol.termio.core.cache.CredentialCache;
-import com.toocol.termio.core.term.commands.TermioCommandProcessor;
+import com.toocol.termio.core.term.commands.TermCommandProcessor;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.utilities.anis.Printer;
 import com.toocol.termio.utilities.utils.RegexUtils;
@@ -15,7 +15,7 @@ import io.vertx.core.json.JsonObject;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/1 16:07
  */
-public class AddCmdProcessor extends TermioCommandProcessor {
+public class AddCmdProcessor extends TermCommandProcessor {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
 

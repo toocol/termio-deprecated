@@ -3,10 +3,13 @@ package com.toocol.termio.core;
 import com.toocol.termio.core.cache.MoshSessionCache;
 import com.toocol.termio.core.cache.SshSessionCache;
 import com.toocol.termio.core.cache.StatusCache;
+import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.shell.core.ShellCharEventDispatcher;
+import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermCharEventDispatcher;
 import com.toocol.termio.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.config.IniConfigLoader;
 import com.toocol.termio.utilities.functional.VerticleDeployment;
 import com.toocol.termio.utilities.jni.JNILoader;
 import com.toocol.termio.utilities.log.FileAppender;
@@ -75,12 +78,15 @@ public class Termio {
         });
 
         componentInitialise(System.out);
+        Term.initializeReader(null);
+        Shell.initializeReader(null);
+        IniConfigLoader.setConfigFileRootPath("/config");
+        IniConfigLoader.setConfigurePaths(new String[]{"com.toocol.termio.core.config.core"});
         Printer.printLoading(loadingLatch);
 
         vertx = prepareVertxEnvironment(null);
         eventBus = vertx.eventBus();
 
-        LoggerFactory.init(vertx);
         addShutdownHook();
         waitingStart();
     }
@@ -111,6 +117,7 @@ public class Termio {
         VertxOptions options = new VertxOptions()
                 .setBlockedThreadCheckInterval(BLOCKED_CHECK_INTERVAL);
         final Vertx vertx = Vertx.vertx(options);
+        LoggerFactory.init(vertx);
 
         /* Deploy the verticle */
         if (ignore != null && !ignore.isEmpty()) {

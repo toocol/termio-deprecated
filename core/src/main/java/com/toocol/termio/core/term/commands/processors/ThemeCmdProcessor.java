@@ -1,6 +1,6 @@
 package com.toocol.termio.core.term.commands.processors;
 
-import com.toocol.termio.core.term.commands.TermioCommandProcessor;
+import com.toocol.termio.core.term.commands.TermCommandProcessor;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermTheme;
 import com.toocol.termio.utilities.anis.Printer;
@@ -12,7 +12,7 @@ import io.vertx.core.eventbus.EventBus;
  * @date: 2022/4/23 1:16
  * @version: 0.0.1
  */
-public class ThemeCmdProcessor extends TermioCommandProcessor {
+public class ThemeCmdProcessor extends TermCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         String[] split = cmd.trim().replaceAll(" {2,}", " ").split(" ");
