@@ -2,8 +2,8 @@ package com.toocol.termio.core.shell.core;
 
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
+import com.toocol.termio.utilities.console.IConsoleReader;
 import com.toocol.termio.utilities.utils.CharUtil;
-import jline.console.ConsoleReader;
 import sun.misc.Signal;
 
 /**
@@ -11,7 +11,7 @@ import sun.misc.Signal;
  * @date: 2022/4/13 2:07
  * @version: 0.0.1
  */
-record ShellReader(Shell shell, ConsoleReader reader) {
+record ShellReader(Shell shell, IConsoleReader reader) {
 
     void initReader() {
         /*
@@ -39,7 +39,7 @@ record ShellReader(Shell shell, ConsoleReader reader) {
     void readCmd() throws Exception {
         shell.cmd.delete(0, shell.cmd.length());
         while (true) {
-            char inChar = (char) reader.readCharacter();
+            char inChar = (char) reader.readChar();
 
             /*
              * Start to deal with arrow key.
