@@ -36,8 +36,8 @@ public enum TermCommand implements ICommand {
     CMD_MOSH("mosh", new MoshCmdProcessor(), "Use mosh to connect remote device.", "Use mosh to connect remote device.\n\nExamples:\nmosh 1"),
     CMD_TEST("test", new TestCmdProcessor(), "Test console print.", "Test console print."),
     CMD_COLOR("color", null, "256 Color panel for testing.", "256 Color panel for testing."),
-    CMD_HELLO_WORLD("hello", new HelloCmdProcessor(), null, null);
-
+    CMD_HELLO_WORLD("hello", new HelloCmdProcessor(), null, null),
+    CMD_HISTORY_OUTPUT("history",new HistoryCmdProcessor(),null,null);
     public static final Map<String, TermCommand> COMMANDS = new HashMap<>();
 
     static {
