@@ -117,7 +117,7 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
 
     @Override
     protected <T> void resultBlocking(AsyncResult<JsonObject> asyncResult, Message<T> message) throws Exception {
-        TermTheme theme = Term.theme;
+
         if (asyncResult.succeeded()) {
             Term term = Term.getInstance();
             term.printScene(false);
@@ -139,9 +139,7 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
                                 anisStringBuilder.append("\n");
                             }
                         }
-                        anisStringBuilder.front(theme.activeSuccessMsgColor.color)
-                                .background(theme.displayBackGroundColor.color)
-                                .append(split[i] + "    ");
+                        anisStringBuilder.front(term.theme.activeSuccessMsgColor.color).background(term.theme.displayBackGroundColor.color).append(split[i] + "    ");
                     }
                 } else {
                     anisStringBuilder.deFront().append("\n" + stringObjectEntry.getKey() + ":" + "\n");
@@ -157,9 +155,7 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
                                 anisStringBuilder.append("\n");
                             }
                         }
-                        anisStringBuilder.front(theme.activeFailedMsgColor.color)
-                                .background(theme.displayBackGroundColor.color)
-                                .append(split[j] + "    ");
+                        anisStringBuilder.front(term.theme.activeFailedMsgColor.color).background(term.theme.displayBackGroundColor.color).append(split[j] + "    ");
                     }
 
                 }

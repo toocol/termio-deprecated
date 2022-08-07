@@ -232,14 +232,15 @@ public record TermPrinter(Term term) {
             for (String line : split) {
                 term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx++);
                 Printer.println(new AnisStringBuilder()
-                        .background(Term.theme.displayBackGroundColor)
+                        .background(Term.theme.displayBackGroundColor.color)
                         .append(line)
                         .toString());
             }
             term.displayZoneBottom = term.getCursorPosition()[1] + 1;
             term.setCursorPosition(Term.getPromptLen() + term.lineBuilder.length(), Term.executeLine);
             term.showCursor();
-        }}
+        }
+    }
 
     synchronized void printDisplayBuffer() {
         if (StringUtils.isEmpty(DISPLAY_BUFF)) {
