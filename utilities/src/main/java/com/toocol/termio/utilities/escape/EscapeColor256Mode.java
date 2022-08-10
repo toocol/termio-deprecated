@@ -1,9 +1,9 @@
-package com.toocol.termio.utilities.anis;
+package com.toocol.termio.utilities.escape;
 
 import java.util.HashMap;
 import java.util.Map;
 
-enum Color_256 {
+public enum EscapeColor256Mode implements IEscapeMode {
     C_0(0, "#000000", "0 0 0"),
     C_1(1, "#800000", "128 0 0"),
     C_2(2, "#008000", "0 128 0"),
@@ -265,7 +265,7 @@ enum Color_256 {
     private static final Map<Integer, String> colorRgbMap = new HashMap<>();
 
     static {
-        for (Color_256 color : values()) {
+        for (EscapeColor256Mode color : values()) {
             colorHexMap.put(color.colorCode, color.hexCode);
             colorRgbMap.put(color.colorCode, color.rgb);
         }
@@ -274,7 +274,7 @@ enum Color_256 {
     public final int colorCode;
     public final String hexCode;
     public final String rgb;
-    Color_256(int colorCode, String hexCode, String rgb) {
+    EscapeColor256Mode(int colorCode, String hexCode, String rgb) {
         this.colorCode = colorCode;
         this.hexCode = hexCode;
         this.rgb = rgb;

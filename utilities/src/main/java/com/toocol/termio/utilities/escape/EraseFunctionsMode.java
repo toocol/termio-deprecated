@@ -1,11 +1,11 @@
-package com.toocol.termio.utilities.anis;
+package com.toocol.termio.utilities.escape;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/7 22:13
  * @version: 0.0.1
  */
-public enum EraseFunctionsMode {
+public enum EraseFunctionsMode implements IEscapeMode {
     ERASE_IN_DISPLAY("J", "erase in display (same as ESC[0J)."),
     ERASE_CURSOR_LINE_TO_END("0J", "erase from cursor until end of screen."),
     ERASE_CURSOR_LINE_TO_BEGINNING("1J", "erase from cursor to beginning of screen."),

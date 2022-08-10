@@ -1,11 +1,11 @@
-package com.toocol.termio.utilities.anis;
+package com.toocol.termio.utilities.escape;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.toocol.termio.utilities.anis.ColorClut.*;
 
-enum ColorISO {
+public enum EscapeColorISOMode implements IEscapeMode {
     FOREGROUND_BRIGHT_BLACK(90, Black.hex),
     FOREGROUND_BRIGHT_RED(91, Red.hex),
     FOREGROUND_BRIGHT_GREEN(92, Green.hex),
@@ -26,7 +26,7 @@ enum ColorISO {
     private static final Map<Integer, String> colorHexMap = new HashMap<>();
 
     static {
-        for (ColorISO color : values()) {
+        for (EscapeColorISOMode color : values()) {
             colorHexMap.put(color.colorCode, color.hexCode);
         }
     }
@@ -35,7 +35,7 @@ enum ColorISO {
     public final String hexCode;
 
 
-    ColorISO(int colorCode, String hexCode) {
+    EscapeColorISOMode(int colorCode, String hexCode) {
         this.colorCode = colorCode;
         this.hexCode = hexCode;
     }

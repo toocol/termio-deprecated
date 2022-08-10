@@ -1,6 +1,6 @@
-package com.toocol.termio.utilities.anis;
+package com.toocol.termio.utilities.escape;
 
-enum EscapeColorGraphicsMode {
+public enum EscapeColorGraphicsMode implements IEscapeMode {
     RESET_ALL_MODE(0),
     BOLD_MODE(1),
     DIM_FAINT_MODE(2),

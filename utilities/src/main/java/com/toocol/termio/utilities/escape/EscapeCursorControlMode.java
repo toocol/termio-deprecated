@@ -1,11 +1,11 @@
-package com.toocol.termio.utilities.anis;
+package com.toocol.termio.utilities.escape;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/7 21:46
  * @version: 0.0.1
  */
-public enum EscapeCursorControlMode {
+public enum EscapeCursorControlMode implements IEscapeMode {
     MOVE_HOME_POSITION("H", "moves cursor to home position (0, 0)."),
     MOVE_CURSOR_UP("A", "moves cursor up # lines (# represent a num)."),
     MOVE_CURSOR_DOWN("B", "moves cursor down # lines (# represent a num)."),
