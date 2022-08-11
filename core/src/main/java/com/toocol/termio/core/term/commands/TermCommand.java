@@ -3,7 +3,7 @@ package com.toocol.termio.core.term.commands;
 import com.toocol.termio.core.term.commands.processors.*;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermTheme;
-import com.toocol.termio.utilities.anis.AnisStringBuilder;
+import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
 import com.toocol.termio.utilities.command.ICommand;
 import com.toocol.termio.utilities.utils.CharUtil;
 import com.toocol.termio.utilities.utils.Tuple2;
@@ -67,7 +67,7 @@ public enum TermCommand implements ICommand {
     }
 
     public static String help() {
-        AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.displayBackGroundColor.color);
+        AnsiStringBuilder helpBuilder = new AnsiStringBuilder().background(Term.theme.displayBackGroundColor.color);
         helpBuilder.append("Termio commands:\t[param] means optional param\n");
         for (TermCommand command : values()) {
             if (StringUtils.isEmpty(command.comment)) {

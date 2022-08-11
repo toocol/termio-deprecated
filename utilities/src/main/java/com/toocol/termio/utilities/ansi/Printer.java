@@ -1,4 +1,4 @@
-package com.toocol.termio.utilities.anis;
+package com.toocol.termio.utilities.ansi;
 
 import com.toocol.termio.utilities.console.Console;
 import com.toocol.termio.utilities.utils.MessageBox;
@@ -38,7 +38,7 @@ public final class Printer {
     }
 
     public static void printErr(String msg) {
-        PRINTER.println(new AnisStringBuilder()
+        PRINTER.println(new AnsiStringBuilder()
                 .front(167)
                 .append(msg));
     }

@@ -3,8 +3,8 @@ package com.toocol.termio.core.cache;
 import com.toocol.termio.core.auth.core.SshCredential;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermTheme;
-import com.toocol.termio.utilities.anis.AnisStringBuilder;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.functional.Switchable;
 import com.toocol.termio.utilities.utils.MessageBox;
 import com.toocol.termio.utilities.utils.StrUtil;
@@ -74,13 +74,13 @@ public class CredentialCache {
             Term term = Term.getInstance();
             CREDENTIAL_SET.forEach(credential -> {
                 int index = idx.getAndIncrement();
-                Printer.print(new AnisStringBuilder()
+                Printer.print(new AnsiStringBuilder()
                         .background(theme.propertiesZoneBgColor.color)
                         .append(StrUtil.SPACE.repeat(term.getWidth()))
                         .toString()
                 );
                 term.setCursorPosition(0, term.getCursorPosition()[1]);
-                AnisStringBuilder builder = new AnisStringBuilder()
+                AnsiStringBuilder builder = new AnsiStringBuilder()
                         .background(theme.propertiesZoneBgColor.color);
                 if (SshSessionCache.getInstance().isAlive(credential.getHost())) {
                     builder.front(theme.sessionAliveColor.color);

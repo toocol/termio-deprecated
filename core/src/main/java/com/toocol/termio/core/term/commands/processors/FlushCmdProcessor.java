@@ -3,8 +3,8 @@ package com.toocol.termio.core.term.commands.processors;
 import com.toocol.termio.core.term.commands.TermCommandProcessor;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermPrinter;
-import com.toocol.termio.utilities.anis.AnisStringBuilder;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.utils.StrUtil;
 import com.toocol.termio.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
@@ -20,7 +20,7 @@ public class FlushCmdProcessor extends TermCommandProcessor {
         Term.getInstance().printScene(false);
         Term.getInstance().setCursorPosition(Term.LEFT_MARGIN, Term.executeLine);
 
-        AnisStringBuilder builder = new AnisStringBuilder()
+        AnsiStringBuilder builder = new AnsiStringBuilder()
                 .background(Term.theme.executeBackgroundColor.color)
                 .front(Term.theme.executeFrontColor.color)
                 .append(Term.PROMPT)

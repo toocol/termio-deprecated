@@ -1,4 +1,4 @@
-package com.toocol.termio.utilities.anis;
+package com.toocol.termio.utilities.ansi;
 
 import com.toocol.termio.utilities.utils.StrUtil;
 

@@ -48,6 +48,10 @@ public final class StrUtil extends StringUtils {
      */
     public static final String SPACE = " ";
     /**
+     * {@code "none-breaking space"}
+     */
+    public static final String NONE_BREAKING_SPACE = "\u00A0";
+    /**
      * {@code "\r\n"} <br>
      */
     public static final String CRLF = "\r\n";

@@ -2,7 +2,7 @@ package com.toocol.termio.core.term.core;
 
 import com.toocol.termio.core.Termio;
 import com.toocol.termio.utilities.action.AbstractDevice;
-import com.toocol.termio.utilities.anis.AnisStringBuilder;
+import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
 import com.toocol.termio.utilities.console.Console;
 import com.toocol.termio.utilities.console.IConsoleReader;
 import com.toocol.termio.utilities.console.TerminalConsoleReader;
@@ -90,7 +90,7 @@ public final class Term extends AbstractDevice {
 
     public void printErr(String msg) {
         termPrinter.printDisplay(
-                new AnisStringBuilder()
+                new AnsiStringBuilder()
                         .front(theme.errorMsgColor.color)
                         .background(theme.displayBackGroundColor.color)
                         .append(msg)

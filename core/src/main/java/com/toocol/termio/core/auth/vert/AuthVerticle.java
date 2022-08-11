@@ -5,7 +5,7 @@ import com.toocol.termio.core.auth.core.SshCredential;
 import com.toocol.termio.core.auth.handlers.AddCredentialHandler;
 import com.toocol.termio.core.auth.handlers.DeleteCredentialHandler;
 import com.toocol.termio.core.cache.CredentialCache;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.functional.RegisterHandler;
 import com.toocol.termio.utilities.functional.VerticleDeployment;
 import com.toocol.termio.utilities.handler.IHandlerMounter;
