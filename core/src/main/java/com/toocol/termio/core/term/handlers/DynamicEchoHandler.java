@@ -6,8 +6,8 @@ import com.toocol.termio.core.cache.SshSessionCache;
 import com.toocol.termio.core.term.commands.TermCommand;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.utilities.address.IAddress;
-import com.toocol.termio.utilities.anis.AnisStringBuilder;
-import com.toocol.termio.utilities.anis.ColorHelper;
+import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
+import com.toocol.termio.utilities.ansi.ColorHelper;
 import com.toocol.termio.utilities.handler.NonBlockingMessageHandler;
 import com.toocol.termio.utilities.utils.CharUtil;
 import com.toocol.termio.utilities.utils.StrUtil;
@@ -53,7 +53,7 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
                 return;
             }
             if (StringUtils.isNumeric(finalCmd)) {
-                AnisStringBuilder connectionPrompt = new AnisStringBuilder().background(backgroundColor);
+                AnsiStringBuilder connectionPrompt = new AnsiStringBuilder().background(backgroundColor);
                 connectionPrompt.append("Connection [").append(finalCmd.length() == 1 ? "0" + finalCmd : finalCmd).append("]");
                 connectionPrompt.append("\n\n");
 
@@ -94,7 +94,7 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
                 }
                 lastInput = command.getSpecify();
             } else {
-                AnisStringBuilder builder = new AnisStringBuilder().background(backgroundColor)
+                AnsiStringBuilder builder = new AnsiStringBuilder().background(backgroundColor)
                         .append("Didn't find command '")
                         .front(commandHighlightColor).append(cmd).deFront()
                         .append("'\n\n")
@@ -123,7 +123,7 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
             String[] split = cmd.split(StrUtil.SPACE);
             TermCommand splitCommand = COMMANDS.get(split[0]);
             if (splitCommand == null) {
-                AnisStringBuilder printMsg = new AnisStringBuilder().background(backgroundColor)
+                AnsiStringBuilder printMsg = new AnsiStringBuilder().background(backgroundColor)
                         .append("Didn't find command '")
                         .front(commandHighlightColor).append(split[0]).deFront().append("'");
                 String alikeCommand = TermCommand.findAlike(split[0]);
@@ -150,8 +150,8 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
                 }
             }
         } else {
-            AnisStringBuilder titleMsg = new AnisStringBuilder().background(backgroundColor).append("Alternative commands: ");
-            AnisStringBuilder printMsg = new AnisStringBuilder().background(backgroundColor);
+            AnsiStringBuilder titleMsg = new AnsiStringBuilder().background(backgroundColor).append("Alternative commands: ");
+            AnsiStringBuilder printMsg = new AnsiStringBuilder().background(backgroundColor);
             for (TermCommand value : TermCommand.values()) {
                 if (value.cmd().startsWith(cmd)) {
                     if (StringUtils.isNotEmpty(value.getSpecify())) {
@@ -166,7 +166,7 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
                 }
                 lastInput = titleMsg.toString();
             } else {
-                AnisStringBuilder builder = new AnisStringBuilder().background(backgroundColor)
+                AnsiStringBuilder builder = new AnsiStringBuilder().background(backgroundColor)
                         .append("Didn't find command '")
                         .front(commandHighlightColor).append(cmd).deFront()
                         .append("'\n\n")

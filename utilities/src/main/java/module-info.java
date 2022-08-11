@@ -10,7 +10,8 @@ module termio.utilities {
 
     exports com.toocol.termio.utilities.action;
     exports com.toocol.termio.utilities.address;
-    exports com.toocol.termio.utilities.anis;
+    exports com.toocol.termio.utilities.ansi;
+    exports com.toocol.termio.utilities.bundle;
     exports com.toocol.termio.utilities.command;
     exports com.toocol.termio.utilities.config;
     exports com.toocol.termio.utilities.console;

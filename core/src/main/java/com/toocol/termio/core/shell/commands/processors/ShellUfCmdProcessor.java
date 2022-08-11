@@ -2,7 +2,7 @@ package com.toocol.termio.core.shell.commands.processors;
 
 import com.toocol.termio.core.shell.commands.ShellCommandProcessor;
 import com.toocol.termio.core.shell.core.Shell;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.utils.StrUtil;
 import com.toocol.termio.utilities.utils.Tuple2;
 import com.toocol.termio.core.shell.ShellAddress;

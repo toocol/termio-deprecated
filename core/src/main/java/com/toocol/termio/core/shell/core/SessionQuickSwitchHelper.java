@@ -5,9 +5,9 @@ import com.toocol.termio.core.cache.SshSessionCache;
 import com.toocol.termio.core.cache.StatusCache;
 import com.toocol.termio.core.ssh.SshAddress;
 import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.utilities.anis.AnisStringBuilder;
-import com.toocol.termio.utilities.anis.AsciiControl;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
+import com.toocol.termio.utilities.ansi.AsciiControl;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.execeptions.IStacktraceParser;
 import com.toocol.termio.utilities.functional.Switchable;
 import com.toocol.termio.utilities.log.Loggable;
@@ -83,7 +83,7 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
                 }
             }
 
-            AnisStringBuilder promptBase = new AnisStringBuilder()
+            AnsiStringBuilder promptBase = new AnsiStringBuilder()
                     .append(shell.getPrompt())
                     .front(Term.theme.lcCmdExecuteHighlightColor.color)
                     .append("> {} <");
@@ -95,7 +95,7 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
             term.setCursorPosition(0, recordCursorPos[1] + helpInfoLine);
             int width = term.getWidth();
             Printer.print(
-                    new AnisStringBuilder().background(Term.theme.switchSessionPanelBottomBgColor.color)
+                    new AnsiStringBuilder().background(Term.theme.switchSessionPanelBottomBgColor.color)
                             .append(HELP_INFO)
                             .space(width - HELP_INFO.length())
                             .toString()
@@ -180,7 +180,7 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
     }
 
     private void printSwitchPanel() {
-        AnisStringBuilder builder = new AnisStringBuilder();
+        AnsiStringBuilder builder = new AnsiStringBuilder();
         int[] partLength = new int[5];
         int width = term.getWidth();
         int totalPartLength = 0;

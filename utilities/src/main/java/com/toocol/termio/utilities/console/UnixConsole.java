@@ -1,6 +1,6 @@
 package com.toocol.termio.utilities.console;
 
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.Printer;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

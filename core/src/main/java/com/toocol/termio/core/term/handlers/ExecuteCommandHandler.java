@@ -4,8 +4,8 @@ import com.toocol.termio.core.term.commands.TermCommand;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermPrinter;
 import com.toocol.termio.utilities.address.IAddress;
-import com.toocol.termio.utilities.anis.AnisStringBuilder;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.handler.NonBlockingMessageHandler;
 import com.toocol.termio.utilities.utils.StrUtil;
 import com.toocol.termio.utilities.utils.Tuple2;
@@ -63,7 +63,7 @@ public final class ExecuteCommandHandler extends NonBlockingMessageHandler {
         }
 
         if (!isCommand && StringUtils.isNotEmpty(cmd)) {
-            AnisStringBuilder builder = new AnisStringBuilder()
+            AnsiStringBuilder builder = new AnsiStringBuilder()
                     .background(Term.theme.displayBackGroundColor.color)
                     .front(Term.theme.commandHighlightColor.color)
                     .append(cmd)

@@ -7,7 +7,7 @@ import com.toocol.termio.core.cache.StatusCache;
 import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.utilities.address.IAddress;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.handler.BlockingMessageHandler;
 import com.toocol.termio.utilities.log.Loggable;
 import com.toocol.termio.utilities.sync.SharedCountdownLatch;

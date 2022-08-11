@@ -1,7 +1,7 @@
 package com.toocol.termio.core.mosh.core.network;
 
 import com.toocol.termio.core.mosh.core.statesnyc.UserEvent;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.Printer;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

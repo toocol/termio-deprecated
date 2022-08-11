@@ -3,7 +3,7 @@ package com.toocol.termio.core.shell.commands;
 import com.toocol.termio.core.shell.commands.processors.*;
 import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.utilities.anis.AnisStringBuilder;
+import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
 import com.toocol.termio.utilities.command.ICommand;
 import com.toocol.termio.utilities.execeptions.RemoteDisconnectException;
 import com.toocol.termio.utilities.utils.CharUtil;
@@ -59,7 +59,7 @@ public enum ShellCommand implements ICommand {
     }
 
     public static String help() {
-        AnisStringBuilder helpBuilder = new AnisStringBuilder().background(Term.theme.displayBackGroundColor.color);
+        AnsiStringBuilder helpBuilder = new AnsiStringBuilder().background(Term.theme.displayBackGroundColor.color);
         helpBuilder.append("Shell commands:\t[param] means optional param\n");
         for (ShellCommand command : values()) {
             if (StringUtils.isEmpty(command.comment)) {

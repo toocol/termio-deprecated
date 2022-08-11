@@ -4,7 +4,7 @@ import com.toocol.termio.core.auth.core.SshCredential;
 import com.toocol.termio.core.cache.CredentialCache;
 import com.toocol.termio.core.term.commands.TermCommandProcessor;
 import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.utils.RegexUtils;
 import com.toocol.termio.utilities.utils.Tuple2;
 import com.toocol.termio.core.auth.AuthAddress;

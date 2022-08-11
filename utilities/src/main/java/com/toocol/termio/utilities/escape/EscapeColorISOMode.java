@@ -3,7 +3,7 @@ package com.toocol.termio.utilities.escape;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.toocol.termio.utilities.anis.ColorClut.*;
+import static com.toocol.termio.utilities.ansi.ColorClut.*;
 
 public enum EscapeColorISOMode implements IEscapeMode {
     FOREGROUND_BRIGHT_BLACK(90, Black.hex),

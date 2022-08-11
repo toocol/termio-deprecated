@@ -1,4 +1,4 @@
-package com.toocol.termio.utilities.anis;
+package com.toocol.termio.utilities.ansi;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
