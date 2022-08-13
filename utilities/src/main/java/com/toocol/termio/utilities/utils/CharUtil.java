@@ -29,6 +29,10 @@ public final class CharUtil {
      */
     public static final char LEFT_ARROW = '\uDDDD';
     /**
+     * {@code invisible char}
+     */
+    public static final char INVISIBLE_CHAR = '\uFEFF';
+    /**
      * {@code Ctrl+A}
      */
     public static final char CTRL_A = '\u0001';
