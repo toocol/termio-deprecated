@@ -2,8 +2,12 @@ package com.toocol.termio.utilities.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * String util class
@@ -35,6 +39,10 @@ public final class StrUtil extends StringUtils {
      * {@code "\b"}
      */
     public static final String BACKSPACE = "\b";
+    /**
+     * {@code "\uFEFF"}
+     */
+    public static final String INVISIBLE_CHAR = "\uFEFF";
     /**
      * {@code "null"}
      */
@@ -107,6 +115,42 @@ public final class StrUtil extends StringUtils {
 
     public static boolean containsAny(CharSequence str, CharSequence... testStrs) {
         return null != getContainsStr(str, testStrs);
+    }
+
+    public static Collection<String> splitSequenceByChinese(String str) {
+        List<String> result = new ArrayList<>();
+        StringBuilder builder = new StringBuilder();
+        int currentLanguage, lastLanguage = 0;
+        for (char ch : str.toCharArray()) {
+            if (CharUtil.isChinese(ch)) {
+                currentLanguage = 1;
+            } else {
+                currentLanguage = 2;
+            }
+            if (currentLanguage != lastLanguage && lastLanguage != 0) {
+                result.add(builder.toString());
+                builder.delete(0, builder.length());
+            }
+            lastLanguage = currentLanguage;
+            builder.append(ch);
+        }
+        if (builder.length() > 0) {
+            result.add(builder.toString());
+        }
+        return result;
+    }
+
+    public static boolean isChineseSequence(@Nonnull String str) {
+        for (char ch : str.toCharArray()) {
+            if (!CharUtil.isChinese(ch)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean isChineseSequenceByHead(@Nonnull String str) {
+        return CharUtil.isChinese(str.charAt(0));
     }
 
     public static String getContainsStr(CharSequence str, CharSequence... testStrs) {
