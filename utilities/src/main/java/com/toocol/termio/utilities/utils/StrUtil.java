@@ -113,6 +113,10 @@ public final class StrUtil extends StringUtils {
         return charset.decode(data).toString();
     }
 
+    public static boolean isNewLine(String str) {
+        return LF.equals(str) || CR.equals(str) || CRLF.equals(str);
+    }
+
     public static boolean containsAny(CharSequence str, CharSequence... testStrs) {
         return null != getContainsStr(str, testStrs);
     }

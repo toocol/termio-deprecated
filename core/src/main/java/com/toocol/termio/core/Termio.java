@@ -77,9 +77,9 @@ public class Termio {
         Signal.handle(new Signal("INT"), signal -> {
         });
 
-        componentInitialise(System.out);
-        Term.initializeReader(null);
-        Shell.initializeReader(null);
+        componentInitialise();
+        Term.initializeReader(System.in);
+        Shell.initializeReader(System.in);
         IniConfigLoader.setConfigFileRootPath("/config");
         IniConfigLoader.setConfigurePaths(new String[]{"com.toocol.termio.core.config.core"});
         Printer.printLoading(loadingLatch);
@@ -103,13 +103,13 @@ public class Termio {
         return eventBus;
     }
 
-    protected static void componentInitialise(PrintStream printStream) {
+    protected static void componentInitialise() {
         if (runType.equals(RunType.CONSOLE)) {
             JNILoader.load();
         }
         TermCharEventDispatcher.init();
         ShellCharEventDispatcher.init();
-        Printer.setPrinter(printStream);
+        Printer.setPrinter(System.out);
     }
 
     protected static Vertx prepareVertxEnvironment(Set<Class<? extends AbstractVerticle>> ignore) {
