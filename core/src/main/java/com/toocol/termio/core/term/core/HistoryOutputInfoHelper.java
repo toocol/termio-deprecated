@@ -2,14 +2,13 @@ package com.toocol.termio.core.term.core;
 
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
 import com.toocol.termio.utilities.log.Loggable;
-
+import org.apache.commons.lang3.StringUtils;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public final class HistoryOutputInfoHelper implements Loggable {
-    private static final int PAGE_SIZE = 2;
+    private static final int PAGE_SIZE = 5;
     private static final HistoryOutputInfoHelper instance = new HistoryOutputInfoHelper();
-
     private int showIndex = 1;
     private int totalPage = 1;
     private final Map<Integer, List<String>> msgList = new HashMap<>();
@@ -32,6 +31,11 @@ public final class HistoryOutputInfoHelper implements Loggable {
         List<String> msgs = msgList.get(showIndex);
         AnsiStringBuilder builder = new AnsiStringBuilder();
         msgs.forEach(builder::append);
+        builder.append("\n")
+                .append("index:")
+                .append(showIndex)
+                .append(StringUtils.repeat(" ",40))
+                .append("Press '←'/'→' to change page,'Esc' to quit.");
         Term term = Term.getInstance();
         term.termPrinter.cleanDisplay();
         term.printDisplayWithRecord(builder.toString());

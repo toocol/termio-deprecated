@@ -12,8 +12,12 @@ public final class ActionEscape extends TermCharAction {
         return new CharEvent[]{CharEvent.ESCAPE};
     }
 
-    @Override
+
     public boolean actOnConsole(Term term, CharEvent charEvent, char inChar) {
+        if (TermStatus.HISTORY_OUTPUT.equals(Term.status)) {
+            term.cleanDisplay();
+            Term.status = TermStatus.TERMIO;
+        }
         return false;
     }
 
