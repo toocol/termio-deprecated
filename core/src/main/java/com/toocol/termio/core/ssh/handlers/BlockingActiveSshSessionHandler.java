@@ -21,7 +21,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
+import org.apache.commons.lang3.StringUtils;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @version: 0.0.1
  */
 @Ordered
-public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandler<JsonObject> {
+public final class BlockingActiveSshSessionHandler extends BlockingMessageHandler<JsonObject> {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();
@@ -138,7 +138,9 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
                                 ansiStringBuilder.append("\n");
                             }
                         }
-                        ansiStringBuilder.front(term.theme.activeSuccessMsgColor.color).background(term.theme.displayBackGroundColor.color).append(split[i] + "    ");
+                        ansiStringBuilder.front(term.theme.activeSuccessMsgColor.color)
+                                .background(term.theme.displayBackGroundColor.color)
+                                .append(split[i] + StringUtils.repeat(" ",4));
                     }
                 } else {
                     ansiStringBuilder.deFront().append("\n" + stringObjectEntry.getKey() + ":" + "\n");
@@ -154,7 +156,9 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
                                 ansiStringBuilder.append("\n");
                             }
                         }
-                        ansiStringBuilder.front(term.theme.activeFailedMsgColor.color).background(term.theme.displayBackGroundColor.color).append(split[j] + "    ");
+                        ansiStringBuilder.front(term.theme.activeFailedMsgColor.color)
+                                .background(term.theme.displayBackGroundColor.color)
+                                .append(split[j] + StringUtils.repeat(" ",4));
                     }
 
                 }

@@ -82,6 +82,43 @@ public final class EscapeHelper {
         }
     }
 
+    public char processArrowBundle(char inChar, IConsoleReader reader) {
+        if (inChar != CharUtil.ESCAPE) {
+            return inChar;
+        }
+        try {
+            NonBlockingInputStream stream = (NonBlockingInputStream) reader.getInput();
+            if (stream == null) {
+                return inChar;
+            }
+            // Value -2 is the special code meaning that stream reached its end
+            if (stream.peek(100) <= -2) {
+                return CharUtil.ESCAPE;
+            }
+
+            char inner;
+            do {
+                inner = (char) reader.readChar();
+            } while (inner == CharUtil.BRACKET_START);
+
+            switch (inner) {
+                case 'A':
+                    return CharUtil.UP_ARROW;
+                case 'B':
+                    return CharUtil.DOWN_ARROW;
+                case 'C':
+                    return CharUtil.RIGHT_ARROW;
+                case 'D':
+                    return CharUtil.LEFT_ARROW;
+                default:
+                    return inner;
+            }
+
+        } catch (Exception e) {
+            return inChar;
+        }
+    }
+
     public boolean isAcceptBracketAfterEscape() {
         return acceptBracketAfterEscape;
     }

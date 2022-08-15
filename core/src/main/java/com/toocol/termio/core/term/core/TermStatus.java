@@ -8,7 +8,7 @@ package com.toocol.termio.core.term.core;
 public enum TermStatus {
     TERMIO(),
     SHELL(),
-   HISTORY_OUTPUT();
+    HISTORY_OUTPUT();
 
     TermStatus() {
     }

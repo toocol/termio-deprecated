@@ -9,7 +9,6 @@ import com.toocol.termio.utilities.utils.CharUtil;
 import com.toocol.termio.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +36,7 @@ public enum TermCommand implements ICommand {
     CMD_TEST("test", new TestCmdProcessor(), "Test console print.", "Test console print."),
     CMD_COLOR("color", null, "256 Color panel for testing.", "256 Color panel for testing."),
     CMD_HELLO_WORLD("hello", new HelloCmdProcessor(), null, null),
-    CMD_HISTORY_OUTPUT("history",new HistoryCmdProcessor(),null,null);
+    CMD_HISTORY_OUTPUT("history",new HistoryCmdProcessor(),"View historical output messages","View historical output messages");
     public static final Map<String, TermCommand> COMMANDS = new HashMap<>();
 
     static {
