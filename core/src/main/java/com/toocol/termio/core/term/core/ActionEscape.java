@@ -14,7 +14,12 @@ public final class ActionEscape extends TermCharAction {
 
     @Override
     public boolean act(Term device, CharEvent charEvent, char inChar) {
-
-        return false;
+       if(TermStatus.HISTORY_OUTPUT.equals(device.status)){
+            device.cleanDisplay();
+            device.status=TermStatus.TERMIO;
+            return true;
+       } else {
+           return false;
+       }
     }
 }
