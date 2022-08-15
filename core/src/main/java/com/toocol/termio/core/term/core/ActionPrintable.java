@@ -46,6 +46,7 @@ public final class ActionPrintable extends TermCharAction {
 
     @Override
     public boolean actOnDesktop(Term term, CharEvent charEvent, char inChar) {
+        term.lineBuilder.append(inChar);
         return false;
     }
 }
