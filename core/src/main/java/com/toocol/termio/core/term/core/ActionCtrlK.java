@@ -15,12 +15,17 @@ public final class ActionCtrlK extends TermCharAction {
     }
 
     @Override
-    public boolean act(Term term, CharEvent charEvent, char inChar) {
+    public boolean actOnConsole(Term term, CharEvent charEvent, char inChar) {
         Printer.clear();
         term.lineBuilder.delete(0, term.lineBuilder.length());
         term.executeCursorOldX.set(Term.getPromptLen());
         term.printScene(false);
         TermPrinter.DISPLAY_BUFF = StrUtil.EMPTY;
+        return false;
+    }
+
+    @Override
+    public boolean actOnDesktop(Term term, CharEvent charEvent, char inChar) {
         return false;
     }
 }

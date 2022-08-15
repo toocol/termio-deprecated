@@ -14,7 +14,7 @@ public final class ActionUpDownArrow extends TermCharAction {
     }
 
     @Override
-    public boolean act(Term term, CharEvent charEvent, char inChar) {
+    public boolean actOnConsole(Term term, CharEvent charEvent, char inChar) {
         if (inChar == CharUtil.UP_ARROW) {
             if (!term.historyCmdHelper.isStart()) {
                 if (term.lineBuilder.toString().length() != 0) {
@@ -32,6 +32,11 @@ public final class ActionUpDownArrow extends TermCharAction {
             }
         }
         term.executeCursorOldX.set(term.lineBuilder.length() + Term.getPromptLen());
+        return false;
+    }
+
+    @Override
+    public boolean actOnDesktop(Term term, CharEvent charEvent, char inChar) {
         return false;
     }
 }

@@ -12,12 +12,17 @@ public final class ActionEscape extends TermCharAction {
         return new CharEvent[]{CharEvent.ESCAPE};
     }
 
-    @Override
-    public boolean act(Term device, CharEvent charEvent, char inChar) {
+
+    public boolean actOnConsole(Term term, CharEvent charEvent, char inChar) {
         if (TermStatus.HISTORY_OUTPUT.equals(Term.status)) {
-            device.cleanDisplay();
+            term.cleanDisplay();
             Term.status = TermStatus.TERMIO;
         }
+        return false;
+    }
+
+    @Override
+    public boolean actOnDesktop(Term term, CharEvent charEvent, char inChar) {
         return false;
     }
 }

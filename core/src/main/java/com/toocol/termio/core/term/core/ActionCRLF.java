@@ -14,7 +14,7 @@ public final class ActionCRLF extends TermCharAction {
     }
 
     @Override
-    public boolean act(Term term, CharEvent charEvent, char inChar) {
+    public boolean actOnConsole(Term term, CharEvent charEvent, char inChar) {
         int[] cursorPosition = term.getCursorPosition();
         term.hideCursor();
         term.setCursorPosition(Term.getPromptLen(), cursorPosition[1]);
@@ -23,6 +23,11 @@ public final class ActionCRLF extends TermCharAction {
 
         term.executeCursorOldX.set(Term.getPromptLen());
         term.printExecution(StrUtil.EMPTY);
+        return true;
+    }
+
+    @Override
+    public boolean actOnDesktop(Term term, CharEvent charEvent, char inChar) {
         return true;
     }
 }

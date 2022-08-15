@@ -14,7 +14,7 @@ public final class ActionPrintable extends TermCharAction {
     }
 
     @Override
-    public boolean act(Term term, CharEvent charEvent, char inChar) {
+    public boolean actOnConsole(Term term, CharEvent charEvent, char inChar) {
         if (term.escapeHelper.isAcceptBracketAfterEscape()) {
             return false;
         }
@@ -41,6 +41,11 @@ public final class ActionPrintable extends TermCharAction {
                 return ++prev;
             }
         });
+        return false;
+    }
+
+    @Override
+    public boolean actOnDesktop(Term term, CharEvent charEvent, char inChar) {
         return false;
     }
 }
