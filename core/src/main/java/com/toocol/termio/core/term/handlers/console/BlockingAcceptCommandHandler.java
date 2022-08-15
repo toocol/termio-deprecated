@@ -1,4 +1,4 @@
-package com.toocol.termio.core.term.handlers;
+package com.toocol.termio.core.term.handlers.console;
 
 import com.toocol.termio.core.cache.StatusCache;
 import com.toocol.termio.core.term.core.Term;
@@ -34,7 +34,7 @@ public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<B
 
     @Override
     public IAddress consume() {
-        return TermAddress.ACCEPT_COMMAND;
+        return TermAddress.ACCEPT_COMMAND_CONSOLE;
     }
 
     @Override
@@ -94,7 +94,7 @@ public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<B
     @Override
     protected <T> void resultBlocking(AsyncResult<Boolean> asyncResult, Message<T> message) {
         if (asyncResult.result()) {
-            eventBus.send(TermAddress.ACCEPT_COMMAND.address(), ACCEPT_ERROR);
+            eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), ACCEPT_ERROR);
         }
     }
 }

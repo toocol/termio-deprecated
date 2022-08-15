@@ -11,8 +11,8 @@ import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.shell.core.ShellProtocol;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
-import com.toocol.termio.core.term.handlers.BlockingAcceptCommandHandler;
-import com.toocol.termio.core.term.handlers.BlockingMonitorTerminalHandler;
+import com.toocol.termio.core.term.handlers.console.BlockingAcceptCommandHandler;
+import com.toocol.termio.core.term.handlers.console.BlockingMonitorTerminalHandler;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.functional.Ordered;
@@ -83,10 +83,10 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
                         System.gc();
                     });
                 } catch (Exception e) {
-                    eventBus.send(TermAddress.ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
+                    eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
                 }
             } else {
-                eventBus.send(TermAddress.ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
+                eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
             }
         });
         promise.complete();
@@ -97,7 +97,7 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
         if (!asyncResult.succeeded()) {
             warn("Establish mosh connection failed.");
             MessageBox.setErrorMessage("Can't touch the mosh-server.");
-            eventBus.send(TermAddress.ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.NORMAL_BACK);
+            eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), BlockingAcceptCommandHandler.NORMAL_BACK);
         }
     }
 

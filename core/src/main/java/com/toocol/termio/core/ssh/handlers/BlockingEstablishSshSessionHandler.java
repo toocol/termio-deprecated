@@ -10,8 +10,8 @@ import com.toocol.termio.core.shell.core.ShellProtocol;
 import com.toocol.termio.core.ssh.core.SshSessionFactory;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
-import com.toocol.termio.core.term.handlers.BlockingAcceptCommandHandler;
-import com.toocol.termio.core.term.handlers.BlockingMonitorTerminalHandler;
+import com.toocol.termio.core.term.handlers.console.BlockingAcceptCommandHandler;
+import com.toocol.termio.core.term.handlers.console.BlockingMonitorTerminalHandler;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.functional.Executable;
 import com.toocol.termio.utilities.functional.Ordered;
@@ -132,7 +132,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
         } else {
 
             warn("Establish ssh connection failed.");
-            eventBus.send(TermAddress.ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
+            eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
 
         }
     }

@@ -82,7 +82,7 @@ public final class EscapeHelper {
         }
     }
 
-    public char processArrowBundle(char inChar, IConsoleReader reader) {
+    public char processArrowBundle(char inChar, ConsoleReader reader) {
         if (inChar != CharUtil.ESCAPE) {
             return inChar;
         }
@@ -98,21 +98,16 @@ public final class EscapeHelper {
 
             char inner;
             do {
-                inner = (char) reader.readChar();
+                inner = (char) reader.readCharacter();
             } while (inner == CharUtil.BRACKET_START);
 
-            switch (inner) {
-                case 'A':
-                    return CharUtil.UP_ARROW;
-                case 'B':
-                    return CharUtil.DOWN_ARROW;
-                case 'C':
-                    return CharUtil.RIGHT_ARROW;
-                case 'D':
-                    return CharUtil.LEFT_ARROW;
-                default:
-                    return inner;
-            }
+            return switch (inner) {
+                case 'A' -> CharUtil.UP_ARROW;
+                case 'B' -> CharUtil.DOWN_ARROW;
+                case 'C' -> CharUtil.RIGHT_ARROW;
+                case 'D' -> CharUtil.LEFT_ARROW;
+                default -> inner;
+            };
 
         } catch (Exception e) {
             return inChar;

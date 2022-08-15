@@ -1,4 +1,4 @@
-package com.toocol.termio.core.term.handlers;
+package com.toocol.termio.core.term.handlers.console;
 
 import com.toocol.termio.core.auth.core.SshCredential;
 import com.toocol.termio.core.cache.CredentialCache;

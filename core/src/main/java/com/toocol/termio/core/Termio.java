@@ -7,9 +7,10 @@ import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.shell.core.ShellCharEventDispatcher;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermCharEventDispatcher;
-import com.toocol.termio.core.term.handlers.BlockingAcceptCommandHandler;
+import com.toocol.termio.core.term.handlers.console.BlockingAcceptCommandHandler;
 import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.config.IniConfigLoader;
+import com.toocol.termio.utilities.functional.Ignore;
 import com.toocol.termio.utilities.functional.VerticleDeployment;
 import com.toocol.termio.utilities.jni.JNILoader;
 import com.toocol.termio.utilities.log.FileAppender;
@@ -25,16 +26,12 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.eventbus.EventBus;
 import sun.misc.Signal;
 
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
-import static com.toocol.termio.core.term.TermAddress.ACCEPT_COMMAND;
-import static com.toocol.termio.core.term.TermAddress.MONITOR_TERMINAL;
+import static com.toocol.termio.core.term.TermAddress.*;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -67,11 +64,9 @@ public class Termio {
                 Printer.printErr("Skip deploy verticle " + annotatedClass.getName() + ", please extends AbstractVerticle");
             }
         });
-        initialLatch = new CountDownLatch(verticleClassList.size());
         loadingLatch = new CountDownLatch(1);
     }
-
-    public static void run() {
+    public static void runConsole(Class<?> runClass) {
         runType = RunType.CONSOLE;
         /* Block the Ctrl+C */
         Signal.handle(new Signal("INT"), signal -> {
@@ -84,11 +79,15 @@ public class Termio {
         IniConfigLoader.setConfigurePaths(new String[]{"com.toocol.termio.core.config.core"});
         Printer.printLoading(loadingLatch);
 
-        vertx = prepareVertxEnvironment(null);
+        vertx = prepareVertxEnvironment(
+                Optional.ofNullable(runClass.getAnnotation(Ignore.class))
+                        .map(ignore -> Arrays.stream(ignore.ignore()).collect(Collectors.toSet()))
+                        .orElse(null)
+        );
         eventBus = vertx.eventBus();
 
         addShutdownHook();
-        waitingStart();
+        waitingStartConsole();
     }
 
     public static RunType runType() {
@@ -113,6 +112,9 @@ public class Termio {
     }
 
     protected static Vertx prepareVertxEnvironment(Set<Class<? extends AbstractVerticle>> ignore) {
+        int initialLatchSize = ignore == null ? verticleClassList.size() : verticleClassList.size() - ignore.size();
+        initialLatch = new CountDownLatch(initialLatchSize);
+
         /* Because this program involves a large number of IO operations, increasing the blocking check time, we don't need it */
         VertxOptions options = new VertxOptions()
                 .setBlockedThreadCheckInterval(BLOCKED_CHECK_INTERVAL);
@@ -168,7 +170,7 @@ public class Termio {
         }));
     }
 
-    protected static void waitingStart() {
+    protected static void waitingStartConsole() {
         try {
             boolean ret = initialLatch.await(30, TimeUnit.SECONDS);
             if (!ret) {
@@ -178,7 +180,33 @@ public class Termio {
                 if (Printer.LOADING_ACCOMPLISH) {
                     loadingLatch.await();
                     vertx.eventBus().send(MONITOR_TERMINAL.address(), null);
-                    vertx.eventBus().send(ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.FIRST_IN);
+                    vertx.eventBus().send(ACCEPT_COMMAND_CONSOLE.address(), BlockingAcceptCommandHandler.FIRST_IN);
+
+                    loadingLatch = null;
+                    initialLatch = null;
+                    verticleClassList = null;
+                    System.gc();
+                    logger.info("Start termio success.");
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            vertx.close();
+            MessageBox.setExitMessage("Termio start up error.");
+            System.exit(-1);
+        }
+    }
+
+    public static void waitingStartDesktop() {
+        try {
+            boolean ret = initialLatch.await(30, TimeUnit.SECONDS);
+            if (!ret) {
+                throw new RuntimeException("Waiting timeout.");
+            }
+            while (true) {
+                if (Printer.LOADING_ACCOMPLISH) {
+                    loadingLatch.await();
+                    vertx.eventBus().send(ACCEPT_COMMAND_DESKTOP.address(), null);
 
                     loadingLatch = null;
                     initialLatch = null;

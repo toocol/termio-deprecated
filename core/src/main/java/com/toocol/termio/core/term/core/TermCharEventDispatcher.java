@@ -21,7 +21,7 @@ public final class TermCharEventDispatcher {
 
     static {
         Map<CharEvent, TermCharAction> map = new HashMap<>();
-        new ClassScanner("com.toocol.termio.core.term.core", clazz -> clazz.getSuperclass().equals(TermCharAction.class))
+        new ClassScanner("com.toocol.termio.core.term.core", clazz -> !clazz.isInterface() && clazz.getSuperclass().equals(TermCharAction.class))
                 .scan()
                 .forEach(clazz -> {
                     try {

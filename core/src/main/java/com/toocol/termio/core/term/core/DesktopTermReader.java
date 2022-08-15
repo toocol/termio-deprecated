@@ -1,25 +1,22 @@
 package com.toocol.termio.core.term.core;
 
-import com.toocol.termio.core.term.handlers.DynamicEchoHandler;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.utils.CharUtil;
 import com.toocol.termio.utilities.utils.MessageBox;
-import com.toocol.termio.utilities.utils.StrUtil;
-import org.apache.commons.lang3.StringUtils;
-
-import static com.toocol.termio.core.term.TermAddress.TERMINAL_ECHO;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/16 15:23
  */
-public record TermReader(Term term) {
+public record DesktopTermReader(Term term) implements ITermReader {
 
+    @Override
     @SuppressWarnings("all")
-    String readLine() {
+    public String readLine() {
         term.executeCursorOldX.set(term.getCursorPosition()[0]);
         try {
             while (true) {
-                char inChar = (char) term.reader.readChar();
+                char inChar = (char) term.reader.readCharacter();
                 char finalChar = term.escapeHelper.processArrowBundle(inChar, term.reader);
 
                 if (term.status.equals(TermStatus.HISTORY_OUTPUT) && !CharUtil.isLeftOrRightArrow(finalChar) && finalChar != '\u001b') {
@@ -29,11 +26,7 @@ public record TermReader(Term term) {
                 if (term.termCharEventDispatcher.dispatch(term, finalChar)) {
                     String cmd = term.lineBuilder.toString();
                     term.lineBuilder.delete(0, term.lineBuilder.length());
-                    if (StringUtils.isEmpty(cmd) && term.lastChar != CharUtil.CR) {
-                        term.eventBus().send(TERMINAL_ECHO.address(), StrUtil.EMPTY);
-                    }
                     term.lastChar = finalChar;
-                    DynamicEchoHandler.lastInput = StrUtil.EMPTY;
                     return cmd;
                 }
 
@@ -42,9 +35,7 @@ public record TermReader(Term term) {
                 }
 
                 term.lastChar = finalChar;
-                term.printExecution(term.lineBuilder.toString());
-
-                term.eventBus().send(TERMINAL_ECHO.address(), term.lineBuilder.toString());
+                Printer.print("" + finalChar);
             }
 
         } catch (Exception e) {

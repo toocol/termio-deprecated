@@ -1,15 +1,17 @@
 package com.toocol.termio.core.term.core;
 
-import com.toocol.termio.utilities.anis.AnisStringBuilder;
+import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
 import com.toocol.termio.utilities.log.Loggable;
+
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public final class HistoryOutputInfoHelper implements Loggable {
     private static final int PAGE_SIZE = 2;
+    private static final HistoryOutputInfoHelper instance = new HistoryOutputInfoHelper();
+
     private int showIndex = 1;
     private int totalPage = 1;
-    private static HistoryOutputInfoHelper instance = new HistoryOutputInfoHelper();
     private final Map<Integer, List<String>> msgList = new HashMap<>();
     private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ");
 
@@ -28,8 +30,8 @@ public final class HistoryOutputInfoHelper implements Loggable {
 
     public void displayInformation() {
         List<String> msgs = msgList.get(showIndex);
-        AnisStringBuilder builder = new AnisStringBuilder();
-        msgs.forEach(msg -> builder.append(msg));
+        AnsiStringBuilder builder = new AnsiStringBuilder();
+        msgs.forEach(builder::append);
         Term term = Term.getInstance();
         term.termPrinter.cleanDisplay();
         term.printDisplayWithRecord(builder.toString());

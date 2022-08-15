@@ -25,4 +25,5 @@ module termio.utilities {
     exports com.toocol.termio.utilities.sync;
     exports com.toocol.termio.utilities.utils;
     exports com.toocol.termio.utilities.escape;
+    exports com.toocol.termio.utilities.io;
 }

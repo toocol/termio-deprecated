@@ -14,7 +14,11 @@ public enum TermAddress implements IAddress {
     /**
      * to accept the user command input
      */
-    ACCEPT_COMMAND("ssh.command.accept"),
+    ACCEPT_COMMAND_CONSOLE("ssh.command.accept.console"),
+    /**
+     * to accept the user command input
+     */
+    ACCEPT_COMMAND_DESKTOP("ssh.command.accept.desktop"),
     /**
      * monitor the terminal program's status,
      * include terminal's size and ssh/mosh connection status.

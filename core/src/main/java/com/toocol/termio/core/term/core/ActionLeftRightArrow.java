@@ -1,7 +1,7 @@
 package com.toocol.termio.core.term.core;
 
 import com.toocol.termio.utilities.event.CharEvent;
-
+import com.toocol.termio.utilities.utils.CharUtil;
 
 
 /**
@@ -20,13 +20,11 @@ public final class ActionLeftRightArrow extends TermCharAction {
 
     public boolean act(Term term, CharEvent charEvent, char inChar) {
         if (Term.status.equals(TermStatus.HISTORY_OUTPUT)) {
-            if (inChar == '\udddd') {
+            if (inChar == CharUtil.LEFT_ARROW) {
                 historyOutputInfoHelper.pageLeft();
-            } else if (inChar == '쳌') {
+            } else if (inChar == CharUtil.RIGHT_ARROW) {
                 historyOutputInfoHelper.pageRight();
             }
-
-            return false;
         } else {
             int cursorX = term.getCursorPosition()[0];
             if (inChar == '\udddd') {
@@ -38,8 +36,7 @@ public final class ActionLeftRightArrow extends TermCharAction {
                 term.cursorRight();
                 term.executeCursorOldX.getAndIncrement();
             }
-
-            return false;
         }
+        return false;
     }
 }
