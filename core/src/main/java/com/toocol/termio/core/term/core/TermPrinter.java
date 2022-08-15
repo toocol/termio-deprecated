@@ -7,7 +7,6 @@ import com.toocol.termio.utilities.anis.Printer;
 import com.toocol.termio.utilities.utils.PomUtil;
 import com.toocol.termio.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
-
 import java.util.Arrays;
 
 import static com.toocol.termio.core.term.core.Term.CONSOLE;
@@ -29,7 +28,6 @@ public record TermPrinter(Term term) {
 
     public static volatile String DISPLAY_BUFF = StrUtil.EMPTY;
     public static volatile String COMMAND_BUFF = StrUtil.EMPTY;
-    private static final HistoryOutputInfoHelper historyOutputInfoHelper = HistoryOutputInfoHelper.getInstance();
 
     private static long totalMemory() {
         return RUNTIME.totalMemory() / 1024 / 1024;
@@ -191,7 +189,7 @@ public record TermPrinter(Term term) {
     }
 
     synchronized void printDisplay(String msg) {
-        historyOutputInfoHelper.add(msg);
+
         if (StringUtils.isEmpty(msg)) {
             DISPLAY_BUFF = StrUtil.EMPTY;
             cleanDisplay();

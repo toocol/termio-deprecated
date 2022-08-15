@@ -8,7 +8,6 @@ import com.toocol.termio.utilities.console.IConsoleReader;
 import com.toocol.termio.utilities.console.TerminalConsoleReader;
 import com.toocol.termio.utilities.utils.MessageBox;
 import io.vertx.core.eventbus.EventBus;
-
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -34,6 +33,7 @@ public final class Term extends AbstractDevice {
     final TermReader termReader;
     final TermPrinter termPrinter;
     final TermCharEventDispatcher termCharEventDispatcher;
+    final HistoryOutputInfoHelper historyOutputInfoHelper = HistoryOutputInfoHelper.getInstance();
     volatile StringBuilder lineBuilder = new StringBuilder();
     volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
     int displayZoneBottom = 0;
@@ -81,11 +81,12 @@ public final class Term extends AbstractDevice {
     }
 
     public void printDisplay(String msg) {
+        historyOutputInfoHelper.add(msg);
         termPrinter.printDisplay(msg);
     }
 
-    public void printDisplay(String msg,Boolean judgment) {
-        termPrinter.printDisplay(msg,judgment);
+    public void printDisplayWithRecord(String msg) {
+        termPrinter.printDisplay(msg);
     }
 
     public void printErr(String msg) {
@@ -138,6 +139,8 @@ public final class Term extends AbstractDevice {
         String[] coord = CONSOLE.getCursorPosition().split(",");
         return new int[]{Integer.parseInt(coord[0]), Integer.parseInt(coord[1])};
     }
+
+    public void cleanDisplay() {termPrinter.cleanDisplay();}
 
     public void setCursorPosition(int x, int y) {
         CONSOLE.setCursorPosition(x, y);

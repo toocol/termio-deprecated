@@ -20,7 +20,11 @@ public record TermReader(Term term) {
         try {
             while (true) {
                 char inChar = (char) term.reader.readChar();
-                char finalChar = term.escapeHelper.processArrowStream(inChar);
+                char finalChar = term.escapeHelper.processArrowBundle(inChar, term.reader);
+
+                if (term.status.equals(TermStatus.HISTORY_OUTPUT) && !CharUtil.isLeftOrRightArrow(finalChar) && finalChar != '\u001b') {
+                    continue;
+                }
 
                 if (term.termCharEventDispatcher.dispatch(term, finalChar)) {
                     String cmd = term.lineBuilder.toString();
@@ -31,6 +35,10 @@ public record TermReader(Term term) {
                     term.lastChar = finalChar;
                     DynamicEchoHandler.lastInput = StrUtil.EMPTY;
                     return cmd;
+                }
+
+                if (term.status.equals(TermStatus.HISTORY_OUTPUT)) {
+                    continue;
                 }
 
                 term.lastChar = finalChar;

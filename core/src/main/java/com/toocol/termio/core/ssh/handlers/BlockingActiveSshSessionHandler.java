@@ -9,7 +9,6 @@ import com.toocol.termio.core.shell.core.ShellProtocol;
 import com.toocol.termio.core.ssh.SshAddress;
 import com.toocol.termio.core.ssh.core.SshSessionFactory;
 import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.core.term.core.TermTheme;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.anis.AnisStringBuilder;
 import com.toocol.termio.utilities.functional.Executable;
@@ -22,7 +21,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
+import org.apache.commons.lang3.StringUtils;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,7 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @version: 0.0.1
  */
 @Ordered
-public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandler<JsonObject> {
+public final class BlockingActiveSshSessionHandler extends BlockingMessageHandler<JsonObject> {
 
     private final CredentialCache credentialCache = CredentialCache.getInstance();
     private final ShellCache shellCache = ShellCache.getInstance();
@@ -139,7 +138,9 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
                                 anisStringBuilder.append("\n");
                             }
                         }
-                        anisStringBuilder.front(term.theme.activeSuccessMsgColor.color).background(term.theme.displayBackGroundColor.color).append(split[i] + "    ");
+                        anisStringBuilder.front(term.theme.activeSuccessMsgColor.color)
+                                .background(term.theme.displayBackGroundColor.color)
+                                .append(split[i] + StringUtils.repeat(" ",4));
                     }
                 } else {
                     anisStringBuilder.deFront().append("\n" + stringObjectEntry.getKey() + ":" + "\n");
@@ -155,7 +156,9 @@ public final class  BlockingActiveSshSessionHandler extends BlockingMessageHandl
                                 anisStringBuilder.append("\n");
                             }
                         }
-                        anisStringBuilder.front(term.theme.activeFailedMsgColor.color).background(term.theme.displayBackGroundColor.color).append(split[j] + "    ");
+                        anisStringBuilder.front(term.theme.activeFailedMsgColor.color)
+                                .background(term.theme.displayBackGroundColor.color)
+                                .append(split[j] + StringUtils.repeat(" ",4));
                     }
 
                 }

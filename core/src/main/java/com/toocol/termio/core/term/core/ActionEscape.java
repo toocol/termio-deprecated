@@ -14,6 +14,7 @@ public final class ActionEscape extends TermCharAction {
 
     @Override
     public boolean act(Term device, CharEvent charEvent, char inChar) {
+
         return false;
     }
 }

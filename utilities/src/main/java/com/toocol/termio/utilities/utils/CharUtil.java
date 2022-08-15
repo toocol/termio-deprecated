@@ -240,6 +240,10 @@ public final class CharUtil {
         return ch < 128;
     }
 
+    public static boolean isLeftOrRightArrow(char ch) {
+        return ch == LEFT_ARROW || ch == RIGHT_ARROW;
+    }
+
     /**
      * whether is visible ascii， visible ascii is between 0~127
      *

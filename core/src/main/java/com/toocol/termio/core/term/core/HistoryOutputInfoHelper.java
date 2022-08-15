@@ -1,35 +1,57 @@
 package com.toocol.termio.core.term.core;
 
-
-
+import com.toocol.termio.utilities.anis.AnisStringBuilder;
 import com.toocol.termio.utilities.log.Loggable;
-
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public final class HistoryOutputInfoHelper implements Loggable {
-    private static HistoryOutputInfoHelper instance ;
-    private final List<String> msgList = new ArrayList<>();
+    private static final int PAGE_SIZE = 2;
+    private int showIndex = 1;
+    private int totalPage = 1;
+    private static HistoryOutputInfoHelper instance = new HistoryOutputInfoHelper();
+    private final Map<Integer, List<String>> msgList = new HashMap<>();
+    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ");
 
     public void add(String message) {
-        String prefix = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ").format(new Date(System.currentTimeMillis())) + "\n";
-        String s = new StringBuilder(message).insert(0, prefix).toString();
-        String[] split = s.split("\n");
-        for (String msg : split) {
-            msgList.add(msg);
+        List<String> pageMsgs = msgList.getOrDefault(totalPage, new ArrayList<>());
+        message = simpleDateFormat.format(new Date()) + "\n" + message + "\n";
+        if (pageMsgs.size() < PAGE_SIZE) {
+            pageMsgs.add(message);
+        } else {
+            pageMsgs = msgList.getOrDefault(++totalPage, new ArrayList<>());
+            pageMsgs.add(message);
         }
+        showIndex = totalPage;
+        msgList.put(totalPage, pageMsgs);
     }
 
-    public List<String> getMsgList() {
-        return msgList;
+    public void displayInformation() {
+        List<String> msgs = msgList.get(showIndex);
+        AnisStringBuilder builder = new AnisStringBuilder();
+        msgs.forEach(msg -> builder.append(msg));
+        Term term = Term.getInstance();
+        term.termPrinter.cleanDisplay();
+        term.printDisplayWithRecord(builder.toString());
+    }
+
+    public void pageLeft() {
+        if (showIndex == 1) {
+            return;
+        }
+        showIndex--;
+        displayInformation();
+    }
+
+    public void pageRight() {
+        if (showIndex >= totalPage) {
+            return;
+        }
+        showIndex++;
+        displayInformation();
     }
 
     public synchronized static HistoryOutputInfoHelper getInstance() {
-        if (instance == null) {
-            instance = new HistoryOutputInfoHelper();
-        }
         return instance;
     }
 }
