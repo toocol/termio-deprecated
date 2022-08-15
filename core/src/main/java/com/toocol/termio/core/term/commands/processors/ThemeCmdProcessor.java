@@ -3,7 +3,7 @@ package com.toocol.termio.core.term.commands.processors;
 import com.toocol.termio.core.term.commands.TermCommandProcessor;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermTheme;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 

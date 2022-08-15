@@ -7,7 +7,7 @@ import com.google.common.cache.RemovalListener;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.Session;
 import com.toocol.termio.core.cache.SshSessionCache;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.utils.Castable;
 
 import javax.annotation.Nonnull;

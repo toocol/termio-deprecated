@@ -1,7 +1,7 @@
 package com.toocol.termio.utilities.console;
 
-import com.toocol.termio.utilities.anis.AsciiControl;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.AsciiControl;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.jni.TermioJNI;
 import com.toocol.termio.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;

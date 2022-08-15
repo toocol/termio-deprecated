@@ -1,4 +1,4 @@
-package com.toocol.termio.utilities.anis;
+package com.toocol.termio.utilities.ansi;
 
 import com.toocol.termio.utilities.console.Console;
 import com.toocol.termio.utilities.utils.MessageBox;
@@ -14,7 +14,7 @@ import java.util.concurrent.CountDownLatch;
  * @date 2021/2/19 16:20
  */
 public final class Printer {
-    private static PrintStream PRINTER;
+    private static volatile PrintStream PRINTER;
     private static final Console CONSOLE = Console.get();
     private static final String[] patterns = new String[]{
             "-",
@@ -38,7 +38,7 @@ public final class Printer {
     }
 
     public static void printErr(String msg) {
-        PRINTER.println(new AnisStringBuilder()
+        PRINTER.println(new AnsiStringBuilder()
                 .front(167)
                 .append(msg));
     }

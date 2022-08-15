@@ -1,7 +1,6 @@
 package com.toocol.termio.core.shell.core;
 
 import com.jcraft.jsch.ChannelShell;
-import com.toocol.termio.core.Termio;
 import com.toocol.termio.core.cache.MoshSessionCache;
 import com.toocol.termio.core.cache.SshSessionCache;
 import com.toocol.termio.core.cache.StatusCache;
@@ -10,11 +9,9 @@ import com.toocol.termio.core.shell.handlers.BlockingDfHandler;
 import com.toocol.termio.core.term.core.EscapeHelper;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.utilities.action.AbstractDevice;
-import com.toocol.termio.utilities.anis.AsciiControl;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.AsciiControl;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.console.Console;
-import com.toocol.termio.utilities.console.IConsoleReader;
-import com.toocol.termio.utilities.console.TerminalConsoleReader;
 import com.toocol.termio.utilities.execeptions.RemoteDisconnectException;
 import com.toocol.termio.utilities.functional.Executable;
 import com.toocol.termio.utilities.log.Loggable;
@@ -25,6 +22,7 @@ import com.toocol.termio.utilities.utils.StrUtil;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
+import jline.console.ConsoleReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -48,7 +46,7 @@ public final class Shell extends AbstractDevice implements Loggable {
     static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#])");
     static final Console CONSOLE = Console.get();
     static final String RESIZE_COMMAND = AsciiControl.DC2 + CharUtil.BRACKET_START + "resize";
-    static IConsoleReader reader;
+    static ConsoleReader reader;
 
     final Term term = Term.getInstance();
     final ShellPrinter shellPrinter;
@@ -108,16 +106,12 @@ public final class Shell extends AbstractDevice implements Loggable {
     private volatile boolean returnWrite = false;
     private volatile boolean promptNow = false;
 
-    public static void initializeReader(IConsoleReader consoleReader) {
-        if (Termio.runType().equals(Termio.RunType.CONSOLE)) {
-            try {
-                reader = new TerminalConsoleReader(System.in, null, null);
-            } catch (Exception e) {
-                MessageBox.setExitMessage("Create console reader failed.");
-                System.exit(-1);
-            }
-        } else {
-            Shell.reader = consoleReader;
+    public static void initializeReader(InputStream in) {
+        try {
+            reader = new ConsoleReader(in, null, null);
+        } catch (Exception e) {
+            MessageBox.setExitMessage("Create console reader failed.");
+            System.exit(-1);
         }
     }
 

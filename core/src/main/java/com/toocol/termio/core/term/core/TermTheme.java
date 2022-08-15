@@ -1,7 +1,7 @@
 package com.toocol.termio.core.term.core;
 
-import com.toocol.termio.utilities.anis.AnisStringBuilder;
-import com.toocol.termio.utilities.anis.Color;
+import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
+import com.toocol.termio.utilities.ansi.Color;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -205,7 +205,7 @@ public enum TermTheme {
     }
 
     public static String listTheme() {
-        AnisStringBuilder builder = new AnisStringBuilder();
+        AnsiStringBuilder builder = new AnsiStringBuilder();
         return Arrays.stream(values()).map(theme -> {
             String str = builder.append(theme.name)
                     .space(12 - theme.name.length())
@@ -229,7 +229,7 @@ public enum TermTheme {
         } catch (Exception e) {
             // do nothing
         }
-        AnisStringBuilder builder = new AnisStringBuilder();
+        AnsiStringBuilder builder = new AnsiStringBuilder();
         return colorSet.stream().map(color -> {
             String cp = builder.background(color).space(2).toString();
             builder.clearColor().clearStr();

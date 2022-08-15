@@ -14,7 +14,7 @@ import com.toocol.termio.core.term.core.TermStatus;
 import com.toocol.termio.core.term.handlers.BlockingAcceptCommandHandler;
 import com.toocol.termio.core.term.handlers.BlockingMonitorTerminalHandler;
 import com.toocol.termio.utilities.address.IAddress;
-import com.toocol.termio.utilities.anis.Printer;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.functional.Ordered;
 import com.toocol.termio.utilities.handler.BlockingMessageHandler;
 import com.toocol.termio.utilities.utils.MessageBox;

@@ -1,6 +1,5 @@
 package com.toocol.termio.utilities.console;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -10,7 +9,7 @@ import java.io.InputStream;
  */
 public interface IConsoleReader {
 
-    int readChar() throws IOException;
+    int readChar() throws Exception;
 
     InputStream getInput();
 }
