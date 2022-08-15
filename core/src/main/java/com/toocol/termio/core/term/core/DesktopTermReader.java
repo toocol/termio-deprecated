@@ -1,7 +1,5 @@
 package com.toocol.termio.core.term.core;
 
-import com.toocol.termio.utilities.ansi.Printer;
-import com.toocol.termio.utilities.utils.CharUtil;
 import com.toocol.termio.utilities.utils.MessageBox;
 
 /**
@@ -27,7 +25,6 @@ public record DesktopTermReader(Term term) implements ITermReader {
                 }
 
                 term.lastChar = finalChar;
-                Printer.print("" + finalChar);
             }
 
         } catch (Exception e) {
