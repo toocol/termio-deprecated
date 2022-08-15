@@ -17,7 +17,7 @@ public final class ActionEscape extends TermCharAction {
         if (TermStatus.HISTORY_OUTPUT.equals(Term.status)) {
             device.cleanDisplay();
             Term.status = TermStatus.TERMIO;
-            return true;
-        } else return false;
+        }
+        return false;
     }
 }
