@@ -1,5 +1,6 @@
 package com.toocol.termio.core.term.vert;
 
+import com.toocol.termio.core.term.handlers.console.ExecuteCommandHandler;
 import com.toocol.termio.core.term.handlers.desktop.BlockingDesktopAcceptCommandHandler;
 import com.toocol.termio.utilities.functional.RegisterHandler;
 import com.toocol.termio.utilities.functional.VerticleDeployment;
@@ -12,7 +13,8 @@ import io.vertx.core.AbstractVerticle;
  */
 @VerticleDeployment(weight = 10, worker = true, workerPoolName = "term-console-worker-pool")
 @RegisterHandler(handlers = {
-        BlockingDesktopAcceptCommandHandler.class
+        BlockingDesktopAcceptCommandHandler.class,
+        ExecuteCommandHandler.class
 })
 public final class TermDesktopVerticle extends AbstractVerticle implements IHandlerMounter {
 

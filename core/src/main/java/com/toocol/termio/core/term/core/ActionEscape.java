@@ -13,8 +13,12 @@ public final class ActionEscape extends TermCharAction {
     }
 
     @Override
-    public boolean act(Term device, CharEvent charEvent, char inChar) {
+    public boolean actOnConsole(Term term, CharEvent charEvent, char inChar) {
+        return false;
+    }
 
+    @Override
+    public boolean actOnDesktop(Term term, CharEvent charEvent, char inChar) {
         return false;
     }
 }
