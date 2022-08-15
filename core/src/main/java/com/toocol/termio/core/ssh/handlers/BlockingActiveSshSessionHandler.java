@@ -10,7 +10,7 @@ import com.toocol.termio.core.ssh.SshAddress;
 import com.toocol.termio.core.ssh.core.SshSessionFactory;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.utilities.address.IAddress;
-import com.toocol.termio.utilities.anis.AnisStringBuilder;
+import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
 import com.toocol.termio.utilities.functional.Executable;
 import com.toocol.termio.utilities.functional.Ordered;
 import com.toocol.termio.utilities.handler.BlockingMessageHandler;
@@ -121,49 +121,49 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
             Term term = Term.getInstance();
             term.printScene(false);
             JsonObject activeMsg = asyncResult.result();
-            AnisStringBuilder anisStringBuilder = new AnisStringBuilder();
+            AnsiStringBuilder ansiStringBuilder = new AnsiStringBuilder();
             int width = term.getWidth();
             for (Map.Entry<String, Object> stringObjectEntry : activeMsg) {
                 if ("success".equals(stringObjectEntry.getKey())) {
-                    anisStringBuilder.append(stringObjectEntry.getKey() + ":" + "\n");
+                    ansiStringBuilder.append(stringObjectEntry.getKey() + ":" + "\n");
                     String value = stringObjectEntry.getValue().toString();
                     String[] split = value.replace("[", "").replace("]", "").replace("\"", "").split(",");
                     for (int i = 0; i < split.length; i++) {
                         if (width < 24 * 3) {
                             if (i != 0 & i % 2 == 0) {
-                                anisStringBuilder.append("\n");
+                                ansiStringBuilder.append("\n");
                             }
                         } else {
                             if (i != 0 & i % 3 == 0) {
-                                anisStringBuilder.append("\n");
+                                ansiStringBuilder.append("\n");
                             }
                         }
-                        anisStringBuilder.front(term.theme.activeSuccessMsgColor.color)
+                        ansiStringBuilder.front(term.theme.activeSuccessMsgColor.color)
                                 .background(term.theme.displayBackGroundColor.color)
                                 .append(split[i] + StringUtils.repeat(" ",4));
                     }
                 } else {
-                    anisStringBuilder.deFront().append("\n" + stringObjectEntry.getKey() + ":" + "\n");
+                    ansiStringBuilder.deFront().append("\n" + stringObjectEntry.getKey() + ":" + "\n");
                     String value = stringObjectEntry.getValue().toString();
                     String[] split = value.replace("[", "").replace("]", "").replace("\"", "").split(",");
                     for (int j = 0; j < split.length; j++) {
                         if (width < 24 * 3) {
                             if (j != 0 & j % 2 == 0) {
-                                anisStringBuilder.append("\n");
+                                ansiStringBuilder.append("\n");
                             }
                         } else {
                             if (j != 0 && j % 3 == 0) {
-                                anisStringBuilder.append("\n");
+                                ansiStringBuilder.append("\n");
                             }
                         }
-                        anisStringBuilder.front(term.theme.activeFailedMsgColor.color)
+                        ansiStringBuilder.front(term.theme.activeFailedMsgColor.color)
                                 .background(term.theme.displayBackGroundColor.color)
                                 .append(split[j] + StringUtils.repeat(" ",4));
                     }
 
                 }
             }
-            term.printDisplay(anisStringBuilder.toString());
+            term.printDisplay(ansiStringBuilder.toString());
             message.reply(true);
         } else {
             message.reply(false);
