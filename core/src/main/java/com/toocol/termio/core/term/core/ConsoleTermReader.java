@@ -23,6 +23,10 @@ public record ConsoleTermReader(Term term) implements ITermReader {
                 char inChar = (char) term.reader.readCharacter();
                 char finalChar = term.escapeHelper.processArrowStream(inChar);
 
+                if (term.status.equals(TermStatus.HISTORY_OUTPUT) && !CharUtil.isLeftOrRightArrow(finalChar) && finalChar != '\u001b') {
+                    continue;
+                }
+
                 if (term.termCharEventDispatcher.dispatch(term, finalChar)) {
                     String cmd = term.lineBuilder.toString();
                     term.lineBuilder.delete(0, term.lineBuilder.length());
@@ -32,6 +36,10 @@ public record ConsoleTermReader(Term term) implements ITermReader {
                     term.lastChar = finalChar;
                     DynamicEchoHandler.lastInput = StrUtil.EMPTY;
                     return cmd;
+                }
+
+                if (term.status.equals(TermStatus.HISTORY_OUTPUT)) {
+                    continue;
                 }
 
                 term.lastChar = finalChar;

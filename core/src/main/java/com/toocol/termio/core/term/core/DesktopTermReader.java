@@ -19,19 +19,11 @@ public record DesktopTermReader(Term term) implements ITermReader {
                 char inChar = (char) term.reader.readCharacter();
                 char finalChar = term.escapeHelper.processArrowBundle(inChar, term.reader);
 
-                if (term.status.equals(TermStatus.HISTORY_OUTPUT) && !CharUtil.isLeftOrRightArrow(finalChar) && finalChar != '\u001b') {
-                    continue;
-                }
-
                 if (term.termCharEventDispatcher.dispatch(term, finalChar)) {
                     String cmd = term.lineBuilder.toString();
                     term.lineBuilder.delete(0, term.lineBuilder.length());
                     term.lastChar = finalChar;
                     return cmd;
-                }
-
-                if (term.status.equals(TermStatus.HISTORY_OUTPUT)) {
-                    continue;
                 }
 
                 term.lastChar = finalChar;
