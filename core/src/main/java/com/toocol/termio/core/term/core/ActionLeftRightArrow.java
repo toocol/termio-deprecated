@@ -18,7 +18,8 @@ public final class ActionLeftRightArrow extends TermCharAction {
         return new CharEvent[]{CharEvent.LEFT_ARROW, CharEvent.RIGHT_ARROW};
     }
 
-    public boolean act(Term term, CharEvent charEvent, char inChar) {
+    @Override
+    public boolean actOnConsole(Term term, CharEvent charEvent, char inChar) {
         if (Term.status.equals(TermStatus.HISTORY_OUTPUT)) {
             if (inChar == CharUtil.LEFT_ARROW) {
                 historyOutputInfoHelper.pageLeft();
@@ -37,6 +38,11 @@ public final class ActionLeftRightArrow extends TermCharAction {
                 term.executeCursorOldX.getAndIncrement();
             }
         }
+        return false;
+    }
+
+    @Override
+    public boolean actOnDesktop(Term term, CharEvent charEvent, char inChar) {
         return false;
     }
 }

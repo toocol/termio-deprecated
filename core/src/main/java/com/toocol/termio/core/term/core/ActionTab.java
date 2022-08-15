@@ -13,11 +13,16 @@ public final class ActionTab extends TermCharAction {
     }
 
     @Override
-    public boolean act(Term term, CharEvent charEvent, char inChar) {
+    public boolean actOnConsole(Term term, CharEvent charEvent, char inChar) {
         int[] cursorPosition = term.getCursorPosition();
         if (cursorPosition[0] < term.lineBuilder.length() + Term.getPromptLen()) {
             term.setCursorPosition(term.lineBuilder.length() + Term.getPromptLen(), cursorPosition[1]);
         }
+        return false;
+    }
+
+    @Override
+    public boolean actOnDesktop(Term term, CharEvent charEvent, char inChar) {
         return false;
     }
 }
