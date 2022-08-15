@@ -42,6 +42,7 @@ module termio.core {
     exports com.toocol.termio.core.ssh.vert;
     exports com.toocol.termio.core.term;
     exports com.toocol.termio.core.term.core;
-    exports com.toocol.termio.core.term.handlers;
+    exports com.toocol.termio.core.term.handlers.console;
+    exports com.toocol.termio.core.term.handlers.desktop;
     exports com.toocol.termio.core.term.vert;
 }

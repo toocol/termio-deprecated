@@ -8,7 +8,7 @@ import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.shell.core.ShellProtocol;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
-import com.toocol.termio.core.term.handlers.BlockingAcceptCommandHandler;
+import com.toocol.termio.core.term.handlers.console.BlockingAcceptCommandHandler;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.execeptions.RemoteDisconnectException;
 import com.toocol.termio.utilities.handler.BlockingMessageHandler;
@@ -193,7 +193,7 @@ public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Lo
             info("Destroy session, sessionId = {}", sessionId);
         }
 
-        eventBus.send(TermAddress.ACCEPT_COMMAND.address(), BlockingAcceptCommandHandler.NORMAL_BACK);
+        eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), BlockingAcceptCommandHandler.NORMAL_BACK);
     }
 
 }

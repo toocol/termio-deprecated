@@ -21,7 +21,7 @@ public final class ShellCharEventDispatcher {
 
     static {
         Map<CharEvent, ShellCharAction> map = new HashMap<>();
-        new ClassScanner("com.toocol.termio.core.shell.core", clazz -> clazz.getSuperclass().equals(ShellCharAction.class))
+        new ClassScanner("com.toocol.termio.core.shell.core", clazz -> !clazz.isInterface() && clazz.getSuperclass().equals(ShellCharAction.class))
                 .scan()
                 .forEach(clazz -> {
                     try {

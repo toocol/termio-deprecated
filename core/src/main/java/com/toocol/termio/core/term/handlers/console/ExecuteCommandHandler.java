@@ -1,4 +1,4 @@
-package com.toocol.termio.core.term.handlers;
+package com.toocol.termio.core.term.handlers.console;
 
 import com.toocol.termio.core.term.commands.TermCommand;
 import com.toocol.termio.core.term.core.Term;
