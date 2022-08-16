@@ -18,7 +18,7 @@ module termio.utilities {
     exports com.toocol.termio.utilities.event;
     exports com.toocol.termio.utilities.execeptions;
     exports com.toocol.termio.utilities.functional;
-    exports com.toocol.termio.utilities.handler;
+    exports com.toocol.termio.utilities.module;
     exports com.toocol.termio.utilities.jni;
     exports com.toocol.termio.utilities.log;
     exports com.toocol.termio.utilities.obj;

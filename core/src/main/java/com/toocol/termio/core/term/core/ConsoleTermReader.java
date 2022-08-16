@@ -1,6 +1,5 @@
 package com.toocol.termio.core.term.core;
 
-import com.toocol.termio.core.term.handlers.console.DynamicEchoHandler;
 import com.toocol.termio.utilities.utils.CharUtil;
 import com.toocol.termio.utilities.utils.MessageBox;
 import com.toocol.termio.utilities.utils.StrUtil;
@@ -34,7 +33,7 @@ public record ConsoleTermReader(Term term) implements ITermReader {
                         term.eventBus().send(TERMINAL_ECHO.address(), StrUtil.EMPTY);
                     }
                     term.lastChar = finalChar;
-                    DynamicEchoHandler.lastInput = StrUtil.EMPTY;
+//                    DynamicEchoHandler.lastInput = StrUtil.EMPTY;
                     return cmd;
                 }
 

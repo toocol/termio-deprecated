@@ -3,15 +3,15 @@ package com.toocol.termio.core.shell.handlers;
 import com.toocol.termio.core.cache.ShellCache;
 import com.toocol.termio.core.cache.SshSessionCache;
 import com.toocol.termio.core.cache.StatusCache;
+import com.toocol.termio.core.cache.StatusConstants;
 import com.toocol.termio.core.shell.commands.ShellCommand;
 import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.shell.core.ShellProtocol;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
-import com.toocol.termio.core.term.handlers.console.BlockingAcceptCommandHandler;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.execeptions.RemoteDisconnectException;
-import com.toocol.termio.utilities.handler.BlockingMessageHandler;
+import com.toocol.termio.utilities.module.BlockingMessageHandler;
 import com.toocol.termio.utilities.sync.SharedCountdownLatch;
 import com.toocol.termio.utilities.utils.MessageBox;
 import com.toocol.termio.utilities.utils.StrUtil;
@@ -193,7 +193,7 @@ public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Lo
             info("Destroy session, sessionId = {}", sessionId);
         }
 
-        eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), BlockingAcceptCommandHandler.NORMAL_BACK);
+        eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), StatusConstants.NORMAL_BACK);
     }
 
 }

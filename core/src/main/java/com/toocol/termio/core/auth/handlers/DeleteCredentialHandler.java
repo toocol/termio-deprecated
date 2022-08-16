@@ -5,7 +5,7 @@ import com.toocol.termio.core.cache.CredentialCache;
 import com.toocol.termio.core.cache.ShellCache;
 import com.toocol.termio.core.cache.SshSessionCache;
 import com.toocol.termio.utilities.address.IAddress;
-import com.toocol.termio.utilities.handler.NonBlockingMessageHandler;
+import com.toocol.termio.utilities.module.NonBlockingMessageHandler;
 import com.toocol.termio.utilities.utils.FileUtil;
 import com.toocol.termio.utilities.utils.MessageBox;
 import io.vertx.core.Context;

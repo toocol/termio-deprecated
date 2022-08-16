@@ -12,10 +12,14 @@
 
     <packaging>jar</packaging>
 
+    <properties>
+        <main.class>com.toocol.termio.console.bootstrap.TermioConsoleApplication</main.class>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.toocol.termio</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>console</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
@@ -43,6 +47,12 @@
                                 </filter>
                                 <filter>
                                     <artifact>com.toocol.termio:core</artifact>
+                                    <includes>
+                                        <include>com/toocol/termio/**</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>com.toocol.termio:console</artifact>
                                     <includes>
                                         <include>com/toocol/termio/**</include>
                                     </includes>

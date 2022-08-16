@@ -3,10 +3,12 @@ package com.toocol.termio.core.term.core;
 import com.toocol.termio.core.cache.CredentialCache;
 import com.toocol.termio.core.cache.SshSessionCache;
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
-import com.toocol.termio.utilities.ansi.Printer;
+import com.toocol.termio.utilities.utils.OsUtil;
 import com.toocol.termio.utilities.utils.PomUtil;
 import com.toocol.termio.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
+
+import java.io.PrintStream;
 import java.util.Arrays;
 
 import static com.toocol.termio.core.term.core.Term.CONSOLE;
@@ -26,8 +28,13 @@ public record TermPrinter(Term term) {
     private static final CredentialCache credentialCache = CredentialCache.getInstance();
     private static final Runtime RUNTIME = Runtime.getRuntime();
 
+    private static volatile PrintStream PRINT_STREAM;
     public static volatile String DISPLAY_BUFF = StrUtil.EMPTY;
     public static volatile String COMMAND_BUFF = StrUtil.EMPTY;
+
+    public static void registerPrintStream(PrintStream printStream) {
+        PRINT_STREAM = printStream;
+    }
 
     private static long totalMemory() {
         return RUNTIME.totalMemory() / 1024 / 1024;
@@ -70,21 +77,21 @@ public record TermPrinter(Term term) {
                 .background(Term.theme.infoBarBackgroundColor.color)
                 .front(Term.theme.infoBarFrontColor.color)
                 .append(merge);
-        Printer.println(builder.toString());
+        PRINT_STREAM.println(builder);
     }
 
-    public void printScene(boolean resize) {
+    synchronized void printScene(boolean resize) {
         Term term = Term.getInstance();
         int[] oldPosition = term.getCursorPosition();
         CONSOLE.hideCursor();
         if (resize) {
-            Printer.clear();
+            clear();
         }
         printInformationBar();
         String prompt = "Properties:";
         AnsiStringBuilder builder = new AnsiStringBuilder();
         int width = term.getWidth();
-        Printer.println(
+        PRINT_STREAM.println(
                 builder.background(Term.theme.propertiesZoneBgColor.color)
                         .space(width).crlf()
                         .append(prompt).space(width - prompt.length())
@@ -93,18 +100,17 @@ public record TermPrinter(Term term) {
         builder.clearStr();
         if (credentialCache.credentialsSize() == 0) {
             String msg = "You have no connection properties, type 'help' to get more information.";
-            Printer.print(
+            PRINT_STREAM.print(
                     builder.append(msg)
                             .space(width - msg.length()).crlf()
                             .space(width).crlf()
-                            .toString()
             );
         } else {
             credentialCache.showCredentials();
         }
 
         for (int idx = 0; idx < Term.TOP_MARGIN; idx++) {
-            Printer.println(builder.space(width).toString());
+            PRINT_STREAM.println(builder.space(width).toString());
         }
 
         String msg = "'←'/'→' to change groups.";
@@ -122,7 +128,7 @@ public record TermPrinter(Term term) {
                 .deBackground()
                 .space(width - (8 * 5 + 3) - groupsLen - msg.length())
                 .append(msg);
-        Printer.println(builder.toString());
+        PRINT_STREAM.println(builder.toString());
 
         Term.executeLine = term.getCursorPosition()[1];
         term.printExecuteBackground();
@@ -137,7 +143,7 @@ public record TermPrinter(Term term) {
         CONSOLE.showCursor();
     }
 
-    public void printTermPrompt() {
+    synchronized void printTermPrompt() {
         term.printExecuteBackground();
         term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
     }
@@ -148,7 +154,7 @@ public record TermPrinter(Term term) {
                 .background(Term.theme.executeBackgroundColor.color)
                 .front(Term.theme.executeFrontColor.color)
                 .append(Term.PROMPT + " ".repeat(term.getWidth() - Term.getPromptLen() - Term.LEFT_MARGIN));
-        Printer.print(builder.toString());
+        PRINT_STREAM.print(builder.toString());
         term.showCursor();
     }
 
@@ -161,11 +167,11 @@ public record TermPrinter(Term term) {
                 .background(Term.theme.executeBackgroundColor.color)
                 .front(Term.theme.executeFrontColor.color)
                 .append(" ".repeat(term.getWidth() - Term.getPromptLen() - Term.LEFT_MARGIN));
-        Printer.print(builder.toString());
+        PRINT_STREAM.print(builder.toString());
         term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
 
         builder.clearStr().append(msg);
-        Printer.print(builder.toString());
+        PRINT_STREAM.print(builder.toString());
         term.setCursorPosition(term.executeCursorOldX.get(), Term.executeLine);
         term.showCursor();
     }
@@ -174,7 +180,7 @@ public record TermPrinter(Term term) {
         term.setCursorPosition(0, Term.executeLine + 1);
         int windowWidth = term.getWidth();
         while (term.getCursorPosition()[1] < term.getHeight() - 3) {
-            Printer.println(" ".repeat(windowWidth));
+            PRINT_STREAM.println(" ".repeat(windowWidth));
         }
     }
 
@@ -184,7 +190,7 @@ public record TermPrinter(Term term) {
                 .background(Term.theme.displayBackGroundColor.color)
                 .append(" ".repeat(term.getWidth() - Term.LEFT_MARGIN - Term.LEFT_MARGIN));
         for (int idx = 0; idx < lines + 2; idx++) {
-            Printer.println(builder.toString());
+            PRINT_STREAM.println(builder.toString());
         }
     }
 
@@ -204,7 +210,7 @@ public record TermPrinter(Term term) {
         printDisplayBackground(split.length);
         for (String line : split) {
             term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx++);
-            Printer.println(new AnsiStringBuilder()
+            PRINT_STREAM.println(new AnsiStringBuilder()
                     .background(Term.theme.displayBackGroundColor.color)
                     .append(line)
                     .toString());
@@ -230,7 +236,7 @@ public record TermPrinter(Term term) {
             printDisplayBackground(split.length);
             for (String line : split) {
                 term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx++);
-                Printer.println(new AnsiStringBuilder()
+                PRINT_STREAM.println(new AnsiStringBuilder()
                         .background(Term.theme.displayBackGroundColor.color)
                         .append(line)
                         .toString());
@@ -253,7 +259,7 @@ public record TermPrinter(Term term) {
         printDisplayBackground(split.length);
         for (String line : split) {
             term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx++);
-            Printer.println(new AnsiStringBuilder()
+            PRINT_STREAM.println(new AnsiStringBuilder()
                     .background(Term.theme.displayBackGroundColor.color)
                     .append(line)
                     .toString());
@@ -277,7 +283,7 @@ public record TermPrinter(Term term) {
         printDisplayBackground(split.length);
         for (String line : split) {
             term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx++);
-            Printer.println(new AnsiStringBuilder()
+            PRINT_STREAM.println(new AnsiStringBuilder()
                     .background(Term.theme.displayBackGroundColor.color)
                     .append(line)
                     .toString());
@@ -289,22 +295,22 @@ public record TermPrinter(Term term) {
 
     synchronized void printCommandBuffer() {
         term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
-        Printer.print(new AnsiStringBuilder().background(Term.theme.executeBackgroundColor.color).front(Term.theme.executeFrontColor.color).append(COMMAND_BUFF).toString());
+        PRINT_STREAM.print(new AnsiStringBuilder().background(Term.theme.executeBackgroundColor.color).front(Term.theme.executeFrontColor.color).append(COMMAND_BUFF).toString());
     }
 
     synchronized void printTest() {
-        Printer.clear();
-//        Printer.print("aaaaaaaaaaaaaaaaaaa");
-//        Printer.print("\u001b[Hbbbbbbbbbbbbbbbbbbb");
-//        Printer.println();
-//        Printer.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-        Printer.println("aaaaaaaaaaaaaaaaaaa");
-        Printer.print("bbb");
-        Printer.print("\u001b[2;0Hc");
+        clear();
+//        PRINT_STREAM.print("aaaaaaaaaaaaaaaaaaa");
+//        PRINT_STREAM.print("\u001b[Hbbbbbbbbbbbbbbbbbbb");
+//        PRINT_STREAM.println();
+//        PRINT_STREAM.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        PRINT_STREAM.println("aaaaaaaaaaaaaaaaaaa");
+        PRINT_STREAM.print("bbb");
+        PRINT_STREAM.print("\u001b[2;0Hc");
 //        String msg = "\u001B[0m\u001B[1;49r\u001B[49;1H\n" +
 //                "\u001B[r\u001B[48;1H[root@vultrguest /]# ls\n" +
 //                "\u001B[0;1;36mbin\u001B[0m  \u001B[0;1;34mboot\u001B[0m  \u001B[0;1;34mdata\u001B[0m  \u001B[0;1;34mdev\u001B[0m  \u001B[0;1;34metc\u001B[0m  \u001B[0;1;34mhome\u001B[0m  \u001B[0;1;36mlib\u001B[0m  \u001B[0;1;36mlib64\u001B[0m  \u001B[0;1;34mlost+found\u001B[0m  \u001B[0;1;34mmedia\u001B[0m  \u001B[0;1;34mmnt\u001B[0m  \u001B[0;1;34mopt\u001B[0m  \u001B[0;1;34mproc\u001B[0m  \u001B[0;1;34mroot\u001B[0m  \u001B[0;1;34mrun\u001B[0m  \u001B[0;1;36msbin\u001B[0m  \u001B[0;1;34msrv\u001B[0m  \u001B[0;1;34msys\u001B[0m  \u001B[0;30;42mtmp\u001B[0m  \u001B[0;1;34musr\u001B[0m  \u001B[0;1;34mvar\u001B[50;22H\u001B[0m";
-//        Printer.print(msg);
+//        PRINT_STREAM.print(msg);
 //        CONSOLE.rollingProcessing(msg);
 
 //        msg = "\u001B[0m\u001B[1;49r\u001B[49;1H\n" +
@@ -333,10 +339,21 @@ public record TermPrinter(Term term) {
 //                "\u001B[0mdrwxrwxrwt.   4 root root  4096 Jul 25 22:26 \u001B[0;30;42mtmp\n" +
 //                "\u001B[0mdrwxr-xr-x.  13 root root  4096 Jun 18 16:48 \u001B[0;1;34musr\n" +
 //                "\u001B[0mdrwxr-xr-x.  21 root root  4096 Jun 18 16:42 \u001B[0;1;34mvar\u001B[50;22H\u001B[0m";
-//        Printer.print(msg);
+//        PRINT_STREAM.print(msg);
     }
 
     public void printColorPanel() {
 
+    }
+
+    public static void clear() {
+        try {
+            new ProcessBuilder(OsUtil.getExecution(), OsUtil.getExecuteMode(), OsUtil.getClearCmd())
+                    .inheritIO()
+                    .start()
+                    .waitFor();
+        } catch (Exception e) {
+            // do nothing
+        }
     }
 }

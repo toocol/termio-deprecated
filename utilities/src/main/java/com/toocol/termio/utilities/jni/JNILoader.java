@@ -1,6 +1,5 @@
 package com.toocol.termio.utilities.jni;
 
-import com.toocol.termio.utilities.utils.MessageBox;
 import com.toocol.termio.utilities.utils.OsUtil;
 import org.apache.commons.io.IOUtils;
 
@@ -40,7 +39,7 @@ public class JNILoader {
 
             System.load(extractPath);//loading goes here
         } catch (Exception e) {
-            MessageBox.setExitMessage("Load library failed. message = " + e);
+            System.out.println("Load library failed. message = " + e);
             System.exit(-1);
         }
     }

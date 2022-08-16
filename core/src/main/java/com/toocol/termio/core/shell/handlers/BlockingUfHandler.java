@@ -6,7 +6,7 @@ import com.toocol.termio.core.shell.core.SftpChannelProvider;
 import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.ansi.Printer;
-import com.toocol.termio.utilities.handler.BlockingMessageHandler;
+import com.toocol.termio.utilities.module.BlockingMessageHandler;
 import com.toocol.termio.utilities.utils.FileNameUtil;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;

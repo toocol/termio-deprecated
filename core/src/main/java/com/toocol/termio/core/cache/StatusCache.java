@@ -31,4 +31,7 @@ public class StatusCache {
 
     public volatile static boolean SWITCH_SESSION_WAIT_HANG_PREVIOUS = false;
 
+
+    public volatile static long MONITOR_SESSION_ID;
+
 }
