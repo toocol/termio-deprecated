@@ -73,7 +73,7 @@ public record TermPrinter(Term term) {
         Printer.println(builder.toString());
     }
 
-    public void printScene(boolean resize) {
+    synchronized void printScene(boolean resize) {
         Term term = Term.getInstance();
         int[] oldPosition = term.getCursorPosition();
         CONSOLE.hideCursor();
@@ -137,7 +137,7 @@ public record TermPrinter(Term term) {
         CONSOLE.showCursor();
     }
 
-    public void printTermPrompt() {
+    synchronized void printTermPrompt() {
         term.printExecuteBackground();
         term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
     }

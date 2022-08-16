@@ -1,4 +1,4 @@
-package com.toocol.termio.core.term.handlers.console;
+package com.toocol.termio.console.handlers;
 
 import com.toocol.termio.core.term.commands.TermCommand;
 import com.toocol.termio.core.term.core.Term;
@@ -32,7 +32,7 @@ public final class ExecuteCommandHandler extends NonBlockingMessageHandler {
 
     @Override
     public IAddress consume() {
-        return TermAddress.EXECUTE_OUTSIDE;
+        return TermAddress.EXECUTE_OUTSIDE_CONSOLE;
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.toocol.termio.starter;
 
-import com.toocol.termio.core.Termio;
+import com.toocol.termio.console.TermioConsole;
 import com.toocol.termio.core.term.vert.TermDesktopVerticle;
 import com.toocol.termio.utilities.functional.Ignore;
 
@@ -13,7 +13,7 @@ import com.toocol.termio.utilities.functional.Ignore;
 public class TermioApplication {
 
     public static void main(String[] args) {
-        Termio.runConsole(TermioApplication.class);
+        TermioConsole.runConsole(TermioApplication.class);
     }
 
 }

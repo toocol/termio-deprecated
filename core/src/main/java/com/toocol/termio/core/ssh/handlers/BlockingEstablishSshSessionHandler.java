@@ -1,17 +1,12 @@
 package com.toocol.termio.core.ssh.handlers;
 
 import com.toocol.termio.core.auth.core.SshCredential;
-import com.toocol.termio.core.cache.CredentialCache;
-import com.toocol.termio.core.cache.ShellCache;
-import com.toocol.termio.core.cache.SshSessionCache;
-import com.toocol.termio.core.cache.StatusCache;
+import com.toocol.termio.core.cache.*;
 import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.shell.core.ShellProtocol;
 import com.toocol.termio.core.ssh.core.SshSessionFactory;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
-import com.toocol.termio.core.term.handlers.console.BlockingAcceptCommandHandler;
-import com.toocol.termio.core.term.handlers.console.BlockingMonitorTerminalHandler;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.functional.Executable;
 import com.toocol.termio.utilities.functional.Ordered;
@@ -124,7 +119,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
             shellCache.getShell(sessionId).printAfterEstablish();
             StatusCache.SHOW_WELCOME = true;
 
-            BlockingMonitorTerminalHandler.sessionId = sessionId;
+            StatusCache.MONITOR_SESSION_ID = sessionId;
             Term.status = TermStatus.SHELL;
             eventBus.send(ShellAddress.DISPLAY_SHELL.address(), sessionId);
             eventBus.send(ShellAddress.RECEIVE_SHELL.address(), sessionId);
@@ -132,7 +127,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
         } else {
 
             warn("Establish ssh connection failed.");
-            eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
+            eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), StatusConstants.CONNECT_FAILED);
 
         }
     }

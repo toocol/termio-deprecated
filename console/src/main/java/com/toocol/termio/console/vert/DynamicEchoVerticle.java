@@ -1,6 +1,6 @@
-package com.toocol.termio.core.term.vert;
+package com.toocol.termio.console.vert;
 
-import com.toocol.termio.core.term.handlers.console.DynamicEchoHandler;
+import com.toocol.termio.console.handlers.DynamicEchoHandler;
 import com.toocol.termio.utilities.functional.RegisterHandler;
 import com.toocol.termio.utilities.functional.VerticleDeployment;
 import com.toocol.termio.utilities.handler.IHandlerMounter;

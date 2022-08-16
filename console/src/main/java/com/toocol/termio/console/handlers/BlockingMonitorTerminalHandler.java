@@ -1,4 +1,4 @@
-package com.toocol.termio.core.term.handlers.console;
+package com.toocol.termio.console.handlers;
 
 import com.toocol.termio.core.cache.CredentialCache;
 import com.toocol.termio.core.cache.ShellCache;
@@ -25,8 +25,6 @@ import static com.toocol.termio.core.term.TermAddress.MONITOR_TERMINAL;
  */
 @SuppressWarnings("all")
 public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler<Void> {
-
-    public static volatile long sessionId;
 
     private final Console console = Console.get();
     private final CredentialCache credentialCache = CredentialCache.getInstance();
@@ -79,7 +77,7 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
             Term.WIDTH = terminalWidth;
             Term.HEIGHT = terminalHeight;
             if (Term.status.equals(TermStatus.SHELL)) {
-                ShellCache.getInstance().getShell(sessionId).resize(terminalWidth, terminalHeight, sessionId);
+                ShellCache.getInstance().getShell(StatusCache.MONITOR_SESSION_ID).resize(terminalWidth, terminalHeight, StatusCache.MONITOR_SESSION_ID);
             } else if (Term.status.equals(TermStatus.TERMIO)) {
                 Term.getInstance().printScene(true);
             }

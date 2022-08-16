@@ -8,9 +8,13 @@ import com.toocol.termio.utilities.address.IAddress;
  */
 public enum TermAddress implements IAddress {
     /**
-     * execute outside command
+     * execute console outside command
      */
-    EXECUTE_OUTSIDE("ssh.command.execute.outside"),
+    EXECUTE_OUTSIDE_CONSOLE("ssh.command.execute.outside.console"),
+    /**
+     * execute desktop outside command
+     */
+    EXECUTE_OUTSIDE_DESKTOP("ssh.command.execute.outside.desktop"),
     /**
      * to accept the user command input
      */

@@ -1,4 +1,4 @@
-package com.toocol.termio.core.term.handlers.console;
+package com.toocol.termio.console.handlers;
 
 import com.toocol.termio.core.cache.StatusCache;
 import com.toocol.termio.core.term.core.Term;
@@ -16,16 +16,14 @@ import io.vertx.core.eventbus.Message;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.toocol.termio.core.cache.StatusConstants.*;
+
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 11:11
  */
 public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<Boolean> {
 
-    public static final int FIRST_IN = 0;
-    public static final int NORMAL_BACK = 1;
-    public static final int ACCEPT_ERROR = 2;
-    public static final int CONNECT_FAILED = 3;
     private final Term term = Term.getInstance();
 
     public BlockingAcceptCommandHandler(Vertx vertx, Context context, boolean parallel) {
@@ -67,7 +65,7 @@ public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<B
                 CountDownLatch latch = new CountDownLatch(1);
                 AtomicBoolean isBreak = new AtomicBoolean();
 
-                eventBus.request(TermAddress.EXECUTE_OUTSIDE.address(), cmd, result -> {
+                eventBus.request(TermAddress.EXECUTE_OUTSIDE_CONSOLE.address(), cmd, result -> {
                     isBreak.set(cast(result.result().body()));
                     latch.countDown();
                 });

@@ -1,18 +1,13 @@
 package com.toocol.termio.core.mosh.handlers;
 
 import com.toocol.termio.core.auth.core.SshCredential;
-import com.toocol.termio.core.cache.CredentialCache;
-import com.toocol.termio.core.cache.ShellCache;
-import com.toocol.termio.core.cache.SshSessionCache;
-import com.toocol.termio.core.cache.StatusCache;
+import com.toocol.termio.core.cache.*;
 import com.toocol.termio.core.mosh.core.MoshSession;
 import com.toocol.termio.core.mosh.core.MoshSessionFactory;
 import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.shell.core.ShellProtocol;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
-import com.toocol.termio.core.term.handlers.console.BlockingAcceptCommandHandler;
-import com.toocol.termio.core.term.handlers.console.BlockingMonitorTerminalHandler;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.functional.Ordered;
@@ -73,8 +68,8 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
                         Printer.clear();
                         StatusCache.SHOW_WELCOME = true;
                         StatusCache.HANGED_QUIT = false;
+                        StatusCache.MONITOR_SESSION_ID = sessionId;
 
-                        BlockingMonitorTerminalHandler.sessionId = sessionId;
                         Term.status = TermStatus.SHELL;
 
                         eventBus.send(ShellAddress.DISPLAY_SHELL.address(), sessionId);
@@ -83,10 +78,10 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
                         System.gc();
                     });
                 } catch (Exception e) {
-                    eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
+                    eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), StatusConstants.CONNECT_FAILED);
                 }
             } else {
-                eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), BlockingAcceptCommandHandler.CONNECT_FAILED);
+                eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), StatusConstants.CONNECT_FAILED);
             }
         });
         promise.complete();
@@ -97,7 +92,7 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
         if (!asyncResult.succeeded()) {
             warn("Establish mosh connection failed.");
             MessageBox.setErrorMessage("Can't touch the mosh-server.");
-            eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), BlockingAcceptCommandHandler.NORMAL_BACK);
+            eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), StatusConstants.NORMAL_BACK);
         }
     }
 

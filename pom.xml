@@ -12,6 +12,7 @@
         <module>starter</module>
         <module>core</module>
         <module>utilities</module>
+        <module>console</module>
     </modules>
 
     <properties>

@@ -1,8 +1,8 @@
-package com.toocol.termio.core.term.vert;
+package com.toocol.termio.console.vert;
 
-import com.toocol.termio.core.term.handlers.console.BlockingAcceptCommandHandler;
-import com.toocol.termio.core.term.handlers.console.BlockingMonitorTerminalHandler;
-import com.toocol.termio.core.term.handlers.console.ExecuteCommandHandler;
+import com.toocol.termio.console.handlers.BlockingAcceptCommandHandler;
+import com.toocol.termio.console.handlers.BlockingMonitorTerminalHandler;
+import com.toocol.termio.console.handlers.ExecuteCommandHandler;
 import com.toocol.termio.utilities.functional.RegisterHandler;
 import com.toocol.termio.utilities.functional.VerticleDeployment;
 import com.toocol.termio.utilities.handler.IHandlerMounter;

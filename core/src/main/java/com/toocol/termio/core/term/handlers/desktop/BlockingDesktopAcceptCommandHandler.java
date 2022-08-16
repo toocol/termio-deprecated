@@ -11,9 +11,6 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import static com.toocol.termio.core.term.TermAddress.ACCEPT_COMMAND_DESKTOP;
 
 /**
@@ -38,21 +35,8 @@ public class BlockingDesktopAcceptCommandHandler extends BlockingMessageHandler<
             term.setCursorPosition(Term.getPromptLen(), Term.executeLine);
             String cmd = term.readLine();
 
-            CountDownLatch latch = new CountDownLatch(1);
-            AtomicBoolean isBreak = new AtomicBoolean();
+            eventBus.send(TermAddress.EXECUTE_OUTSIDE_DESKTOP.address(), cmd);
 
-            eventBus.request(TermAddress.EXECUTE_OUTSIDE.address(), cmd, result -> {
-                isBreak.set(cast(result.result().body()));
-                latch.countDown();
-            });
-
-            latch.await();
-
-            if (isBreak.get()) {
-                // start to accept shell's command, break the cycle.
-                promise.complete(false);
-                break;
-            }
             if (StatusCache.STOP_ACCEPT_OUT_COMMAND) {
                 StatusCache.STOP_ACCEPT_OUT_COMMAND = false;
                 promise.complete(false);
