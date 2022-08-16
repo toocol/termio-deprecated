@@ -90,7 +90,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
 
     @Override
     public void init() throws Exception {
-        TermioCommunity.runDesktop(TermioCommunityApplication.class);
+        TermioCommunityBootstrap.runDesktop(TermioCommunityApplication.class);
     }
 
     @Override
@@ -127,6 +127,6 @@ public class TermioCommunityApplication extends Application implements Loggable 
     @Override
     public void stop() throws Exception {
         info("Shutdown termio-community.");
-        TermioCommunity.stop();
+        TermioCommunityBootstrap.stop();
     }
 }

@@ -29,7 +29,7 @@ import static com.toocol.termio.core.term.TermAddress.ACCEPT_COMMAND_DESKTOP;
  * @date: 2022/8/2 0:34
  * @version: 0.0.1
  */
-public class TermioCommunity extends Termio {
+public class TermioCommunityBootstrap extends Termio {
 
     public static void runDesktop(Class<?> runClass) {
         runType = RunType.DESKTOP;

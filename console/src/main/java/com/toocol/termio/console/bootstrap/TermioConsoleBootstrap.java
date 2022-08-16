@@ -27,7 +27,7 @@ import static com.toocol.termio.core.term.TermAddress.MONITOR_TERMINAL;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/16 14:44
  */
-public class TermioConsole extends Termio {
+public class TermioConsoleBootstrap extends Termio {
 
     public static void runConsole(Class<?> runClass) {
         runType = RunType.CONSOLE;
