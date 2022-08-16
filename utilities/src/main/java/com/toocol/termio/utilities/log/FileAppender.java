@@ -1,6 +1,7 @@
 package com.toocol.termio.utilities.log;
 
 import com.toocol.termio.utilities.utils.FileUtil;
+import com.toocol.termio.utilities.utils.StrUtil;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
@@ -15,12 +16,14 @@ import java.util.concurrent.ConcurrentLinkedDeque;
  */
 public class FileAppender {
 
-    private static final String FILE_PATH = "./termio.log";
+    private static final String DEFAULT_FILE_PATH = "./";
+    private static final String DEFAULT_FILE_NAME = "termio.log";
+
     private static final Queue<String> LOG_QUEUE = new ConcurrentLinkedDeque<>();
     private static volatile boolean opened = false;
 
     protected static String filePath() {
-        return FileUtil.relativeToFixed(FILE_PATH);
+        return FileUtil.relativeToFixed(DEFAULT_FILE_PATH);
     }
 
     public static void close() {
@@ -29,7 +32,10 @@ public class FileAppender {
 
     @SuppressWarnings("all")
     protected static void openLogFile(Vertx vertx) {
-        vertx.fileSystem().open(filePath(), new OpenOptions().setAppend(true), ar -> {
+        String logFile = System.getProperty("logFile");
+        String fileName = StrUtil.isEmpty(logFile) ? DEFAULT_FILE_PATH : logFile;
+
+        vertx.fileSystem().open(DEFAULT_FILE_PATH + fileName, new OpenOptions().setAppend(true), ar -> {
             if (ar.succeeded()) {
                 opened = true;
                 AsyncFile ws = ar.result();

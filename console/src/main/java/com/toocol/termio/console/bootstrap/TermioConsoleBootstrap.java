@@ -31,6 +31,7 @@ public class TermioConsoleBootstrap extends Termio {
 
     public static void runConsole(Class<?> runClass) {
         runType = RunType.CONSOLE;
+        System.setProperty("logFile", "termio-console.log");
         /* Block the Ctrl+C */
         Signal.handle(new Signal("INT"), signal -> {
         });

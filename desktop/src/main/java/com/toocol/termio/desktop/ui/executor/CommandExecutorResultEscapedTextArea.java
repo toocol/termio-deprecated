@@ -1,10 +1,10 @@
 package com.toocol.termio.desktop.ui.executor;
 
-import com.toocol.termio.desktop.ui.terminal.Cursor;
+import com.toocol.termio.platform.text.Cursor;
 import com.toocol.termio.platform.component.IComponent;
 import com.toocol.termio.platform.component.IStyleAble;
 import com.toocol.termio.platform.text.TextStyle;
-import com.toocol.termio.platform.text.TextStyleClassArea;
+import com.toocol.termio.platform.text.EscapedTextStyleClassArea;
 import com.toocol.termio.utilities.utils.CharUtil;
 import com.toocol.termio.utilities.utils.StrUtil;
 import javafx.scene.paint.Color;
@@ -14,16 +14,13 @@ import javafx.scene.paint.Color;
  * @date: 2022/8/14 23:33
  * @version: 0.0.1
  */
-public class CommandExecutorResultTextArea extends TextStyleClassArea implements IStyleAble, IComponent {
+public class CommandExecutorResultEscapedTextArea extends EscapedTextStyleClassArea implements IStyleAble, IComponent {
 
     protected final long id;
 
     private final Cursor cursor;
 
-    private TextStyle defaultEnglishStyle;
-    private TextStyle defaultChineseStyle;
-
-    public CommandExecutorResultTextArea(long id) {
+    public CommandExecutorResultEscapedTextArea(long id) {
         this.id = id;
         cursor = new Cursor(id);
     }
@@ -45,8 +42,8 @@ public class CommandExecutorResultTextArea extends TextStyleClassArea implements
         prefWidthProperty().bind(executorPanel.prefWidthProperty().multiply(1));
         prefHeightProperty().bind(executorPanel.prefHeightProperty().multiply(0.9));
 
-        defaultChineseStyle = textStyle.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(9);
-        defaultEnglishStyle = textStyle.updateFontFamily("\"Consolas\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(10);
+        updateDefaultChineseStyle(TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(9));
+        updateDefaultEnglishStyle(TextStyle.EMPTY.updateFontFamily("\"Consolas\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(10));
     }
 
     public void append(String text) {
@@ -57,7 +54,7 @@ public class CommandExecutorResultTextArea extends TextStyleClassArea implements
             replace(
                     getCaretPosition(), getCaretPosition(),
                     (StrUtil.join(splitText.toCharArray(), CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR).replaceAll(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE),
-                    StrUtil.isChineseSequenceByHead(splitText) ? defaultChineseStyle : defaultEnglishStyle
+                    StrUtil.isChineseSequenceByHead(splitText) ? defaultChineseTextStyle :defaultEnglishTextStyle
             );
         }
     }

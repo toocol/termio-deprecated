@@ -33,6 +33,7 @@ public class TermioCommunityBootstrap extends Termio {
 
     public static void runDesktop(Class<?> runClass) {
         runType = RunType.DESKTOP;
+        System.setProperty("logFile", "termio-desktop.log");
         Console.setConsole(new DesktopConsole());
         IniConfigLoader.setConfigFileRootPath("/config");
         IniConfigLoader.setConfigurePaths(new String[]{"com.toocol.termio.desktop.configure"});
@@ -45,8 +46,8 @@ public class TermioCommunityBootstrap extends Termio {
 
         vertx = prepareVertxEnvironment(
                 Optional.ofNullable(runClass.getAnnotation(Ignore.class))
-                .map(ignore -> Arrays.stream(ignore.ignore()).collect(Collectors.toSet()))
-                .orElse(null)
+                        .map(ignore -> Arrays.stream(ignore.ignore()).collect(Collectors.toSet()))
+                        .orElse(null)
         );
         eventBus = vertx.eventBus();
 

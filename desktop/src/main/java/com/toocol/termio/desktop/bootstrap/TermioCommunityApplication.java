@@ -100,7 +100,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
         stage.setTitle(" Termio Community ");
         stage.setMinWidth(500);
         stage.setMinHeight(400);
-        InputStream image = TermioCommunityApplication.class.getResourceAsStream("/icon.png");
+        InputStream image = TermioCommunityApplication.class.getResourceAsStream("/com.toocol.termio.desktop.bootstrap/icon.png");
         if (image != null) {
             stage.getIcons().add(new Image(image));
         }

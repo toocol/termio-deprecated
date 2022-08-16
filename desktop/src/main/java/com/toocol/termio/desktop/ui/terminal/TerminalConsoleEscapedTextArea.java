@@ -2,8 +2,9 @@ package com.toocol.termio.desktop.ui.terminal;
 
 import com.toocol.termio.platform.component.IComponent;
 import com.toocol.termio.platform.component.IStyleAble;
+import com.toocol.termio.platform.text.Cursor;
 import com.toocol.termio.platform.text.TextStyle;
-import com.toocol.termio.platform.text.TextStyleClassArea;
+import com.toocol.termio.platform.text.EscapedTextStyleClassArea;
 import com.toocol.termio.utilities.utils.Castable;
 import com.toocol.termio.utilities.utils.CharUtil;
 import com.toocol.termio.utilities.utils.StrUtil;
@@ -51,15 +52,12 @@ import org.fxmisc.richtext.Caret;
  * @date 2022/8/6 14:06
  */
 @SuppressWarnings("all")
-public class TerminalConsoleTextArea extends TextStyleClassArea implements Castable, IComponent, IStyleAble {
+public class TerminalConsoleEscapedTextArea extends EscapedTextStyleClassArea implements Castable, IComponent, IStyleAble {
     protected final long id;
 
     private final Cursor cursor;
 
-    private TextStyle defaultEnglishStyle;
-    private TextStyle defaultChineseStyle;
-
-    public TerminalConsoleTextArea(long id) {
+    public TerminalConsoleEscapedTextArea(long id) {
         this.id = id;
         cursor = new Cursor(id);
     }
@@ -85,8 +83,8 @@ public class TerminalConsoleTextArea extends TextStyleClassArea implements Casta
         setShowCaret(Caret.CaretVisibility.OFF);
         setInputMethodRequests(new InputMethodRequestsObject());
 
-        defaultChineseStyle = textStyle.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(9);
-        defaultEnglishStyle = textStyle.updateFontFamily("\"Consolas\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(10);
+        updateDefaultChineseStyle(TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(9));
+        updateDefaultEnglishStyle(TextStyle.EMPTY.updateFontFamily("\"Consolas\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(10));
 
         DesktopTerminalPanel desktopTerminalPanel = findComponent(DesktopTerminalPanel.class, id);
         prefWidthProperty().bind(desktopTerminalPanel.prefWidthProperty().multiply(1));
@@ -130,7 +128,7 @@ public class TerminalConsoleTextArea extends TextStyleClassArea implements Casta
             replace(
                     cursor.getInlinePosition(), cursor.getInlinePosition(),
                     (StrUtil.join(splitText.toCharArray(), CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR).replaceAll(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE),
-                    StrUtil.isChineseSequenceByHead(splitText) ? defaultChineseStyle : defaultEnglishStyle
+                    StrUtil.isChineseSequenceByHead(splitText) ? defaultChineseTextStyle : defaultEnglishTextStyle
             );
         }
     }
