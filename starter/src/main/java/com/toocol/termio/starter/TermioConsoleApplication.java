@@ -1,4 +1,6 @@
-package com.toocol.termio.console.bootstrap;
+package com.toocol.termio.starter;
+
+import com.toocol.termio.console.bootstrap.TermioConsoleBootstrap;
 
 /**
  * @author ZhaoZhe
@@ -8,7 +10,7 @@ package com.toocol.termio.console.bootstrap;
 public class TermioConsoleApplication {
 
     public static void main(String[] args) {
-        TermioConsole.runConsole(TermioConsoleApplication.class);
+        TermioConsoleBootstrap.runConsole(TermioConsoleApplication.class);
     }
 
 }
