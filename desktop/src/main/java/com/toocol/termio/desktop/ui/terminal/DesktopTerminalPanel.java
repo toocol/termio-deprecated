@@ -40,7 +40,7 @@ public class DesktopTerminalPanel extends TAnchorPane implements IActiveAble, Lo
     private final TerminalOutputService terminalOutputService = new TerminalOutputService();
 
     private final TerminalScrollPane terminalScrollPane;
-    private final TerminalConsoleTextArea terminalConsoleTextArea;
+    private final TerminalConsoleEscapedTextArea terminalConsoleTextArea;
 
     private final String msg = """
             \u001B[0m\u001B[1;49r\u001B[49;1H
@@ -72,7 +72,7 @@ public class DesktopTerminalPanel extends TAnchorPane implements IActiveAble, Lo
 
     public DesktopTerminalPanel(long id) {
         super(id);
-        terminalConsoleTextArea = new TerminalConsoleTextArea(id);
+        terminalConsoleTextArea = new TerminalConsoleEscapedTextArea(id);
         terminalScrollPane = new TerminalScrollPane(id, terminalConsoleTextArea);
     }
 

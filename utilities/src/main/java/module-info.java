@@ -19,11 +19,12 @@ module termio.utilities {
     exports com.toocol.termio.utilities.execeptions;
     exports com.toocol.termio.utilities.functional;
     exports com.toocol.termio.utilities.module;
+    exports com.toocol.termio.utilities.io;
     exports com.toocol.termio.utilities.jni;
     exports com.toocol.termio.utilities.log;
     exports com.toocol.termio.utilities.obj;
     exports com.toocol.termio.utilities.sync;
     exports com.toocol.termio.utilities.utils;
     exports com.toocol.termio.utilities.escape;
-    exports com.toocol.termio.utilities.io;
+    exports com.toocol.termio.utilities.escape.actions;
 }

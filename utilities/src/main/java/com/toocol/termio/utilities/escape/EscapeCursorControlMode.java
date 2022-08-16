@@ -6,6 +6,7 @@ package com.toocol.termio.utilities.escape;
  * @version: 0.0.1
  */
 public enum EscapeCursorControlMode implements IEscapeMode {
+    MOVE_CURSOR_TO_CERTAIN("Hf", "ESC[#;#H /Moves cursor to line <b>#</b>, column <b>#</b>."),
     MOVE_HOME_POSITION("H", "moves cursor to home position (0, 0)."),
     MOVE_CURSOR_UP("A", "moves cursor up # lines (# represent a num)."),
     MOVE_CURSOR_DOWN("B", "moves cursor down # lines (# represent a num)."),

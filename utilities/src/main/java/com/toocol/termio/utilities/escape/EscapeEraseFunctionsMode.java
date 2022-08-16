@@ -5,7 +5,7 @@ package com.toocol.termio.utilities.escape;
  * @date: 2022/8/7 22:13
  * @version: 0.0.1
  */
-public enum EraseFunctionsMode implements IEscapeMode {
+public enum EscapeEraseFunctionsMode implements IEscapeMode {
     ERASE_IN_DISPLAY("J", "erase in display (same as ESC[0J)."),
     ERASE_CURSOR_LINE_TO_END("0J", "erase from cursor until end of screen."),
     ERASE_CURSOR_LINE_TO_BEGINNING("1J", "erase from cursor to beginning of screen."),
@@ -19,13 +19,13 @@ public enum EraseFunctionsMode implements IEscapeMode {
     public final String code;
     public final String desc;
 
-    EraseFunctionsMode(String code, String desc) {
+    EscapeEraseFunctionsMode(String code, String desc) {
         this.code = code;
         this.desc = desc;
     }
 
-    public EraseFunctionsMode codeOf(String code) {
-        for (EraseFunctionsMode mode : values()) {
+    public EscapeEraseFunctionsMode codeOf(String code) {
+        for (EscapeEraseFunctionsMode mode : values()) {
             if (mode.code.equals(code)) {
                 return mode;
             }

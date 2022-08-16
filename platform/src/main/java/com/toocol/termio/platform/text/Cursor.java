@@ -1,4 +1,4 @@
-package com.toocol.termio.desktop.ui.terminal;
+package com.toocol.termio.platform.text;
 
 import com.toocol.termio.platform.component.IComponent;
 import com.toocol.termio.utilities.log.Loggable;
