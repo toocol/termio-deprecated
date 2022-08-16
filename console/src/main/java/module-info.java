@@ -10,10 +10,10 @@ module termio.console {
     requires io.vertx.core;
     requires jsr305;
 
-    opens com.toocol.termio.console.vert to termio.core;
+    opens com.toocol.termio.console.module to termio.core;
     opens com.toocol.termio.console.handlers to termio.core;
 
-    exports com.toocol.termio.console;
-    exports com.toocol.termio.console.vert;
+    exports com.toocol.termio.console.module;
     exports com.toocol.termio.console.handlers;
+    exports com.toocol.termio.console.bootstrap;
 }

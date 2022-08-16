@@ -9,7 +9,7 @@ import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
 import com.toocol.termio.utilities.ansi.ColorHelper;
-import com.toocol.termio.utilities.handler.NonBlockingMessageHandler;
+import com.toocol.termio.utilities.module.NonBlockingMessageHandler;
 import com.toocol.termio.utilities.utils.CharUtil;
 import com.toocol.termio.utilities.utils.StrUtil;
 import io.vertx.core.Context;

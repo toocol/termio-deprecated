@@ -57,9 +57,6 @@ public class FileAppender {
     }
 
     protected static void logFileAppend(String log) {
-        if (!opened) {
-            return;
-        }
         LOG_QUEUE.offer(log);
     }
 

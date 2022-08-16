@@ -3,7 +3,7 @@ package com.toocol.termio.core;
 import com.toocol.termio.core.shell.core.ShellCharEventDispatcher;
 import com.toocol.termio.core.term.core.TermCharEventDispatcher;
 import com.toocol.termio.utilities.ansi.Printer;
-import com.toocol.termio.utilities.functional.VerticleDeployment;
+import com.toocol.termio.utilities.module.ModuleDeployment;
 import com.toocol.termio.utilities.jni.JNILoader;
 import com.toocol.termio.utilities.log.Logger;
 import com.toocol.termio.utilities.log.LoggerFactory;
@@ -57,12 +57,13 @@ public abstract class Termio {
 
     static {
         /* Get the verticle which need to deploy in main class by annotation */
-        Set<Class<?>> annotatedClassList = new ClassScanner("com.toocol.termio", clazz -> clazz.isAnnotationPresent(VerticleDeployment.class)).scan();
+        Set<Class<?>> annotatedClassList = new ClassScanner("com.toocol.termio", clazz -> clazz.isAnnotationPresent(ModuleDeployment.class)).scan();
         annotatedClassList.forEach(annotatedClass -> {
-            if (annotatedClass.getSuperclass().equals(AbstractVerticle.class)) {
+            Class<?> superclass = annotatedClass.getSuperclass();
+            if (superclass != null && superclass.getSuperclass().equals(AbstractVerticle.class)) {
                 verticleClassList.add(CastUtil.cast(annotatedClass));
             } else {
-                Printer.printErr("Skip deploy verticle " + annotatedClass.getName() + ", please extends AbstractVerticle");
+                logger.error("Skip deploy verticle " + annotatedClass.getName() + ", please extends AbstractVerticle");
             }
         });
         loadingLatch = new CountDownLatch(1);
@@ -94,9 +95,9 @@ public abstract class Termio {
                     .filter(clazz -> !ignore.contains(clazz))
                     .toList());
         }
-        verticleClassList.sort(Comparator.comparingInt(clazz -> -1 * clazz.getAnnotation(VerticleDeployment.class).weight()));
+        verticleClassList.sort(Comparator.comparingInt(clazz -> -1 * clazz.getAnnotation(ModuleDeployment.class).weight()));
         verticleClassList.forEach(verticleClass -> {
-                    VerticleDeployment deploy = verticleClass.getAnnotation(VerticleDeployment.class);
+                    ModuleDeployment deploy = verticleClass.getAnnotation(ModuleDeployment.class);
                     DeploymentOptions deploymentOptions = new DeploymentOptions();
                     if (deploy.worker()) {
                         deploymentOptions.setWorker(true).setWorkerPoolSize(deploy.workerPoolSize()).setWorkerPoolName(deploy.workerPoolName());

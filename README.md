@@ -9,7 +9,7 @@
 
 <div align="center">
 
-<big>***A light and handy command-line ssh/mosh client.***</big>  
+<big>***A light and handy ssh/mosh client.***</big>  
 
 </div>
 
@@ -21,7 +21,7 @@
 </div>
 
 ### About Termio
-Termio it's a lightweight command line `SSH/Mosh` terminal tool operated based on some simple commands in terminal; 
+Termio it's a lightweight `SSH/Mosh` connection tool operated based on some simple commands in terminal, it contains two different versions: Console and Desktop; 
 
 Provide SSH/Mosh `credential storage`, `async sftp`, `quick session switch`, `advanced history command`, `function plugin extension` etc.
 

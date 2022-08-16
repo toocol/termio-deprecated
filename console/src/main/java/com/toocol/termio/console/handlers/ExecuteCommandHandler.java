@@ -6,7 +6,7 @@ import com.toocol.termio.core.term.core.TermPrinter;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
 import com.toocol.termio.utilities.ansi.Printer;
-import com.toocol.termio.utilities.handler.NonBlockingMessageHandler;
+import com.toocol.termio.utilities.module.NonBlockingMessageHandler;
 import com.toocol.termio.utilities.utils.StrUtil;
 import com.toocol.termio.utilities.utils.Tuple2;
 import com.toocol.termio.core.term.TermAddress;

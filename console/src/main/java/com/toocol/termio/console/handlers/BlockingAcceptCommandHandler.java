@@ -4,7 +4,7 @@ import com.toocol.termio.core.cache.StatusCache;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.ansi.Printer;
-import com.toocol.termio.utilities.handler.BlockingMessageHandler;
+import com.toocol.termio.utilities.module.BlockingMessageHandler;
 import com.toocol.termio.utilities.utils.MessageBox;
 import com.toocol.termio.core.term.TermAddress;
 import io.vertx.core.AsyncResult;

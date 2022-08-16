@@ -3,7 +3,7 @@ package com.toocol.termio.core.mosh.handlers;
 import com.toocol.termio.core.cache.MoshSessionCache;
 import com.toocol.termio.core.mosh.core.MoshSession;
 import com.toocol.termio.utilities.address.IAddress;
-import com.toocol.termio.utilities.handler.BlockingMessageHandler;
+import com.toocol.termio.utilities.module.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;

@@ -10,7 +10,7 @@ import com.toocol.termio.core.term.core.TermStatus;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.functional.Executable;
 import com.toocol.termio.utilities.functional.Ordered;
-import com.toocol.termio.utilities.handler.BlockingMessageHandler;
+import com.toocol.termio.utilities.module.BlockingMessageHandler;
 import com.toocol.termio.core.shell.ShellAddress;
 import com.toocol.termio.core.ssh.SshAddress;
 import com.toocol.termio.core.term.TermAddress;

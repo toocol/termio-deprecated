@@ -9,7 +9,7 @@ import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.console.Console;
-import com.toocol.termio.utilities.handler.BlockingMessageHandler;
+import com.toocol.termio.utilities.module.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;

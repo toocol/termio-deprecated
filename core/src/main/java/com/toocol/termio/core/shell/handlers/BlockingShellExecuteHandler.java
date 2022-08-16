@@ -11,7 +11,7 @@ import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
 import com.toocol.termio.utilities.address.IAddress;
 import com.toocol.termio.utilities.execeptions.RemoteDisconnectException;
-import com.toocol.termio.utilities.handler.BlockingMessageHandler;
+import com.toocol.termio.utilities.module.BlockingMessageHandler;
 import com.toocol.termio.utilities.sync.SharedCountdownLatch;
 import com.toocol.termio.utilities.utils.MessageBox;
 import com.toocol.termio.utilities.utils.StrUtil;
