@@ -1,13 +1,14 @@
 package com.toocol.termio.utilities.escape;
 
 import com.google.common.collect.ImmutableMap;
-import com.toocol.termio.utilities.ansi.AsciiControl;
 import com.toocol.termio.utilities.escape.actions.AnsiEscapeAction;
 import com.toocol.termio.utilities.log.Loggable;
 import com.toocol.termio.utilities.utils.Castable;
+import com.toocol.termio.utilities.utils.StrUtil;
 import com.toocol.termio.utilities.utils.Tuple2;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,8 +17,7 @@ import java.util.regex.Pattern;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/8 10:45
  */
-public class AnsiEscapeSearchEngine<T extends EscapeCodeSequenceSupporter> implements Loggable, Castable {
-    private static final String ESCAPE_SEQUENCE_PLACEHOLDER = AsciiControl.SUB;
+public class AnsiEscapeSearchEngine<T extends EscapeCodeSequenceSupporter<T>> implements Loggable, Castable {
 
     protected final T executeTarget;
 
@@ -30,7 +30,7 @@ public class AnsiEscapeSearchEngine<T extends EscapeCodeSequenceSupporter> imple
     private static final Pattern codePattern = Pattern.compile("(\\d{1,3};)+");
     private static final Pattern stringPattern = Pattern.compile("[\\w ]+;?");
 
-    private static final Pattern uberEscapeModePattern = Pattern.compile(
+    private static final String uberEscapeModeRegex =
             "(\\u001b\\[\\d{1,4};\\d{1,4}[Hf])" +
                     "|((\\u001b\\[\\d{0,4}([HABCDEFGsu]|(6n)))|(\\u001b [M78]))" +
                     "|(\\u001b\\[[0123]?[JK])" +
@@ -40,8 +40,8 @@ public class AnsiEscapeSearchEngine<T extends EscapeCodeSequenceSupporter> imple
                     "|(\\u001b\\[=\\d{1,2}h)" +
                     "|(\\u001b\\[=\\d{1,2}l)" +
                     "|(\\u001b\\[\\?\\d{2,4}[lh])" +
-                    "|(\\u001b\\[((\\d{1,3};){1,2}(((\\\\\")|'|\")[\\w ]+((\\\\\")|'|\");?)|(\\d{1,2};?))+p)"
-    );
+                    "|(\\u001b\\[((\\d{1,3};){1,2}(((\\\\\")|'|\")[\\w ]+((\\\\\")|'|\");?)|(\\d{1,2};?))+p)";
+    private static final Pattern uberEscapeModePattern = Pattern.compile(uberEscapeModeRegex);
 
     // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#cursor-controls
     private static final Pattern cursorSetPosModePattern = Pattern.compile("\\u001b\\[\\d{1,4};\\d{1,4}[Hf]");
@@ -69,23 +69,15 @@ public class AnsiEscapeSearchEngine<T extends EscapeCodeSequenceSupporter> imple
     // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#keyboard-strings
     private static final Pattern keyBoardStringModePattern = Pattern.compile("\\u001b\\[((\\d{1,3};){1,2}(((\\\\\")|'|\")[\\w ]+((\\\\\")|'|\");?)|(\\d{1,2};?))+p");
 
-    public void registerActions(List<AnsiEscapeAction<T>> actions) {
-        Map<Class<? extends IEscapeMode>, AnsiEscapeAction<T>> map = new HashMap<>();
-        for (AnsiEscapeAction<T> action : actions) {
-            map.put(action.focusMode(), action);
-        }
-        actionMap = ImmutableMap.copyOf(map);
-    }
-
     /**
      * Suppose we have such text:<br>
      * ######ESC[K######<br>
      * |<br>
-     * |to splitText<br>
+     * | split text by escape sequence, generate escape sequence queue.<br>
      * ↓<br>
-     * ["######",IEscapeMode,"######"]<br>
-     * Meanwhile we record an AnsiEscapeAction that represent an origin escape code sequence to a Queue[AnsiEscapeAction]<br>
-     * Then we print out the splitText in loop, and invoking AnsiEscapeAction from the head of Queue[AnsiEscapeAction] when we meet the "SUB".
+     * ["######", "######"]<br>
+     * Queue[Tuple[IEscapeMode,List[Object]]]<br><br>
+     * Then we print out the split text in loop, and getting and invoking AnsiEscapeAction from the head of Queue[Tuple[IEscapeMode,List[Object]]].
      */
     public void actionOnEscapeMode(String text) {
         if (actionMap == null) {
@@ -93,31 +85,90 @@ public class AnsiEscapeSearchEngine<T extends EscapeCodeSequenceSupporter> imple
             return;
         }
 
-        String copy = text;
-        List<Object> splitText = new ArrayList<>();
-        Queue<AnsiEscapeAction<T>> queue = new ArrayDeque<>();
+        Queue<Tuple2<IEscapeMode, List<Object>>> queue = new ArrayDeque<>();
+        String[] split = text.split(uberEscapeModeRegex);
         Matcher uberMatcher = uberEscapeModePattern.matcher(text);
         while (uberMatcher.find()) {
-            int start = uberMatcher.start();
-            int end = uberMatcher.end();
-            // TODO: fulfil the message
+            String escapeSequence = uberMatcher.group();
+            List<Object> params = new ArrayList<>();
+            IEscapeMode escapeMode = null;
+
+            AtomicBoolean dealAlready = new AtomicBoolean();
+            regexParse(escapeSequence, cursorSetPosModePattern, matcher -> {
+
+            }, dealAlready);
+
+            regexParse(escapeSequence, cursorControlModePattern, matcher -> {
+
+            }, dealAlready);
+
+            regexParse(escapeSequence, eraseFunctionModePattern, matcher -> {
+
+            }, dealAlready);
+
+            regexParse(escapeSequence, colorGraphicsModePattern, matcher -> {
+
+            }, dealAlready);
+
+            regexParse(escapeSequence, color256ModePattern, matcher -> {
+
+            }, dealAlready);
+
+            regexParse(escapeSequence, colorRgbModePattern, matcher -> {
+
+            }, dealAlready);
+
+            regexParse(escapeSequence, screenModePatter, matcher -> {
+
+            }, dealAlready);
+
+            regexParse(escapeSequence, disableScreenModePattern, matcher -> {
+
+            }, dealAlready);
+
+            regexParse(escapeSequence, commonPrivateModePattern, matcher -> {
+
+            }, dealAlready);
+
+            regexParse(escapeSequence, keyBoardStringModePattern, matcher -> {
+
+            }, dealAlready);
+
+            queue.offer(new Tuple2<>(escapeMode, params));
         }
 
-        for (Object sp : splitText) {
-            if (sp instanceof Tuple2<?, ?>) {
-                Tuple2<IEscapeMode, List<Object>> tuple = cast(sp);
-                queue.peek().action(executeTarget, tuple._1(), tuple._2());
-                continue;
+        for (String sp : split) {
+            if (StrUtil.isNotEmpty(sp)) {
+                executeTarget.printOut(sp);
             }
-            executeTarget.printOut(sp.toString());
+            if (!queue.isEmpty()) {
+                Tuple2<IEscapeMode, List<Object>> tuple = queue.poll();
+                actionMap.get(tuple._1().getClass()).action(executeTarget, tuple._1(), tuple._2());
+            }
         }
     }
 
-    private void regexParse(String text, Pattern pattern, Consumer<Matcher> consumer) {
-        consumer.accept(pattern.matcher(text));
+    private void regexParse(String text, Pattern pattern, Consumer<Matcher> consumer, AtomicBoolean dealAlready) {
+        if (dealAlready.get()) {
+            return;
+        }
+        Matcher matcher = pattern.matcher(text);
+        if (matcher.find()) {
+            consumer.accept(matcher);
+            dealAlready.set(true);
+        }
+    }
+
+    private void registerActions(List<AnsiEscapeAction<T>> actions) {
+        Map<Class<? extends IEscapeMode>, AnsiEscapeAction<T>> map = new HashMap<>();
+        for (AnsiEscapeAction<T> action : actions) {
+            map.put(action.focusMode(), action);
+        }
+        actionMap = ImmutableMap.copyOf(map);
     }
 
     public AnsiEscapeSearchEngine(T executeTarget) {
         this.executeTarget = executeTarget;
+        registerActions(executeTarget.registerActions());
     }
 }

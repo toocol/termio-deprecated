@@ -5,7 +5,7 @@ import com.toocol.termio.core.cache.ShellCache;
 import com.toocol.termio.core.shell.core.CmdFeedbackHelper;
 import com.toocol.termio.core.shell.core.ExecChannelProvider;
 import com.toocol.termio.core.shell.core.Shell;
-import com.toocol.termio.utilities.address.IAddress;
+import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.module.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;

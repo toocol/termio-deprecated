@@ -23,7 +23,7 @@ import java.util.function.BiConsumer;
  * @date: 2022/8/14 17:43
  * @version: 0.0.1
  */
-public class EscapedTextStyleClassArea extends GenericStyledArea<ParagraphStyle, String, TextStyle> implements EscapeCodeSequenceSupporter {
+public class EscapedTextStyleClassArea extends GenericStyledArea<ParagraphStyle, String, TextStyle> implements EscapeCodeSequenceSupporter<EscapedTextStyleClassArea> {
 
     private final static TextOps<String, TextStyle> styledTextOps = SegmentOps.styledTextOps();
 
@@ -61,11 +61,18 @@ public class EscapedTextStyleClassArea extends GenericStyledArea<ParagraphStyle,
     }
 
     @Override
+    public List<AnsiEscapeAction<EscapedTextStyleClassArea>> registerActions() {
+        List<AnsiEscapeAction<EscapedTextStyleClassArea>> actionList = new ArrayList<>();
+        actionList.add(new EscapeCursorControlAction());
+        return actionList;
+    }
+
+    @Override
     public void printOut(String text) {
 
     }
 
-    public static class EscapeCursorControlAction extends AnsiEscapeAction<EscapedTextStyleClassArea> {
+    private static class EscapeCursorControlAction extends AnsiEscapeAction<EscapedTextStyleClassArea> {
 
         @Override
         public Class<? extends IEscapeMode> focusMode() {
@@ -83,8 +90,5 @@ public class EscapedTextStyleClassArea extends GenericStyledArea<ParagraphStyle,
                 ParagraphStyle.CODEC,
                 Codec.styledSegmentCodec(Codec.STRING_CODEC, TextStyle.CODEC)
         );
-        List<AnsiEscapeAction<EscapedTextStyleClassArea>> actionList = new ArrayList<>();
-        actionList.add(new EscapeCursorControlAction());
-        ansiEscapeSearchEngine.registerActions(actionList);
     }
 }

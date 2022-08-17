@@ -6,7 +6,7 @@ import com.toocol.termio.core.cache.SshSessionCache;
 import com.toocol.termio.core.term.TermAddress;
 import com.toocol.termio.core.term.commands.TermCommand;
 import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.utilities.address.IAddress;
+import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
 import com.toocol.termio.utilities.ansi.ColorHelper;
 import com.toocol.termio.utilities.module.NonBlockingMessageHandler;

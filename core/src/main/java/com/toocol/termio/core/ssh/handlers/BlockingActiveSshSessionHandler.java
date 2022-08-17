@@ -9,7 +9,7 @@ import com.toocol.termio.core.shell.core.ShellProtocol;
 import com.toocol.termio.core.ssh.SshAddress;
 import com.toocol.termio.core.ssh.core.SshSessionFactory;
 import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.utilities.address.IAddress;
+import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
 import com.toocol.termio.utilities.functional.Executable;
 import com.toocol.termio.utilities.functional.Ordered;

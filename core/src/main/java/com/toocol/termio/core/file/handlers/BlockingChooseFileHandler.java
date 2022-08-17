@@ -1,7 +1,7 @@
 package com.toocol.termio.core.file.handlers;
 
 import com.toocol.termio.core.file.core.FileChooser;
-import com.toocol.termio.utilities.address.IAddress;
+import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.module.BlockingMessageHandler;
 import com.toocol.termio.core.file.FileAddress;
 import io.vertx.core.AsyncResult;
