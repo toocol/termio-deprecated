@@ -1,54 +1,47 @@
-package com.toocol.termio.core.mosh.core.network;
+package com.toocol.termio.core.mosh.core.network
 
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.junit.jupiter.api.Test
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/7/2 0:24
  * @version:
  */
-class TransportFragmentTest {
-
+internal class TransportFragmentTest {
     @Test
-    void testPool() {
-        Runtime runtime = Runtime.getRuntime();
-        int loop = 100000000;
-        long usePool;
-        long notPool;
-        long useMem;
-        long notMem;
-
-        List<TransportFragment.Fragment> list = new ArrayList<>(100000000);
-        long start = System.currentTimeMillis();
-        TransportFragment.Pool pool = new TransportFragment.Pool();
-        pool.init();
-        long sm = runtime.totalMemory() - runtime.freeMemory();
-        for (int i = 0; i < loop; i++) {
-            list.add(pool.getObject());
-            pool.recycle();
+    fun testPool() {
+        val runtime = Runtime.getRuntime()
+        val loop = 100000000
+        val usePool: Long
+        val notPool: Long
+        val useMem: Long
+        val notMem: Long
+        val list: MutableList<TransportFragment.Fragment> = ArrayList(100000000)
+        var start = System.currentTimeMillis()
+        val pool = TransportFragment.Pool()
+        pool.init()
+        var sm = runtime.totalMemory() - runtime.freeMemory()
+        for (i in 0 until loop) {
+            list.add(pool.getObject())
+            pool.recycle()
         }
-        long end = System.currentTimeMillis();
-        long em = runtime.totalMemory() - runtime.freeMemory();
-        usePool = end - start;
-        useMem = em - sm;
-
-        list.clear();
-        start = System.currentTimeMillis();
-        sm = runtime.totalMemory() - runtime.freeMemory();
-        for (int i = 0; i < loop; i++) {
-            list.add(new TransportFragment.Fragment());
+        var end = System.currentTimeMillis()
+        var em = runtime.totalMemory() - runtime.freeMemory()
+        usePool = end - start
+        useMem = em - sm
+        list.clear()
+        start = System.currentTimeMillis()
+        sm = runtime.totalMemory() - runtime.freeMemory()
+        for (i in 0 until loop) {
+            list.add(TransportFragment.Fragment())
         }
-        end = System.currentTimeMillis();
-        em = runtime.totalMemory() - runtime.freeMemory();
-        notPool = end - start;
-        notMem = em - sm;
-        System.out.println("usePoll: " + usePool);
-        System.out.println("useMem: " + useMem / 1024 / 1024);
-        System.out.println("notPoll: " + notPool);
-        System.out.println("notMem: " + notMem / 1024 / 1024);
+        end = System.currentTimeMillis()
+        em = runtime.totalMemory() - runtime.freeMemory()
+        notPool = end - start
+        notMem = em - sm
+        println("usePoll: $usePool")
+        println("useMem: " + useMem / 1024 / 1024)
+        println("notPoll: $notPool")
+        println("notMem: " + notMem / 1024 / 1024)
     }
-
 }

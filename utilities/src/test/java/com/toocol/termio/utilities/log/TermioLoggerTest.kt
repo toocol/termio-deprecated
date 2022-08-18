@@ -1,16 +1,18 @@
-package com.toocol.termio.utilities.log;
+package com.toocol.termio.utilities.log
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/6/28 15:01
  */
-class TermioLoggerTest {
+internal class TermioLoggerTest {
     @Test
-    void testLog() {
-        LoggerFactory.init(null);
-        Logger logger = LoggerFactory.getLogger(TermioLoggerTest.class);
-        logger.info("Testing log {}", 1);
+    fun testLog() {
+        LoggerFactory.init(null)
+        val logger = LoggerFactory.getLogger(
+            TermioLoggerTest::class.java
+        )
+        logger.info("Testing log {}", 1)
     }
 }

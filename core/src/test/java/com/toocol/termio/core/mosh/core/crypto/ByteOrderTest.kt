@@ -1,43 +1,37 @@
-package com.toocol.termio.core.mosh.core.crypto;
+package com.toocol.termio.core.mosh.core.crypto
 
-import com.google.common.primitives.Longs;
-import com.google.common.primitives.Shorts;
-import org.junit.jupiter.api.Test;
-
-import static com.toocol.termio.core.mosh.core.crypto.ByteOrder.*;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.google.common.primitives.Longs
+import com.google.common.primitives.Shorts
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/5/13 1:19
  * @version:
  */
-class ByteOrderTest {
-
+internal class ByteOrderTest {
     @Test
-    void bswap64Test() {
-        long x = 123456;
-        x = ByteOrder.toLong(ByteOrder.bswap64(x));
-        assertEquals(x, 4675300462675623936L);
+    fun bswap64Test() {
+        var x: Long = 123456
+        x = ByteOrder.toLong(ByteOrder.bswap64(x))
+        Assertions.assertEquals(x, 4675300462675623936L)
     }
 
     @Test
-    void intBytesTest() {
-        int x = 0x01000000;
-        int y = ByteOrder.toInt(ByteOrder.intBytes(x));
-        assertEquals(x, y);
+    fun intBytesTest() {
+        val x = 0x01000000
+        val y = ByteOrder.toInt(ByteOrder.intBytes(x))
+        Assertions.assertEquals(x, y)
     }
 
     @Test
-    public void byteOrderTest() {
-        long x = 213123;
-        assertEquals(x, be64toh(htoBe64(x)));
-        assertArrayEquals(htoBe64(x), Longs.toByteArray(x));
-
-        short y = 123;
-        assertEquals(y, be16toh(htoBe16(y)));
-        assertArrayEquals(htoBe16(y), Shorts.toByteArray(y));
+    fun byteOrderTest() {
+        val x: Long = 213123
+        Assertions.assertEquals(x, ByteOrder.be64toh(ByteOrder.htoBe64(x)))
+        Assertions.assertArrayEquals(ByteOrder.htoBe64(x), Longs.toByteArray(x))
+        val y: Short = 123
+        Assertions.assertEquals(y, ByteOrder.be16toh(ByteOrder.htoBe16(y)))
+        Assertions.assertArrayEquals(ByteOrder.htoBe16(y), Shorts.toByteArray(y))
     }
-
 }

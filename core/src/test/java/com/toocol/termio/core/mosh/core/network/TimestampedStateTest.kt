@@ -1,116 +1,96 @@
-package com.toocol.termio.core.mosh.core.network;
+package com.toocol.termio.core.mosh.core.network
 
-import com.toocol.termio.core.mosh.core.statesnyc.UserEvent;
-import com.toocol.termio.core.mosh.core.statesnyc.UserStream;
-import com.toocol.termio.utilities.utils.Timestamp;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-
-import static com.toocol.termio.core.mosh.core.network.NetworkConstants.ACK_DELAY;
+import com.toocol.termio.core.mosh.core.statesnyc.UserEvent.Resize
+import com.toocol.termio.core.mosh.core.statesnyc.UserStream
+import com.toocol.termio.utilities.utils.Timestamp
+import org.junit.jupiter.api.Test
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/6/30 14:20
  */
-class TimestampedStateTest {
-    private final UserStream currentState = new UserStream();
-    private final List<TimestampedState<UserStream>> sentStates = new ArrayList<>();
-    private TimestampedState<UserStream> assumedReceiverState;
-
+internal class TimestampedStateTest {
+    private val currentState = UserStream()
+    private val sentStates: MutableList<TimestampedState<UserStream>> = ArrayList()
+    private var assumedReceiverState: TimestampedState<UserStream>? = null
     @Test
-    void testSubtract() {
-        this.sentStates.add(new TimestampedState<>(Timestamp.timestamp(), 0, currentState.copy()));
-        this.assumedReceiverState = this.sentStates.get(0);
-
-        int ackNum = 1;
-        for (int i = 0; i < 10000; i++) {
-            currentState.pushBack(new UserEvent.Resize(100, 100));
-            updateAssumedReceiverState();
-            rationalizeStates();
-
-            byte[] bytes = currentState.diffFrom(assumedReceiverState.state);
-            assert bytes != null && bytes.length > 0;
-
-            long newNum;
-            TimestampedState<UserStream> back = sentStates.get(sentStates.size() - 1);
-            if (currentState.equals(back.state)) {
-                newNum = back.num;
+    fun testSubtract() {
+        sentStates.add(TimestampedState(Timestamp.timestamp(), 0, currentState.copy()))
+        assumedReceiverState = sentStates[0]
+        var ackNum = 1
+        for (i in 0..9999) {
+            currentState.pushBack(Resize(100, 100))
+            updateAssumedReceiverState()
+            rationalizeStates()
+            val bytes = currentState.diffFrom(assumedReceiverState!!.state)
+            assert(bytes != null && bytes.size > 0)
+            var newNum: Long
+            val back = sentStates[sentStates.size - 1]
+            newNum = if (currentState == back.state) {
+                back.num
             } else {
-                newNum = back.num + 1;
+                back.num + 1
             }
-            addSentState(Timestamp.timestamp(), newNum, currentState);
-            assert newNum == back.num + 1;
+            addSentState(Timestamp.timestamp(), newNum, currentState)
+            assert(newNum == back.num + 1)
 
-            /* suppose we have received an ack packet from mosh-server */
-            processAcknowledgmentThrough(ackNum++);
-
+            /* suppose we have received an ack packet from mosh-server */processAcknowledgmentThrough(ackNum++.toLong())
         }
     }
 
-    private void addSentState(long theTimestamp, long num, UserStream state) {
-        sentStates.add(new TimestampedState<>(theTimestamp, num, state.copy()));
-        if (sentStates.size() > 32) {
-            ListIterator<TimestampedState<UserStream>> iterator = sentStates.listIterator(sentStates.size() - 1);
-            for (int i = 0; i < 15; i++) {
+    private fun addSentState(theTimestamp: Long, num: Long, state: UserStream) {
+        sentStates.add(TimestampedState(theTimestamp, num, state.copy()))
+        if (sentStates.size > 32) {
+            val iterator = sentStates.listIterator(sentStates.size - 1)
+            for (i in 0..14) {
                 if (iterator.hasPrevious()) {
-                    iterator.previous();
+                    iterator.previous()
                 }
             }
-            iterator.remove();
+            iterator.remove()
         }
     }
 
-    private void updateAssumedReceiverState() {
-        long now = Timestamp.timestamp();
-
-        assumedReceiverState = sentStates.get(sentStates.size() - 1);
-
-        for (int i = 1; i < sentStates.size(); i++) {
-            TimestampedState<UserStream> state = sentStates.get(i);
-            if (state == null) {
-                return;
-            }
-            assert now >= state.timestamp;
-            if (now - state.timestamp < 1000 + ACK_DELAY) {
-                assumedReceiverState = state;
+    private fun updateAssumedReceiverState() {
+        val now = Timestamp.timestamp()
+        assumedReceiverState = sentStates[sentStates.size - 1]
+        for (i in 1 until sentStates.size) {
+            val state = sentStates[i]
+            assert(now >= state.timestamp)
+            assumedReceiverState = if (now - state.timestamp < 1000 + NetworkConstants.ACK_DELAY) {
+                state
             } else {
-                return;
+                return
             }
         }
     }
 
-    private void rationalizeStates() {
-        UserStream knownReceiverState = sentStates.get(0).state;
-        currentState.subtract(knownReceiverState);
-
-        ListIterator<TimestampedState<UserStream>> iterator = sentStates.listIterator(sentStates.size());
+    private fun rationalizeStates() {
+        val knownReceiverState = sentStates[0].state
+        currentState.subtract(knownReceiverState)
+        val iterator: ListIterator<TimestampedState<UserStream>> = sentStates.listIterator(sentStates.size)
         while (iterator.hasPrevious()) {
-            iterator.previous().state.subtract(knownReceiverState);
+            iterator.previous().state.subtract(knownReceiverState)
         }
     }
 
-    public void processAcknowledgmentThrough(long ackNum) {
-        Iterator<TimestampedState<UserStream>> iterator = sentStates.iterator();
-        TimestampedState<UserStream> i;
-        boolean find = false;
+    fun processAcknowledgmentThrough(ackNum: Long) {
+        var iterator = sentStates.iterator()
+        var i: TimestampedState<UserStream>
+        var find = false
         while (iterator.hasNext()) {
-            i = iterator.next();
+            i = iterator.next()
             if (i.num == ackNum) {
-                find = true;
-                break;
+                find = true
+                break
             }
         }
-
         if (find) {
-            iterator = sentStates.iterator();
+            iterator = sentStates.iterator()
             while (iterator.hasNext()) {
-                i = iterator.next();
+                i = iterator.next()
                 if (i.num < ackNum) {
-                    iterator.remove();
+                    iterator.remove()
                 }
             }
         }

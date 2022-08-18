@@ -1,47 +1,48 @@
-package com.toocol.termio.core.auth.core;
+package com.toocol.termio.core.auth.core
 
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.function.Executable
+import java.lang.reflect.InvocationTargetException
+import java.util.*
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/25 20:09
  */
-class SecurityCoderTest {
-
-    static final SecurityCoder coder = new SecurityCoder("Fq3Jf5Li3-Lf2Tz3Jn0");
-
+internal class SecurityCoderTest {
     @Test
-    void get() {
-        assertThrows(RuntimeException.class, SecurityCoder::get);
-
-        new Thread(() -> assertThrows(RuntimeException.class, SecurityCoder::get)).start();
-
-        assertThrows(RuntimeException.class, () -> new SecurityCoder(UUID.randomUUID().toString()));
-
+    fun get() {
+        Assertions.assertThrows(RuntimeException::class.java) { SecurityCoder.get() }
+        Thread { Assertions.assertThrows(RuntimeException::class.java, Executable { SecurityCoder.get() }) }
+            .start()
+        Assertions.assertThrows(RuntimeException::class.java) { SecurityCoder(UUID.randomUUID().toString()) }
         try {
-            Constructor<SecurityCoder> declaredConstructor = SecurityCoder.class.getDeclaredConstructor(String.class);
-            declaredConstructor.setAccessible(true);
-            assertThrows(InvocationTargetException.class, () -> declaredConstructor.newInstance(UUID.randomUUID().toString()));
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            val declaredConstructor = SecurityCoder::class.java.getDeclaredConstructor(
+                String::class.java
+            )
+            declaredConstructor.isAccessible = true
+            Assertions.assertThrows(InvocationTargetException::class.java) {
+                declaredConstructor.newInstance(
+                    UUID.randomUUID().toString()
+                )
+            }
+        } catch (e: NoSuchMethodException) {
+            e.printStackTrace()
         }
     }
 
     @Test
-    void encodeThenDecode() {
-        SecurityCoder coderGet = SecurityCoder.get();
-        for (int idx = 0; idx < 1000; idx++) {
-            String origin = UUID.randomUUID().toString();
-            String decode = coderGet.decode(coder.encode(origin));
-            assertEquals(origin, decode);
+    fun encodeThenDecode() {
+        val coderGet = SecurityCoder.get()
+        for (idx in 0..999) {
+            val origin = UUID.randomUUID().toString()
+            val decode = coderGet.decode(coder.encode(origin))
+            Assertions.assertEquals(origin, decode)
         }
     }
 
+    companion object {
+        val coder = SecurityCoder("Fq3Jf5Li3-Lf2Tz3Jn0")
+    }
 }

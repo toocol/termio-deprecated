@@ -6,6 +6,7 @@ module termio.platform {
     requires javafx.controls;
     requires io.vertx.core;
     requires org.fxmisc.richtext;
+    requires kotlin.stdlib;
 
     exports com.toocol.termio.platform.console;
     exports com.toocol.termio.platform.component;

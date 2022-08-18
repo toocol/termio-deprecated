@@ -9,6 +9,7 @@ module termio.console {
     requires org.apache.commons.lang3;
     requires io.vertx.core;
     requires jsr305;
+    requires kotlin.stdlib;
 
     opens com.toocol.termio.console.module to termio.core;
     opens com.toocol.termio.console.handlers to termio.core;
