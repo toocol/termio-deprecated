@@ -20,7 +20,7 @@ public final class ActionCtrlK extends TermCharAction {
         term.lineBuilder.delete(0, term.lineBuilder.length());
         term.executeCursorOldX.set(Term.getPromptLen());
         term.printScene(false);
-        TermPrinter.DISPLAY_BUFF = StrUtil.EMPTY;
+        TermPrinter.displayBuffer = StrUtil.EMPTY;
         return false;
     }
 

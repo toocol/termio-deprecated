@@ -59,7 +59,7 @@ public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Lo
         }
 
         try {
-            if (shell.getProtocol().equals(ShellProtocol.SSH)) {
+            if (shell.protocol.equals(ShellProtocol.SSH)) {
                 shell.writeAndFlush("export HISTCONTROL=ignoreboth\n".getBytes(StandardCharsets.UTF_8));
             }
 
@@ -120,10 +120,10 @@ public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Lo
                     continue;
                 }
 
-                if (shell.getStatus().equals(Shell.Status.NORMAL)) {
-                    if (shell.getProtocol().equals(ShellProtocol.SSH)) {
+                if (shell.status.equals(Shell.Status.NORMAL)) {
+                    if (shell.protocol.equals(ShellProtocol.SSH)) {
                         shell.setLocalLastCmd(cmd + StrUtil.CRLF);
-                    } else if (shell.getProtocol().equals(ShellProtocol.MOSH)) {
+                    } else if (shell.protocol.equals(ShellProtocol.MOSH)) {
                         shell.setLocalLastCmd(cmd + StrUtil.LF);
                     }
                 }
@@ -141,9 +141,9 @@ public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Lo
                     request.put("cmd", " pwd");
                     request.put("prefix", "/");
                     eventBus.request(ShellAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL.address(), request, result -> {
-                        shell.setFullPath(cast(result.result().body()));
+                        shell.fullPath.set(cast(result.result().body()));
                         latch.countDown();
-                        info("Current full path: {}", shell.getFullPath());
+                        info("Current full path: {}", shell.fullPath.get());
                     });
                 } else {
                     latch.countDown();

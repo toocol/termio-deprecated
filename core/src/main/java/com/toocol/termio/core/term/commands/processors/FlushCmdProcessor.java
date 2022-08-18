@@ -26,7 +26,7 @@ public class FlushCmdProcessor extends TermCommandProcessor {
                 .append(Term.PROMPT)
                 .append(" ".repeat(Term.getInstance().getWidth() - Term.getPromptLen() - Term.LEFT_MARGIN));
         Printer.print(builder.toString());
-        TermPrinter.DISPLAY_BUFF = StrUtil.EMPTY;
+        TermPrinter.displayBuffer = StrUtil.EMPTY;
 
         resultAndMsg.first(true);
     }

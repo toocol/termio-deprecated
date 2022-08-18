@@ -63,7 +63,7 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
                     eventBus.send(MOSH_TICK.address(), sessionId);
 
                     Shell shell = new Shell(sessionId, vertx, eventBus, session);
-                    shell.setUser(credential.getUser());
+                    shell.user = credential.getUser();
                     shell.initialFirstCorrespondence(ShellProtocol.MOSH, () -> {
                         shellCache.putShell(sessionId, shell);
                         shell.setChannelShell(sshSessionCache.getChannelShell(sessionId));

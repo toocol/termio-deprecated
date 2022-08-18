@@ -28,7 +28,7 @@ import static com.toocol.termio.core.shell.ShellAddress.START_UF_COMMAND;
  */
 public final class BlockingUfHandler extends BlockingMessageHandler<Void> {
 
-    private final SftpChannelProvider sftpChannelProvider = SftpChannelProvider.getInstance();
+    private final SftpChannelProvider.Instance sftpChannelProvider = SftpChannelProvider.Instance;
     private final ShellCache.Instance shellCache = ShellCache.Instance;
 
     public BlockingUfHandler(Vertx vertx, Context context, boolean parallel) {

@@ -32,8 +32,8 @@ public class ShellDfCmdProcessor extends ShellCommandProcessor {
 
         for (int pathIndex = 1; pathIndex < split.length; pathIndex++) {
             String inputPath = split[pathIndex];
-            String user = shell.getUser();
-            String currentPath = shell.getFullPath();
+            String user = shell.user;
+            String currentPath = shell.fullPath.get();
 
             if (inputPath.startsWith(CURRENT_FOLDER_PREFIX)) {
                 if (USER_FOLDER.equals(currentPath)) {

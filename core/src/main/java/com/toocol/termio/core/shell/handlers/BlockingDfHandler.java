@@ -31,7 +31,7 @@ public final class BlockingDfHandler extends BlockingMessageHandler<byte[]> {
 
     public static final int DF_TYPE_FILE = 1;
     public static final int DF_TYPE_BYTE = 2;
-    private final SftpChannelProvider sftpChannelProvider = SftpChannelProvider.getInstance();
+    private final SftpChannelProvider.Instance sftpChannelProvider = SftpChannelProvider.Instance;
 
     public BlockingDfHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);

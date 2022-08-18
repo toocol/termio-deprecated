@@ -57,7 +57,7 @@ public final class DesktopExecuteCommandHandler extends NonBlockingMessageHandle
         if (StringUtils.isNotEmpty(msg)) {
             Printer.println(msg);
         } else {
-            TermPrinter.DISPLAY_BUFF = StrUtil.EMPTY;
+            TermPrinter.displayBuffer = StrUtil.EMPTY;
         }
 
         if (!isCommand && StringUtils.isNotEmpty(cmd)) {

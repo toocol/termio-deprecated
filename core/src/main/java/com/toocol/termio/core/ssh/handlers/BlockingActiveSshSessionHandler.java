@@ -85,14 +85,14 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
                 if (sessionId.get() == 0) {
                     sessionId.set(factory.createSession(credential));
                     Shell shell = new Shell(sessionId.get(), credential.getHost(), credential.getUser(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
-                    shell.setUser(credential.getUser());
+                    shell.user = credential.getUser();
                     shellCache.putShell(sessionId.get(), shell);
                     shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
                 } else {
                     long newSessionId = factory.invokeSession(sessionId.get(), credential);
                     if (newSessionId != sessionId.get() || !shellCache.contains(newSessionId)) {
                         Shell shell = new Shell(sessionId.get(), credential.getHost(), credential.getUser(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
-                        shell.setUser(credential.getUser());
+                        shell.user = credential.getUser();
                         shellCache.putShell(sessionId.get(), shell);
                         sessionId.set(newSessionId);
                         shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);

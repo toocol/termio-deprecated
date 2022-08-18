@@ -35,7 +35,11 @@ public enum TermAddress implements IAddress {
     /**
      * deal with the termio command echo and prompt display.
      */
-    TERMINAL_ECHO("ssh.term.echo");
+    TERMINAL_ECHO("ssh.term.echo"),
+    /**
+     * deal with the termio command echo and prompt display.
+     */
+    TERMINAL_ECHO_CLEAN_BUFFER("ssh.term.echo.clean.buffer");
 
     /**
      * the address string of message

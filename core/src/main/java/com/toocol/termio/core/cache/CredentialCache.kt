@@ -195,7 +195,7 @@ class CredentialCache private constructor() {
             return null
         }
 
-        val allSwitchable: Collection<Switchable?>
-            get() = ArrayList<Switchable?>(CREDENTIAL_SET)
+        val allSwitchable: Collection<Switchable>
+            get() = ArrayList<Switchable>(CREDENTIAL_SET)
     }
 }

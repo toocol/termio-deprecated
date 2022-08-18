@@ -59,7 +59,7 @@ public final class ExecuteCommandHandler extends NonBlockingMessageHandler {
         if (StringUtils.isNotEmpty(msg)) {
             term.printDisplay(msg);
         } else {
-            TermPrinter.DISPLAY_BUFF = StrUtil.EMPTY;
+            TermPrinter.displayBuffer = StrUtil.EMPTY;
         }
 
         if (!isCommand && StringUtils.isNotEmpty(cmd)) {

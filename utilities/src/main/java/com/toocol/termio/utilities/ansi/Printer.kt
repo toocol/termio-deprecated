@@ -43,7 +43,7 @@ object Printer {
     }
 
     @JvmStatic
-    fun printErr(msg: String?) {
+    fun printErr(msg: String) {
         printer!!.println(AnsiStringBuilder()
             .front(167)
             .append(msg))
