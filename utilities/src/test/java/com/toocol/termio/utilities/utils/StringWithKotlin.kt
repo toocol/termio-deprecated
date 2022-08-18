@@ -9,9 +9,9 @@ import kotlin.system.measureTimeMillis
  */
 class StringWithKotlin {
     fun processString() {
-        var str = ""
+        var str = String(StringBuilder())
         var time = measureTimeMillis {
-            for (i in 0..10000) {
+            for (i in 0..50000) {
                 str += "Hello world~${i}"
             }
         }

@@ -1,105 +1,115 @@
-package com.toocol.termio.utilities.ansi;
+package com.toocol.termio.utilities.ansi
 
-import com.toocol.termio.utilities.console.Console;
-import com.toocol.termio.utilities.utils.MessageBox;
-import com.toocol.termio.utilities.utils.OsUtil;
-import com.toocol.termio.utilities.utils.StrUtil;
-
-import java.io.PrintStream;
-import java.util.concurrent.CountDownLatch;
+import com.toocol.termio.utilities.console.Console
+import com.toocol.termio.utilities.utils.MessageBox
+import com.toocol.termio.utilities.utils.OsUtil
+import com.toocol.termio.utilities.utils.StrUtil
+import java.io.PrintStream
+import java.util.concurrent.CountDownLatch
 
 /**
  * @author ZhaoZhe
  * @email joezane.cn@gmail.com
  * @date 2021/2/19 16:20
  */
-public final class Printer {
-    private static volatile PrintStream PRINTER;
-    private static final Console CONSOLE = Console.get();
-    private static final String[] patterns = new String[]{
-            "-",
-            "\\",
-            "|",
-            "/",
-            "-"
-    };
-    public volatile static boolean LOADING_ACCOMPLISH = false;
+object Printer {
+    @Volatile
+    private var printer: PrintStream? = null
+    private val console = Console.get()
+    private val patterns = arrayOf(
+        "-",
+        "\\",
+        "|",
+        "/",
+        "-"
+    )
 
-    public static void print(String msg) {
-        PRINTER.print(msg);
+    @JvmField
+    @Volatile
+    var LOADING_ACCOMPLISH = false
+
+    @JvmStatic
+    fun print(msg: String?) {
+        printer!!.print(msg)
     }
 
-    public static void println() {
-        PRINTER.println();
+    fun println() {
+        printer!!.println()
     }
 
-    public static void println(String msg) {
-        PRINTER.println(msg);
+    @JvmStatic
+    fun println(msg: String?) {
+        printer!!.println(msg)
     }
 
-    public static void printErr(String msg) {
-        PRINTER.println(new AnsiStringBuilder()
-                .front(167)
-                .append(msg));
+    @JvmStatic
+    fun printErr(msg: String?) {
+        printer!!.println(AnsiStringBuilder()
+            .front(167)
+            .append(msg))
     }
 
-    public static void bel() {
-        PRINTER.print(AsciiControl.BEL);
+    @JvmStatic
+    fun bel() {
+        printer!!.print(AsciiControl.BEL)
     }
 
-    public static void virtualBackspace() {
-        print(StrUtil.BACKSPACE);
-        print(StrUtil.SPACE);
-        print(StrUtil.BACKSPACE);
+    @JvmStatic
+    fun virtualBackspace() {
+        print(StrUtil.BACKSPACE)
+        print(StrUtil.SPACE)
+        print(StrUtil.BACKSPACE)
     }
 
-    public static void virtualBackspace(int cnt) {
-        for (int i = 0; i < cnt; i++) {
-            virtualBackspace();
+    @JvmStatic
+    fun virtualBackspace(cnt: Int) {
+        for (i in 0 until cnt) {
+            virtualBackspace()
         }
     }
 
-    @SuppressWarnings("all")
-    public static void printLoading(CountDownLatch latch) {
-        CONSOLE.hideCursor();
-        clear();
-        new Thread(() -> {
-            int idx = 0;
-            print(patterns[idx++] + " starting termio.");
+    @JvmStatic
+    fun printLoading(latch: CountDownLatch) {
+        console.hideCursor()
+        clear()
+        Thread {
+            var idx = 0
+            print("${patterns[idx++]} starting termio.")
             try {
                 while (true) {
                     if (LOADING_ACCOMPLISH) {
-                        break;
+                        break
                     }
-                    CONSOLE.setCursorPosition(0, 0);
-                    ;
-                    print(patterns[idx++]);
-                    if (idx >= patterns.length) {
-                        idx = 1;
+                    console.setCursorPosition(0, 0)
+                    print(patterns[idx++])
+                    if (idx >= patterns.size) {
+                        idx = 1
                     }
-                    Thread.sleep(200);
+                    Thread.sleep(200)
                 }
-            } catch (InterruptedException e) {
-                MessageBox.setExitMessage("Start up failed.");
-                System.exit(-1);
+            } catch (e: InterruptedException) {
+                MessageBox.setExitMessage("Start up failed.")
+                System.exit(-1)
             }
-            latch.countDown();
-            CONSOLE.showCursor();
-        }).start();
+            latch.countDown()
+            console.showCursor()
+        }.start()
     }
 
-    public static void clear() {
+    @JvmStatic
+    fun clear() {
         try {
-            new ProcessBuilder(OsUtil.getExecution(), OsUtil.getExecuteMode(), OsUtil.getClearCmd())
-                    .inheritIO()
-                    .start()
-                    .waitFor();
-        } catch (Exception e) {
+            ProcessBuilder(OsUtil.getExecution(), OsUtil.getExecuteMode(), OsUtil.getClearCmd())
+                .inheritIO()
+                .start()
+                .waitFor()
+        } catch (e: Exception) {
             // do nothing
         }
     }
 
-    public static void setPrinter(PrintStream printer) {
-        Printer.PRINTER = printer;
+    @JvmStatic
+    fun setPrinter(printer: PrintStream?) {
+        this.printer = printer
     }
 }

@@ -78,7 +78,8 @@ public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Lo
                     break;
                 }
 
-                boolean hasPrint = shell.print(new String(tmp, 0, i, StandardCharsets.UTF_8));
+                String msg = new String(tmp, 0, i, StandardCharsets.UTF_8);
+                boolean hasPrint = shell.print(new String(new StringBuilder(msg)));
                 if (hasPrint) {
                     int[] position = Term.getInstance().getCursorPosition();
                 }

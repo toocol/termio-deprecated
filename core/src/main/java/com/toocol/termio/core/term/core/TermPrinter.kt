@@ -195,7 +195,7 @@ class TermPrinter(private val term: Term) {
     fun cleanDisplay() {
         term.setCursorPosition(0, Term.executeLine + 1)
         val windowWidth: Int = term.width
-        while (term.getCursorPosition().get(1) < term.getHeight() - 3) {
+        while (term.cursorPosition[1] < term.height - 3) {
             PRINT_STREAM!!.println(" ".repeat(windowWidth))
         }
     }
