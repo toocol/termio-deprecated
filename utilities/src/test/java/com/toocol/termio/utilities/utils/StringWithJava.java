@@ -8,9 +8,9 @@ package com.toocol.termio.utilities.utils;
 @SuppressWarnings("all")
 public class StringWithJava {
     public void processingString() {
-        var str = "";
+        var str = new String(new StringBuilder());
         var start = System.currentTimeMillis();
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 50000; i++) {
             str += "Hello world~" + i;
         }
         System.out.println("Java String use time: " + (System.currentTimeMillis() - start));

@@ -90,7 +90,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>?>(private val ex
             val dealAlready = AtomicBoolean()
 
             regexParse(escapeSequence, cursorSetPosModeRegex, { regex: Regex ->
-                val escapeModeStr = regex.find(escapeSequence, 0)
+                val escapeModeStr = regex.find(escapeSequence)
             }, dealAlready)
 
             regexParse(escapeSequence, cursorControlModeRegex, { regex: Regex ->
