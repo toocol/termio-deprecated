@@ -15,7 +15,7 @@ import java.util.Objects;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 19:32
  */
-public final class ShellCharEventDispatcher {
+public  class ShellCharEventDispatcher {
 
     private static final ImmutableMap<CharEvent, ShellCharAction> actionMap;
 

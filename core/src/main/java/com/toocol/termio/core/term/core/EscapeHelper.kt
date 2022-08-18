@@ -1,121 +1,100 @@
-package com.toocol.termio.core.term.core;
+package com.toocol.termio.core.term.core
 
-import com.toocol.termio.core.shell.core.Shell;
-import com.toocol.termio.utilities.utils.CharUtil;
-import jline.console.ConsoleReader;
-import jline.internal.NonBlockingInputStream;
+import com.toocol.termio.core.shell.core.Shell
+import com.toocol.termio.utilities.utils.CharUtil
+import jline.console.ConsoleReader
+import jline.internal.NonBlockingInputStream
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/18 22:53
  * @version: 0.0.1
  */
-public final class EscapeHelper {
+class EscapeHelper {
+    private var acceptEscape = false
+    var isAcceptBracketAfterEscape = false
+        private set
 
-    private boolean acceptEscape = false;
-    private boolean acceptBracketAfterEscape = false;
-
-    public char processArrowStream(char inChar) {
+    fun processArrowStream(inCharConst: Char): Char {
+        var inChar = inCharConst
         if (inChar == CharUtil.ESCAPE) {
-            acceptEscape = true;
+            acceptEscape = true
         }
         if (acceptEscape) {
             if (inChar == CharUtil.BRACKET_START) {
-                acceptBracketAfterEscape = true;
+                isAcceptBracketAfterEscape = true
             } else if (inChar != CharUtil.ESCAPE) {
-                acceptEscape = false;
+                acceptEscape = false
             }
         }
-        if (acceptBracketAfterEscape && inChar != CharUtil.BRACKET_START) {
-            acceptEscape = false;
-            acceptBracketAfterEscape = false;
-            inChar = switch (inChar) {
-                case 'A' -> CharUtil.UP_ARROW;
-                case 'B' -> CharUtil.DOWN_ARROW;
-                case 'C' -> CharUtil.RIGHT_ARROW;
-                case 'D' -> CharUtil.LEFT_ARROW;
-                default -> inChar;
-            };
+        if (isAcceptBracketAfterEscape && inChar != CharUtil.BRACKET_START) {
+            acceptEscape = false
+            isAcceptBracketAfterEscape = false
+            inChar = when (inChar) {
+                'A' -> CharUtil.UP_ARROW
+                'B' -> CharUtil.DOWN_ARROW
+                'C' -> CharUtil.RIGHT_ARROW
+                'D' -> CharUtil.LEFT_ARROW
+                else -> inChar
+            }
         }
-        return inChar;
+        return inChar
     }
 
     /**
-     * To see <a href="https://github.com/jline/jline2/issues/152">jline2/issues/152</a>
+     * To see [jline2/issues/152](https://github.com/jline/jline2/issues/152)
      */
-    public char processArrowBundle(char inChar, Shell shell, ConsoleReader reader) {
-        if (inChar != CharUtil.ESCAPE) {
-            return inChar;
-        }
-        try {
-            NonBlockingInputStream stream = (NonBlockingInputStream) reader.getInput();
-            if (stream == null) {
-                return inChar;
-            }
+    fun processArrowBundle(inChar: Char, shell: Shell, reader: ConsoleReader): Char {
+        return if (inChar != CharUtil.ESCAPE) {
+            inChar
+        } else try {
+            val stream = reader.input as NonBlockingInputStream
             // Value -2 is the special code meaning that stream reached its end
             if (stream.peek(100) <= -2) {
-                return CharUtil.ESCAPE;
+                return CharUtil.ESCAPE
             }
-
-            char inner;
+            var inner: Char
             do {
-                inner = (char) reader.readCharacter();
-            } while (inner == CharUtil.BRACKET_START);
-
-            switch (inner) {
-                case 'A':
-                    return CharUtil.UP_ARROW;
-                case 'B':
-                    return CharUtil.DOWN_ARROW;
-                case 'C':
-                    return CharUtil.RIGHT_ARROW;
-                case 'D':
-                    return CharUtil.LEFT_ARROW;
-                default:
-                    shell.write(CharUtil.ESCAPE);
-                    shell.write(CharUtil.BRACKET_START);
-                    return inner;
+                inner = reader.readCharacter().toChar()
+            } while (inner == CharUtil.BRACKET_START)
+            when (inner) {
+                'A' -> CharUtil.UP_ARROW
+                'B' -> CharUtil.DOWN_ARROW
+                'C' -> CharUtil.RIGHT_ARROW
+                'D' -> CharUtil.LEFT_ARROW
+                else -> {
+                    shell.write(CharUtil.ESCAPE)
+                    shell.write(CharUtil.BRACKET_START)
+                    inner
+                }
             }
-
-        } catch (Exception e) {
-            return inChar;
+        } catch (e: Exception) {
+            inChar
         }
     }
 
-    public char processArrowBundle(char inChar, ConsoleReader reader) {
-        if (inChar != CharUtil.ESCAPE) {
-            return inChar;
-        }
-        try {
-            NonBlockingInputStream stream = (NonBlockingInputStream) reader.getInput();
-            if (stream == null) {
-                return inChar;
-            }
+    fun processArrowBundle(inChar: Char, reader: ConsoleReader): Char {
+        return if (inChar != CharUtil.ESCAPE) {
+            inChar
+        } else try {
+            val stream = reader.input as NonBlockingInputStream
             // Value -2 is the special code meaning that stream reached its end
             if (stream.peek(100) <= -2) {
-                return CharUtil.ESCAPE;
+                return CharUtil.ESCAPE
             }
-
-            char inner;
+            var inner: Char
             do {
-                inner = (char) reader.readCharacter();
-            } while (inner == CharUtil.BRACKET_START);
-
-            return switch (inner) {
-                case 'A' -> CharUtil.UP_ARROW;
-                case 'B' -> CharUtil.DOWN_ARROW;
-                case 'C' -> CharUtil.RIGHT_ARROW;
-                case 'D' -> CharUtil.LEFT_ARROW;
-                default -> inner;
-            };
-
-        } catch (Exception e) {
-            return inChar;
+                inner = reader.readCharacter().toChar()
+            } while (inner == CharUtil.BRACKET_START)
+            when (inner) {
+                'A' -> CharUtil.UP_ARROW
+                'B' -> CharUtil.DOWN_ARROW
+                'C' -> CharUtil.RIGHT_ARROW
+                'D' -> CharUtil.LEFT_ARROW
+                else -> inner
+            }
+        } catch (e: Exception) {
+            inChar
         }
     }
-
-    public boolean isAcceptBracketAfterEscape() {
-        return acceptBracketAfterEscape;
-    }
-
 }

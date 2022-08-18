@@ -23,7 +23,7 @@ public class ShellUfCmdProcessor extends ShellCommandProcessor {
             String ignore = cmd.replaceAll("uf ", "");
             Printer.println("uf: should have no params, ignored '" + ignore.trim() + "'.");
         }
-        String remotePath = shell.getFullPath();
+        String remotePath = shell.fullPath.get();
 
         JsonObject request = new JsonObject();
         request.put("sessionId", shell.getSessionId());

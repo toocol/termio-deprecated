@@ -1,718 +1,757 @@
-package com.toocol.termio.core.shell.core;
+package com.toocol.termio.core.shell.core
 
-import com.jcraft.jsch.ChannelShell;
-import com.toocol.termio.core.cache.MoshSessionCache;
-import com.toocol.termio.core.cache.SshSessionCache;
-import com.toocol.termio.core.cache.StatusCache;
-import com.toocol.termio.core.mosh.core.MoshSession;
-import com.toocol.termio.core.shell.handlers.BlockingDfHandler;
-import com.toocol.termio.core.term.core.EscapeHelper;
-import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.utilities.action.AbstractDevice;
-import com.toocol.termio.utilities.ansi.AsciiControl;
-import com.toocol.termio.utilities.ansi.Printer;
-import com.toocol.termio.utilities.console.Console;
-import com.toocol.termio.utilities.execeptions.RemoteDisconnectException;
-import com.toocol.termio.utilities.functional.Executable;
-import com.toocol.termio.utilities.log.Loggable;
-import com.toocol.termio.utilities.utils.CharUtil;
-import com.toocol.termio.utilities.utils.CmdUtil;
-import com.toocol.termio.utilities.utils.MessageBox;
-import com.toocol.termio.utilities.utils.StrUtil;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.json.JsonObject;
-import jline.console.ConsoleReader;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.toocol.termio.core.shell.ShellAddress.START_DF_COMMAND;
+import com.jcraft.jsch.ChannelShell
+import com.toocol.termio.core.cache.EXECUTE_CD_CMD
+import com.toocol.termio.core.cache.HANGED_ENTER
+import com.toocol.termio.core.cache.MoshSessionCache
+import com.toocol.termio.core.cache.SshSessionCache
+import com.toocol.termio.core.cache.SshSessionCache.Instance.getChannelShell
+import com.toocol.termio.core.mosh.core.MoshSession
+import com.toocol.termio.core.shell.ShellAddress
+import com.toocol.termio.core.shell.handlers.BlockingDfHandler
+import com.toocol.termio.core.term.core.EscapeHelper
+import com.toocol.termio.core.term.core.Term
+import com.toocol.termio.utilities.action.AbstractDevice
+import com.toocol.termio.utilities.ansi.AsciiControl
+import com.toocol.termio.utilities.ansi.AsciiControl.clean
+import com.toocol.termio.utilities.ansi.AsciiControl.cleanCursorMode
+import com.toocol.termio.utilities.ansi.AsciiControl.extractCursorPosition
+import com.toocol.termio.utilities.ansi.AsciiControl.setCursorToLineHead
+import com.toocol.termio.utilities.ansi.Printer
+import com.toocol.termio.utilities.ansi.Printer.clear
+import com.toocol.termio.utilities.ansi.Printer.println
+import com.toocol.termio.utilities.console.Console
+import com.toocol.termio.utilities.execeptions.RemoteDisconnectException
+import com.toocol.termio.utilities.functional.Executable
+import com.toocol.termio.utilities.log.Loggable
+import com.toocol.termio.utilities.utils.CharUtil
+import com.toocol.termio.utilities.utils.CmdUtil
+import com.toocol.termio.utilities.utils.MessageBox
+import com.toocol.termio.utilities.utils.StrUtil
+import io.vertx.core.AsyncResult
+import io.vertx.core.Promise
+import io.vertx.core.Vertx
+import io.vertx.core.eventbus.EventBus
+import io.vertx.core.eventbus.Message
+import io.vertx.core.json.JsonObject
+import jline.console.ConsoleReader
+import org.apache.commons.lang3.StringUtils
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.system.exitProcess
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/3 20:57
  */
-public final class Shell extends AbstractDevice implements Loggable {
-    static final Pattern PROMPT_PATTERN = Pattern.compile("(\\[(\\w*?)@(.*?)][$#])");
-    static final Console CONSOLE = Console.get();
-    static final String RESIZE_COMMAND = AsciiControl.DC2 + CharUtil.BRACKET_START + "resize";
-    static ConsoleReader reader;
+class Shell : AbstractDevice, Loggable {
+    @JvmField
+    val term: Term = Term.getInstance()
+    private val shellPrinter: ShellPrinter
+    private val shellReader: ShellReader
 
-    final Term term = Term.getInstance();
-    final ShellPrinter shellPrinter;
-    final ShellReader shellReader;
-    final ShellHistoryCmdHelper historyCmdHelper;
-    final MoreHelper moreHelper;
-    final EscapeHelper escapeHelper;
-    final VimHelper vimHelper;
-    final SessionQuickSwitchHelper quickSwitchHelper;
-    final ShellCharEventDispatcher shellCharEventDispatcher;
-    final Set<String> tabFeedbackRec = new HashSet<>();
-    final StringBuilder cmd = new StringBuilder();
+    @JvmField
+    val historyCmdHelper: ShellHistoryCmdHelper
+
+    @JvmField
+    val moreHelper: MoreHelper
+
+    @JvmField
+    val escapeHelper: EscapeHelper
+
+    @JvmField
+    val vimHelper: VimHelper
+
+    @JvmField
+    val quickSwitchHelper: SessionQuickSwitchHelper
+
+    @JvmField
+    val shellCharEventDispatcher: ShellCharEventDispatcher
+
+    @JvmField
+    val tabFeedbackRec: HashSet<String> = HashSet()
+
+    @JvmField
+    val cmd = StringBuilder()
+
     /**
      * the session's id that shell belongs to.
      */
-    private final long sessionId;
+    val sessionId: Long
+
     /**
      * vert.x system
      */
-    private final Vertx vertx;
+    val vertx: Vertx
+
     /**
      * the EventBus of vert.x system.
      */
-    private final EventBus eventBus;
-    private final String host;
-    volatile StringBuffer localLastCmd = new StringBuffer();
-    volatile StringBuffer remoteCmd = new StringBuffer();
-    volatile StringBuffer currentPrint = new StringBuffer();
-    volatile StringBuffer selectHistoryCmd = new StringBuffer();
-    volatile StringBuffer localLastInput = new StringBuffer();
-    volatile StringBuffer lastRemoteCmd = new StringBuffer();
-    volatile StringBuffer lastExecuteCmd = new StringBuffer();
-    volatile Status status = Status.NORMAL;
-    volatile ShellProtocol protocol;
-    volatile AtomicReference<String> prompt = new AtomicReference<>();
-    volatile AtomicReference<String> fullPath = new AtomicReference<>();
-    volatile StringBuilder sshWelcome = new StringBuilder();
-    volatile StringBuilder moshWelcome = new StringBuilder();
-    volatile String user;
-    volatile String bottomLinePrint = StrUtil.EMPTY;
-    volatile String tabAccomplishLastStroke = StrUtil.EMPTY;
-    private Pattern promptCursorPattern;
+    val eventBus: EventBus
+    private val host: String
+
+    @JvmField
+    @Volatile
+    var localLastCmd = StringBuffer()
+
+    @JvmField
+    @Volatile
+    var remoteCmd = StringBuffer()
+
+    @JvmField
+    @Volatile
+    var currentPrint = StringBuffer()
+
+    @JvmField
+    @Volatile
+    var selectHistoryCmd = StringBuffer()
+
+    @JvmField
+    @Volatile
+    var localLastInput = StringBuffer()
+
+    @JvmField
+    @Volatile
+    var lastRemoteCmd = StringBuffer()
+
+    @JvmField
+    @Volatile
+    var lastExecuteCmd = StringBuffer()
+
+    @JvmField
+    @Volatile
+    var status = Status.NORMAL
+
+    @JvmField
+    @Volatile
+    var protocol: ShellProtocol = ShellProtocol.SSH
+
+    @JvmField
+    @Volatile
+    var prompt = AtomicReference<String>()
+
+    @JvmField
+    @Volatile
+    var fullPath = AtomicReference<String>()
+
+    @JvmField
+    @Volatile
+    var sshWelcome: StringBuilder? = StringBuilder()
+
+    @JvmField
+    @Volatile
+    var moshWelcome: StringBuilder? = StringBuilder()
+
+    @JvmField
+    @Volatile
+    var user: String
+
+    @JvmField
+    @Volatile
+    var bottomLinePrint = StrUtil.EMPTY
+
+    @JvmField
+    @Volatile
+    var tabAccomplishLastStroke = StrUtil.EMPTY
+
+    private var promptCursorPattern: Regex? = null
+
     /**
      * the output/input Stream belong to JSch's channelShell;
      */
-    private OutputStream outputStream;
-    private InputStream inputStream;
+    private var outputStream: OutputStream? = null
+    private var inputStream: InputStream? = null
+
     /**
      * JSch channel shell
      */
-    private ChannelShell channelShell;
+    var channelShell: ChannelShell? = null
+
     /**
      * Mosh session
      */
-    private MoshSession moshSession;
-    private boolean jumpServer = false;
-    private volatile boolean returnWrite = false;
-    private volatile boolean promptNow = false;
+    private var moshSession: MoshSession? = null
 
-    public static void initializeReader(InputStream in) {
+    @Volatile
+    private var jumpServer = false
+
+    @Volatile
+    private var returnWrite = false
+
+    @Volatile
+    private var promptNow = false
+
+    constructor(sessionId: Long, vertx: Vertx, eventBus: EventBus, moshSession: MoshSession) {
+        this.sessionId = sessionId
+        host = moshSession.host
+        user = moshSession.user
+        this.vertx = vertx
+        this.eventBus = eventBus
+        this.moshSession = moshSession
+        shellPrinter = ShellPrinter(this)
+        shellReader = ShellReader(this, reader)
+        historyCmdHelper = ShellHistoryCmdHelper(this)
+        moreHelper = MoreHelper()
+        escapeHelper = EscapeHelper()
+        vimHelper = VimHelper()
+        quickSwitchHelper = SessionQuickSwitchHelper(this)
+        shellCharEventDispatcher = ShellCharEventDispatcher()
+        resetIO(ShellProtocol.MOSH)
+        shellReader.initReader()
+    }
+
+    constructor(
+        sessionId: Long,
+        host: String,
+        user: String,
+        vertx: Vertx,
+        eventBus: EventBus,
+        channelShell: ChannelShell?,
+    ) {
+        this.sessionId = sessionId
+        this.host = host
+        this.user = user
+        this.vertx = vertx
+        this.eventBus = eventBus
+        this.channelShell = channelShell
+        shellPrinter = ShellPrinter(this)
+        shellReader = ShellReader(this, reader)
+        historyCmdHelper = ShellHistoryCmdHelper(this)
+        moreHelper = MoreHelper()
+        escapeHelper = EscapeHelper()
+        vimHelper = VimHelper()
+        quickSwitchHelper = SessionQuickSwitchHelper(this)
+        shellCharEventDispatcher = ShellCharEventDispatcher()
+        resetIO(ShellProtocol.SSH)
+        shellReader.initReader()
+    }
+
+    fun resetIO(protocol: ShellProtocol) {
+        this.protocol = protocol
         try {
-            reader = new ConsoleReader(in, null, null);
-        } catch (Exception e) {
-            MessageBox.setExitMessage("Create console reader failed.");
-            System.exit(-1);
-        }
-    }
-
-    public Shell(long sessionId, Vertx vertx, EventBus eventBus, MoshSession moshSession) {
-        this.sessionId = sessionId;
-        this.host = moshSession.getHost();
-        this.user = moshSession.getUser();
-        this.vertx = vertx;
-        this.eventBus = eventBus;
-        this.moshSession = moshSession;
-        this.shellPrinter = new ShellPrinter(this);
-        this.shellReader = new ShellReader(this, reader);
-        this.historyCmdHelper = new ShellHistoryCmdHelper(this);
-        this.moreHelper = new MoreHelper();
-        this.escapeHelper = new EscapeHelper();
-        this.vimHelper = new VimHelper();
-        this.quickSwitchHelper = new SessionQuickSwitchHelper(this);
-        this.shellCharEventDispatcher = new ShellCharEventDispatcher();
-
-        this.resetIO(ShellProtocol.MOSH);
-        this.shellReader.initReader();
-    }
-
-    public Shell(long sessionId, String host, String user, Vertx vertx, EventBus eventBus, ChannelShell channelShell) {
-        this.sessionId = sessionId;
-        this.host = host;
-        this.user = user;
-        this.vertx = vertx;
-        this.eventBus = eventBus;
-        this.channelShell = channelShell;
-        this.shellPrinter = new ShellPrinter(this);
-        this.shellReader = new ShellReader(this, reader);
-        this.historyCmdHelper = new ShellHistoryCmdHelper(this);
-        this.moreHelper = new MoreHelper();
-        this.escapeHelper = new EscapeHelper();
-        this.vimHelper = new VimHelper();
-        this.quickSwitchHelper = new SessionQuickSwitchHelper(this);
-        this.shellCharEventDispatcher = new ShellCharEventDispatcher();
-
-        this.resetIO(ShellProtocol.SSH);
-        this.shellReader.initReader();
-    }
-
-    public void resetIO(ShellProtocol protocol) {
-        this.protocol = protocol;
-        try {
-            switch (protocol) {
-                case SSH -> {
-                    this.inputStream = channelShell.getInputStream();
-                    this.outputStream = channelShell.getOutputStream();
+            when (protocol) {
+                ShellProtocol.SSH -> {
+                    inputStream = channelShell!!.inputStream
+                    outputStream = channelShell!!.outputStream
                 }
-                case MOSH -> {
-                    this.inputStream = moshSession.getInputStream();
-                    this.outputStream = moshSession.getOutputStream();
+                ShellProtocol.MOSH -> {
+                    inputStream = moshSession!!.inputStream
+                    outputStream = moshSession!!.outputStream
                 }
             }
-        } catch (Exception e) {
-            MessageBox.setExitMessage("Reset IO failed: " + e.getMessage());
-            System.exit(-1);
+        } catch (e: Exception) {
+            MessageBox.setExitMessage("Reset IO failed: " + e.message)
+            exitProcess(-1)
         }
     }
 
-    public boolean print(String msg) {
-        Matcher matcher = PROMPT_PATTERN.matcher(msg.trim());
-        if (matcher.find()) {
-            String oldPrompt = prompt.get();
-            prompt.set(AsciiControl.clean(matcher.group(0) + StrUtil.SPACE));
-            if (!oldPrompt.equals(prompt.get())) {
-                generateCursorPosPattern();
+    fun print(msg: String): Boolean {
+        val matcher = PROMPT_PATTERN.find(msg.trim { it <= ' ' })
+        if (matcher != null) {
+            val oldPrompt = prompt.get()
+            prompt.set(clean(matcher.value + StrUtil.SPACE))
+            if (oldPrompt != prompt.get()) {
+                generateCursorPosPattern()
             }
-            extractUserFromPrompt();
-            if (status.equals(Status.VIM_UNDER)) {
-                status = Status.NORMAL;
-                localLastCmd.delete(0, localLastCmd.length());
-            } else if (status.equals(Status.MORE_BEFORE) || status.equals(Status.MORE_PROC)
-                    || status.equals(Status.MORE_EDIT) || status.equals(Status.MORE_SUB)) {
-                status = Status.NORMAL;
-                localLastCmd.delete(0, localLastCmd.length());
-            }
-        }
-
-        if (status.equals(Status.MORE_BEFORE)) {
-            status = Status.MORE_PROC;
-        }
-
-        boolean hasPrint = false;
-        switch (status) {
-            case NORMAL -> hasPrint = shellPrinter.printInNormal(msg);
-            case TAB_ACCOMPLISH -> shellPrinter.printInTabAccomplish(msg);
-            case VIM_BEFORE, VIM_UNDER -> shellPrinter.printInVim(msg);
-            case MORE_BEFORE, MORE_PROC, MORE_EDIT, MORE_SUB -> shellPrinter.printInMore(msg);
-            default -> {
+            extractUserFromPrompt()
+            if (status == Status.VIM_UNDER) {
+                status = Status.NORMAL
+                localLastCmd.delete(0, localLastCmd.length)
+            } else if (status == Status.MORE_BEFORE || status == Status.MORE_PROC || status == Status.MORE_EDIT || status == Status.MORE_SUB) {
+                status = Status.NORMAL
+                localLastCmd.delete(0, localLastCmd.length)
             }
         }
-        if (protocol.equals(ShellProtocol.MOSH)) {
-            CONSOLE.showCursor();
+        if (status == Status.MORE_BEFORE) {
+            status = Status.MORE_PROC
         }
-
-        if (status.equals(Shell.Status.VIM_BEFORE)) {
-            status = Shell.Status.VIM_UNDER;
+        var hasPrint = false
+        when (status) {
+            Status.NORMAL -> hasPrint = shellPrinter.printInNormal(msg)
+            Status.TAB_ACCOMPLISH -> shellPrinter.printInTabAccomplish(msg)
+            Status.VIM_BEFORE, Status.VIM_UNDER -> shellPrinter.printInVim(msg)
+            Status.MORE_BEFORE, Status.MORE_PROC, Status.MORE_EDIT, Status.MORE_SUB -> shellPrinter.printInMore(msg)
+            else -> {}
         }
-
-        selectHistoryCmd.delete(0, selectHistoryCmd.length());
-        return hasPrint;
+        if (protocol == ShellProtocol.MOSH) {
+            CONSOLE.showCursor()
+        }
+        if (status == Status.VIM_BEFORE) {
+            status = Status.VIM_UNDER
+        }
+        selectHistoryCmd.delete(0, selectHistoryCmd.length)
+        return hasPrint
     }
 
-    private void generateCursorPosPattern() {
-        String patternStr = StrUtil.fullFillParam(AsciiControl.ANIS_ESCAPE_CURSOR_LOCATION, prompt.get().length() + 1);
-        promptCursorPattern = Pattern.compile(patternStr);
+    private fun generateCursorPosPattern() {
+        val patternStr = StrUtil.fullFillParam(AsciiControl.ANIS_ESCAPE_CURSOR_LOCATION, prompt.get()!!.length + 1)
+        promptCursorPattern = Regex(pattern = patternStr)
     }
 
-    public String readCmd() throws Exception {
+    @Throws(Exception::class)
+    fun readCmd(): String? {
         try {
-            shellReader.readCmd();
-        } catch (RuntimeException e) {
-            return null;
+            shellReader.readCmd()
+        } catch (e: RuntimeException) {
+            return null
         }
-
-        String cmdStr = cmd.toString();
-        boolean isVimCmd = CmdUtil.isViVimCmd(localLastCmd.toString())
+        val cmdStr = cmd.toString()
+        val isVimCmd = (CmdUtil.isViVimCmd(localLastCmd.toString())
                 || CmdUtil.isViVimCmd(cmdStr)
-                || CmdUtil.isViVimCmd(selectHistoryCmd.toString());
+                || CmdUtil.isViVimCmd(selectHistoryCmd.toString()))
         if (isVimCmd) {
-            status = Status.VIM_BEFORE;
+            status = Status.VIM_BEFORE
         }
-
         if (CmdUtil.isCdCmd(lastRemoteCmd.toString())
-                || CmdUtil.isCdCmd(cmdStr)
-                || CmdUtil.isCdCmd(selectHistoryCmd.toString())) {
-            StatusCache.EXECUTE_CD_CMD = true;
+            || CmdUtil.isCdCmd(cmdStr)
+            || CmdUtil.isCdCmd(selectHistoryCmd.toString())
+        ) {
+            EXECUTE_CD_CMD = true
         }
-
-        boolean isMoreCmd = (CmdUtil.isMoreCmd(localLastCmd.toString()) && !"more".equals(localLastCmd.toString().trim()))
-                || (CmdUtil.isMoreCmd(cmdStr) && !"more".equals(cmdStr.trim()))
-                || (CmdUtil.isMoreCmd(selectHistoryCmd.toString()) && !"more".equals(selectHistoryCmd.toString().trim()));
+        val isMoreCmd =
+            (CmdUtil.isMoreCmd(localLastCmd.toString()) && "more" != localLastCmd.toString().trim { it <= ' ' }
+                    || CmdUtil.isMoreCmd(cmdStr) && "more" != cmdStr.trim { it <= ' ' }
+                    || CmdUtil.isMoreCmd(selectHistoryCmd.toString()) && "more" != selectHistoryCmd.toString()
+                .trim { it <= ' ' })
         if (isMoreCmd) {
-            status = Shell.Status.MORE_BEFORE;
+            status = Status.MORE_BEFORE
         }
-
-        lastRemoteCmd.delete(0, lastRemoteCmd.length());
-        currentPrint.delete(0, currentPrint.length());
-        return cmdStr;
+        lastRemoteCmd.delete(0, lastRemoteCmd.length)
+        currentPrint.delete(0, currentPrint.length)
+        return cmdStr
     }
 
-    public void extractUserFromPrompt() {
-        String preprocess = prompt.get().trim().replaceAll("\\[", "")
-                .replaceAll("]", "")
-                .replaceAll("#", "")
-                .trim();
-        user = preprocess.split("@")[0];
+    fun extractUserFromPrompt() {
+        val preprocess = prompt.get()!!.trim { it <= ' ' }.replace("\\[".toRegex(), "")
+            .replace("]".toRegex(), "")
+            .replace("#".toRegex(), "")
+            .trim { it <= ' ' }
+        user = preprocess.split("@").toTypedArray()[0]
     }
 
-    public void resize(int width, int height, long sessionId) {
-        switch (protocol) {
-            case SSH -> {
-                ChannelShell channelShell = SshSessionCache.Instance.getChannelShell(sessionId);
-                if (channelShell == null) {
-                    break;
-                }
-                channelShell.setPtySize(width, height, width, height);
+    fun resize(width: Int, height: Int, sessionId: Long) {
+        when (protocol) {
+            ShellProtocol.SSH -> {
+                val channelShell = getChannelShell(sessionId) ?: return
+                channelShell.setPtySize(width, height, width, height)
             }
-            case MOSH -> {
-                MoshSession moshSession = MoshSessionCache.Instance.get(sessionId);
-                if (moshSession == null) {
-                    break;
-                }
-                moshSession.resize(width, height);
+            ShellProtocol.MOSH -> {
+                val moshSession = MoshSessionCache[sessionId] ?: return
+                moshSession.resize(width, height)
             }
         }
-        localLastCmd.delete(0, localLastCmd.length()).append(RESIZE_COMMAND);
+        localLastCmd.delete(0, localLastCmd.length).append(RESIZE_COMMAND)
     }
 
-    public String fillPrompt(String msg) {
-        if (protocol.equals(ShellProtocol.SSH)) {
-            return msg;
+    fun fillPrompt(msgConst: String): String {
+        var msg = msgConst
+        if (protocol == ShellProtocol.SSH) {
+            return msg
         }
-        Matcher matcher = promptCursorPattern.matcher(msg);
-        if (matcher.find()) {
-            Matcher doubleCursorMatcher = AsciiControl.ANIS_ESCAPE_DOUBLE_CURSOR_PATTERN.matcher(msg);
-            if (doubleCursorMatcher.find()) {
-                String changePathStr = doubleCursorMatcher.group(0);
-                int[] pos = AsciiControl.extractCursorPosition(changePathStr);
-                String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(pos[0]);
-                msg = msg.replace(changePathStr, setToHead + prompt.get() + changePathStr);
-
-                int col = pos[1];
-                prompt.set(prompt.get().substring(0, col - 1) + AsciiControl.cleanCursorMode(changePathStr) + "]# ");
-                generateCursorPosPattern();
-                return msg;
+        val matcher = promptCursorPattern!!.find(msg)
+        if (matcher != null) {
+            val doubleCursorMatcher: MatchResult? = AsciiControl.ANIS_ESCAPE_DOUBLE_CURSOR_PATTERN.find(msg)
+            if (doubleCursorMatcher != null) {
+                val changePathStr = doubleCursorMatcher.value
+                val pos = extractCursorPosition(changePathStr)
+                val setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + setCursorToLineHead(pos[0])
+                msg = msg.replace(changePathStr, setToHead + prompt.get() + changePathStr)
+                val col = pos[1]
+                prompt.set(prompt.get()!!.substring(0, col - 1) + cleanCursorMode(changePathStr) + "]# ")
+                generateCursorPosPattern()
+                return msg
             }
-
-            Matcher matcherPrompt = PROMPT_PATTERN.matcher(msg);
-            if (!matcherPrompt.find()) {
-                String group = matcher.group(0);
-                int[] pos = AsciiControl.extractCursorPosition(group);
-                String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(pos[0]);
-                msg = msg.replace(group, setToHead + prompt.get() + group);
-                return msg;
+            val matcherPrompt = PROMPT_PATTERN.find(msg)
+            if (matcherPrompt == null) {
+                val group = matcher.value
+                val pos = extractCursorPosition(group)
+                val setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + setCursorToLineHead(pos[0])
+                msg = msg.replace(group, setToHead + prompt.get() + group)
+                return msg
             } else {
-                String group = matcher.group(0);
-                int[] lastPos = AsciiControl.extractCursorPosition(msg);
-                int[] pos = AsciiControl.extractCursorPosition(group);
+                val group = matcher.value
+                val lastPos = extractCursorPosition(msg)
+                val pos = extractCursorPosition(group)
                 if (pos[0] - lastPos[0] == 1) {
-                    String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(pos[0]);
-                    msg = msg + setToHead + prompt.get();
-                    return msg;
+                    val setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + setCursorToLineHead(pos[0])
+                    msg = msg + setToHead + prompt.get()
+                    return msg
                 }
             }
         }
-
-        Matcher cursorBracketKMatcher = AsciiControl.ANIS_ESCAPE_CURSOR_BRACKET_K_PATTERN.matcher(msg);
-        if (cursorBracketKMatcher.find()) {
-            String changePathStr = cursorBracketKMatcher.group(0);
-            int[] pos = AsciiControl.extractCursorPosition(changePathStr);
-            String setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + AsciiControl.setCursorToLineHead(pos[0]);
-            msg = msg.replace(changePathStr, setToHead + prompt.get() + changePathStr);
-
-            int col = pos[1];
+        val cursorBracketKMatcher: MatchResult? = AsciiControl.ANIS_ESCAPE_CURSOR_BRACKET_K_PATTERN.find(msg)
+        if (cursorBracketKMatcher != null) {
+            val changePathStr = cursorBracketKMatcher.value
+            val pos = extractCursorPosition(changePathStr)
+            val setToHead = AsciiControl.ANIS_CLEAR_ALL_MODE + setCursorToLineHead(pos[0])
+            msg = msg.replace(changePathStr, setToHead + prompt.get() + changePathStr)
+            val col = pos[1]
             // there still have problem
-            if (col >= prompt.get().length()) {
-                return msg;
+            if (col >= prompt.get()!!.length) {
+                return msg
             }
-            prompt.set(prompt.get().substring(0, col - 1) + AsciiControl.cleanCursorMode(changePathStr));
-            generateCursorPosPattern();
-            return msg;
+            prompt.set(prompt.get()!!.substring(0, col - 1) + cleanCursorMode(changePathStr))
+            generateCursorPosPattern()
+            return msg
         }
-        return msg;
+        return msg
     }
 
-    public boolean hasWelcome() {
-        boolean flag = false;
-        switch (protocol) {
-            case SSH -> flag = sshWelcome != null;
-            case MOSH -> flag = moshWelcome != null;
-        }
-        return flag;
-    }
-
-    public void printWelcome() {
-        switch (protocol) {
-            case SSH -> Printer.print(sshWelcome.toString());
-            case MOSH -> Printer.print(moshWelcome.toString());
+    fun hasWelcome(): Boolean {
+        return when (protocol) {
+            ShellProtocol.SSH -> sshWelcome != null
+            ShellProtocol.MOSH -> moshWelcome != null
         }
     }
 
-    public void printAfterEstablish() {
-        Printer.clear();
-        if (StatusCache.HANGED_ENTER) {
-            Printer.println("Invoke hanged session: " + user + "@" + host);
+    fun printWelcome() {
+        when (protocol) {
+            ShellProtocol.SSH -> Printer.print(sshWelcome.toString())
+            ShellProtocol.MOSH -> Printer.print(moshWelcome.toString())
+        }
+    }
+
+    fun printAfterEstablish() {
+        clear()
+        if (HANGED_ENTER) {
+            println("Invoke hanged session: $user@$host")
         } else {
-            Printer.println("Session established: " + user + "@" + host);
+            println("Session established: $user@$host")
         }
-        Printer.println("\nUse protocol " + protocol.name() + ".\n");
+        println("""
+    
+    Use protocol ${protocol.name}.
+    
+    """.trimIndent())
     }
 
-    public void initializeSwitchSessionHelper() {
-        this.quickSwitchHelper.initialize();
+    fun initializeSwitchSessionHelper() {
+        quickSwitchHelper.initialize()
     }
 
-    public boolean switchSession() {
-        return this.quickSwitchHelper.switchSession();
+    fun switchSession(): Boolean {
+        return quickSwitchHelper.switchSession()
     }
 
-    @SuppressWarnings("all")
-    public void initialFirstCorrespondence(ShellProtocol protocol, Executable executable) {
-        this.protocol = protocol;
+    fun initialFirstCorrespondence(protocol: ShellProtocol, executable: Executable) {
+        this.protocol = protocol
         try {
             if (jumpServer) {
-                prompt.set(StrUtil.EMPTY);
-                resetIO(protocol);
-                executable.execute();
-                return;
+                prompt.set(StrUtil.EMPTY)
+                resetIO(protocol)
+                executable.execute()
+                return
             }
-
-            CountDownLatch mainLatch = new CountDownLatch(2);
-
-            JsonObject request = new JsonObject();
-            request.put("sessionId", sessionId);
-            request.put("remotePath", "/" + user + "/.bash_history");
-            request.put("type", BlockingDfHandler.DF_TYPE_BYTE);
-            if (eventBus != null) {
-                eventBus.request(START_DF_COMMAND.address(), request, result -> {
-                    if (result == null || result.result() == null) {
-                        return;
-                    }
-                    byte[] bytes = (byte[]) result.result().body();
-                    String data = new String(bytes, StandardCharsets.UTF_8);
-                    historyCmdHelper.initialize(data.split(StrUtil.LF));
-                });
+            val request = JsonObject()
+            request.put("sessionId", sessionId)
+            request.put("remotePath", "/$user/.bash_history")
+            request.put("type", BlockingDfHandler.DF_TYPE_BYTE)
+            eventBus.request(ShellAddress.START_DF_COMMAND.address(),
+                request) { result: AsyncResult<Message<Any?>?>? ->
+                if (result?.result() == null) {
+                    return@request
+                }
+                val bytes = result.result()!!.body() as ByteArray?
+                val data = String(bytes!!, StandardCharsets.UTF_8)
+                historyCmdHelper.initialize(data.split(StrUtil.LF).toTypedArray())
             }
-
-            vertx.executeBlocking(promise -> {
+            vertx.executeBlocking({ promise: Promise<Any?> ->
                 try {
                     do {
                         if (returnWrite) {
-                            return;
+                            return@executeBlocking
                         }
-                    } while (!promptNow);
-
-                    if (protocol.equals(ShellProtocol.SSH)) {
-                        outputStream.write(StrUtil.LF.getBytes(StandardCharsets.UTF_8));
-                        outputStream.flush();
+                    } while (!promptNow)
+                    if (protocol == ShellProtocol.SSH) {
+                        outputStream!!.write(StrUtil.LF.toByteArray(StandardCharsets.UTF_8))
+                        outputStream!!.flush()
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (e: IOException) {
+                    e.printStackTrace()
                 } finally {
-                    promise.complete();
+                    promise.complete()
                 }
-            }, false);
-
-            vertx.executeBlocking(promise -> {
+            }, false)
+            vertx.executeBlocking({ promise: Promise<Any?> ->
                 try {
-                    byte[] tmp = new byte[1024];
-                    long startTime = System.currentTimeMillis();
+                    val tmp = ByteArray(1024)
+                    val startTime = System.currentTimeMillis()
                     if (channelShell == null) {
-                        promptNow = true;
+                        promptNow = true
                     }
                     while (true) {
-                        while (inputStream.available() > 0) {
-                            int i = inputStream.read(tmp, 0, 1024);
+                        while (inputStream!!.available() > 0) {
+                            val i = inputStream!!.read(tmp, 0, 1024)
                             if (i < 0) {
-                                break;
+                                break
                             }
-                            String inputStr = new String(tmp, 0, i);
-
-                            Matcher matcher = PROMPT_PATTERN.matcher(inputStr);
-                            if (matcher.find()) {
-                                prompt.set(matcher.group(0).replaceAll("\\[\\?1034h", "") + StrUtil.SPACE);
-                                returnWrite = true;
+                            val inputStr = String(tmp, 0, i)
+                            val matcher = PROMPT_PATTERN.find(inputStr)
+                            returnWrite = if (matcher != null) {
+                                prompt.set(matcher.value.replace("\\[\\?1034h".toRegex(), "") + StrUtil.SPACE)
+                                true
                             } else {
-                                if (this.protocol.equals(ShellProtocol.SSH)) {
-                                    sshWelcome.append(inputStr);
-                                } else if (this.protocol.equals(ShellProtocol.MOSH)) {
-                                    moshWelcome.append(inputStr);
+                                if (this.protocol == ShellProtocol.SSH) {
+                                    sshWelcome!!.append(inputStr)
+                                } else if (this.protocol == ShellProtocol.MOSH) {
+                                    moshWelcome!!.append(inputStr)
                                 }
-                                returnWrite = true;
+                                true
                             }
                         }
-
                         if (System.currentTimeMillis() - startTime >= 1000) {
-                            promptNow = true;
+                            promptNow = true
                         }
-
                         if (StringUtils.isNoneEmpty(prompt.get())) {
-                            break;
+                            break
                         }
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (e: IOException) {
+                    e.printStackTrace()
                 } finally {
-                    assert prompt.get() != null;
-                    generateCursorPosPattern();
-                    extractUserFromPrompt();
-                    fullPath.set("/" + user);
-
-                    resetIO(protocol);
-                    executable.execute();
-                    promise.complete();
+                    assert(prompt.get() != null)
+                    generateCursorPosPattern()
+                    extractUserFromPrompt()
+                    fullPath.set("/$user")
+                    resetIO(protocol)
+                    executable.execute()
+                    promise.complete()
                 }
-            }, false);
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            }, false)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
-    private void checkConnection() {
-        switch (protocol) {
-            case SSH -> {
-                if (SshSessionCache.Instance.isDisconnect(sessionId)) {
-                    throw new RemoteDisconnectException("SSH session disconnect.");
+    private fun checkConnection() {
+        when (protocol) {
+            ShellProtocol.SSH -> {
+                if (SshSessionCache.isDisconnect(sessionId)) {
+                    throw RemoteDisconnectException("SSH session disconnect.")
                 }
             }
-            case MOSH -> {
-                if (MoshSessionCache.Instance.isDisconnect(sessionId)) {
-                    throw new RemoteDisconnectException("Mosh session disconnect.");
+            ShellProtocol.MOSH -> {
+                if (MoshSessionCache.isDisconnect(sessionId)) {
+                    throw RemoteDisconnectException("Mosh session disconnect.")
                 }
             }
-            default -> {
+        }
+    }
+
+    fun flush() {
+        checkConnection()
+        try {
+            outputStream!!.flush()
+        } catch (e: IOException) {
+            throw RemoteDisconnectException(e.message)
+        }
+    }
+
+    fun write(bytes: ByteArray) {
+        checkConnection()
+        try {
+            outputStream!!.write(bytes)
+        } catch (e: IOException) {
+            throw RemoteDisconnectException(e.message)
+        }
+    }
+
+    fun write(bytes: Char) {
+        checkConnection()
+        try {
+            outputStream!!.write(bytes.code)
+        } catch (e: IOException) {
+            throw RemoteDisconnectException(e.message)
+        }
+    }
+
+    fun writeAndFlush(bytes: ByteArray) {
+        checkConnection()
+        try {
+            outputStream!!.write(bytes)
+            outputStream!!.flush()
+        } catch (e: IOException) {
+            throw RemoteDisconnectException(e.message)
+        }
+    }
+
+    fun writeAndFlush(inChar: Char) {
+        checkConnection()
+        try {
+            outputStream!!.write(inChar.code)
+            outputStream!!.flush()
+        } catch (e: IOException) {
+            throw RemoteDisconnectException(e.message)
+        }
+    }
+
+    fun clearShellLineWithPrompt() {
+        val promptLen = prompt.get()!!.length
+        val position = term.cursorPosition
+        val cursorX = position[0]
+        val cursorY = position[1]
+        term.hideCursor()
+        term.setCursorPosition(promptLen, cursorY)
+        Printer.print(" ".repeat(cursorX - promptLen))
+        term.setCursorPosition(promptLen, cursorY)
+        term.showCursor()
+    }
+
+    fun cleanUp() {
+        remoteCmd.delete(0, remoteCmd.length)
+        currentPrint.delete(0, currentPrint.length)
+        selectHistoryCmd.delete(0, selectHistoryCmd.length)
+        localLastCmd.delete(0, localLastCmd.length)
+    }
+
+    fun printErr(err: String?) {
+        shellPrinter.printErr(err)
+    }
+
+    val isClosed: Boolean
+        get() {
+            if (channelShell != null) {
+                return channelShell!!.isClosed
             }
+            return if (moshSession != null) {
+                !moshSession!!.isConnected
+            } else true
         }
+
+    fun setJumpServer(isJumpServer: Boolean) {
+        jumpServer = isJumpServer
     }
 
-    public void flush() {
-        checkConnection();
+    fun clearRemoteCmd() {
+        remoteCmd.delete(0, remoteCmd.length)
+    }
+
+    fun setLocalLastCmd(cmd: String?) {
+        localLastCmd.delete(0, localLastCmd.length).append(cmd)
+    }
+
+    fun getSshWelcome(): String? {
+        return if (StringUtils.isEmpty(sshWelcome)) null else sshWelcome.toString()
+    }
+
+    fun getPrompt(): String {
+        return prompt.get()
+    }
+
+    fun setPrompt(prompt: String?) {
+        this.prompt.set(prompt)
+    }
+
+    fun getLastRemoteCmd(): String {
+        return lastRemoteCmd.toString()
+    }
+
+    fun getRemoteCmd(): String {
+        return remoteCmd.toString()
+    }
+
+    fun getCurrentPrint(): String {
+        return currentPrint.toString()
+    }
+
+    fun getOutputStream(protocol: ShellProtocol): OutputStream? {
         try {
-            outputStream.flush();
-        } catch (IOException e) {
-            throw new RemoteDisconnectException(e.getMessage());
-        }
-    }
-
-    public void write(byte[] bytes) {
-        checkConnection();
-        try {
-            outputStream.write(bytes);
-        } catch (IOException e) {
-            throw new RemoteDisconnectException(e.getMessage());
-        }
-    }
-
-    public void write(char bytes) {
-        checkConnection();
-        try {
-            outputStream.write(bytes);
-        } catch (IOException e) {
-            throw new RemoteDisconnectException(e.getMessage());
-        }
-    }
-
-    public void writeAndFlush(byte[] bytes) {
-        checkConnection();
-        try {
-            outputStream.write(bytes);
-            outputStream.flush();
-        } catch (IOException e) {
-            throw new RemoteDisconnectException(e.getMessage());
-        }
-    }
-
-    public void writeAndFlush(char inChar) {
-        checkConnection();
-        try {
-            outputStream.write(inChar);
-            outputStream.flush();
-        } catch (IOException e) {
-            throw new RemoteDisconnectException(e.getMessage());
-        }
-    }
-
-    public void clearShellLineWithPrompt() {
-        int promptLen = prompt.get().length();
-        int[] position = term.getCursorPosition();
-        int cursorX = position[0];
-        int cursorY = position[1];
-        term.hideCursor();
-        term.setCursorPosition(promptLen, cursorY);
-        Printer.print(" ".repeat(cursorX - promptLen));
-        term.setCursorPosition(promptLen, cursorY);
-        term.showCursor();
-    }
-
-    public void cleanUp() {
-        remoteCmd.delete(0, remoteCmd.length());
-        currentPrint.delete(0, currentPrint.length());
-        selectHistoryCmd.delete(0, selectHistoryCmd.length());
-        localLastCmd.delete(0, localLastCmd.length());
-    }
-
-    public void printErr(String err) {
-        shellPrinter.printErr(err);
-    }
-
-    public boolean isClosed() {
-        if (channelShell != null) {
-            return channelShell.isClosed();
-        }
-        if (moshSession != null) {
-            return !moshSession.isConnected();
-        }
-        return true;
-    }
-
-    public void setJumpServer(boolean isJumpServer) {
-        this.jumpServer = isJumpServer;
-    }
-
-    public void clearRemoteCmd() {
-        remoteCmd.delete(0, remoteCmd.length());
-    }
-
-    public void setLocalLastCmd(String cmd) {
-        localLastCmd.delete(0, localLastCmd.length()).append(cmd);
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public String getSshWelcome() {
-        return StringUtils.isEmpty(sshWelcome) ? null : sshWelcome.toString();
-    }
-
-    public String getPrompt() {
-        return prompt.get();
-    }
-
-    public void setPrompt(String prompt) {
-        this.prompt.set(prompt);
-    }
-
-    public String getLastRemoteCmd() {
-        return lastRemoteCmd.toString();
-    }
-
-    public String getRemoteCmd() {
-        return remoteCmd.toString();
-    }
-
-    public String getCurrentPrint() {
-        return currentPrint.toString();
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public String getFullPath() {
-        return fullPath.get();
-    }
-
-    public void setFullPath(String fullPath) {
-        this.fullPath.set(fullPath);
-    }
-
-    public long getSessionId() {
-        return sessionId;
-    }
-
-    public ChannelShell getChannelShell() {
-        return channelShell;
-    }
-
-    public void setChannelShell(ChannelShell channelShell) {
-        this.channelShell = channelShell;
-    }
-
-    public InputStream getInputStream() {
-        return inputStream;
-    }
-
-    public OutputStream getOutputStream(ShellProtocol protocol) {
-        try {
-            if (protocol.equals(this.protocol)) {
-                return outputStream;
-            } else if (protocol.equals(ShellProtocol.MOSH)) {
-                return moshSession.getOutputStream();
-            } else if (protocol.equals(ShellProtocol.SSH)) {
-                return channelShell.getOutputStream();
+            return when (protocol) {
+                this.protocol -> {
+                    outputStream
+                }
+                ShellProtocol.MOSH -> {
+                    moshSession!!.outputStream
+                }
+                ShellProtocol.SSH -> {
+                    channelShell!!.outputStream
+                }
             }
-        } catch (Exception e) {
+        } catch (e: Exception) {
             // do nothing
         }
-        return null;
+        return null
     }
 
-    public InputStream getInputStream(ShellProtocol protocol) {
+    fun getInputStream(protocol: ShellProtocol): InputStream? {
         try {
-            if (protocol.equals(this.protocol)) {
-                return inputStream;
-            } else if (protocol.equals(ShellProtocol.MOSH)) {
-                return moshSession.getInputStream();
-            } else if (protocol.equals(ShellProtocol.SSH)) {
-                return channelShell.getInputStream();
+            return when (protocol) {
+                this.protocol -> {
+                    inputStream
+                }
+                ShellProtocol.MOSH -> {
+                    moshSession!!.inputStream
+                }
+                ShellProtocol.SSH -> {
+                    channelShell!!.inputStream
+                }
             }
-        } catch (Exception e) {
+        } catch (e: Exception) {
             // do nothing
         }
-        return null;
+        return null
     }
 
-    public ShellProtocol getProtocol() {
-        return this.protocol;
+    fun getInputStream(): InputStream? {
+        try {
+            return when (protocol) {
+                this.protocol -> {
+                    inputStream
+                }
+                ShellProtocol.MOSH -> {
+                    moshSession!!.inputStream
+                }
+                ShellProtocol.SSH -> {
+                    channelShell!!.inputStream
+                }
+            }
+        } catch (e: Exception) {
+            // do nothing
+        }
+        return null
     }
 
-    public String uri() {
-        return user + "@" + host;
+    fun uri(): String {
+        return "$user@$host"
     }
 
-    public EventBus getEventBus() {
-        return eventBus;
+    fun shellReader(): ShellReader {
+        return shellReader
     }
 
-    public Vertx getVertx() {
-        return vertx;
-    }
-
-    public enum Status {
+    enum class Status(val status: Int, val comment: String) {
         /**
          * The status of Shell.
          */
-        NORMAL(1, "Shell is under normal cmd input status."),
-        TAB_ACCOMPLISH(2, "Shell is under tab key to auto-accomplish address status."),
-        VIM_BEFORE(3, "Shell is before Vim/Vi edit status."),
-        VIM_UNDER(4, "Shell is under Vim/Vi edit status."),
-        MORE_BEFORE(5, "Shell is before more cmd process status."),
-        MORE_PROC(6, "Shell is under more cmd process status."),
-        MORE_EDIT(7, "Shell is under more regular expression or cmd edit status."),
-        MORE_SUB(8, "Shell is under more :sub cmd status."),
+        NORMAL(1, "Shell is under normal cmd input status."), TAB_ACCOMPLISH(2,
+            "Shell is under tab key to auto-accomplish address status."),
+        VIM_BEFORE(3, "Shell is before Vim/Vi edit status."), VIM_UNDER(4,
+            "Shell is under Vim/Vi edit status."),
+        MORE_BEFORE(5, "Shell is before more cmd process status."), MORE_PROC(6,
+            "Shell is under more cmd process status."),
+        MORE_EDIT(7, "Shell is under more regular expression or cmd edit status."), MORE_SUB(8,
+            "Shell is under more :sub cmd status."),
         QUICK_SWITCH(9, "List all connection properties to quick switch session.");
+    }
 
-        public final int status;
-        public final String comment;
+    companion object {
+        @JvmField
+        val PROMPT_PATTERN: Regex = Regex(pattern = """(\[(\w*?)@(.*?)][$#])""")
+        val CONSOLE: Console = Console.get()
+        const val RESIZE_COMMAND = AsciiControl.DC2 + CharUtil.BRACKET_START + "resize"
+        var reader: ConsoleReader? = null
 
-        Status(int status, String comment) {
-            this.status = status;
-            this.comment = comment;
+        @JvmStatic
+        fun initializeReader(`in`: InputStream?) {
+            try {
+                reader = ConsoleReader(`in`, null, null)
+            } catch (e: Exception) {
+                MessageBox.setExitMessage("Create console reader failed.")
+                exitProcess(-1)
+            }
         }
     }
 }

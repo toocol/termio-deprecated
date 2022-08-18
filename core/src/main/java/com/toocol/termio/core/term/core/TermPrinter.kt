@@ -28,32 +28,32 @@ import java.lang.Exception
 class TermPrinter(private val term: Term) {
     companion object {
         private val credentialCache = CredentialCache.Instance
-        private val RUNTIME = Runtime.getRuntime()
+        private val runtime = Runtime.getRuntime()
 
         @Volatile
         private var PRINT_STREAM: PrintStream? = null
 
         @JvmField
         @Volatile
-        var DISPLAY_BUFF = StrUtil.EMPTY
+        var displayBuffer = StrUtil.EMPTY
 
         @Volatile
-        var COMMAND_BUFF = StrUtil.EMPTY
+        var commandBuffer = StrUtil.EMPTY
         @JvmStatic
         fun registerPrintStream(printStream: PrintStream?) {
             PRINT_STREAM = printStream
         }
 
         private fun totalMemory(): Long {
-            return RUNTIME.totalMemory() / 1024 / 1024
+            return runtime.totalMemory() / 1024 / 1024
         }
 
         private fun maxMemory(): Long {
-            return RUNTIME.maxMemory() / 1024 / 1024
+            return runtime.maxMemory() / 1024 / 1024
         }
 
         private fun freeMemory(): Long {
-            return RUNTIME.freeMemory() / 1024 / 1024
+            return runtime.freeMemory() / 1024 / 1024
         }
 
         private fun usedMemory(): Long {
@@ -176,7 +176,7 @@ class TermPrinter(private val term: Term) {
 
     @Synchronized
     fun printExecution(msg: String) {
-        COMMAND_BUFF = msg
+        commandBuffer = msg
         term.hideCursor()
         term.setCursorPosition(Term.getPromptLen(), Term.executeLine)
         val builder = AnsiStringBuilder()
@@ -214,12 +214,12 @@ class TermPrinter(private val term: Term) {
     @Synchronized
     fun printDisplay(msg: String) {
         if (StringUtils.isEmpty(msg)) {
-            DISPLAY_BUFF = StrUtil.EMPTY
+            displayBuffer = StrUtil.EMPTY
             cleanDisplay()
             term.setCursorPosition(Term.getPromptLen() + term.lineBuilder.length, Term.executeLine)
             return
         }
-        DISPLAY_BUFF = msg
+        displayBuffer = msg
         term.hideCursor()
         cleanDisplay()
         val split = msg.split("\n").toTypedArray()
@@ -242,12 +242,12 @@ class TermPrinter(private val term: Term) {
     fun printDisplay(msg: String, judgment: Boolean) {
         if (judgment) {
             if (StringUtils.isEmpty(msg)) {
-                DISPLAY_BUFF = StrUtil.EMPTY
+                displayBuffer = StrUtil.EMPTY
                 cleanDisplay()
                 term.setCursorPosition(Term.getPromptLen() + term.lineBuilder.length, Term.executeLine)
                 return
             }
-            DISPLAY_BUFF = msg
+            displayBuffer = msg
             term.hideCursor()
             cleanDisplay()
             val split = msg.split("\n").toTypedArray()
@@ -269,13 +269,13 @@ class TermPrinter(private val term: Term) {
 
     @Synchronized
     fun printDisplayBuffer() {
-        if (StringUtils.isEmpty(DISPLAY_BUFF)) {
+        if (StringUtils.isEmpty(displayBuffer)) {
             cleanDisplay()
             term.setCursorPosition(Term.getPromptLen() + term.lineBuilder.length, Term.executeLine)
             return
         }
         cleanDisplay()
-        val split = DISPLAY_BUFF.split("\n").toTypedArray()
+        val split = displayBuffer.split("\n").toTypedArray()
         printDisplayBackground(split.size)
         for ((idx, line) in split.withIndex()) {
             term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx)
@@ -293,12 +293,12 @@ class TermPrinter(private val term: Term) {
     @Synchronized
     fun printDisplayEcho(msg: String) {
         if (StringUtils.isEmpty(msg)) {
-            DISPLAY_BUFF = StrUtil.EMPTY
+            displayBuffer = StrUtil.EMPTY
             cleanDisplay()
             term.setCursorPosition(Term.getPromptLen() + term.lineBuilder.length, Term.executeLine)
             return
         }
-        DISPLAY_BUFF = msg
+        displayBuffer = msg
         term.hideCursor()
         cleanDisplay()
         val split = msg.split("\n").toTypedArray()
@@ -323,7 +323,7 @@ class TermPrinter(private val term: Term) {
         PRINT_STREAM!!.print(
             AnsiStringBuilder().background(Term.theme.executeBackgroundColor.color)
                 .front(Term.theme.executeFrontColor.color).append(
-                COMMAND_BUFF
+                commandBuffer
             ).toString()
         )
     }

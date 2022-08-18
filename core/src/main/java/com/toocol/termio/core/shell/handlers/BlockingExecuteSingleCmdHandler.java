@@ -26,7 +26,7 @@ import static com.toocol.termio.core.shell.ShellAddress.EXECUTE_SINGLE_COMMAND;
 public final class BlockingExecuteSingleCmdHandler extends BlockingMessageHandler<String> {
 
     private final ShellCache.Instance shellCache = ShellCache.Instance;
-    private final ExecChannelProvider execChannelProvider = ExecChannelProvider.getInstance();
+    private final ExecChannelProvider.Instance execChannelProvider = ExecChannelProvider.Instance;
 
     public BlockingExecuteSingleCmdHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -47,7 +47,7 @@ public final class BlockingExecuteSingleCmdHandler extends BlockingMessageHandle
         ChannelExec channelExec = execChannelProvider.getChannelExec(sessionId);
         Shell shell = shellCache.getShell(sessionId);
 
-        if (channelExec == null || shell == null) {
+        if (shell == null) {
             promise.fail("ChannelExec or shell is null.");
             return;
         }

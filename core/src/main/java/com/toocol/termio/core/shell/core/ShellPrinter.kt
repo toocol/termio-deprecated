@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/6 13:05
  */
-internal class ShellPrinter(private val shell: Shell) {
+class ShellPrinter(private val shell: Shell) {
 
     companion object {
         val PROMPT_ECHO_REGEX = Regex(pattern = """(\[(\w*?)@(.*?)][$#]) .*""")
@@ -159,7 +159,7 @@ internal class ShellPrinter(private val shell: Shell) {
             if (bel) Printer.bel()
             return
         }
-        val splitChar = if (shell.getProtocol() == ShellProtocol.SSH) StrUtil.CRLF else StrUtil.LF
+        val splitChar = if (shell.protocol == ShellProtocol.SSH) StrUtil.CRLF else StrUtil.LF
         if (StringUtils.isNotEmpty(shell.currentPrint)
             && msg.contains(shell.currentPrint)
             && msg != shell.currentPrint.toString()
@@ -263,7 +263,7 @@ internal class ShellPrinter(private val shell: Shell) {
     }
 
     fun printInMore(msg: String) {
-        val splitChar = if (shell.getProtocol() == ShellProtocol.SSH) StrUtil.CRLF else StrUtil.LF
+        val splitChar = if (shell.protocol == ShellProtocol.SSH) StrUtil.CRLF else StrUtil.LF
         if (shell.localLastInput.toString().trim { it <= ' ' } == msg.replace(splitChar.toRegex(), "")) {
             return
         }

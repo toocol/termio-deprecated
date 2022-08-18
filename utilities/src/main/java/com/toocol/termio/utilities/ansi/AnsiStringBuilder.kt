@@ -1,195 +1,194 @@
-package com.toocol.termio.utilities.ansi;
+package com.toocol.termio.utilities.ansi
 
-import com.toocol.termio.utilities.utils.ASCIIStrCache;
-import com.toocol.termio.utilities.utils.StrUtil;
-import org.apache.commons.lang3.StringUtils;
+import com.toocol.termio.utilities.ansi.ColorHelper.background
+import com.toocol.termio.utilities.ansi.ColorHelper.front
+import com.toocol.termio.utilities.ansi.CursorPositionHelper.cursorMove
+import com.toocol.termio.utilities.utils.ASCIIStrCache
+import com.toocol.termio.utilities.utils.StrUtil
+import org.apache.commons.lang3.StringUtils
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/26 19:14
  */
-public final class AnsiStringBuilder {
-    private final StringBuilder builder = new StringBuilder();
+class AnsiStringBuilder {
+    private val builder = StringBuilder()
 
-    private ColorMode colorMode = ColorMode.COLOR_256;
+    private var colorMode = ColorMode.COLOR_256
+    private var bg256 = -1
+    private var ft256 = -1
+    private var bgR = -1
+    private var bgG = -1
+    private var bgB = -1
+    private var ftR = -1
+    private var ftG = -1
+    private var ftB = -1
 
-    private int bg256 = -1;
-    private int ft256 = -1;
-    private int bgR = -1;
-    private int bgG = -1;
-    private int bgB = -1;
-    private int ftR = -1;
-    private int ftG = -1;
-    private int ftB = -1;
-
-    public AnsiStringBuilder() {
-    }
-
-    public AnsiStringBuilder front(int color) {
+    fun front(color: Int): AnsiStringBuilder {
         if (color < 0 || color > 255) {
-            return this;
+            return this
         }
-        this.colorMode = ColorMode.COLOR_256;
-        this.ft256 = color;
-        return this;
+        colorMode = ColorMode.COLOR_256
+        ft256 = color
+        return this
     }
 
-    public AnsiStringBuilder background(int color) {
+    fun background(color: Int): AnsiStringBuilder {
         if (color < 0 || color > 255) {
-            return this;
+            return this
         }
-        this.colorMode = ColorMode.COLOR_256;
-        this.bg256 = color;
-        return this;
+        colorMode = ColorMode.COLOR_256
+        bg256 = color
+        return this
     }
 
-    public AnsiStringBuilder front(int r, int g, int b) {
+    fun front(r: Int, g: Int, b: Int): AnsiStringBuilder {
         if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
-            return this;
+            return this
         }
-        this.colorMode = ColorMode.COLOR_RGB;
-        this.ftR = r;
-        this.ftG = g;
-        this.ftB = b;
-        return this;
+        colorMode = ColorMode.COLOR_RGB
+        ftR = r
+        ftG = g
+        ftB = b
+        return this
     }
 
-    public AnsiStringBuilder background(int r, int g, int b) {
+    fun background(r: Int, g: Int, b: Int): AnsiStringBuilder {
         if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
-            return this;
+            return this
         }
-        this.colorMode = ColorMode.COLOR_RGB;
-        this.bgR = r;
-        this.bgG = g;
-        this.bgB = b;
-        return this;
+        colorMode = ColorMode.COLOR_RGB
+        bgR = r
+        bgG = g
+        bgB = b
+        return this
     }
 
-    public AnsiStringBuilder deFront() {
-        this.ft256 = -1;
-        this.ftR = -1;
-        this.ftG = -1;
-        this.ftB = -1;
-        return this;
+    fun deFront(): AnsiStringBuilder {
+        ft256 = -1
+        ftR = -1
+        ftG = -1
+        ftB = -1
+        return this
     }
 
-    public AnsiStringBuilder deBackground() {
-        this.bg256 = -1;
-        this.bgR = -1;
-        this.bgG = -1;
-        this.bgB = -1;
-        return this;
+    fun deBackground(): AnsiStringBuilder {
+        bg256 = -1
+        bgR = -1
+        bgG = -1
+        bgB = -1
+        return this
     }
 
-    public AnsiStringBuilder append(String str) {
+    fun append(str: String): AnsiStringBuilder {
         if (StringUtils.isEmpty(str)) {
-            return this;
+            return this
         }
-        builder.append(fillColor(str));
-        return this;
+        builder.append(fillColor(str))
+        return this
     }
 
-    public AnsiStringBuilder append(String str, int line, int column) {
+    fun append(strConst: String, line: Int, column: Int): AnsiStringBuilder {
+        var str = strConst
         if (StringUtils.isEmpty(str)) {
-            return this;
+            return this
         }
-        str = CursorPositionHelper.cursorMove(fillColor(str), line, column);
-        builder.append(str);
-        return this;
+        str = cursorMove(fillColor(str), line, column)
+        builder.append(str)
+        return this
     }
 
-    public AnsiStringBuilder append(char ch) {
-        String str = ASCIIStrCache.toString(ch);
-        return append(str);
+    fun append(ch: Char): AnsiStringBuilder {
+        val str = ASCIIStrCache.toString(ch)
+        return append(str)
     }
 
-    public AnsiStringBuilder append(int integer) {
-        String str = String.valueOf(integer);
-        return append(str);
+    fun append(integer: Int): AnsiStringBuilder {
+        val str = integer.toString()
+        return append(str)
     }
 
-    public AnsiStringBuilder append(long l) {
-        String str = String.valueOf(l);
-        return append(str);
+    fun append(l: Long): AnsiStringBuilder {
+        val str = l.toString()
+        return append(str)
     }
 
-    public AnsiStringBuilder append(StringBuilder sb) {
-        if (sb.length() == 0) {
-            return this;
+    fun append(sb: StringBuilder): AnsiStringBuilder {
+        if (sb.isEmpty()) {
+            return this
         }
-        String str = sb.toString();
-        return append(str);
+        val str = sb.toString()
+        return append(str)
     }
 
-    public AnsiStringBuilder append(AnsiStringBuilder ansiSb) {
-        builder.append(ansiSb.toString());
-        return this;
+    fun append(ansiSb: AnsiStringBuilder): AnsiStringBuilder {
+        builder.append(ansiSb.toString())
+        return this
     }
 
-    public AnsiStringBuilder crlf() {
-        builder.append(StrUtil.CRLF);
-        return this;
+    fun crlf(): AnsiStringBuilder {
+        builder.append(StrUtil.CRLF)
+        return this
     }
 
-    public AnsiStringBuilder tab() {
-        return append(StrUtil.TAB);
+    fun tab(): AnsiStringBuilder {
+        return append(StrUtil.TAB)
     }
 
-    public AnsiStringBuilder space() {
-        return append(StrUtil.SPACE);
+    fun space(): AnsiStringBuilder {
+        return append(StrUtil.SPACE)
     }
 
-    public AnsiStringBuilder space(int cnt) {
-        return append(StrUtil.SPACE.repeat(cnt));
+    fun space(cnt: Int): AnsiStringBuilder {
+        return append(StrUtil.SPACE.repeat(cnt))
     }
 
-    public AnsiStringBuilder clearStr() {
-        builder.delete(0, builder.length());
-        return this;
+    fun clearStr(): AnsiStringBuilder {
+        builder.delete(0, builder.length)
+        return this
     }
 
-    public AnsiStringBuilder clearColor() {
-        ft256 = -1;
-        bg256 = -1;
-        ftR = -1;
-        ftG = -1;
-        ftB = -1;
-        bgR = -1;
-        bgG = -1;
-        bgB = -1;
-        return this;
+    fun clearColor(): AnsiStringBuilder {
+        ft256 = -1
+        bg256 = -1
+        ftR = -1
+        ftG = -1
+        ftB = -1
+        bgR = -1
+        bgG = -1
+        bgB = -1
+        return this
     }
 
-    private String fillColor(String str) {
-        if (this.colorMode.equals(ColorMode.COLOR_256)) {
-            if (this.ft256 != -1) {
-                str = ColorHelper.front(str, this.ft256);
+    private fun fillColor(strConst: String): String {
+        var str = strConst
+        if (colorMode == ColorMode.COLOR_256) {
+            if (ft256 != -1) {
+                str = front(str, ft256)
             }
-            if (this.bg256 != -1) {
-                str = ColorHelper.background(str, this.bg256);
+            if (bg256 != -1) {
+                str = background(str, bg256)
             }
-        } else if (this.colorMode.equals(ColorMode.COLOR_RGB)) {
-            if (this.ftR != -1 && this.ftG != -1 && this.ftB != -1) {
-                str = ColorHelper.front(str, ftR, ftG, ftB);
+        } else if (colorMode == ColorMode.COLOR_RGB) {
+            if (ftR != -1 && ftG != -1 && ftB != -1) {
+                str = front(str, ftR, ftG, ftB)
             }
-            if (this.bgR != -1 && this.bgG != -1 && this.bgB != -1) {
-                str = ColorHelper.background(str, bgR, bgG, bgB);
+            if (bgR != -1 && bgG != -1 && bgB != -1) {
+                str = background(str, bgR, bgG, bgB)
             }
         }
-        return str;
+        return str
     }
 
-    @Override
-    public String toString() {
-        return builder.toString();
+    override fun toString(): String {
+        return builder.toString()
     }
 
-    public int length() {
-        return builder.length();
+    fun length(): Int {
+        return builder.length
     }
 
-    public enum ColorMode {
-        COLOR_256,
-        COLOR_RGB
+    enum class ColorMode {
+        COLOR_256, COLOR_RGB
     }
 }

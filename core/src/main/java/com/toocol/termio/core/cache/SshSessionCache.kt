@@ -113,10 +113,10 @@ class SshSessionCache private constructor() {
             sshSessionMap.forEach { (_: Long?, v: SshSession) -> v.stop() }
         }
 
-        val allSwitchable: Collection<Switchable?>
+        val allSwitchable: Collection<Switchable>
             get() = sshSessionMap.values
                 .stream()
-                .map { sshSession: SshSession? -> sshSession }
+                .map { sshSession: SshSession -> sshSession }
                 .toList()
     }
 }

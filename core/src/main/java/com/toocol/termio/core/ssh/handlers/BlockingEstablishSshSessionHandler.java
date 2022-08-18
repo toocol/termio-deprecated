@@ -76,7 +76,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
                 sessionId.set(factory.createSession(credential));
 
                 Shell shell = new Shell(sessionId.get(), credential.getHost(),credential.getUser(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
-                shell.setUser(credential.getUser());
+                shell.user = credential.getUser();
                 shellCache.putShell(sessionId.get(), shell);
                 shell.setJumpServer(credential.isJumpServer());
                 shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
@@ -86,7 +86,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
 
                 if (newSessionId != sessionId.get() || !shellCache.contains(newSessionId)) {
                     Shell shell = new Shell(sessionId.get(), credential.getHost(), credential.getUser(), vertx, eventBus, sshSessionCache.getChannelShell(sessionId.get()));
-                    shell.setUser(credential.getUser());
+                    shell.user = credential.getUser();
                     shellCache.putShell(sessionId.get(), shell);
                     sessionId.set(newSessionId);
                     shell.setJumpServer(credential.isJumpServer());
