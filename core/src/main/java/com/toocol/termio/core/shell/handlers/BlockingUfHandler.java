@@ -29,7 +29,7 @@ import static com.toocol.termio.core.shell.ShellAddress.START_UF_COMMAND;
 public final class BlockingUfHandler extends BlockingMessageHandler<Void> {
 
     private final SftpChannelProvider sftpChannelProvider = SftpChannelProvider.getInstance();
-    private final ShellCache shellCache = ShellCache.getInstance();
+    private final ShellCache.Instance shellCache = ShellCache.Instance;
 
     public BlockingUfHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -48,7 +48,11 @@ public final class BlockingUfHandler extends BlockingMessageHandler<Void> {
 
         ChannelSftp channelSftp = sftpChannelProvider.getChannelSftp(sessionId);
         if (channelSftp == null) {
-            shellCache.getShell(sessionId).printErr("Create sftp channel failed.");
+            Shell shell = shellCache.getShell(sessionId);
+            if (shell == null) {
+                return;
+            }
+            shell.printErr("Create sftp channel failed.");
             promise.complete();
             return;
         }
@@ -58,6 +62,10 @@ public final class BlockingUfHandler extends BlockingMessageHandler<Void> {
             localPathBuilder.append(Objects.requireNonNullElse(result.result().body(), "-1"));
 
             Shell shell = shellCache.getShell(sessionId);
+            if (shell == null) {
+                promise.tryFail("-1");
+                return;
+            }
             Printer.print(shell.getPrompt());
 
             String fileNames = localPathBuilder.toString();

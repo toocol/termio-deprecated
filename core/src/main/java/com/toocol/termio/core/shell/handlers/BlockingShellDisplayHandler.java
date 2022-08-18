@@ -28,8 +28,8 @@ import java.nio.charset.StandardCharsets;
 @SuppressWarnings("all")
 public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Long> implements Loggable {
 
-    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
-    private final ShellCache shellCache = ShellCache.getInstance();
+    private final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
+    private final ShellCache.Instance shellCache = ShellCache.Instance;
 
     private volatile boolean cmdHasFeedbackWhenJustExit = false;
 
@@ -140,7 +140,7 @@ public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Lo
         }
         if (StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING) {
             Long sessionId = asyncResult.result();
-            ChannelShell channelShell = SshSessionCache.getInstance().getChannelShell(sessionId);
+            ChannelShell channelShell = SshSessionCache.Instance.getChannelShell(sessionId);
             if (channelShell != null && !channelShell.isClosed()) {
                 eventBus.send(ShellAddress.DISPLAY_SHELL.address(), sessionId);
             }

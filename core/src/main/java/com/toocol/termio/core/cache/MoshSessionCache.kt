@@ -1,61 +1,47 @@
-package com.toocol.termio.core.cache;
+package com.toocol.termio.core.cache
 
-import com.toocol.termio.core.mosh.core.MoshSession;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.toocol.termio.core.mosh.core.MoshSession
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/29 22:24
  * @version: 0.0.1
  */
-public class MoshSessionCache {
+class MoshSessionCache private constructor() {
+    companion object Instance {
+        private val moshSessionMap: java.util.AbstractMap<Long, MoshSession> = ConcurrentHashMap()
 
-    private static MoshSessionCache INSTANCE = null;
-    private final Map<Long, MoshSession> moshSessionMap = new HashMap<>();
+        val sessionMap: Map<Long, MoshSession>
+            get() = moshSessionMap
 
-    private MoshSessionCache() {
-    }
-
-    public static synchronized MoshSessionCache getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new MoshSessionCache();
+        fun put(moshSession: MoshSession) {
+            moshSessionMap[moshSession.sessionId] = moshSession
         }
-        return INSTANCE;
-    }
 
-    public Map<Long, MoshSession> getSessionMap() {
-        return moshSessionMap;
-    }
-
-    public void put(MoshSession moshSession) {
-        moshSessionMap.put(moshSession.getSessionId(), moshSession);
-    }
-
-    public MoshSession get(long sessionId) {
-        return moshSessionMap.get(sessionId);
-    }
-
-    public boolean containSession(long sessionId) {
-        return moshSessionMap.containsKey(sessionId);
-    }
-
-    public boolean isDisconnect(long sessionId) {
-        if (!containSession(sessionId)) {
-            return true;
+        operator fun get(sessionId: Long): MoshSession? {
+            return moshSessionMap[sessionId]
         }
-        return !moshSessionMap.get(sessionId).isConnected();
-    }
 
-    public void stop(long sessionId) {
-        moshSessionMap.computeIfPresent(sessionId, (k, v) -> {
-            v.close();
-            return null;
-        });
-    }
+        fun isDisconnect(sessionId: Long): Boolean {
+            return if (!containSession(sessionId)) {
+                true
+            } else !moshSessionMap[sessionId]!!.isConnected
+        }
 
-    public void stopAll() {
-        moshSessionMap.forEach((aLong, moshSession) -> moshSession.close());
+        fun stop(sessionId: Long) {
+            moshSessionMap.computeIfPresent(sessionId) { k: Long?, v: MoshSession ->
+                v.close()
+                null
+            }
+        }
+
+        fun stopAll() {
+            moshSessionMap.forEach { (_: Long?, moshSession: MoshSession) -> moshSession.close() }
+        }
+
+        private fun containSession(sessionId: Long): Boolean {
+            return moshSessionMap.containsKey(sessionId)
+        }
     }
 }

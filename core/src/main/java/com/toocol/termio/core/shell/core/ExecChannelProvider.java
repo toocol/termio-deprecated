@@ -14,7 +14,7 @@ public final class ExecChannelProvider implements Castable {
 
     private static final ExecChannelProvider INSTANCE = new ExecChannelProvider();
 
-    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
+    private final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
 
     public static ExecChannelProvider getInstance() {
         return INSTANCE;

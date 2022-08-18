@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * @version: 0.0.1
  */
 public final class ActiveCmdProcessor extends TermCommandProcessor {
-    private final CredentialCache credentialCache = CredentialCache.getInstance();
+    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
 
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {

@@ -56,7 +56,11 @@ public final class BlockingDfHandler extends BlockingMessageHandler<byte[]> {
 
         ChannelSftp channelSftp = sftpChannelProvider.getChannelSftp(sessionId);
         if (channelSftp == null) {
-            ShellCache.getInstance().getShell(sessionId).printErr("Create sftp channel failed.");
+            Shell shell = ShellCache.Instance.getShell(sessionId);
+            if (shell == null) {
+                return;
+            }
+            shell.printErr("Create sftp channel failed.");
             promise.complete();
             return;
         }
@@ -70,7 +74,12 @@ public final class BlockingDfHandler extends BlockingMessageHandler<byte[]> {
                     storagePath = cast(Objects.requireNonNullElse(result.result().body(), "-1"));
                 }
 
-                Shell shell = ShellCache.getInstance().getShell(sessionId);
+                Shell shell = ShellCache.Instance.getShell(sessionId);
+                if (shell == null) {
+                    promise.fail("-1");
+                    promise.tryComplete();
+                    return;
+                }
                 Printer.print(shell.getPrompt());
 
                 if ("-1".equals(storagePath)) {

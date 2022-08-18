@@ -37,10 +37,10 @@ import java.util.concurrent.atomic.AtomicReference;
 @Ordered
 public final class BlockingActiveSshSessionHandler extends BlockingMessageHandler<JsonObject> {
 
-    private final CredentialCache credentialCache = CredentialCache.getInstance();
-    private final ShellCache shellCache = ShellCache.getInstance();
-    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
-    private final SshSessionFactory factory = SshSessionFactory.factory();
+    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
+    private final ShellCache.Instance shellCache = ShellCache.Instance;
+    private final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
+    private final SshSessionFactory.Instance factory = SshSessionFactory.Instance;
 
     public BlockingActiveSshSessionHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -97,7 +97,11 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
                         sessionId.set(newSessionId);
                         shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
                     } else {
-                        shellCache.getShell(sessionId.get()).resetIO(ShellProtocol.SSH);
+                        Shell shell = shellCache.getShell(sessionId.get());
+                        if (shell == null) {
+                            throw new RuntimeException();
+                        }
+                        shell.resetIO(ShellProtocol.SSH);
                         sessionId.set(newSessionId);
                         execute.execute();
                     }
@@ -138,8 +142,8 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
                                 ansiStringBuilder.append("\n");
                             }
                         }
-                        ansiStringBuilder.front(term.theme.activeSuccessMsgColor.color)
-                                .background(term.theme.displayBackGroundColor.color)
+                        ansiStringBuilder.front(Term.theme.activeSuccessMsgColor.color)
+                                .background(Term.theme.displayBackGroundColor.color)
                                 .append(split[i] + StringUtils.repeat(" ",4));
                     }
                 } else {
@@ -156,8 +160,8 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
                                 ansiStringBuilder.append("\n");
                             }
                         }
-                        ansiStringBuilder.front(term.theme.activeFailedMsgColor.color)
-                                .background(term.theme.displayBackGroundColor.color)
+                        ansiStringBuilder.front(Term.theme.activeFailedMsgColor.color)
+                                .background(Term.theme.displayBackGroundColor.color)
                                 .append(split[j] + StringUtils.repeat(" ",4));
                     }
 

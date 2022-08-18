@@ -18,7 +18,7 @@ import static com.toocol.termio.core.mosh.MoshAddress.LISTEN_LOCAL_SOCKET;
  */
 public final class SocketListenHandler extends NonBlockingMessageHandler {
 
-    private final MoshSessionCache moshSessionCache = MoshSessionCache.getInstance();
+    private final MoshSessionCache.Instance moshSessionCache = MoshSessionCache.Instance;
 
     public SocketListenHandler(Vertx vertx, Context context) {
         super(vertx, context);

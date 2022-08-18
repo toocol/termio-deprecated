@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Long> {
 
-    private final ShellCache shellCache = ShellCache.getInstance();
+    private final ShellCache.Instance shellCache = ShellCache.Instance;
 
     public BlockingShellExecuteHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -53,6 +53,10 @@ public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Lo
 
         long sessionId = cast(message.body());
         Shell shell = shellCache.getShell(sessionId);
+        if (shell == null) {
+            promise.fail("Shell is null.");
+            return;
+        }
 
         try {
             if (shell.getProtocol().equals(ShellProtocol.SSH)) {
@@ -124,7 +128,7 @@ public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Lo
                     }
                 }
 
-                if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
+                if (SshSessionCache.Instance.isDisconnect(sessionId)) {
                     throw new RemoteDisconnectException("Session disconnect.");
                 }
 
@@ -161,7 +165,7 @@ public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Lo
                     break;
                 }
 
-                if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
+                if (SshSessionCache.Instance.isDisconnect(sessionId)) {
                     // check the session status before await
                     throw new RemoteDisconnectException("Session disconnect.");
                 }

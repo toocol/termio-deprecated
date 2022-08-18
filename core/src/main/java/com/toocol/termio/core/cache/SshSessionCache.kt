@@ -1,129 +1,122 @@
-package com.toocol.termio.core.cache;
+package com.toocol.termio.core.cache
 
-import com.jcraft.jsch.ChannelShell;
-import com.jcraft.jsch.Session;
-import com.toocol.termio.core.ssh.core.SshSession;
-import com.toocol.termio.utilities.functional.Switchable;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import com.jcraft.jsch.ChannelShell
+import com.jcraft.jsch.Session
+import com.toocol.termio.core.ssh.core.SshSession
+import com.toocol.termio.utilities.functional.Switchable
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 12:12
  */
-public class SshSessionCache {
+class SshSessionCache private constructor() {
+    companion object Instance {
+        /**
+         * the map stored all alive ssh session(include Session and ChannelShell)
+         */
+        private val sshSessionMap: AbstractMap<Long, SshSession> = ConcurrentHashMap()
 
-    private static final SshSessionCache INSTANCE = new SshSessionCache();
-    /**
-     * the map stored all alive ssh session(include Session and ChannelShell)
-     */
-    private final Map<Long, SshSession> sshSessionMap = new ConcurrentHashMap<>();
+        @get:Synchronized
+        val sessionMap: Map<Long, SshSession>
+            get() = sshSessionMap
 
-    private SshSessionCache() {
-    }
-
-    public static SshSessionCache getInstance() {
-        return INSTANCE;
-    }
-
-    public static int getAlive() {
-        return INSTANCE.sshSessionMap.entrySet().stream()
-                .filter(entry -> entry.getValue().alive())
+        fun getAlive(): Int {
+            return sshSessionMap.entries.stream()
+                .filter { (_, value): Map.Entry<Long?, SshSession> -> value.alive() }
                 .toList()
-                .size();
-    }
-
-    public synchronized Map<Long, SshSession> getSessionMap() {
-        return sshSessionMap;
-    }
-
-    public boolean isAlive(String ip) {
-        long sessionId = containSession(ip);
-        if (sessionId == 0) {
-            return false;
+                .size
         }
-        return sshSessionMap.get(sessionId).alive();
-    }
 
-    public long containSession(String ip) {
-        return sshSessionMap.entrySet().stream()
-                .filter(entry -> ip.equals(entry.getValue().getHost()))
-                .map(Map.Entry::getKey)
+        fun isAlive(ip: String): Boolean {
+            val sessionId = containSession(ip)
+            return if (sessionId == 0L) {
+                false
+            } else sshSessionMap[sessionId]!!.alive()
+        }
+
+        fun containSessionId(sessionId: Long): Boolean {
+            return sshSessionMap.containsKey(sessionId)
+        }
+
+        fun containSession(ip: String): Long {
+            return sshSessionMap.entries.stream()
+                .filter { (_, value): Map.Entry<Long, SshSession> -> ip == value.host }
+                .map { (key, _) -> key }
                 .findAny()
-                .orElse(0L);
-    }
-
-    public boolean containSessionId(long sessionId) {
-        return sshSessionMap.containsKey(sessionId);
-    }
-
-    public boolean isDisconnect(long sessionId) {
-        if (!sshSessionMap.containsKey(sessionId)) {
-            return false;
+                .orElse(0L)
         }
-        return !sshSessionMap.get(sessionId).alive();
-    }
 
-    public void putSshSession(Long sessionId, SshSession session) {
-        sshSessionMap.put(sessionId, session);
-    }
+        fun isDisconnect(sessionId: Long): Boolean {
+            return if (!sshSessionMap.containsKey(sessionId)) {
+                false
+            } else !sshSessionMap[sessionId]!!.alive()
+        }
 
-    public void setSession(Long sessionId, Session session) {
-        sshSessionMap.computeIfPresent(sessionId, (k, v) -> {
-            v.setSession(session);
-            return v;
-        });
-    }
+        fun putSshSession(sessionId: Long, session: SshSession) {
+            sshSessionMap[sessionId] = session
+        }
 
-    public void setChannelShell(Long sessionId, ChannelShell channelShell) {
-        sshSessionMap.computeIfPresent(sessionId, (k, v) -> {
-            v.setChannelShell(channelShell);
-            return v;
-        });
-    }
+        fun setSession(sessionId: Long, session: Session?) {
+            sshSessionMap.computeIfPresent(sessionId) { _: Long?, v: SshSession ->
+                v.session = session
+                v
+            }
+        }
 
-    public Session getSession(Long sessionId) {
-        return Optional.ofNullable(sshSessionMap.get(sessionId)).map(SshSession::getSession).orElse(null);
-    }
+        fun setChannelShell(sessionId: Long, channelShell: ChannelShell?) {
+            sshSessionMap.computeIfPresent(sessionId) { _: Long?, v: SshSession ->
+                v.channelShell = channelShell
+                v
+            }
+        }
 
-    public ChannelShell getChannelShell(Long sessionId) {
-        return Optional.ofNullable(sshSessionMap.get(sessionId)).map(SshSession::getChannelShell).orElse(null);
-    }
+        fun getSession(sessionId: Long): Session? {
+            return Optional.ofNullable(sshSessionMap[sessionId]).map { obj: SshSession -> obj.session }
+                .orElse(null)
+        }
 
-    public synchronized void stopChannelShell(long sessionId) {
-        sshSessionMap.computeIfPresent(sessionId, (k, v) -> {
-            v.stopChannelShell();
-            return v;
-        });
-    }
+        fun getChannelShell(sessionId: Long): ChannelShell? {
+            return Optional.ofNullable(sshSessionMap[sessionId]).map { obj: SshSession -> obj.channelShell }
+                .orElse(null)
+        }
 
-    public synchronized void stop(long sessionId) {
-        sshSessionMap.computeIfPresent(sessionId, (k, v) -> {
-            v.stop();
-            return null;
-        });
-    }
+        @Synchronized
+        fun stopChannelShell(sessionId: Long) {
+            sshSessionMap.computeIfPresent(sessionId) { _: Long?, v: SshSession ->
+                v.stopChannelShell()
+                v
+            }
+        }
 
-    public synchronized void stop(String host) {
-        long sessionId = containSession(host);
-        sshSessionMap.computeIfPresent(sessionId, (k, v) -> {
-            v.stop();
-            return null;
-        });
-        ShellCache.getInstance().stop(sessionId);
-    }
+        @Synchronized
+        fun stop(sessionId: Long) {
+            sshSessionMap.computeIfPresent(sessionId) { _: Long?, v: SshSession ->
+                v.stop()
+                null
+            }
+        }
 
-    public synchronized void stopAll() {
-        sshSessionMap.forEach((k, v) -> v.stop());
-    }
+        @Synchronized
+        fun stop(host: String) {
+            val sessionId = containSession(host)
+            sshSessionMap.computeIfPresent(sessionId) { _: Long?, v: SshSession ->
+                v.stop()
+                null
+            }
+            ShellCache.stop(sessionId)
+        }
 
-    public Collection<Switchable> getAllSwitchable() {
-        return sshSessionMap.values()
+        @Synchronized
+        fun stopAll() {
+            sshSessionMap.forEach { (_: Long?, v: SshSession) -> v.stop() }
+        }
+
+        val allSwitchable: Collection<Switchable?>
+            get() = sshSessionMap.values
                 .stream()
-                .map(sshSession -> (Switchable) sshSession)
-                .toList();
+                .map { sshSession: SshSession? -> sshSession }
+                .toList()
     }
 }

@@ -31,10 +31,10 @@ import static com.toocol.termio.core.mosh.MoshAddress.*;
 @Ordered
 public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHandler<Long> {
 
-    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
-    private final CredentialCache credentialCache = CredentialCache.getInstance();
+    private final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
+    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
     private final MoshSessionFactory moshSessionFactory = MoshSessionFactory.factory(vertx);
-    private final ShellCache shellCache = ShellCache.getInstance();
+    private final ShellCache.Instance shellCache = ShellCache.Instance;
 
     public BlockingEstablishMoshSessionHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -44,6 +44,10 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
     protected <T> void handleBlocking(Promise<Long> promise, Message<T> message) throws Exception {
         int index = cast(message.body());
         SshCredential credential = credentialCache.getCredential(index);
+        if (credential == null) {
+            promise.fail("Credential not exist.");
+            return;
+        }
         MoshSession session = moshSessionFactory.getSession(credential);
         if (session == null) {
             promise.fail("Can't touch the mosh-server.");

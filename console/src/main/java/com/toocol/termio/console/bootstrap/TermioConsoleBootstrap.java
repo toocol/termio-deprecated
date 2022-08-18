@@ -92,8 +92,8 @@ public class TermioConsoleBootstrap extends Termio {
                     Printer.println(MessageBox.exitMessage());
                 }
                 Printer.println("Termio: shutdown");
-                SshSessionCache.getInstance().stopAll();
-                MoshSessionCache.getInstance().stopAll();
+                SshSessionCache.Instance.stopAll();
+                MoshSessionCache.Instance.stopAll();
                 FileAppender.close();
                 vertx.close();
             } catch (Exception e) {

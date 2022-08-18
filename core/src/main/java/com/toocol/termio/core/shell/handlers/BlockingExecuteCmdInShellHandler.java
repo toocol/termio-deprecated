@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
  */
 public final class BlockingExecuteCmdInShellHandler extends BlockingMessageHandler<String> {
 
-    private final ShellCache shellCache = ShellCache.getInstance();
+    private final ShellCache.Instance shellCache = ShellCache.Instance;
 
     public BlockingExecuteCmdInShellHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -56,6 +56,10 @@ public final class BlockingExecuteCmdInShellHandler extends BlockingMessageHandl
         );
 
         Shell shell = shellCache.getShell(sessionId);
+        if (shell == null) {
+            promise.complete("/");
+            return;
+        }
 
         InputStream inputStream = shell.getInputStream(ShellProtocol.SSH);
         OutputStream outputStream = shell.getOutputStream(ShellProtocol.SSH);

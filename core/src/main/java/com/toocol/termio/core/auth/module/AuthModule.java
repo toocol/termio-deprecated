@@ -29,7 +29,7 @@ import static com.toocol.termio.core.file.FileAddress.READ_FILE;
 })
 public final class AuthModule extends AbstractModule {
 
-    private final CredentialCache credentialCache = CredentialCache.getInstance();
+    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
 
     @Override
     public void start() throws Exception {

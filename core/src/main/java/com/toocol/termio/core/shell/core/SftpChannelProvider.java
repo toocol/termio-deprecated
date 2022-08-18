@@ -28,12 +28,13 @@ public final class SftpChannelProvider implements Castable {
 
     private static final SftpChannelProvider INSTANCE = new SftpChannelProvider();
 
-    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
+    private final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
 
     private final CacheLoader<Long, ChannelSftp> cacheLoader = new CacheLoader<>() {
         @Override
         @Nonnull
         public ChannelSftp load(@Nullable Long sessionId) throws Exception {
+            assert sessionId != null;
             Session session = sshSessionCache.getSession(sessionId);
             if (session == null) {
                 throw new RuntimeException("Session is null, sessionId = " + session);

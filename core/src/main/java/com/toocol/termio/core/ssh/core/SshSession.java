@@ -93,7 +93,7 @@ public class SshSession implements Switchable {
 
     @Override
     public String currentPath() {
-        return Optional.ofNullable(ShellCache.getInstance().getShell(sessionId)).map(Shell::getFullPath).orElse("*");
+        return Optional.ofNullable(ShellCache.Instance.getShell(sessionId)).map(Shell::getFullPath).orElse("*");
     }
 
     @Override

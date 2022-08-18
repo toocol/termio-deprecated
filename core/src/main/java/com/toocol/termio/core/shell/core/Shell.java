@@ -267,11 +267,17 @@ public final class Shell extends AbstractDevice implements Loggable {
     public void resize(int width, int height, long sessionId) {
         switch (protocol) {
             case SSH -> {
-                ChannelShell channelShell = SshSessionCache.getInstance().getChannelShell(sessionId);
+                ChannelShell channelShell = SshSessionCache.Instance.getChannelShell(sessionId);
+                if (channelShell == null) {
+                    break;
+                }
                 channelShell.setPtySize(width, height, width, height);
             }
             case MOSH -> {
-                MoshSession moshSession = MoshSessionCache.getInstance().get(sessionId);
+                MoshSession moshSession = MoshSessionCache.Instance.get(sessionId);
+                if (moshSession == null) {
+                    break;
+                }
                 moshSession.resize(width, height);
             }
         }
@@ -475,12 +481,12 @@ public final class Shell extends AbstractDevice implements Loggable {
     private void checkConnection() {
         switch (protocol) {
             case SSH -> {
-                if (SshSessionCache.getInstance().isDisconnect(sessionId)) {
+                if (SshSessionCache.Instance.isDisconnect(sessionId)) {
                     throw new RemoteDisconnectException("SSH session disconnect.");
                 }
             }
             case MOSH -> {
-                if (MoshSessionCache.getInstance().isDisconnect(sessionId)) {
+                if (MoshSessionCache.Instance.isDisconnect(sessionId)) {
                     throw new RemoteDisconnectException("Mosh session disconnect.");
                 }
             }

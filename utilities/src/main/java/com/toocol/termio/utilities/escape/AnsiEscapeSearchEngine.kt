@@ -17,15 +17,64 @@ import java.util.function.Consumer
 class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>?>(private val executeTarget: T) : Loggable, Castable {
     private var actionMap: Map<Class<out IEscapeMode>, AnsiEscapeAction<T>>? = null
 
-    /**
-     * Suppose we have such text:<br>
-     * ######ESC[K######<br>
-     * |<br>
-     * | split text by escape sequence, generate escape sequence queue.<br>
-     * ↓<br>
-     * ["######", "######"]<br>
-     * Queue[Tuple[IEscapeMode,List[Object]]]<br>
-     * Then we print out the split text in loop, and getting and invoking AnsiEscapeAction from the head of Queue[Tuple[IEscapeMode,List[Object]]].
+    companion object {
+        private val wordNumberRegex = Regex(pattern = """\w+""")
+        private val numberRegex = Regex(pattern = """\d+""")
+        private val wordRegex = Regex(pattern = """[a-zA-Z]+""")
+        private val codeStringRegex = Regex(pattern = """(\d{1,3};){1,2}[\\"'\w ]+;?""")
+        private val codeRegex = Regex(pattern = """(\d{1,3};)+""")
+        private val stringRegex = Regex(pattern = """[\w ]+;?""")
+
+        private const val uberEscapeModeRegexPattern = """(\u001b\[\d{1,4};\d{1,4}[Hf])""" +
+                """|((\u001b\[\d{0,4}([HABCDEFGsu]|(6n)))|(\u001b [M78]))""" +
+                """|(\u001b\[[0123]?[JK])""" +
+                """|(\u001b\[((?!38)(?!48)\d{1,3};?)+m)""" +
+                """|(\u001b\[(38)?(48)?;5;\d{1,3}m)""" +
+                """|(\u001b\[(38)?(48)?;2;\d{1,3};\d{1,3};\d{1,3}m)""" +
+                """|(\u001b\[=\d{1,2}h)""" +
+                """|(\u001b\[=\d{1,2}l)""" +
+                """|(\u001b\[\?\d{2,4}[lh])""" +
+                """|(\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\w ]+((\\")|'|");?)|(\d{1,2};?))+p)"""
+        private val uberEscapeModeRegex = Regex(pattern = uberEscapeModeRegexPattern)
+
+        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#cursor-controls
+        private val cursorSetPosModeRegex = Regex(pattern = """\u001b\[\d{1,4};\d{1,4}[Hf]""")
+        private val cursorControlModeRegex = Regex(pattern = """(\u001b\[\d{0,4}([HABCDEFGsu]|(6n)))|(\u001b [M78])""")
+
+        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#erase-functions
+        private val eraseFunctionModeRegex = Regex(pattern = """\u001b\[[0123]?[JK]""")
+
+        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#colors--graphics-mode
+        private val colorGraphicsModeRegex = Regex(pattern = """\u001b\[((?!38)(?!48)\d{1,3};?)+m""")
+
+        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#256-colors
+        private val color256ModeRegex = Regex(pattern = """\u001b\[(38)?(48)?;5;\d{1,3}m""")
+
+        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#rgb-colors
+        private val colorRgbModeRegex = Regex(pattern = """\u001b\[(38)?(48)?;2;\d{1,3};\d{1,3};\d{1,3}m""")
+
+        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#set-mode
+        private val screenModePatter = Regex(pattern = """\u001b\[=\d{1,2}h""")
+        private val disableScreenModeRegex = Regex(pattern = """\u001b\[=\d{1,2}l""")
+
+        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#common-private-modes
+        private val commonPrivateModeRegex = Regex(pattern = """\u001b\[\?\d{2,4}[lh]""")
+
+        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#keyboard-strings
+        private val keyBoardStringModeRegex =
+            Regex(pattern = """\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\\w ]+((\\")|'|");?)|(\d{1,2};?))+p""")
+    }
+
+    /*
+     * Suppose we have such text:
+     * ######ESC[K######
+     * |
+     * | split text by escape sequence, generate escape sequence queue.
+     * ↓
+     * ["######", "######"]
+     * Queue<Tuple<IEscapeMode,List<Object>>>
+     *
+     * Then we print out the split text in loop, and getting and invoking AnsiEscapeAction from the head of Queue<Tuple<IEscapeMode,List<Object>>>.
      */
     fun actionOnEscapeMode(text: String) {
         if (actionMap == null) {
@@ -41,7 +90,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>?>(private val ex
             val dealAlready = AtomicBoolean()
 
             regexParse(escapeSequence, cursorSetPosModeRegex, { regex: Regex ->
-                val escapeModeStr = regex.find(escapeSequence, 1)
+                val escapeModeStr = regex.find(escapeSequence, 0)
             }, dealAlready)
 
             regexParse(escapeSequence, cursorControlModeRegex, { regex: Regex ->
@@ -114,52 +163,5 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>?>(private val ex
 
     init {
         registerActions(executeTarget!!.registerActions())
-    }
-
-    companion object {
-        private val wordNumberRegex = Regex(pattern = """\w+""")
-        private val numberRegex = Regex(pattern = """\d+""")
-        private val wordRegex = Regex(pattern = """[a-zA-Z]+""")
-        private val codeStringRegex = Regex(pattern = """(\d{1,3};){1,2}[\\"'\w ]+;?""")
-        private val codeRegex = Regex(pattern = """(\d{1,3};)+""")
-        private val stringRegex = Regex(pattern = """[\w ]+;?""")
-
-        private const val uberEscapeModeRegexPattern = """(\u001b\[\d{1,4};\d{1,4}[Hf])""" +
-                """|((\u001b\[\d{0,4}([HABCDEFGsu]|(6n)))|(\u001b [M78]))""" +
-                """|(\u001b\[[0123]?[JK])""" +
-                """|(\u001b\[((?!38)(?!48)\d{1,3};?)+m)""" +
-                """|(\u001b\[(38)?(48)?;5;\d{1,3}m)""" +
-                """|(\u001b\[(38)?(48)?;2;\d{1,3};\d{1,3};\d{1,3}m)""" +
-                """|(\u001b\[=\d{1,2}h)""" +
-                """|(\u001b\[=\d{1,2}l)""" +
-                """|(\u001b\[\?\d{2,4}[lh])""" +
-                """|(\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\w ]+((\\")|'|");?)|(\d{1,2};?))+p)"""
-        private val uberEscapeModeRegex = Regex(pattern = uberEscapeModeRegexPattern)
-
-        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#cursor-controls
-        private val cursorSetPosModeRegex = Regex(pattern = """\u001b\[\d{1,4};\d{1,4}[Hf]""")
-        private val cursorControlModeRegex = Regex(pattern = """(\u001b\[\d{0,4}([HABCDEFGsu]|(6n)))|(\u001b [M78])""")
-
-        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#erase-functions
-        private val eraseFunctionModeRegex = Regex(pattern = """\u001b\[[0123]?[JK]""")
-
-        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#colors--graphics-mode
-        private val colorGraphicsModeRegex = Regex(pattern = """\u001b\[((?!38)(?!48)\d{1,3};?)+m""")
-
-        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#256-colors
-        private val color256ModeRegex = Regex(pattern = """\u001b\[(38)?(48)?;5;\d{1,3}m""")
-
-        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#rgb-colors
-        private val colorRgbModeRegex = Regex(pattern = """\u001b\[(38)?(48)?;2;\d{1,3};\d{1,3};\d{1,3}m""")
-
-        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#set-mode
-        private val screenModePatter = Regex(pattern = """\u001b\[=\d{1,2}h""")
-        private val disableScreenModeRegex = Regex(pattern = """\u001b\[=\d{1,2}l""")
-
-        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#common-private-modes
-        private val commonPrivateModeRegex = Regex(pattern = """\u001b\[\?\d{2,4}[lh]""")
-
-        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#keyboard-strings
-        private val keyBoardStringModeRegex = Regex(pattern = """\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\\w ]+((\\")|'|");?)|(\d{1,2};?))+p""")
     }
 }

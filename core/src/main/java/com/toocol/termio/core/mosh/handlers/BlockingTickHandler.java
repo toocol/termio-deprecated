@@ -20,7 +20,7 @@ import static com.toocol.termio.core.mosh.MoshAddress.MOSH_TICK;
 @SuppressWarnings("all")
 public final class BlockingTickHandler extends BlockingMessageHandler<Void> {
 
-    private final MoshSessionCache moshSessionCache = MoshSessionCache.getInstance();
+    private final MoshSessionCache.Instance moshSessionCache = MoshSessionCache.Instance;
 
     public BlockingTickHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);

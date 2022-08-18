@@ -20,4 +20,12 @@ internal class StrUtilTest {
         }
         Assertions.assertEquals(text.length, len)
     }
+
+    @Test
+    fun testStringProcessing() {
+        val withJava = StringWithJava()
+        val withKotlin = StringWithKotlin()
+        withJava.processingString()
+        withKotlin.processString()
+    }
 }

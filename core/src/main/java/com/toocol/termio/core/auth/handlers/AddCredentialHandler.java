@@ -20,7 +20,7 @@ import static com.toocol.termio.core.auth.AuthAddress.ADD_CREDENTIAL;
  */
 public final class AddCredentialHandler extends NonBlockingMessageHandler {
 
-    private final CredentialCache credentialCache = CredentialCache.getInstance();
+    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
 
     public AddCredentialHandler(Vertx vertx, Context context) {
         super(vertx, context);
@@ -50,8 +50,10 @@ public final class AddCredentialHandler extends NonBlockingMessageHandler {
             }
         }
 
-        vertx.fileSystem().writeFile(filePath, Buffer.buffer(credentialsJson), result -> {
-        });
+        if (credentialsJson != null) {
+            vertx.fileSystem().writeFile(filePath, Buffer.buffer(credentialsJson), result -> {
+            });
+        }
 
         message.reply(null);
     }

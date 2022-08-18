@@ -1,68 +1,56 @@
-package com.toocol.termio.core.cache;
+package com.toocol.termio.core.cache
 
-import com.toocol.termio.core.shell.core.Shell;
-import com.toocol.termio.core.shell.core.ShellProtocol;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.toocol.termio.core.shell.core.Shell
+import com.toocol.termio.core.shell.core.ShellProtocol
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/29 22:35
  * @version: 0.0.1
  */
-public class ShellCache {
-
-    private static ShellCache INSTANCE = null;
-    /**
-     * the map stored all alive ssh session shell's object.
-     */
-    private final Map<Long, Shell> shellMap = new ConcurrentHashMap<>();
-
-    public ShellCache() {
-    }
-
-    public synchronized static ShellCache getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new ShellCache();
+class ShellCache {
+    companion object Instance {
+        /**
+         * the map stored all alive ssh session shell's object.
+         */
+        private val shellMap: java.util.AbstractMap<Long, Shell> = ConcurrentHashMap()
+        operator fun contains(sessionId: Long): Boolean {
+            return shellMap.containsKey(sessionId)
         }
-        return INSTANCE;
-    }
 
-    public boolean contains(long sessionId) {
-        return shellMap.containsKey(sessionId);
-    }
+        fun putShell(sessionId: Long, shell: Shell) {
+            shellMap[sessionId] = shell
+        }
 
-    public void putShell(long sessionId, Shell shell) {
-        shellMap.put(sessionId, shell);
-    }
+        fun getShell(sessionId: Long): Shell? {
+            return shellMap[sessionId]
+        }
 
-    public Shell getShell(long sessionId) {
-        return shellMap.get(sessionId);
-    }
-
-    public void stop(long sessionId) {
-        shellMap.computeIfPresent(sessionId, (k, v) -> {
-            switch (v.getProtocol()) {
-                case SSH -> SshSessionCache.getInstance().stop(sessionId);
-                case MOSH -> MoshSessionCache.getInstance().stop(sessionId);
+        fun stop(sessionId: Long) {
+            shellMap.computeIfPresent(sessionId) { _: Long?, v: Shell? ->
+                when (v?.protocol) {
+                    ShellProtocol.SSH -> SshSessionCache.stop(sessionId)
+                    ShellProtocol.MOSH -> MoshSessionCache.stop(sessionId)
+                    else -> {}
+                }
+                null
             }
-            return null;
-        });
-    }
+        }
 
-    public void initializeQuickSessionSwitchHelper() {
-        shellMap.forEach((id, shell) -> shell.initializeSwitchSessionHelper());
-    }
+        fun initializeQuickSessionSwitchHelper() {
+            shellMap.forEach { (_: Long?, shell: Shell) -> shell.initializeSwitchSessionHelper() }
+        }
 
-    public void stop(long sessionId, ShellProtocol protocol) {
-        shellMap.computeIfPresent(sessionId, (k, v) -> {
-            switch (protocol) {
-                case SSH -> SshSessionCache.getInstance().stop(sessionId);
-                case MOSH -> MoshSessionCache.getInstance().stop(sessionId);
+        fun stop(sessionId: Long, protocol: ShellProtocol?) {
+            shellMap.computeIfPresent(sessionId) { _: Long?, _: Shell? ->
+                when (protocol) {
+                    ShellProtocol.SSH -> SshSessionCache.stop(sessionId)
+                    ShellProtocol.MOSH -> MoshSessionCache.stop(sessionId)
+                    else -> {}
+                }
+                null
             }
-            return null;
-        });
+        }
     }
-
 }

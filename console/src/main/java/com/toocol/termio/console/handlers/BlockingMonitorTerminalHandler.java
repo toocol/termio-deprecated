@@ -27,10 +27,10 @@ import static com.toocol.termio.core.term.TermAddress.MONITOR_TERMINAL;
 public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler<Void> {
 
     private final Console console = Console.get();
-    private final CredentialCache credentialCache = CredentialCache.getInstance();
-    private final ShellCache shellCache = ShellCache.getInstance();
-    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
-    private final SshSessionFactory sshSessionFactory = SshSessionFactory.factory();
+    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
+    private final ShellCache.Instance shellCache = ShellCache.Instance;
+    private final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
+    private final SshSessionFactory.Instance sshSessionFactory = SshSessionFactory.Instance;
 
     public BlockingMonitorTerminalHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -77,7 +77,7 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
             Term.WIDTH = terminalWidth;
             Term.HEIGHT = terminalHeight;
             if (Term.status.equals(TermStatus.SHELL)) {
-                ShellCache.getInstance().getShell(StatusCache.MONITOR_SESSION_ID).resize(terminalWidth, terminalHeight, StatusCache.MONITOR_SESSION_ID);
+                ShellCache.Instance.getShell(StatusCache.MONITOR_SESSION_ID).resize(terminalWidth, terminalHeight, StatusCache.MONITOR_SESSION_ID);
             } else if (Term.status.equals(TermStatus.TERMIO)) {
                 Term.getInstance().printScene(true);
             }

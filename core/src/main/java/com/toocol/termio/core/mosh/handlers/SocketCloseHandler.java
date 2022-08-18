@@ -19,7 +19,7 @@ import static com.toocol.termio.core.mosh.MoshAddress.CLOSE_LOCAL_SOCKET;
  */
 public final class SocketCloseHandler extends NonBlockingMessageHandler {
 
-    private final MoshSessionCache moshSessionCache = MoshSessionCache.getInstance();
+    private final MoshSessionCache.Instance moshSessionCache = MoshSessionCache.Instance;
 
     public SocketCloseHandler(Vertx vertx, Context context) {
         super(vertx, context);
