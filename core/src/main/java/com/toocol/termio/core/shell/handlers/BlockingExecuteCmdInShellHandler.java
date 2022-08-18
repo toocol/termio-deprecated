@@ -5,7 +5,7 @@ import com.toocol.termio.core.cache.StatusCache;
 import com.toocol.termio.core.shell.core.CmdFeedbackHelper;
 import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.shell.core.ShellProtocol;
-import com.toocol.termio.utilities.address.IAddress;
+import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.module.BlockingMessageHandler;
 import com.toocol.termio.utilities.sync.SharedCountdownLatch;
 import com.toocol.termio.utilities.utils.StrUtil;

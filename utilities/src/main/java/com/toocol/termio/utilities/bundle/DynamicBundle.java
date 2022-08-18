@@ -22,7 +22,7 @@ public abstract class DynamicBundle {
 
     protected DynamicBundle() {
         BindPath bindPath = this.getClass().getAnnotation(BindPath.class);
-        int length = bindPath.path().length;
+        int length = bindPath.languages().length;
         if (length == 0) {
             bundleMessages = null;
             return;
@@ -30,12 +30,12 @@ public abstract class DynamicBundle {
 
         Map<Locale, BundleMessage> map = new HashMap<>();
         int sucCnt = 0;
-        for (Bundle bundle : bindPath.path()) {
-            Locale locale = Locale.forLanguageTag(bundle.language());
+        for (String language : bindPath.languages()) {
+            Locale locale = Locale.forLanguageTag(language);
             if (locale == null) {
                 continue;
             }
-            BundleMessage bundleMessage = new BundleMessage(bundle.path(), locale);
+            BundleMessage bundleMessage = new BundleMessage(bindPath.bundlePath() + "_" + language, locale);
             boolean suc = bundleMessage.load();
             if (!suc) {
                 continue;
@@ -52,7 +52,7 @@ public abstract class DynamicBundle {
     }
 
     @Nullable
-    public String message(@Nonnull Locale locale, @Nonnull String key, Object...params) {
+    public String message(@Nonnull Locale locale, @Nonnull String key, Object... params) {
         if (!initialize) {
             return null;
         }
@@ -64,7 +64,7 @@ public abstract class DynamicBundle {
     }
 
     @Nullable
-    public String message(@Nonnull String key, Object...params) {
+    public String message(@Nonnull String key, Object... params) {
         return message(Locale.ENGLISH, key, params);
     }
 

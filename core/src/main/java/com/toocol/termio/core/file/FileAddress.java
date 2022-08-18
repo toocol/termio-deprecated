@@ -1,6 +1,6 @@
 package com.toocol.termio.core.file;
 
-import com.toocol.termio.utilities.address.IAddress;
+import com.toocol.termio.utilities.module.IAddress;
 
 /**
  * @author JoeZane (joezane.cn@gmail.com)

@@ -28,7 +28,7 @@ final class BundleMessage implements Loggable {
     }
 
     boolean load() {
-        try (InputStream inputStream = BundleMessage.class.getResourceAsStream(path);) {
+        try (InputStream inputStream = BundleMessage.class.getResourceAsStream(path)) {
             if (inputStream == null) {
                 return false;
             }

@@ -36,13 +36,13 @@ public class CommandExecutorPanel extends TBorderPane implements Loggable{
     private final ExecutorOutputService executorOutputService = new ExecutorOutputService();
 
     private final CommandExecutorInput commandExecutorInput;
-    private final CommandExecutorResultEscapedTextArea commandExecutorResultTextArea;
+    private final CommandExecutorResultTextArea commandExecutorResultTextArea;
     private final CommandExecutorResultScrollPane commandExecutorResultScrollPane;
 
     public CommandExecutorPanel(long id) {
         super(id);
         commandExecutorInput = new CommandExecutorInput(id);
-        commandExecutorResultTextArea = new CommandExecutorResultEscapedTextArea(id);
+        commandExecutorResultTextArea = new CommandExecutorResultTextArea(id);
         commandExecutorResultScrollPane = new CommandExecutorResultScrollPane(id, commandExecutorResultTextArea);
     }
 

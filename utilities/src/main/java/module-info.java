@@ -7,9 +7,9 @@ module termio.utilities {
     requires jsr305;
     requires ini4j;
     requires jline;
+    requires kotlin.stdlib;
 
     exports com.toocol.termio.utilities.action;
-    exports com.toocol.termio.utilities.address;
     exports com.toocol.termio.utilities.ansi;
     exports com.toocol.termio.utilities.bundle;
     exports com.toocol.termio.utilities.command;

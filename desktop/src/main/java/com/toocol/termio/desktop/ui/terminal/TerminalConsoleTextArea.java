@@ -52,12 +52,12 @@ import org.fxmisc.richtext.Caret;
  * @date 2022/8/6 14:06
  */
 @SuppressWarnings("all")
-public class TerminalConsoleEscapedTextArea extends EscapedTextStyleClassArea implements Castable, IComponent, IStyleAble {
+public class TerminalConsoleTextArea extends EscapedTextStyleClassArea implements Castable, IComponent, IStyleAble {
     protected final long id;
 
     private final Cursor cursor;
 
-    public TerminalConsoleEscapedTextArea(long id) {
+    public TerminalConsoleTextArea(long id) {
         this.id = id;
         cursor = new Cursor(id);
     }

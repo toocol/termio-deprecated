@@ -14,13 +14,13 @@ import javafx.scene.paint.Color;
  * @date: 2022/8/14 23:33
  * @version: 0.0.1
  */
-public class CommandExecutorResultEscapedTextArea extends EscapedTextStyleClassArea implements IStyleAble, IComponent {
+public class CommandExecutorResultTextArea extends EscapedTextStyleClassArea implements IStyleAble, IComponent {
 
     protected final long id;
 
     private final Cursor cursor;
 
-    public CommandExecutorResultEscapedTextArea(long id) {
+    public CommandExecutorResultTextArea(long id) {
         this.id = id;
         cursor = new Cursor(id);
     }

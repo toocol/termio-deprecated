@@ -14,7 +14,12 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface BindPath {
     /**
+     * The path to bundle message properties
+     */
+    String bundlePath();
+
+    /**
      * the path to the message properties
      */
-    Bundle[] path();
+    String[] languages();
 }

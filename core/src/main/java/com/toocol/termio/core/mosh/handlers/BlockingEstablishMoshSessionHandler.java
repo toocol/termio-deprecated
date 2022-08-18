@@ -8,7 +8,7 @@ import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.shell.core.ShellProtocol;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
-import com.toocol.termio.utilities.address.IAddress;
+import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.functional.Ordered;
 import com.toocol.termio.utilities.module.BlockingMessageHandler;

@@ -12,12 +12,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)
-public @interface Bundle {
-    /**
-     * The path to bundle message properties
-     */
-    String path();
-
+public @interface BundleLanguage {
     /**
      * The language of bundle message properties
      */

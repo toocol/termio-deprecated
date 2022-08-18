@@ -10,11 +10,11 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
  * @date: 2022/8/11 23:15
  * @version: 0.0.1
  */
-public class TerminalScrollPane extends VirtualizedScrollPane<TerminalConsoleEscapedTextArea> implements IStyleAble, IComponent {
+public class TerminalScrollPane extends VirtualizedScrollPane<TerminalConsoleTextArea> implements IStyleAble, IComponent {
 
     protected final long id;
 
-    public TerminalScrollPane(long id, TerminalConsoleEscapedTextArea terminalConsoleTextArea) {
+    public TerminalScrollPane(long id, TerminalConsoleTextArea terminalConsoleTextArea) {
         super(terminalConsoleTextArea);
         this.id = id;
     }

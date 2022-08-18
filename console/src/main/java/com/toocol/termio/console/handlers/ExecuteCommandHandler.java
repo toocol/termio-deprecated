@@ -3,7 +3,7 @@ package com.toocol.termio.console.handlers;
 import com.toocol.termio.core.term.commands.TermCommand;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermPrinter;
-import com.toocol.termio.utilities.address.IAddress;
+import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
 import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.module.NonBlockingMessageHandler;

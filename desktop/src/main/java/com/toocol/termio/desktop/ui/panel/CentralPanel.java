@@ -21,6 +21,7 @@ public class CentralPanel extends TBorderPane {
 
     @Override
     public void initialize() {
+        styled();
         setPrefSize(1280, 800);
     }
 

@@ -1,6 +1,6 @@
 package com.toocol.termio.core.auth;
 
-import com.toocol.termio.utilities.address.IAddress;
+import com.toocol.termio.utilities.module.IAddress;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

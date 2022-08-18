@@ -3,7 +3,7 @@ package com.toocol.termio.desktop.api.term.handlers;
 import com.toocol.termio.core.cache.StatusCache;
 import com.toocol.termio.core.term.TermAddress;
 import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.utilities.address.IAddress;
+import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.module.BlockingMessageHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;

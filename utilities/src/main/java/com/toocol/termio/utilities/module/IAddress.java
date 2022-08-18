@@ -1,4 +1,4 @@
-package com.toocol.termio.utilities.address;
+package com.toocol.termio.utilities.module;
 
 /**
  * @author JoeZane (joezane.cn@gmail.com)
