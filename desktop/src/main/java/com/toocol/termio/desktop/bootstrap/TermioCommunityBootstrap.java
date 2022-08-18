@@ -59,8 +59,8 @@ public class TermioCommunityBootstrap extends Termio {
         if (MessageBox.hasExitMessage()) {
             Printer.println(MessageBox.exitMessage());
         }
-        SshSessionCache.getInstance().stopAll();
-        MoshSessionCache.getInstance().stopAll();
+        SshSessionCache.Instance.stopAll();
+        MoshSessionCache.Instance.stopAll();
         FileAppender.close();
         vertx.close();
     }

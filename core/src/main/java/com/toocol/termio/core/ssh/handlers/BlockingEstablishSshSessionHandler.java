@@ -30,10 +30,10 @@ import java.util.concurrent.atomic.AtomicReference;
 @Ordered
 public final class BlockingEstablishSshSessionHandler extends BlockingMessageHandler<Long> {
 
-    private final CredentialCache credentialCache = CredentialCache.getInstance();
-    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
-    private final ShellCache shellCache = ShellCache.getInstance();
-    private final SshSessionFactory factory = SshSessionFactory.factory();
+    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
+    private final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
+    private final ShellCache.Instance shellCache = ShellCache.Instance;
+    private final SshSessionFactory.Instance factory = SshSessionFactory.Instance;
 
     public BlockingEstablishSshSessionHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -93,6 +93,10 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
                     shell.initialFirstCorrespondence(ShellProtocol.SSH, execute);
                 } else {
                     Shell shell = shellCache.getShell(newSessionId);
+                    if (shell == null) {
+                        promise.complete(null);
+                        return;
+                    }
                     if (shell.getChannelShell() == null) {
                         /* If the connection is established through Mosh, it needs to be set the ChannelShell*/
                         shell.setChannelShell(sshSessionCache.getChannelShell(sessionId.get()));
@@ -116,7 +120,13 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
         Long sessionId = asyncResult.result();
         if (sessionId != null) {
 
-            shellCache.getShell(sessionId).printAfterEstablish();
+            Shell shell = shellCache.getShell(sessionId);
+            if (shell == null) {
+                warn("Get Shell is null when try to entry shell.");
+                eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), StatusConstants.CONNECT_FAILED);
+                return;
+            }
+            shell.printAfterEstablish();
             StatusCache.SHOW_WELCOME = true;
 
             StatusCache.MONITOR_SESSION_ID = sessionId;

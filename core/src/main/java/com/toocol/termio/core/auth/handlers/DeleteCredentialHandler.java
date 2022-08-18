@@ -22,7 +22,7 @@ import static com.toocol.termio.core.auth.AuthAddress.DELETE_CREDENTIAL;
  */
 public final class DeleteCredentialHandler extends NonBlockingMessageHandler {
 
-    private final CredentialCache credentialCache = CredentialCache.getInstance();
+    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
 
     public DeleteCredentialHandler(Vertx vertx, Context context) {
         super(vertx, context);
@@ -38,8 +38,8 @@ public final class DeleteCredentialHandler extends NonBlockingMessageHandler {
         int index = cast(message.body());
         String host = credentialCache.deleteCredential(index);
         if (StringUtils.isNotEmpty(host)) {
-            long sessionId = SshSessionCache.getInstance().containSession(host);
-            ShellCache.getInstance().stop(sessionId);
+            long sessionId = SshSessionCache.Instance.containSession(host);
+            ShellCache.Instance.stop(sessionId);
         }
 
         String filePath = FileUtil.relativeToFixed("./.credentials");
@@ -56,8 +56,10 @@ public final class DeleteCredentialHandler extends NonBlockingMessageHandler {
             }
         }
 
-        vertx.fileSystem().writeFile(filePath, Buffer.buffer(credentialsJson), result -> {
-        });
+        if (credentialsJson != null) {
+            vertx.fileSystem().writeFile(filePath, Buffer.buffer(credentialsJson), result -> {
+            });
+        }
 
         message.reply(null);
     }

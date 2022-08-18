@@ -16,7 +16,7 @@ import static com.toocol.termio.core.auth.AuthAddress.DELETE_CREDENTIAL;
  */
 public class DeleteCmdProcessor extends TermCommandProcessor {
 
-    private final CredentialCache credentialCache = CredentialCache.getInstance();
+    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
 
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {

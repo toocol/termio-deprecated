@@ -31,8 +31,8 @@ public final class SessionQuickSwitchHelper implements Loggable, IStacktracePars
     private static final Term term = Term.getInstance();
 
     private final int[] recordCursorPos = new int[2];
-    private final CredentialCache credentialCache = CredentialCache.getInstance();
-    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
+    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
+    private final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
     private final Shell shell;
 
     private volatile boolean quit;

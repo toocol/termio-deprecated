@@ -27,7 +27,7 @@ record ShellPrinter(Shell shell) {
         if (msg.contains("export HISTCONTROL=ignoreboth")) {
             return false;
         }
-        String splitChar = shell.getProtocol().equals(ShellProtocol.SSH) ? CRLF : LF;
+        String splitChar = shell.protocol.equals(ShellProtocol.SSH) ? CRLF : LF;
         String lastCmd = shell.localLastCmd.toString().trim();
         if (lastCmd.equals("top")) {
             Printer.print(msg);

@@ -30,8 +30,8 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
 
     volatile public static String lastInput = StrUtil.EMPTY;
 
-    private final CredentialCache credentialCache = CredentialCache.getInstance();
-    private final SshSessionCache sshSessionCache = SshSessionCache.getInstance();
+    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
+    private final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
     private final Term term = Term.getInstance();
 
     public DynamicEchoHandler(Vertx vertx, Context context) {

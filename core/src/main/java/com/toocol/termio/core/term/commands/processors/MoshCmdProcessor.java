@@ -14,7 +14,7 @@ import static com.toocol.termio.core.mosh.MoshAddress.ESTABLISH_MOSH_SESSION;
  */
 public class MoshCmdProcessor extends TermCommandProcessor {
 
-    private final CredentialCache credentialCache = CredentialCache.getInstance();
+    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
 
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {

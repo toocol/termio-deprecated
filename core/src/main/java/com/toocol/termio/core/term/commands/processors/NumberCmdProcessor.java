@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class NumberCmdProcessor extends TermCommandProcessor {
 
-    private final CredentialCache credentialCache = CredentialCache.getInstance();
+    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
 
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
