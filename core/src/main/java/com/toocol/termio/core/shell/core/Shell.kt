@@ -49,7 +49,7 @@ import kotlin.system.exitProcess
  */
 class Shell : AbstractDevice, Loggable {
     @JvmField
-    val term: Term = Term.getInstance()
+    val term: Term = Term.instance
     private val shellPrinter: ShellPrinter
     private val shellReader: ShellReader
 

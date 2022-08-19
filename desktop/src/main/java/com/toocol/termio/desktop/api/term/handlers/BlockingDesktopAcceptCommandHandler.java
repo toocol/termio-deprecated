@@ -30,7 +30,7 @@ public class BlockingDesktopAcceptCommandHandler extends BlockingMessageHandler<
 
     @Override
     protected <T> void handleBlocking(Promise<Boolean> promise, Message<T> message) throws Exception {
-        Term term = Term.getInstance();
+        Term term = Term.instance;
         while (true) {
             String cmd = term.readLine();
 

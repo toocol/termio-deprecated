@@ -79,8 +79,8 @@ public class AddCmdProcessor extends TermCommandProcessor {
 
         eventBus.request(AuthAddress.ADD_CREDENTIAL.address(), new JsonObject(credential.toMap()), res -> {
             Printer.clear();
-            Term.getInstance().printScene(false);
-            Term.getInstance().printTermPrompt();
+            Term.instance.printScene(false);
+            Term.instance.printTermPrompt();
         });
         resultAndMsg.first(true);
     }

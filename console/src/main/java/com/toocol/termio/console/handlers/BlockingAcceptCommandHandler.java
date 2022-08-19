@@ -24,7 +24,7 @@ import static com.toocol.termio.core.cache.StatusConstants.*;
  */
 public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<Boolean> {
 
-    private final Term term = Term.getInstance();
+    private final Term term = Term.instance;
 
     public BlockingAcceptCommandHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
@@ -41,7 +41,7 @@ public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<B
             int signal = cast(message.body());
             if (signal == NORMAL_BACK || signal == FIRST_IN || signal == CONNECT_FAILED) {
                 Printer.clear();
-                Term.getInstance().printScene(false);
+                Term.instance.printScene(false);
             }
 
             term.printExecuteBackground();

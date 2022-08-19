@@ -38,9 +38,9 @@ public class DeleteCmdProcessor extends TermCommandProcessor {
 
         eventBus.request(DELETE_CREDENTIAL.address(), index, res -> {
             Printer.clear();
-            Term.getInstance().printScene(false);
-            Term.getInstance().printTermPrompt();
-            Term.getInstance().setCursorPosition(Term.getPromptLen(), Term.executeLine);
+            Term.instance.printScene(false);
+            Term.instance.printTermPrompt();
+            Term.instance.setCursorPosition(Term.getPromptLen(), Term.executeLine);
         });
 
         resultAndMsg.first(true);

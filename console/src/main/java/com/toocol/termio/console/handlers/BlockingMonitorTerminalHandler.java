@@ -43,8 +43,8 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
 
     @Override
     protected <T> void handleBlocking(Promise<Void> promise, Message<T> message) throws Exception {
-        Term.WIDTH = console.getWindowWidth();
-        Term.HEIGHT = console.getWindowHeight();
+        Term.width = console.getWindowWidth();
+        Term.height = console.getWindowHeight();
 
         while (true) {
             monitorTerminalSize();
@@ -73,13 +73,13 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
             return;
         }
 
-        if (Term.WIDTH != terminalWidth || Term.HEIGHT != terminalHeight) {
-            Term.WIDTH = terminalWidth;
-            Term.HEIGHT = terminalHeight;
+        if (Term.width != terminalWidth || Term.height != terminalHeight) {
+            Term.width = terminalWidth;
+            Term.height = terminalHeight;
             if (Term.status.equals(TermStatus.SHELL)) {
                 ShellCache.Instance.getShell(StatusCache.MONITOR_SESSION_ID).resize(terminalWidth, terminalHeight, StatusCache.MONITOR_SESSION_ID);
             } else if (Term.status.equals(TermStatus.TERMIO)) {
-                Term.getInstance().printScene(true);
+                Term.instance.printScene(true);
             }
         }
     }

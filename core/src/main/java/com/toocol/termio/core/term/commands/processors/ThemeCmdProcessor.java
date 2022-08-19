@@ -30,7 +30,7 @@ public class ThemeCmdProcessor extends TermCommandProcessor {
 
         Term.theme = termTheme;
         Printer.clear();
-        Term.getInstance().printScene(false);
-        Term.getInstance().printTermPrompt();
+        Term.instance.printScene(false);
+        Term.instance.printTermPrompt();
     }
 }

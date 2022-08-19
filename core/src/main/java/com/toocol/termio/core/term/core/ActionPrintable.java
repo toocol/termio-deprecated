@@ -22,7 +22,7 @@ public final class ActionPrintable extends TermCharAction {
             return false;
         }
         int cursorX = term.executeCursorOldX.get();
-        if (cursorX >= term.getWidth() - 1) {
+        if (cursorX >= Term.width - 1) {
             return false;
         }
         if (cursorX < term.lineBuilder.length() + Term.getPromptLen()) {

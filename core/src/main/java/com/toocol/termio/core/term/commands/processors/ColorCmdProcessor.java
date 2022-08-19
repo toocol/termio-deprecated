@@ -13,6 +13,6 @@ import io.vertx.core.eventbus.EventBus;
 public class ColorCmdProcessor extends TermCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
-        Term.getInstance().printColorPanel();
+        Term.instance.printColorPanel();
     }
 }

@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class CleanEchoBufferHandler extends NonBlockingMessageHandler {
 
-    private final Term term = Term.getInstance();
+    private final Term term = Term.instance;
 
     public CleanEchoBufferHandler(Vertx vertx, Context context) {
         super(vertx, context);

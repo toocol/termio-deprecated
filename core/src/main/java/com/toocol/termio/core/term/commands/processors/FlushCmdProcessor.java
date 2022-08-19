@@ -17,14 +17,14 @@ public class FlushCmdProcessor extends TermCommandProcessor {
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         Printer.clear();
-        Term.getInstance().printScene(false);
-        Term.getInstance().setCursorPosition(Term.LEFT_MARGIN, Term.executeLine);
+        Term.instance.printScene(false);
+        Term.instance.setCursorPosition(Term.LEFT_MARGIN, Term.executeLine);
 
         AnsiStringBuilder builder = new AnsiStringBuilder()
                 .background(Term.theme.executeBackgroundColor.color)
                 .front(Term.theme.executeFrontColor.color)
                 .append(Term.PROMPT)
-                .append(" ".repeat(Term.getInstance().getWidth() - Term.getPromptLen() - Term.LEFT_MARGIN));
+                .append(" ".repeat(Term.width - Term.getPromptLen() - Term.LEFT_MARGIN));
         Printer.print(builder.toString());
         TermPrinter.displayBuffer = StrUtil.EMPTY;
 

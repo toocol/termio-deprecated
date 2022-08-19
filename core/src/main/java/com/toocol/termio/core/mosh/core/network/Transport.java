@@ -41,7 +41,7 @@ public final class Transport<RemoteState extends State> implements Loggable {
         this.sender.setSendDelay(1);
         this.receivePool.init();
         // tell the server the size of the terminal
-        pushBackEvent(new UserEvent.Resize(Term.WIDTH, Term.HEIGHT));
+        pushBackEvent(new UserEvent.Resize(Term.width, Term.height));
     }
 
     @DiffThread
