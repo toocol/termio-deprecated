@@ -16,8 +16,8 @@ class ConsoleTermReader(private val term: Term) : ITermReader {
         term.executeCursorOldX.set(term.cursorPosition[0])
         try {
             while (true) {
-                val inChar = Term.reader.readCharacter().toChar()
-                val finalChar: Char = term.escapeHelper.processArrowBundle(inChar, Term.reader)
+                val inChar = Term.reader!!.readCharacter().toChar()
+                val finalChar: Char = term.escapeHelper.processArrowBundle(inChar, Term.reader!!)
                 if (Term.status == TermStatus.HISTORY_OUTPUT && !CharUtil.isLeftOrRightArrow(finalChar) && finalChar != '\u001b') {
                     continue
                 }

@@ -57,8 +57,8 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
             // execute in the final
             Executable execute = () -> {
                 Optional.ofNullable(sshSessionCache.getChannelShell(sessionId.get())).ifPresent(channelShell -> {
-                    int width = Term.getInstance().getWidth();
-                    int height = Term.getInstance().getHeight();
+                    int width = Term.width;
+                    int height = Term.height;
                     channelShell.setPtySize(width, height, width, height);
                 });
                 StatusCache.HANGED_QUIT = false;

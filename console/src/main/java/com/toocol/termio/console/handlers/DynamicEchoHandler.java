@@ -32,7 +32,7 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
 
     private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
     private final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
-    private final Term term = Term.getInstance();
+    private final Term term = Term.instance;
 
     public DynamicEchoHandler(Vertx vertx, Context context) {
         super(vertx, context);

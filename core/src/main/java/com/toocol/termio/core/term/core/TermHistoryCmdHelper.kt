@@ -1,148 +1,147 @@
-package com.toocol.termio.core.term.core;
+package com.toocol.termio.core.term.core
 
-import com.toocol.termio.utilities.utils.StrUtil;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Stack;
-import java.util.UUID;
+import java.util.Stack
+import java.util.UUID
+import com.toocol.termio.utilities.utils.StrUtil
+import org.apache.commons.lang3.StringUtils
+import java.util.function.Consumer
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/18 23:16
  * @version: 0.0.1
  */
-public final class TermHistoryCmdHelper {
+class TermHistoryCmdHelper {
     /**
      * The stack storage all the executed cmd.
      */
-    private final Stack<String> baseCmdStack = new Stack<>();
+    private val baseCmdStack = Stack<String>()
+
     /**
      * when user press the up arrow, use this stack.
      * clear out when user execute new cmd, which means invoke the method {HistoryCmdHelper.push(String cmd)}
      */
-    private final Stack<String> upArrowStack = new Stack<>();
+    private val upArrowStack = Stack<String>()
+
     /**
      * when user press the down arrow, use this stack.
      * clear out when user execute new cmd, which means invoke the method {HistoryCmdHelper.push(String cmd)}
      */
-    private final Stack<String> downArrowStack = new Stack<>();
+    private val downArrowStack = Stack<String>()
+
     /**
      * the flag to record user input command;
      */
-    private final String flag = UUID.randomUUID().toString();
+    private val flag = UUID.randomUUID().toString()
+    private var upBuffer: String? = null
+    private var downBuffer: String? = null
+    private var puToDown = false
+    var isStart = false
+        private set
 
-    private String upBuffer = null;
-    private String downBuffer = null;
-    private boolean puToDown = false;
-    private boolean start = false;
-
-    public TermHistoryCmdHelper() {
-    }
-
-    public synchronized void push(String cmd) {
-        if (StringUtils.isEmpty(cmd.trim())) {
-            return;
+    @Synchronized
+    fun push(cmd: String) {
+        if (StringUtils.isEmpty(cmd.trim { it <= ' ' })) {
+            return
         }
         if (baseCmdStack.isEmpty()) {
-            baseCmdStack.push(cmd.trim());
-        } else if (!baseCmdStack.peek().equals(cmd.trim())) {
-            baseCmdStack.push(cmd.trim());
+            baseCmdStack.push(cmd.trim { it <= ' ' })
+        } else if (baseCmdStack.peek() != cmd.trim { it <= ' ' }) {
+            baseCmdStack.push(cmd.trim { it <= ' ' })
         }
-        reset();
+        reset()
     }
 
     /*
      * when user press the up arrow.
      **/
-    public synchronized String up() {
-        start = true;
+    @Synchronized
+    fun up(): String? {
+        isStart = true
         if (downBuffer != null) {
-            downArrowStack.push(downBuffer);
-            downBuffer = null;
+            downArrowStack.push(downBuffer)
+            downBuffer = null
         }
-        if ((upArrowStack.isEmpty() && downArrowStack.isEmpty())
-                || (!downArrowStack.isEmpty() && puToDown)) {
-            baseCmdStack.forEach(upArrowStack::push);
-            puToDown = false;
+        if (upArrowStack.isEmpty() && downArrowStack.isEmpty()
+            || !downArrowStack.isEmpty() && puToDown
+        ) {
+            baseCmdStack.forEach(Consumer { item: String -> upArrowStack.push(item) })
+            puToDown = false
         }
         if (upArrowStack.isEmpty()) {
-            return null;
+            return null
         }
-        String cmd = upArrowStack.pop();
+        val cmd = upArrowStack.pop()
         if (upArrowStack.isEmpty()) {
-            upArrowStack.push(cmd);
+            upArrowStack.push(cmd)
             if (upBuffer != null) {
-                downArrowStack.push(upBuffer);
+                downArrowStack.push(upBuffer)
             }
-            upBuffer = null;
-            return cmd;
+            upBuffer = null
+            return cmd
         }
-
         if (upBuffer != null) {
-            downArrowStack.push(upBuffer);
+            downArrowStack.push(upBuffer)
         }
-        if (StrUtil.EMPTY.equals(cmd)) {
-            upBuffer = null;
+        upBuffer = if (StrUtil.EMPTY == cmd) {
+            null
         } else {
-            upBuffer = cmd;
+            cmd
         }
-
-        return cmd;
+        return cmd
     }
 
     /*
      * when user press the down arrow
      **/
-    public synchronized String down() {
+    @Synchronized
+    fun down(): String? {
         if (upArrowStack.isEmpty()) {
-            return null;
+            return null
         }
         if (upBuffer != null) {
-            upArrowStack.push(upBuffer);
-            upBuffer = null;
+            upArrowStack.push(upBuffer)
+            upBuffer = null
         }
-        String cmd;
+        var cmd: String
         if (downArrowStack.isEmpty()) {
-            start = false;
-            cmd = StrUtil.EMPTY;
+            isStart = false
+            cmd = StrUtil.EMPTY
         } else {
-            cmd = downArrowStack.pop();
+            cmd = downArrowStack.pop()
         }
         if (downBuffer != null) {
-            upArrowStack.push(downBuffer);
+            upArrowStack.push(downBuffer)
         }
-        boolean resetFlag = false;
-        if (cmd.contains("--" + flag)) {
-            cmd = cmd.replaceAll("--" + flag, "");
-            resetFlag = true;
+        var resetFlag = false
+        if (cmd.contains("--$flag")) {
+            cmd = cmd.replace("--$flag".toRegex(), "")
+            resetFlag = true
         }
-        if (StrUtil.EMPTY.equals(cmd)) {
-            downBuffer = null;
+        downBuffer = if (StrUtil.EMPTY == cmd) {
+            null
         } else {
-            downBuffer = cmd;
+            cmd
         }
         if (resetFlag) {
-            reset();
+            reset()
         }
-
-        return cmd;
+        return cmd
     }
 
-    public synchronized void pushToDown(String cmd) {
-        puToDown = true;
-        downArrowStack.push(cmd + "--" + flag);
+    @Synchronized
+    fun pushToDown(cmd: String) {
+        puToDown = true
+        downArrowStack.push("$cmd--$flag")
     }
 
-    public synchronized void reset() {
-        upArrowStack.clear();
-        downArrowStack.clear();
-        upBuffer = null;
-        downBuffer = null;
-        start = false;
-        puToDown = false;
-    }
-
-    public boolean isStart() {
-        return start;
+    @Synchronized
+    fun reset() {
+        upArrowStack.clear()
+        downArrowStack.clear()
+        upBuffer = null
+        downBuffer = null
+        isStart = false
+        puToDown = false
     }
 }

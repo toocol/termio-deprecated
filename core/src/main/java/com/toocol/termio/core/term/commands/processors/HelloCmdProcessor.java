@@ -14,6 +14,6 @@ public final class HelloCmdProcessor extends TermCommandProcessor {
 
     @Override
     public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
-        Term.getInstance().printDisplay("Hello you ~");
+        Term.instance.printDisplay("Hello you ~");
     }
 }

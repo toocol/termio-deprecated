@@ -64,7 +64,7 @@ class SessionQuickSwitchHelper(private val shell: Shell) : Loggable, IStacktrace
             reset()
             var cursorPosition = term.cursorPosition
             var offset = 0
-            val height = term.height
+            val height = Term.height
             if (cursorPosition[1] > height - bottomLineOffset + 1) {
                 while (offset < bottomLineOffset - 1) {
                     println(AsciiControl.ANIS_ERASE_LINE)
@@ -80,7 +80,7 @@ class SessionQuickSwitchHelper(private val shell: Shell) : Loggable, IStacktrace
             recordCursorPos[0] = shell.getPrompt().length
             recordCursorPos[1] = cursorPosition[1] - 1 - offset
             term.setCursorPosition(0, recordCursorPos[1] + helpInfoLine)
-            val width = term.width
+            val width = Term.width
             print(
                 AnsiStringBuilder().background(Term.theme.switchSessionPanelBottomBgColor.color)
                     .append(HELP_INFO)
@@ -167,7 +167,7 @@ class SessionQuickSwitchHelper(private val shell: Shell) : Loggable, IStacktrace
     private fun printSwitchPanel() {
         val builder = AnsiStringBuilder()
         val partLength = IntArray(5)
-        val width = term.width
+        val width = Term.width
         var totalPartLength = 0
         for (i in 0..4) {
             partLength[i] = width * PART_PROPORTION[i] / 10
@@ -231,6 +231,6 @@ class SessionQuickSwitchHelper(private val shell: Shell) : Loggable, IStacktrace
         private val PART_HEADS = arrayOf("   No.", "address", "path", "protocol", "status")
         private const val HELP_INFO =
             " Press '↑'/'↓' key to choose session to switch, '←'/'→' to change group, 'Enter' to confirm, 'Esc' to quit."
-        private val term = Term.getInstance()
+        private val term = Term.instance
     }
 }

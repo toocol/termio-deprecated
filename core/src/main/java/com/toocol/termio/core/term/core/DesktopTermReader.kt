@@ -12,8 +12,8 @@ class DesktopTermReader(private val term: Term) : ITermReader {
         term.executeCursorOldX.set(term.cursorPosition[0])
         try {
             while (true) {
-                val inChar = Term.reader.readCharacter().toChar()
-                val finalChar: Char = term.escapeHelper.processArrowBundle(inChar, Term.reader)
+                val inChar = Term.reader!!.readCharacter().toChar()
+                val finalChar: Char = term.escapeHelper.processArrowBundle(inChar, Term.reader!!)
                 if (term.termCharEventDispatcher.dispatch(term, finalChar)) {
                     val cmd: String = term.lineBuilder.toString()
                     term.lineBuilder.delete(0, term.lineBuilder.length)

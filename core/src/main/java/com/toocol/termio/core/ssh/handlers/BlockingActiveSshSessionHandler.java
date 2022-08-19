@@ -62,8 +62,8 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
 
                 Executable execute = () -> {
                     Optional.ofNullable(sshSessionCache.getChannelShell(sessionId.get())).ifPresent(channelShell -> {
-                        int width = Term.getInstance().getWidth();
-                        int height = Term.getInstance().getHeight();
+                        int width = Term.width;
+                        int height = Term.height;
                         channelShell.setPtySize(width, height, width, height);
                     });
 
@@ -122,11 +122,11 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
     protected <T> void resultBlocking(AsyncResult<JsonObject> asyncResult, Message<T> message) throws Exception {
 
         if (asyncResult.succeeded()) {
-            Term term = Term.getInstance();
+            Term term = Term.instance;
             term.printScene(false);
             JsonObject activeMsg = asyncResult.result();
             AnsiStringBuilder ansiStringBuilder = new AnsiStringBuilder();
-            int width = term.getWidth();
+            int width = Term.width;
             for (Map.Entry<String, Object> stringObjectEntry : activeMsg) {
                 if ("success".equals(stringObjectEntry.getKey())) {
                     ansiStringBuilder.append(stringObjectEntry.getKey() + ":" + "\n");

@@ -1,174 +1,189 @@
-package com.toocol.termio.core.term.core;
+package com.toocol.termio.core.term.core
 
-import com.toocol.termio.core.Termio;
-import com.toocol.termio.utilities.action.AbstractDevice;
-import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
-import com.toocol.termio.utilities.console.Console;
-import com.toocol.termio.utilities.utils.MessageBox;
-import io.vertx.core.eventbus.EventBus;
-import jline.console.ConsoleReader;
-
-import java.io.InputStream;
-import java.util.concurrent.atomic.AtomicInteger;
+import com.toocol.termio.core.Termio
+import com.toocol.termio.utilities.action.AbstractDevice
+import com.toocol.termio.utilities.ansi.AnsiStringBuilder
+import com.toocol.termio.utilities.console.Console
+import com.toocol.termio.utilities.utils.MessageBox
+import io.vertx.core.eventbus.EventBus
+import jline.console.ConsoleReader
+import java.io.InputStream
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.system.exitProcess
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/14 11:09
  */
-public final class Term extends AbstractDevice {
-    public static final String PROMPT = " [termio] > ";
-    public static final int TOP_MARGIN = 1;
-    public static final int LEFT_MARGIN = 0;
-    public static final int TEXT_LEFT_MARGIN = 1;
-    private static final Term INSTANCE = new Term();
-    static final Console CONSOLE = Console.get();
-    public static volatile int WIDTH = CONSOLE.getWindowWidth();
-    public static volatile int HEIGHT = CONSOLE.getWindowHeight();
-    public static volatile TermStatus status = TermStatus.TERMIO;
-    public static TermTheme theme = TermTheme.DARK_THEME;
-    public static int executeLine = 0;
-    static ConsoleReader reader;
-    final EscapeHelper escapeHelper;
-    final TermHistoryCmdHelper historyCmdHelper;
-    final ITermReader termReader;
-    final TermPrinter termPrinter;
-    final TermCharEventDispatcher termCharEventDispatcher;
-    final HistoryOutputInfoHelper historyOutputInfoHelper = HistoryOutputInfoHelper.getInstance();
-    volatile StringBuilder lineBuilder = new StringBuilder();
-    volatile AtomicInteger executeCursorOldX = new AtomicInteger(0);
-    int displayZoneBottom = 0;
-    char lastChar = '\0';
+class Term : AbstractDevice() {
+    val termPrinter: TermPrinter
+    val termCharEventDispatcher: TermCharEventDispatcher
 
-    public static void initializeReader(InputStream in) {
-        try {
-            reader = new ConsoleReader(in, null, null);
-        } catch (Exception e) {
-            MessageBox.setExitMessage("Create console reader failed.");
-            System.exit(-1);
-        }
-    }
+    private var termReader: ITermReader? = null
+    private val historyOutputInfoHelper = HistoryOutputInfoHelper.instance
 
-    public Term() {
-        if (Termio.runType().equals(Termio.RunType.CONSOLE)) {
-            termReader = new ConsoleTermReader(this);
+    @JvmField
+    @Volatile
+    var lineBuilder = StringBuilder()
+    @JvmField
+    @Volatile
+    var executeCursorOldX = AtomicInteger(0)
+
+    @JvmField
+    val escapeHelper: EscapeHelper
+    @JvmField
+    val historyCmdHelper: TermHistoryCmdHelper
+
+    var displayZoneBottom = 0
+    var lastChar = '\u0000'
+
+    init {
+        termReader = if (Termio.runType() == Termio.RunType.CONSOLE) {
+            ConsoleTermReader(this)
         } else {
-            termReader = new DesktopTermReader(this);
+            DesktopTermReader(this)
         }
-        termPrinter = new TermPrinter(this);
-        escapeHelper = new EscapeHelper();
-        historyCmdHelper = new TermHistoryCmdHelper();
-        termCharEventDispatcher = new TermCharEventDispatcher();
+        termPrinter = TermPrinter(this)
+        escapeHelper = EscapeHelper()
+        historyCmdHelper = TermHistoryCmdHelper()
+        termCharEventDispatcher = TermCharEventDispatcher()
     }
 
-    public static Term getInstance() {
-        return INSTANCE;
+    fun printScene(resize: Boolean) {
+        termPrinter.printScene(resize)
     }
 
-    public static int getPromptLen() {
-        return PROMPT.length() + LEFT_MARGIN;
+    fun printTermPrompt() {
+        termPrinter.printTermPrompt()
     }
 
-    public void printScene(boolean resize) {
-        termPrinter.printScene(resize);
+    fun printExecution(msg: String?) {
+        termPrinter.printExecution(msg!!)
     }
 
-    public void printTermPrompt() {
-        termPrinter.printTermPrompt();
+    fun printDisplay(msg: String?) {
+        historyOutputInfoHelper.add(msg!!)
+        termPrinter.printDisplay(msg)
     }
 
-    public void printExecution(String msg) {
-        termPrinter.printExecution(msg);
+    fun printDisplayWithRecord(msg: String?) {
+        termPrinter.printDisplay(msg!!)
     }
 
-    public void printDisplay(String msg) {
-        historyOutputInfoHelper.add(msg);
-        termPrinter.printDisplay(msg);
-    }
-
-    public void printDisplayWithRecord(String msg) {
-        termPrinter.printDisplay(msg);
-    }
-
-    public void printErr(String msg) {
+    fun printErr(msg: String?) {
         termPrinter.printDisplay(
-                new AnsiStringBuilder()
-                        .front(theme.errorMsgColor.color)
-                        .background(theme.displayBackGroundColor.color)
-                        .append(msg)
-                        .toString()
-        );
+            AnsiStringBuilder()
+                .front(theme.errorMsgColor.color)
+                .background(theme.displayBackGroundColor.color)
+                .append(msg!!)
+                .toString()
+        )
     }
 
-    public void printDisplayBuffer() {
-        termPrinter.printDisplayBuffer();
+    fun printDisplayBuffer() {
+        termPrinter.printDisplayBuffer()
     }
 
-    public void printCommandBuffer() {
-        termPrinter.printCommandBuffer();
+    fun printCommandBuffer() {
+        termPrinter.printCommandBuffer()
     }
 
-    public void printDisplayEcho(String msg) {
-        termPrinter.printDisplayEcho(msg);
+    fun printDisplayEcho(msg: String?) {
+        termPrinter.printDisplayEcho(msg!!)
     }
 
-    public void printExecuteBackground() {
-        termPrinter.printExecuteBackground();
+    fun printExecuteBackground() {
+        termPrinter.printExecuteBackground()
     }
 
-    public void printTest() {
-        termPrinter.printTest();
+    fun printTest() {
+        termPrinter.printTest()
     }
 
-    public void printColorPanel() {
-        termPrinter.printColorPanel();
+    fun printColorPanel() {
+        termPrinter.printColorPanel()
     }
 
-    public String readLine() {
-        return termReader.readLine();
+    fun readLine(): String {
+        return termReader!!.readLine()
     }
 
-    public int getWidth() {
-        return WIDTH;
+    val cursorPosition: IntArray
+        get() {
+            val coord = CONSOLE.cursorPosition.split(",").toTypedArray()
+            return intArrayOf(coord[0].toInt(), coord[1].toInt())
+        }
+
+    fun cleanDisplay() {
+        termPrinter.cleanDisplay()
     }
 
-    public int getHeight() {
-        return HEIGHT;
+    fun setCursorPosition(x: Int, y: Int) {
+        CONSOLE.setCursorPosition(x, y)
     }
 
-    public int[] getCursorPosition() {
-        String[] coord = CONSOLE.getCursorPosition().split(",");
-        return new int[]{Integer.parseInt(coord[0]), Integer.parseInt(coord[1])};
+    fun showCursor() {
+        CONSOLE.showCursor()
     }
 
-    public void cleanDisplay() {
-        termPrinter.cleanDisplay();
+    fun hideCursor() {
+        CONSOLE.hideCursor()
     }
 
-    public void setCursorPosition(int x, int y) {
-        CONSOLE.setCursorPosition(x, y);
+    fun cursorLeft() {
+        CONSOLE.cursorLeft()
     }
 
-    public void showCursor() {
-        CONSOLE.showCursor();
+    fun cursorRight() {
+        CONSOLE.cursorRight()
     }
 
-    public void hideCursor() {
-        CONSOLE.hideCursor();
+    fun cursorBackLine(lines: Int) {
+        CONSOLE.cursorBackLine(lines)
     }
 
-    public void cursorLeft() {
-        CONSOLE.cursorLeft();
+    fun eventBus(): EventBus {
+        return Termio.eventBus()
     }
 
-    public void cursorRight() {
-        CONSOLE.cursorRight();
-    }
+    companion object {
+        const val PROMPT = " [termio] > "
+        const val TOP_MARGIN = 1
+        const val LEFT_MARGIN = 0
+        const val TEXT_LEFT_MARGIN = 1
+        val CONSOLE: Console = Console.get()
+        @JvmField
+        val instance = Term()
 
-    public void cursorBackLine(int lines) {
-        CONSOLE.cursorBackLine(lines);
-    }
+        @JvmField
+        @Volatile
+        var width = CONSOLE.windowWidth
+        @JvmField
+        @Volatile
+        var height = CONSOLE.windowHeight
+        @JvmField
+        @Volatile
+        var status = TermStatus.TERMIO
 
-    public EventBus eventBus() {
-        return Termio.eventBus();
+        @JvmField
+        var theme = TermTheme.DARK_THEME
+        @JvmField
+        var executeLine = 0
+
+        var reader: ConsoleReader? = null
+
+        @JvmStatic
+        fun initializeReader(`in`: InputStream?) {
+            try {
+                reader = ConsoleReader(`in`, null, null)
+            } catch (e: Exception) {
+                MessageBox.setExitMessage("Create console reader failed.")
+                exitProcess(-1)
+            }
+        }
+
+        @JvmStatic
+        val promptLen: Int
+            get() = PROMPT.length + LEFT_MARGIN
     }
 }

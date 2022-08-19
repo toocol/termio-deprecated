@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class ExecuteCommandHandler extends NonBlockingMessageHandler {
 
-    private final Term term = Term.getInstance();
+    private final Term term = Term.instance;
 
     public ExecuteCommandHandler(Vertx vertx, Context context) {
         super(vertx, context);

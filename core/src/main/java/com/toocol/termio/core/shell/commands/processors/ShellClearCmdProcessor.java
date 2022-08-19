@@ -16,10 +16,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ShellClearCmdProcessor extends ShellCommandProcessor {
     @Override
     public Tuple2<String, Long> process(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String cmd) {
-        Term.getInstance().hideCursor();
+        Term.instance.hideCursor();
         Printer.clear();
         shell.print(shell.getPrompt());
-        Term.getInstance().showCursor();
+        Term.instance.showCursor();
         return new Tuple2<>("clear", null);
     }
 }

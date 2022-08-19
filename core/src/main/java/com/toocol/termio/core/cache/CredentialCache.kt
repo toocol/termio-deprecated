@@ -21,13 +21,13 @@ import kotlin.system.exitProcess
  */
 class CredentialCache private constructor() {
     companion object Instance {
-        private val CREDENTIAL_SET: MutableSet<SshCredential?> = TreeSet(Comparator.comparingInt { credential: SshCredential? -> -1 * credential!!.host.hashCode() })
-        private val READ_WRITE_LOCK: ReadWriteLock = ReentrantReadWriteLock()
+        private val credentialSet: MutableSet<SshCredential?> = TreeSet(Comparator.comparingInt { credential: SshCredential? -> -1 * credential!!.host.hashCode() })
+        private val readWriteLock: ReadWriteLock = ReentrantReadWriteLock()
         fun credentialsSize(): Int {
-            val lock = READ_WRITE_LOCK.readLock()
+            val lock = readWriteLock.readLock()
             lock.lock()
             try {
-                return CREDENTIAL_SET.size
+                return credentialSet.size
             } catch (e: Exception) {
                 MessageBox.setExitMessage("Credential operation error.")
                 exitProcess(-1)
@@ -36,33 +36,32 @@ class CredentialCache private constructor() {
             }
         }
 
-        val credentialsJson: String?
+        val credentialsJson: String
             get() {
-                val lock = READ_WRITE_LOCK.readLock()
+                val lock = readWriteLock.readLock()
                 lock.lock()
                 try {
-                    return JsonArray(ArrayList(CREDENTIAL_SET)).toString()
+                    return JsonArray(ArrayList(credentialSet)).toString()
                 } catch (e: Exception) {
                     MessageBox.setExitMessage("Credential operation error.")
-                    System.exit(-1)
+                    exitProcess(-1)
                 } finally {
                     lock.unlock()
                 }
-                return null
             }
 
         fun showCredentials() {
             val theme = Term.theme
-            val lock = READ_WRITE_LOCK.readLock()
+            val lock = readWriteLock.readLock()
             lock.lock()
             try {
                 val idx = AtomicInteger(1)
-                val term = Term.getInstance()
-                CREDENTIAL_SET.forEach(Consumer { credential: SshCredential? ->
+                val term = Term.instance
+                credentialSet.forEach(Consumer { credential: SshCredential? ->
                     val index = idx.getAndIncrement()
                     Printer.print(AnsiStringBuilder()
                         .background(theme.propertiesZoneBgColor.color)
-                        .append(StrUtil.SPACE.repeat(term.width))
+                        .append(StrUtil.SPACE.repeat(Term.width))
                         .toString()
                     )
                     term.setCursorPosition(0, term.cursorPosition[1])
@@ -81,18 +80,18 @@ class CredentialCache private constructor() {
                 })
             } catch (e: Exception) {
                 MessageBox.setExitMessage("Credential operation error.")
-                System.exit(-1)
+                exitProcess(-1)
             } finally {
                 lock.unlock()
             }
         }
 
         fun indexOf(host: String, user: String): Int {
-            val lock = READ_WRITE_LOCK.readLock()
+            val lock = readWriteLock.readLock()
             lock.lock()
             try {
                 var index = 1
-                for (sshCredential in CREDENTIAL_SET) {
+                for (sshCredential in credentialSet) {
                     if (sshCredential!!.host == host && sshCredential.user == user) {
                         return index
                     }
@@ -100,7 +99,7 @@ class CredentialCache private constructor() {
                 }
             } catch (e: Exception) {
                 MessageBox.setExitMessage("Credential operation error.")
-                System.exit(-1)
+                exitProcess(-1)
             } finally {
                 lock.unlock()
             }
@@ -108,18 +107,18 @@ class CredentialCache private constructor() {
         }
 
         fun getCredential(index: Int): SshCredential? {
-            val lock = READ_WRITE_LOCK.readLock()
+            val lock = readWriteLock.readLock()
             lock.lock()
             try {
                 var loopIdx = 1
-                for (sshCredential in CREDENTIAL_SET) {
+                for (sshCredential in credentialSet) {
                     if (loopIdx++ == index) {
                         return sshCredential
                     }
                 }
             } catch (e: Exception) {
                 MessageBox.setExitMessage("Credential operation error.")
-                System.exit(-1)
+                exitProcess(-1)
             } finally {
                 lock.unlock()
             }
@@ -127,10 +126,10 @@ class CredentialCache private constructor() {
         }
 
         fun getCredential(host: String): SshCredential? {
-            val lock = READ_WRITE_LOCK.readLock()
+            val lock = readWriteLock.readLock()
             lock.lock()
             try {
-                for (sshCredential in CREDENTIAL_SET) {
+                for (sshCredential in credentialSet) {
                     if (sshCredential!!.host == host) {
                         return sshCredential
                     }
@@ -145,38 +144,37 @@ class CredentialCache private constructor() {
         }
 
         fun containsCredential(credential: SshCredential?): Boolean {
-            val lock = READ_WRITE_LOCK.readLock()
+            val lock = readWriteLock.readLock()
             lock.lock()
             try {
-                return CREDENTIAL_SET.contains(credential)
+                return credentialSet.contains(credential)
             } catch (e: Exception) {
                 MessageBox.setExitMessage("Credential operation error.")
-                System.exit(-1)
+                exitProcess(-1)
             } finally {
                 lock.unlock()
             }
-            return false
         }
 
         fun addCredential(credential: SshCredential?) {
-            val lock = READ_WRITE_LOCK.writeLock()
+            val lock = readWriteLock.writeLock()
             lock.lock()
             try {
-                CREDENTIAL_SET.add(credential)
+                credentialSet.add(credential)
             } catch (e: Exception) {
                 MessageBox.setExitMessage("Credential operation error.")
-                System.exit(-1)
+                exitProcess(-1)
             } finally {
                 lock.unlock()
             }
         }
 
         fun deleteCredential(index: Int): String? {
-            val lock = READ_WRITE_LOCK.writeLock()
+            val lock = readWriteLock.writeLock()
             lock.lock()
             try {
                 var tag = 0
-                val iterator = CREDENTIAL_SET.iterator()
+                val iterator = credentialSet.iterator()
                 while (iterator.hasNext()) {
                     tag++
                     val next = iterator.next()
@@ -188,7 +186,7 @@ class CredentialCache private constructor() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 MessageBox.setExitMessage("Credential operation error.")
-                System.exit(-1)
+                exitProcess(-1)
             } finally {
                 lock.unlock()
             }
@@ -196,6 +194,6 @@ class CredentialCache private constructor() {
         }
 
         val allSwitchable: Collection<Switchable>
-            get() = ArrayList<Switchable>(CREDENTIAL_SET)
+            get() = ArrayList<Switchable>(credentialSet)
     }
 }

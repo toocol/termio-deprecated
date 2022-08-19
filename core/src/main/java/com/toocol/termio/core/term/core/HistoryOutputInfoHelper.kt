@@ -1,63 +1,70 @@
-package com.toocol.termio.core.term.core;
+package com.toocol.termio.core.term.core
 
-import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
-import com.toocol.termio.utilities.log.Loggable;
-import org.apache.commons.lang3.StringUtils;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import com.toocol.termio.utilities.ansi.AnsiStringBuilder
+import com.toocol.termio.utilities.log.Loggable
+import org.apache.commons.lang3.StringUtils
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.function.Consumer
 
-public final class HistoryOutputInfoHelper implements Loggable {
-    private static final int PAGE_SIZE = 5;
-    private static final HistoryOutputInfoHelper instance = new HistoryOutputInfoHelper();
-    private int showIndex = 1;
-    private int totalPage = 1;
-    private final Map<Integer, List<String>> msgList = new HashMap<>();
-    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ");
-
-    public void add(String message) {
-        List<String> pageMsgs = msgList.getOrDefault(totalPage, new ArrayList<>());
-        message = simpleDateFormat.format(new Date()) + "\n" + message + "\n";
-        if (pageMsgs.size() < PAGE_SIZE) {
-            pageMsgs.add(message);
+class HistoryOutputInfoHelper : Loggable {
+    private var showIndex = 1
+    private var totalPage = 1
+    private val msgList: MutableMap<Int, MutableList<String>> = HashMap()
+    private val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss ")
+    fun add(messageConst: String) {
+        var message = messageConst
+        var pageMsgs = msgList.getOrDefault(totalPage, ArrayList())
+        message = """
+               ${simpleDateFormat.format(Date())}
+               $message
+               
+               """.trimIndent()
+        if (pageMsgs.size < PAGE_SIZE) {
+            pageMsgs.add(message)
         } else {
-            pageMsgs = msgList.getOrDefault(++totalPage, new ArrayList<>());
-            pageMsgs.add(message);
+            pageMsgs = msgList.getOrDefault(++totalPage, ArrayList())
+            pageMsgs.add(message)
         }
-        showIndex = totalPage;
-        msgList.put(totalPage, pageMsgs);
+        showIndex = totalPage
+        msgList[totalPage] = pageMsgs
     }
 
-    public void displayInformation() {
-        List<String> msgs = msgList.get(showIndex);
-        AnsiStringBuilder builder = new AnsiStringBuilder();
-        msgs.forEach(builder::append);
+    fun displayInformation() {
+        val msgs: List<String> = msgList[showIndex]!!
+        val builder = AnsiStringBuilder()
+        msgs.forEach(Consumer { str: String? -> builder.append(str!!) })
         builder.append("\n")
-                .append("index:")
-                .append(showIndex)
-                .append(StringUtils.repeat(" ",40))
-                .append("Press '←'/'→' to change page,'Esc' to quit.");
-        Term term = Term.getInstance();
-        term.termPrinter.cleanDisplay();
-        term.printDisplayWithRecord(builder.toString());
+            .append("index:")
+            .append(showIndex)
+            .append(StringUtils.repeat(" ", 40))
+            .append("Press '←'/'→' to change page,'Esc' to quit.")
+        val term = Term.instance
+        term.termPrinter.cleanDisplay()
+        term.printDisplayWithRecord(builder.toString())
     }
 
-    public void pageLeft() {
+    fun pageLeft() {
         if (showIndex == 1) {
-            return;
+            return
         }
-        showIndex--;
-        displayInformation();
+        showIndex--
+        displayInformation()
     }
 
-    public void pageRight() {
+    fun pageRight() {
         if (showIndex >= totalPage) {
-            return;
+            return
         }
-        showIndex++;
-        displayInformation();
+        showIndex++
+        displayInformation()
     }
 
-    public synchronized static HistoryOutputInfoHelper getInstance() {
-        return instance;
+    companion object {
+        private const val PAGE_SIZE = 5
+
+        @JvmStatic
+        @get:Synchronized
+        val instance = HistoryOutputInfoHelper()
     }
 }
