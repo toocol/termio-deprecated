@@ -1,71 +1,51 @@
-package com.toocol.termio.desktop.ui.executor;
+package com.toocol.termio.desktop.ui.executor
 
-import com.toocol.termio.platform.component.IComponent;
-import com.toocol.termio.platform.component.IStyleAble;
-import javafx.geometry.Point2D;
-import javafx.scene.input.InputMethodRequests;
-import org.fxmisc.richtext.Caret;
-import org.fxmisc.richtext.StyleClassedTextField;
+import com.toocol.termio.platform.component.IComponent
+import com.toocol.termio.platform.component.IStyleAble
+import javafx.geometry.Point2D
+import javafx.scene.input.InputMethodRequests
+import org.fxmisc.richtext.Caret
+import org.fxmisc.richtext.StyleClassedTextField
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/14 23:31
  * @version: 0.0.1
  */
-public class CommandExecutorInput extends StyleClassedTextField implements IStyleAble, IComponent {
-
-    protected final long id;
-
-    public CommandExecutorInput(long id) {
-        this.id = id;
+class CommandExecutorInput(private val id: Long) : StyleClassedTextField(), IStyleAble, IComponent {
+    override fun styleClasses(): Array<String> {
+        return arrayOf(
+            "command-executor-input"
+        )
     }
 
-    @Override
-    public String[] styleClasses() {
-        return new String[] {
-                "command-executor-input"
-        };
+    override fun initialize() {
+        styled()
+        isEditable = true
+        showCaret = Caret.CaretVisibility.ON
+        val executorPanel = findComponent(CommandExecutorPanel::class.java, id)
+        executorPanel.top = this
+        inputMethodRequests = InputMethodRequestsObject()
+        prefWidthProperty().bind(executorPanel.prefWidthProperty().multiply(1))
+        prefHeightProperty().bind(executorPanel.prefHeightProperty().multiply(0.1))
     }
 
-    @Override
-    public void initialize() {
-        styled();
-        setEditable(true);
-        setShowCaret(Caret.CaretVisibility.ON);
-
-        CommandExecutorPanel executorPanel = findComponent(CommandExecutorPanel.class, id);
-        executorPanel.setTop(this);
-        setInputMethodRequests(new InputMethodRequestsObject());
-
-        prefWidthProperty().bind(executorPanel.prefWidthProperty().multiply(1));
-        prefHeightProperty().bind(executorPanel.prefHeightProperty().multiply(0.1));
-
+    override fun id(): Long {
+        return id
     }
 
-    @Override
-    public long id() {
-        return id;
-    }
-
-    private static class InputMethodRequestsObject implements InputMethodRequests {
-        @Override
-        public String getSelectedText() {
-            return "";
+    private class InputMethodRequestsObject : InputMethodRequests {
+        override fun getSelectedText(): String {
+            return ""
         }
 
-        @Override
-        public int getLocationOffset(int x, int y) {
-            return 0;
+        override fun getLocationOffset(x: Int, y: Int): Int {
+            return 0
         }
 
-        @Override
-        public void cancelLatestCommittedText() {
-
-        }
-
-        @Override
-        public Point2D getTextLocation(int offset) {
-            return new Point2D(0, 0);
+        override fun cancelLatestCommittedText() {}
+        override fun getTextLocation(offset: Int): Point2D {
+            return Point2D(0.0, 0.0)
         }
     }
 }

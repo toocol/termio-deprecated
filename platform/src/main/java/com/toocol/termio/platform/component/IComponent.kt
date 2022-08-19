@@ -1,61 +1,62 @@
-package com.toocol.termio.platform.component;
+package com.toocol.termio.platform.component
 
-import com.toocol.termio.utilities.utils.Asable;
-import com.toocol.termio.utilities.utils.Castable;
-import javafx.scene.Node;
+import com.toocol.termio.platform.component.ComponentsContainer.get
+import com.toocol.termio.platform.component.ComponentsContainer.put
+import com.toocol.termio.utilities.utils.Asable
+import com.toocol.termio.utilities.utils.Castable
+import javafx.scene.Node
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/5 17:44
  */
-public interface IComponent extends Asable, Castable {
-
+interface IComponent : Asable, Castable {
     /**
      * Initialize the component.
      */
-    void initialize();
+    fun initialize()
 
     /**
      * Get current component's id
      */
-    long id();
+    fun id(): Long
 
     /**
      * Find Javafx Node represented by Component by registered id
      *
      * @return Optional<Node>
-     */
-    default <T extends IComponent> T findComponent(Class<T> clazz, long id) {
-        return ComponentsContainer.get(clazz, id);
+    </Node> */
+    fun <T : IComponent?> findComponent(clazz: Class<T>, id: Long): T {
+        return get(clazz, id)
     }
 
     /**
-     * Register the component, so you can invoke {@link IComponent#findComponent(java.lang.Class, long)}
+     * Register the component, so you can invoke [IComponent.findComponent]
      * to get any components have registered by id.
      */
-    default void registerComponent(long id) {
-        ComponentsContainer.put(this.getClass(), id, this);
+    fun registerComponent(id: Long) {
+        put(this.javaClass, id, this)
     }
 
     /**
      * If the component is subclass of Node, hide this component.
      */
-    default void hide() {
-        if (this instanceof Node) {
-            Node node = this.as();
-            node.setManaged(false);
-            node.setVisible(false);
+    fun hide() {
+        if (this is Node) {
+            val node = `as`<Node>()
+            node.isManaged = false
+            node.isVisible = false
         }
     }
 
     /**
      * If the component is subclass of Node, hide this component.
      */
-    default void show() {
-        if (this instanceof Node) {
-            Node node = this.as();
-            node.setManaged(true);
-            node.setVisible(true);
+    fun show() {
+        if (this is Node) {
+            val node = `as`<Node>()
+            node.isManaged = true
+            node.isVisible = true
         }
     }
 }

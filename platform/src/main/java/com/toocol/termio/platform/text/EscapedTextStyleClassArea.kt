@@ -1,94 +1,103 @@
-package com.toocol.termio.platform.text;
+package com.toocol.termio.platform.text
 
-import com.toocol.termio.utilities.escape.AnsiEscapeSearchEngine;
-import com.toocol.termio.utilities.escape.EscapeCodeSequenceSupporter;
-import com.toocol.termio.utilities.escape.EscapeCursorControlMode;
-import com.toocol.termio.utilities.escape.IEscapeMode;
-import com.toocol.termio.utilities.escape.actions.AnsiEscapeAction;
-import javafx.scene.Node;
-import org.fxmisc.richtext.GenericStyledArea;
-import org.fxmisc.richtext.StyledTextArea;
-import org.fxmisc.richtext.TextExt;
-import org.fxmisc.richtext.model.Codec;
-import org.fxmisc.richtext.model.SegmentOps;
-import org.fxmisc.richtext.model.StyledSegment;
-import org.fxmisc.richtext.model.TextOps;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.BiConsumer;
+import com.toocol.termio.platform.component.IComponent
+import com.toocol.termio.utilities.escape.AnsiEscapeSearchEngine
+import com.toocol.termio.utilities.escape.EscapeCodeSequenceSupporter
+import com.toocol.termio.utilities.escape.EscapeCursorControlMode
+import com.toocol.termio.utilities.escape.IEscapeMode
+import com.toocol.termio.utilities.escape.actions.AnsiEscapeAction
+import javafx.scene.Node
+import javafx.scene.text.TextFlow
+import org.fxmisc.richtext.GenericStyledArea
+import org.fxmisc.richtext.StyledTextArea
+import org.fxmisc.richtext.TextExt
+import org.fxmisc.richtext.model.Codec
+import org.fxmisc.richtext.model.SegmentOps
+import org.fxmisc.richtext.model.StyledSegment
+import java.util.function.BiConsumer
+import java.util.function.Function
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/14 17:43
  * @version: 0.0.1
  */
-public class EscapedTextStyleClassArea extends GenericStyledArea<ParagraphStyle, String, TextStyle> implements EscapeCodeSequenceSupporter<EscapedTextStyleClassArea> {
-
-    private final static TextOps<String, TextStyle> styledTextOps = SegmentOps.styledTextOps();
-
-    private final AnsiEscapeSearchEngine<EscapedTextStyleClassArea> ansiEscapeSearchEngine = new AnsiEscapeSearchEngine<>(this);
-
-    protected ParagraphStyle paragraphStyle;
-    protected TextStyle defaultChineseTextStyle;
-    protected TextStyle defaultEnglishTextStyle;
-    protected Cursor cursor;
-
-    public EscapedTextStyleClassArea() {
-        super(
-                ParagraphStyle.EMPTY,                                                   // default paragraph style
-                (paragraph, style) -> paragraph.setStyle(style.toCss()),                // paragraph style setter
-                TextStyle.EMPTY,                                                        // default segment style
-                styledTextOps,                                                          // segment operations
-                seg -> createNode(seg, (text, style) -> text.setStyle(style.toCss()))   // Node creator and segment style setter
-        );
-        paragraphStyle = ParagraphStyle.EMPTY;
-        defaultChineseTextStyle = TextStyle.EMPTY;
-        defaultEnglishTextStyle = TextStyle.EMPTY;
-    }
-
-    public void updateDefaultChineseStyle(TextStyle style) {
-        defaultChineseTextStyle = style;
-    }
-
-    public void updateDefaultEnglishStyle(TextStyle style) {
-        defaultEnglishTextStyle = style;
-    }
-
-    private static Node createNode(StyledSegment<String, TextStyle> seg,
-                                   BiConsumer<? super TextExt, TextStyle> applyStyle) {
-        return StyledTextArea.createStyledTextNode(seg.getSegment(), seg.getStyle(), applyStyle);
-    }
-
-    @Override
-    public List<AnsiEscapeAction<EscapedTextStyleClassArea>> registerActions() {
-        List<AnsiEscapeAction<EscapedTextStyleClassArea>> actionList = new ArrayList<>();
-        actionList.add(new EscapeCursorControlAction());
-        return actionList;
-    }
-
-    @Override
-    public void printOut(String text) {
-
-    }
-
-    private static class EscapeCursorControlAction extends AnsiEscapeAction<EscapedTextStyleClassArea> {
-
-        @Override
-        public Class<? extends IEscapeMode> focusMode() {
-            return EscapeCursorControlMode.class;
-        }
-
-        @Override
-        public void action(EscapedTextStyleClassArea executeTarget, IEscapeMode escapeMode, List<Object> params) {
-
+abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledArea<ParagraphStyle, String, TextStyle>(
+    // default paragraph style
+    ParagraphStyle.EMPTY,
+    // paragraph style setter
+    BiConsumer { paragraph: TextFlow, style: ParagraphStyle ->
+        paragraph.style = style.toCss()
+    },
+    // default segment style
+    TextStyle.EMPTY,
+    // segment operations
+    styledTextOps,
+    // Node creator and segment style setter
+    Function<StyledSegment<String, TextStyle>, Node> { seg: StyledSegment<String, TextStyle> ->
+        createNode(seg) { text: TextExt, style: TextStyle ->
+            text.style = style.toCss()
         }
     }
+), EscapeCodeSequenceSupporter<EscapedTextStyleClassArea>, IComponent {
 
-    {
-        setStyleCodecs(
-                ParagraphStyle.CODEC,
-                Codec.styledSegmentCodec(Codec.STRING_CODEC, TextStyle.CODEC)
-        );
+    protected var paragraphStyle: ParagraphStyle = ParagraphStyle.EMPTY
+
+    @JvmField
+    protected var defaultChineseTextStyle: TextStyle
+
+    @JvmField
+    protected var defaultEnglishTextStyle: TextStyle
+
+    protected var cursor: Cursor
+
+    private var ansiEscapeSearchEngine: AnsiEscapeSearchEngine<EscapedTextStyleClassArea>? = null
+
+    fun updateDefaultChineseStyle(style: TextStyle) {
+        defaultChineseTextStyle = style
+    }
+
+    fun updateDefaultEnglishStyle(style: TextStyle) {
+        defaultEnglishTextStyle = style
+    }
+
+    override fun registerActions(): MutableList<AnsiEscapeAction<EscapedTextStyleClassArea>> {
+        val actionList: MutableList<AnsiEscapeAction<EscapedTextStyleClassArea>> = ArrayList()
+        actionList.add(EscapeCursorControlAction())
+        return actionList
+    }
+
+    override fun printOut(text: String) {}
+    private class EscapeCursorControlAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        override fun focusMode(): Class<out IEscapeMode> {
+            return EscapeCursorControlMode::class.java
+        }
+
+        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>) {}
+    }
+
+    init {
+        this.setStyleCodecs(
+            ParagraphStyle.CODEC,
+            Codec.styledSegmentCodec(Codec.STRING_CODEC, TextStyle.CODEC)
+        )
+        defaultChineseTextStyle = TextStyle.EMPTY
+        defaultEnglishTextStyle = TextStyle.EMPTY
+        cursor = Cursor(id)
+        ansiEscapeSearchEngine = AnsiEscapeSearchEngine(this)
+    }
+
+    companion object {
+        private val styledTextOps = SegmentOps.styledTextOps<TextStyle>()
+        private fun createNode(
+            seg: StyledSegment<String, TextStyle>,
+            applyStyle: BiConsumer<in TextExt, TextStyle>,
+        ): Node {
+            return StyledTextArea.createStyledTextNode(seg.segment, seg.style, applyStyle)
+        }
+    }
+
+    override fun id(): Long {
+        return id
     }
 }

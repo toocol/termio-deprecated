@@ -1,30 +1,25 @@
-package com.toocol.termio.platform.text;
+package com.toocol.termio.platform.text
 
-public class Indent {
-    protected double width = 15;
-    protected int level = 1;
+class Indent {
+    @JvmField
+    var width = 15.0
+    @JvmField
+    var level = 1
 
-    Indent() {
+    internal constructor() {}
+    internal constructor(level: Int) {
+        if (level > 0) this.level = level
     }
 
-    Indent(int level) {
-        if (level > 0) this.level = level;
+    fun increase(): Indent {
+        return Indent(level + 1)
     }
 
-    Indent increase() {
-        return new Indent(level + 1);
+    fun decrease(): Indent {
+        return Indent(level - 1)
     }
 
-    Indent decrease() {
-        return new Indent(level - 1);
-    }
-
-    int getLevel() {
-        return level;
-    }
-
-    @Override
-    public String toString() {
-        return "indent: " + level;
+    override fun toString(): String {
+        return "indent: $level"
     }
 }

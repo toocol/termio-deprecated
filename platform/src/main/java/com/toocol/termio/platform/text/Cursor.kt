@@ -1,55 +1,44 @@
-package com.toocol.termio.platform.text;
+package com.toocol.termio.platform.text
 
-import com.toocol.termio.platform.component.IComponent;
-import com.toocol.termio.utilities.log.Loggable;
-import javafx.scene.image.ImageView;
+import com.toocol.termio.platform.component.IComponent
+import com.toocol.termio.utilities.log.Loggable
+import javafx.scene.image.ImageView
+import kotlin.math.max
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/14 18:21
  * @version: 0.0.1
  */
-public class Cursor extends ImageView implements IComponent, Loggable {
-
+open class Cursor(val id: Long) : ImageView(), IComponent, Loggable {
     /**
      * This is the position which text should be inserted at.
      */
-    private int inlinePosition;
+    var inlinePosition = 0
+        private set
 
-    public final long id;
-
-    public Cursor(long id) {
-        this.id = id;
-        registerComponent(id);
+    init {
+        this.registerComponent(id)
     }
 
-    @Override
-    public void initialize() {
-
+    override fun initialize() {}
+    override fun id(): Long {
+        return id
     }
 
-    @Override
-    public long id() {
-        return id;
+    fun moveLeft() {
+        inlinePosition = max(inlinePosition - 1, 0)
     }
 
-    public void moveLeft() {
-        inlinePosition = Math.max(inlinePosition - 1, 0);
+    fun moveRight() {
+        inlinePosition += 1
     }
 
-    public void moveRight() {
-        inlinePosition += 1;
+    fun update(`val`: Int) {
+        inlinePosition = max(inlinePosition + `val`, 0)
     }
 
-    public void update(int val) {
-        inlinePosition = Math.max(inlinePosition + val, 0);
-    }
-
-    public void setTo(int val) {
-        inlinePosition = val;
-    }
-
-    public int getInlinePosition() {
-        return inlinePosition;
+    fun setTo(`val`: Int) {
+        inlinePosition = `val`
     }
 }

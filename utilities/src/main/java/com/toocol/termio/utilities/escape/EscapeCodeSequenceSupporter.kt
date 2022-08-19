@@ -1,18 +1,14 @@
-package com.toocol.termio.utilities.escape;
+package com.toocol.termio.utilities.escape
 
-import com.toocol.termio.utilities.escape.actions.AnsiEscapeAction;
-
-import java.util.List;
+import com.toocol.termio.utilities.escape.actions.AnsiEscapeAction
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/16 23:54
  * @version: 0.0.1
  */
-public interface EscapeCodeSequenceSupporter<T> {
+interface EscapeCodeSequenceSupporter<T> {
+    fun registerActions(): List<AnsiEscapeAction<T>>
 
-    List<AnsiEscapeAction<T>> registerActions();
-
-    void printOut(String text);
-
+    fun printOut(text: String)
 }

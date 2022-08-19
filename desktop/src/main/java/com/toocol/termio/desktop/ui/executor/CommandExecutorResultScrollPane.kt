@@ -1,46 +1,35 @@
-package com.toocol.termio.desktop.ui.executor;
+package com.toocol.termio.desktop.ui.executor
 
-import com.toocol.termio.platform.component.IComponent;
-import com.toocol.termio.platform.component.IStyleAble;
-import javafx.scene.control.ScrollPane;
-import org.fxmisc.flowless.VirtualizedScrollPane;
+import com.toocol.termio.platform.component.IComponent
+import com.toocol.termio.platform.component.IStyleAble
+import javafx.beans.value.ObservableValue
+import javafx.scene.control.ScrollPane
+import org.fxmisc.flowless.VirtualizedScrollPane
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/11 23:15
  * @version: 0.0.1
  */
-public class CommandExecutorResultScrollPane extends VirtualizedScrollPane<CommandExecutorResultTextArea> implements IStyleAble, IComponent {
+class CommandExecutorResultScrollPane(private val id: Long, terminalConsoleTextArea: CommandExecutorResultTextArea) :
+    VirtualizedScrollPane<CommandExecutorResultTextArea?>(terminalConsoleTextArea), IStyleAble, IComponent {
 
-    protected final long id;
-
-    public CommandExecutorResultScrollPane(long id, CommandExecutorResultTextArea terminalConsoleTextArea) {
-        super(terminalConsoleTextArea);
-        this.id = id;
-    }
-
-    @Override
-    public String[] styleClasses() {
-        return new String[]{
+    override fun styleClasses(): Array<String> {
+        return arrayOf(
             "command-executor-result-scroll-pane"
-        };
+        )
     }
 
-    @Override
-    public void initialize() {
-        styled();
-        setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-
-        CommandExecutorPanel executorPanel = findComponent(CommandExecutorPanel.class, id);
-        executorPanel.setBottom(this);
-
-        totalHeightEstimateProperty().addListener((ob, oldVal, newVal) -> getContent().requestFollowCaret());
+    override fun initialize() {
+        styled()
+        vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
+        hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+        val executorPanel = findComponent(CommandExecutorPanel::class.java, id)
+        executorPanel.bottom = this
+        totalHeightEstimateProperty().addListener { _: ObservableValue<out Double?>?, _: Double?, _: Double? -> content!!.requestFollowCaret() }
     }
 
-    @Override
-    public long id() {
-        return id;
+    override fun id(): Long {
+        return id
     }
-
 }

@@ -1,21 +1,21 @@
-package com.toocol.termio.platform.component;
+package com.toocol.termio.platform.component
 
-import javafx.scene.Node;
+import javafx.scene.Node
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/11 14:00
  */
-public interface IStyleAble {
-    String[] styleClasses();
+interface IStyleAble {
+    fun styleClasses(): Array<String>
 
     /**
      * add styles to components
      */
-    default void styled() {
-        if (!(this instanceof Node)) {
-            return;
+    fun styled() {
+        if (this !is Node) {
+            return
         }
-        ((Node) this).getStyleClass().addAll(styleClasses());
+        (this as Node).styleClass.addAll(*styleClasses())
     }
 }

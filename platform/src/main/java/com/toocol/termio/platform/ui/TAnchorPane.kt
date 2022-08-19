@@ -1,25 +1,20 @@
-package com.toocol.termio.platform.ui;
+package com.toocol.termio.platform.ui
 
-import com.toocol.termio.platform.component.IActionAfterShow;
-import com.toocol.termio.platform.component.IComponent;
-import com.toocol.termio.platform.component.IStyleAble;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.AnchorPane
+import com.toocol.termio.platform.component.IComponent
+import com.toocol.termio.platform.component.IStyleAble
+import com.toocol.termio.platform.component.IActionAfterShow
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/11 10:37
  */
-public abstract class TAnchorPane extends AnchorPane implements IComponent, IStyleAble, IActionAfterShow {
-
-    protected final long id;
-
-    public TAnchorPane(long id) {
-        this.id = id;
-        registerComponent(id);
+abstract class TAnchorPane(protected val id: Long) : AnchorPane(), IComponent, IStyleAble, IActionAfterShow {
+    init {
+        this.registerComponent(id)
     }
 
-    @Override
-    public long id() {
-        return id;
+    override fun id(): Long {
+        return id
     }
 }

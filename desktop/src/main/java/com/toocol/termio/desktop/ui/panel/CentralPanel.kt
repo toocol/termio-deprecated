@@ -1,32 +1,22 @@
-package com.toocol.termio.desktop.ui.panel;
+package com.toocol.termio.desktop.ui.panel
 
-import com.toocol.termio.platform.ui.TBorderPane;
+import com.toocol.termio.platform.ui.TBorderPane
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/11 11:13
  */
-public class CentralPanel extends TBorderPane {
-
-    public CentralPanel(long id) {
-        super(id);
+class CentralPanel(id: Long) : TBorderPane(id) {
+    override fun styleClasses(): Array<String> {
+        return arrayOf(
+            "central-panel"
+        )
     }
 
-    @Override
-    public String[] styleClasses() {
-        return new String[]{
-                "central-panel"
-        };
+    override fun initialize() {
+        styled()
+        setPrefSize(1280.0, 800.0)
     }
 
-    @Override
-    public void initialize() {
-        styled();
-        setPrefSize(1280, 800);
-    }
-
-    @Override
-    public void actionAfterShow() {
-
-    }
+    override fun actionAfterShow() {}
 }

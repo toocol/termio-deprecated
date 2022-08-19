@@ -1,48 +1,39 @@
-package com.toocol.termio.platform.component;
+package com.toocol.termio.platform.component
 
-import com.toocol.termio.utilities.log.Loggable;
-import javafx.scene.Node;
-
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.List;
+import com.toocol.termio.utilities.log.Loggable
+import javafx.scene.Node
+import java.lang.reflect.Constructor
+import kotlin.system.exitProcess
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/12 1:00
  * @version: 0.0.1
  */
-public class ComponentsAnnotationParser implements Loggable {
-    private final List<IComponent> components = new ArrayList<>();
-
-    public ComponentsAnnotationParser() {
-    }
-
-    public void parse(Class<?> clazz) {
-        RegisterComponent register = clazz.getAnnotation(RegisterComponent.class);
-        if (register == null) {
-            return;
-        }
+class ComponentsAnnotationParser : Loggable {
+    private val components: MutableList<IComponent> = ArrayList()
+    fun parse(clazz: Class<*>) {
+        val register = clazz.getAnnotation(RegisterComponent::class.java) ?: return
         try {
-            for (Component component : register.value()) {
-                Constructor<? extends IComponent> constructor = component.clazz().getDeclaredConstructor(long.class);
-                constructor.setAccessible(true);
-                IComponent iComponent = constructor.newInstance(component.id());
-                if (!component.initialVisible()) {
-                    Node node = iComponent.as();
-                    node.setVisible(false);
-                    node.setManaged(false);
+            for (component in register.value) {
+                val constructor: Constructor<out IComponent> = component.clazz.java.getDeclaredConstructor(Long::class.java)
+                constructor.isAccessible = true
+                val iComponent = constructor.newInstance(component.id)
+                if (!component.initialVisible) {
+                    if (iComponent is Node) {
+                        iComponent.isVisible = false
+                        iComponent.isManaged = false
+                    }
                 }
-                components.add(iComponent);
+                components.add(iComponent)
             }
-        } catch (Exception e) {
-            error("Parse register components failed.");
-            System.exit(-1);
+        } catch (e: Exception) {
+            error("Parse register components failed.")
+            exitProcess(-1)
         }
     }
 
-    public List<IComponent> getComponents() {
-        return components;
+    fun getComponents(): List<IComponent> {
+        return components
     }
-
 }

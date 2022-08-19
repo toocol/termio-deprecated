@@ -1,199 +1,160 @@
-package com.toocol.termio.platform.text;
+package com.toocol.termio.platform.text
 
-import javafx.scene.paint.Color;
-import javafx.scene.text.TextAlignment;
-import org.fxmisc.richtext.model.Codec;
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.Objects;
-import java.util.Optional;
-
-import static javafx.scene.text.TextAlignment.*;
+import javafx.scene.text.TextAlignment
+import javafx.scene.paint.Color
+import java.lang.StringBuilder
+import java.lang.AssertionError
+import org.fxmisc.richtext.model.Codec
+import kotlin.Throws
+import java.io.IOException
+import java.io.DataOutputStream
+import java.io.DataInputStream
+import java.util.*
+import kotlin.math.max
 
 /**
  * Holds information about the style of a paragraph.
  */
-@SuppressWarnings("all")
-public final class ParagraphStyle {
-
-    public static final ParagraphStyle EMPTY = new ParagraphStyle();
-
-    public static final Codec<ParagraphStyle> CODEC = new Codec<>() {
-
-        private final Codec<Optional<TextAlignment>> OPT_ALIGNMENT_CODEC =
-                Codec.optionalCodec(Codec.enumCodec(TextAlignment.class));
-        private final Codec<Optional<Color>> OPT_COLOR_CODEC =
-                Codec.optionalCodec(Codec.COLOR_CODEC);
-
-        @Override
-        public String getName() {
-            return "par-style";
-        }
-
-        @Override
-        public void encode(DataOutputStream os, ParagraphStyle t) throws IOException {
-            OPT_ALIGNMENT_CODEC.encode(os, t.alignment);
-            OPT_COLOR_CODEC.encode(os, t.backgroundColor);
-            os.writeInt(t.indent.map(i -> i.level).orElse(0));
-            os.writeInt(t.foldCount);
-        }
-
-        @Override
-        public ParagraphStyle decode(DataInputStream is) throws IOException {
-            return new ParagraphStyle(
-                    OPT_ALIGNMENT_CODEC.decode(is),
-                    OPT_COLOR_CODEC.decode(is),
-                    Optional.of(new Indent(is.readInt())),
-                    is.readInt());
-        }
-
-    };
-
-    public static ParagraphStyle alignLeft() {
-        return EMPTY.updateAlignment(LEFT);
+class ParagraphStyle private constructor(
+    val alignment: Optional<TextAlignment> = Optional.empty(),
+    val backgroundColor: Optional<Color> = Optional.empty(),
+    val indent: Optional<Indent> = Optional.empty(),
+    val foldCount: Int = 0
+) {
+    override fun hashCode(): Int {
+        return Objects.hash(alignment, backgroundColor, indent, foldCount)
     }
 
-    public static ParagraphStyle alignCenter() {
-        return EMPTY.updateAlignment(CENTER);
-    }
-
-    public static ParagraphStyle alignRight() {
-        return EMPTY.updateAlignment(RIGHT);
-    }
-
-    public static ParagraphStyle alignJustify() {
-        return EMPTY.updateAlignment(JUSTIFY);
-    }
-
-    public static ParagraphStyle backgroundColor(Color color) {
-        return EMPTY.updateBackgroundColor(color);
-    }
-
-    public static ParagraphStyle folded() {
-        return EMPTY.updateFold(Boolean.TRUE);
-    }
-
-    public static ParagraphStyle unfolded() {
-        return EMPTY.updateFold(Boolean.FALSE);
-    }
-
-    final Optional<TextAlignment> alignment;
-    final Optional<Color> backgroundColor;
-    final Optional<Indent> indent;
-    final int foldCount;
-
-    private ParagraphStyle() {
-        this(Optional.empty(), Optional.empty(), Optional.empty(), 0);
-    }
-
-    private ParagraphStyle(Optional<TextAlignment> alignment, Optional<Color> backgroundColor, Optional<Indent> indent, int folds) {
-        this.alignment = alignment;
-        this.backgroundColor = backgroundColor;
-        this.foldCount = folds;
-        this.indent = indent;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(alignment, backgroundColor, indent, foldCount);
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (other instanceof ParagraphStyle) {
-            ParagraphStyle that = (ParagraphStyle) other;
-            return Objects.equals(this.alignment, that.alignment) &&
-                    Objects.equals(this.backgroundColor, that.backgroundColor) &&
-                    Objects.equals(this.indent, that.indent) &&
-                    this.foldCount == that.foldCount;
+    override fun equals(other: Any?): Boolean {
+        return if (other is ParagraphStyle) {
+            alignment == other.alignment &&
+                    backgroundColor == other.backgroundColor &&
+                    indent == other.indent && foldCount == other.foldCount
         } else {
-            return false;
+            false
         }
     }
 
-    @Override
-    public String toString() {
-        return toCss();
+    override fun toString(): String {
+        return toCss()
     }
 
-    public String toCss() {
-        StringBuilder sb = new StringBuilder();
-
-        alignment.ifPresent(al -> {
-            String cssAlignment;
-            switch (al) {
-                case LEFT:
-                    cssAlignment = "left";
-                    break;
-                case CENTER:
-                    cssAlignment = "center";
-                    break;
-                case RIGHT:
-                    cssAlignment = "right";
-                    break;
-                case JUSTIFY:
-                    cssAlignment = "justify";
-                    break;
-                default:
-                    throw new AssertionError("unreachable code");
+    fun toCss(): String {
+        val sb = StringBuilder()
+        alignment.ifPresent { al: TextAlignment? ->
+            val cssAlignment: String = when (al) {
+                TextAlignment.LEFT -> "left"
+                TextAlignment.CENTER -> "center"
+                TextAlignment.RIGHT -> "right"
+                TextAlignment.JUSTIFY -> "justify"
+                else -> throw AssertionError("unreachable code")
             }
-            sb.append("-fx-text-alignment: " + cssAlignment + ";");
-        });
-
-        backgroundColor.ifPresent(color -> {
-            sb.append("-fx-background-color: " + TextStyle.cssColor(color) + ";");
-        });
-
-        if (foldCount > 0) sb.append("visibility: collapse;");
-
-        return sb.toString();
+            sb.append("-fx-text-alignment: $cssAlignment;")
+        }
+        backgroundColor.ifPresent { color: Color? -> sb.append("-fx-background-color: " + TextStyle.cssColor(color) + ";") }
+        if (foldCount > 0) sb.append("visibility: collapse;")
+        return sb.toString()
     }
 
-    public ParagraphStyle updateWith(ParagraphStyle mixin) {
-        return new ParagraphStyle(
-                mixin.alignment.isPresent() ? mixin.alignment : alignment,
-                mixin.backgroundColor.isPresent() ? mixin.backgroundColor : backgroundColor,
-                mixin.indent.isPresent() ? mixin.indent : indent,
-                mixin.foldCount + foldCount);
+    fun updateWith(mixin: ParagraphStyle): ParagraphStyle {
+        return ParagraphStyle(
+            if (mixin.alignment.isPresent) mixin.alignment else alignment,
+            if (mixin.backgroundColor.isPresent) mixin.backgroundColor else backgroundColor,
+            if (mixin.indent.isPresent) mixin.indent else indent,
+            mixin.foldCount + foldCount)
     }
 
-    public ParagraphStyle updateAlignment(TextAlignment alignment) {
-        return new ParagraphStyle(Optional.of(alignment), backgroundColor, indent, foldCount);
+    fun updateAlignment(alignment: TextAlignment): ParagraphStyle {
+        return ParagraphStyle(Optional.of(alignment), backgroundColor, indent, foldCount)
     }
 
-    public ParagraphStyle updateBackgroundColor(Color backgroundColor) {
-        return new ParagraphStyle(alignment, Optional.of(backgroundColor), indent, foldCount);
+    fun updateBackgroundColor(backgroundColor: Color): ParagraphStyle {
+        return ParagraphStyle(alignment, Optional.of(backgroundColor), indent, foldCount)
     }
 
-    public ParagraphStyle updateIndent(Indent indent) {
-        return new ParagraphStyle(alignment, backgroundColor, Optional.ofNullable(indent), foldCount);
+    private fun updateIndent(indent: Indent?): ParagraphStyle {
+        return ParagraphStyle(alignment, backgroundColor, Optional.ofNullable(indent), foldCount)
     }
 
-    public ParagraphStyle increaseIndent() {
-        return updateIndent(indent.map(Indent::increase).orElseGet(Indent::new));
+    fun increaseIndent(): ParagraphStyle {
+        return updateIndent(indent.map { obj: Indent -> obj.increase() }
+            .orElseGet { Indent() })
     }
 
-    public ParagraphStyle decreaseIndent() {
-        return updateIndent(indent.filter(in -> in.level > 1)
-                .map(Indent::decrease).orElse(null));
+    fun decreaseIndent(): ParagraphStyle {
+        return updateIndent(indent.filter { `in`: Indent -> `in`.level > 1 }
+            .map { obj: Indent -> obj.decrease() }.orElse(null))
     }
 
-    public Indent getIndent() {
-        return indent.get();
+    fun getIndent(): Indent {
+        return indent.get()
     }
 
-    public boolean isIndented() {
-        return indent.map(in -> in.level > 0).orElse(false);
+    val isIndented: Boolean
+        get() = indent.map { `in`: Indent -> `in`.level > 0 }.orElse(false)
+
+    fun updateFold(fold: Boolean): ParagraphStyle {
+        val foldLevels = if (fold) foldCount + 1 else max(0, foldCount - 1)
+        return ParagraphStyle(alignment, backgroundColor, indent, foldLevels)
     }
 
-    public ParagraphStyle updateFold(boolean fold) {
-        int foldLevels = fold ? foldCount + 1 : Math.max(0, foldCount - 1);
-        return new ParagraphStyle(alignment, backgroundColor, indent, foldLevels);
-    }
+    val isFolded: Boolean
+        get() = foldCount > 0
 
-    public boolean isFolded() {
-        return foldCount > 0;
+    companion object {
+        val EMPTY = ParagraphStyle()
+        val CODEC: Codec<ParagraphStyle> = object : Codec<ParagraphStyle> {
+            private val OPT_ALIGNMENT_CODEC = Codec.optionalCodec(Codec.enumCodec(
+                TextAlignment::class.java))
+            private val OPT_COLOR_CODEC = Codec.optionalCodec(Codec.COLOR_CODEC)
+            override fun getName(): String {
+                return "par-style"
+            }
+
+            @Throws(IOException::class)
+            override fun encode(os: DataOutputStream, t: ParagraphStyle) {
+                OPT_ALIGNMENT_CODEC.encode(os, t.alignment)
+                OPT_COLOR_CODEC.encode(os, t.backgroundColor)
+                os.writeInt(t.indent.map { i: Indent -> i.level }.orElse(0))
+                os.writeInt(t.foldCount)
+            }
+
+            @Throws(IOException::class)
+            override fun decode(`is`: DataInputStream): ParagraphStyle {
+                return ParagraphStyle(
+                    OPT_ALIGNMENT_CODEC.decode(`is`),
+                    OPT_COLOR_CODEC.decode(`is`),
+                    Optional.of(Indent(`is`.readInt())),
+                    `is`.readInt())
+            }
+        }
+
+        fun alignLeft(): ParagraphStyle {
+            return EMPTY.updateAlignment(TextAlignment.LEFT)
+        }
+
+        fun alignCenter(): ParagraphStyle {
+            return EMPTY.updateAlignment(TextAlignment.CENTER)
+        }
+
+        fun alignRight(): ParagraphStyle {
+            return EMPTY.updateAlignment(TextAlignment.RIGHT)
+        }
+
+        fun alignJustify(): ParagraphStyle {
+            return EMPTY.updateAlignment(TextAlignment.JUSTIFY)
+        }
+
+        fun backgroundColor(color: Color): ParagraphStyle {
+            return EMPTY.updateBackgroundColor(color)
+        }
+
+        fun folded(): ParagraphStyle {
+            return EMPTY.updateFold(java.lang.Boolean.TRUE)
+        }
+
+        fun unfolded(): ParagraphStyle {
+            return EMPTY.updateFold(java.lang.Boolean.FALSE)
+        }
     }
 }

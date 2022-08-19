@@ -1,43 +1,32 @@
-package com.toocol.termio.desktop.ui.terminal;
+package com.toocol.termio.desktop.ui.terminal
 
-import com.toocol.termio.platform.component.IComponent;
-import com.toocol.termio.platform.component.IStyleAble;
-import javafx.scene.control.ScrollPane;
-import org.fxmisc.flowless.VirtualizedScrollPane;
+import com.toocol.termio.platform.component.IComponent
+import com.toocol.termio.platform.component.IStyleAble
+import javafx.beans.value.ObservableValue
+import javafx.scene.control.ScrollPane
+import org.fxmisc.flowless.VirtualizedScrollPane
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/11 23:15
  * @version: 0.0.1
  */
-public class TerminalScrollPane extends VirtualizedScrollPane<TerminalConsoleTextArea> implements IStyleAble, IComponent {
-
-    protected final long id;
-
-    public TerminalScrollPane(long id, TerminalConsoleTextArea terminalConsoleTextArea) {
-        super(terminalConsoleTextArea);
-        this.id = id;
+class TerminalScrollPane(private val id: Long, terminalConsoleTextArea: TerminalConsoleTextArea?) :
+    VirtualizedScrollPane<TerminalConsoleTextArea?>(terminalConsoleTextArea), IStyleAble, IComponent {
+    override fun styleClasses(): Array<String> {
+        return arrayOf(
+            "terminal-scroll-pane"
+        )
     }
 
-    @Override
-    public String[] styleClasses() {
-        return new String[]{
-                "terminal-scroll-pane"
-        };
+    override fun initialize() {
+        styled()
+        vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
+        hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+        totalHeightEstimateProperty().addListener { ob: ObservableValue<out Double?>?, oldVal: Double?, newVal: Double? -> content!!.requestFollowCaret() }
     }
 
-    @Override
-    public void initialize() {
-        styled();
-        setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-
-        totalHeightEstimateProperty().addListener((ob, oldVal, newVal) -> getContent().requestFollowCaret());
+    override fun id(): Long {
+        return id
     }
-
-    @Override
-    public long id() {
-        return id;
-    }
-
 }

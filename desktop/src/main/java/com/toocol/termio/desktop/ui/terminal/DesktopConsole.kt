@@ -1,75 +1,42 @@
-package com.toocol.termio.desktop.ui.terminal;
+package com.toocol.termio.desktop.ui.terminal
 
-import com.toocol.termio.utilities.console.Console;
+import com.toocol.termio.utilities.console.Console
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/2 0:43
  * @version: 0.0.1
  */
-public final class DesktopConsole extends Console {
-    @Override
-    public String chooseFiles() {
-        return null;
+class DesktopConsole : Console() {
+    override fun chooseFiles(): String? {
+        return null
     }
 
-    @Override
-    public String chooseDirectory() {
-        return null;
+    override fun chooseDirectory(): String? {
+        return null
     }
 
-    @Override
-    public int getWindowWidth() {
-        return 0;
+    override fun getWindowWidth(): Int {
+        return 0
     }
 
-    @Override
-    public int getWindowHeight() {
-        return 0;
+    override fun getWindowHeight(): Int {
+        return 0
     }
 
-    @Override
-    public String getCursorPosition() {
-        return "0,0";
+    override fun getCursorPosition(): String {
+        return "0,0"
     }
 
-    @Override
-    public void setCursorPosition(int x, int y) {
-
+    override fun setCursorPosition(x: Int, y: Int) {}
+    override fun cursorBackLine(lines: Int) {}
+    override fun showCursor() {}
+    override fun hideCursor() {}
+    override fun cursorLeft() {}
+    override fun cursorRight() {}
+    override fun cleanUnsupportedCharacter(bytes: ByteArray): ByteArray {
+        return ByteArray(0)
     }
 
-    @Override
-    public void cursorBackLine(int lines) {
-
-    }
-
-    @Override
-    public void showCursor() {
-
-    }
-
-    @Override
-    public void hideCursor() {
-
-    }
-
-    @Override
-    public void cursorLeft() {
-
-    }
-
-    @Override
-    public void cursorRight() {
-
-    }
-
-    @Override
-    public byte[] cleanUnsupportedCharacter(byte[] bytes) {
-        return new byte[0];
-    }
-
-    @Override
-    public void rollingProcessing(String msg) {
-
-    }
+    override fun rollingProcessing(msg: String) {}
 }

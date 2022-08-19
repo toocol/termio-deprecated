@@ -1,32 +1,22 @@
-package com.toocol.termio.desktop.ui.homepage;
+package com.toocol.termio.desktop.ui.homepage
 
-import com.toocol.termio.platform.ui.TAnchorPane;
+import com.toocol.termio.platform.ui.TAnchorPane
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/12 0:43
  * @version: 0.0.1
  */
-public class HomepagePanel extends TAnchorPane {
-    public HomepagePanel(long id) {
-        super(id);
+class HomepagePanel(id: Long) : TAnchorPane(id) {
+    override fun styleClasses(): Array<String> {
+        return arrayOf(
+            "homepage-panel"
+        )
     }
 
-    @Override
-    public String[] styleClasses() {
-        return new String[] {
-                "homepage-panel"
-        };
+    override fun initialize() {
+        styled()
     }
 
-    @Override
-    public void initialize() {
-        styled();
-    }
-
-    @Override
-    public void actionAfterShow() {
-
-    }
-
+    override fun actionAfterShow() {}
 }

@@ -1,30 +1,20 @@
-package com.toocol.termio.platform.ui;
+package com.toocol.termio.platform.ui
 
-import com.toocol.termio.platform.component.IComponent;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.scene.Scene
+import com.toocol.termio.platform.component.IComponent
+import javafx.scene.Parent
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/11 12:00
  */
-public class TScene extends Scene implements IComponent {
-
-    protected final long id;
-
-    public TScene(long id, Parent root) {
-        super(root);
-        this.id = id;
-        registerComponent(id);
+open class TScene(protected val id: Long, root: Parent?) : Scene(root), IComponent {
+    init {
+        this.registerComponent(id)
     }
 
-    @Override
-    public void initialize() {
-
-    }
-
-    @Override
-    public long id() {
-        return id;
+    override fun initialize() {}
+    override fun id(): Long {
+        return id
     }
 }
