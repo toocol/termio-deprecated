@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap
  * @date: 2022/4/29 22:35
  * @version: 0.0.1
  */
-class ShellCache {
+class ShellCache private constructor() {
     companion object Instance {
         /**
          * the map stored all alive ssh session shell's object.

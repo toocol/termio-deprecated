@@ -33,6 +33,15 @@ public enum EscapeColor8To16Mode implements IEscapeMode {
         }
     }
 
+    public static EscapeColor8To16Mode codeOf(int code) {
+        for (EscapeColor8To16Mode value : values()) {
+            if (value.colorCode == code) {
+                return value;
+            }
+        }
+        return null;
+    }
+
     public final int colorCode;
     public final String hexCode;
 

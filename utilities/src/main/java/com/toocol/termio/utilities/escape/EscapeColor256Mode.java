@@ -280,6 +280,15 @@ public enum EscapeColor256Mode implements IEscapeMode {
         this.rgb = rgb;
     }
 
+    public static EscapeColor256Mode codeOf(int code) {
+        for (EscapeColor256Mode value : values()) {
+            if (value.colorCode == code) {
+                return value;
+            }
+        }
+        return null;
+    }
+
     public static String hexOf(int colorCode) {
         return colorHexMap.get(colorCode);
     }

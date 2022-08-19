@@ -44,55 +44,65 @@ class DesktopTerminalPanel(id: Long) : TAnchorPane(id), IActiveAble, Loggable {
     }
 
     override fun initialize() {
-        styled()
-        val scene = findComponent(TScene::class.java, 1)
-        val workspacePanel = findComponent(WorkspacePanel::class.java, 1)
-        workspacePanel.center = findComponent(DesktopTerminalPanel::class.java, id)
-        terminalScrollPane.initialize()
-        terminalConsoleTextArea.initialize()
-        terminalOutputService.start()
-        maxHeightProperty().bind(workspacePanel.prefHeightProperty())
-        maxWidthProperty().bind(workspacePanel.prefWidthProperty())
-        prefHeightProperty().bind(workspacePanel.prefHeightProperty().multiply(0.8))
-        prefWidthProperty().bind(workspacePanel.prefWidthProperty())
-        children.add(terminalScrollPane)
-        terminalConsoleTextArea.onInputMethodTextChanged = EventHandler { event: InputMethodEvent ->
-            if (StrUtil.isEmpty(event.committed)) {
-                return@EventHandler
-            }
-            try {
-                terminalReaderInputStream.write(event.committed.toByteArray(StandardCharsets.UTF_8))
-                terminalReaderInputStream.flush()
-            } catch (e: IOException) {
-                error("Write to reader failed, msg = {}", e.message)
-            }
-        }
-        terminalConsoleTextArea.onKeyTyped = EventHandler { event: KeyEvent ->
-            if (event.isShortcutDown || event.isControlDown || event.isAltDown || event.isMetaDown) {
-                return@EventHandler
-            }
-            try {
-                terminalReaderInputStream.write(event.character.toByteArray(StandardCharsets.UTF_8))
-                terminalReaderInputStream.flush()
-            } catch (e: IOException) {
-                error("Write to reader failed, msg = {}", e.message)
-            }
-        }
-        terminalConsoleTextArea.onMouseClicked = EventHandler { terminalConsoleTextArea.requestFocus() }
+        apply {
+            styled()
+            val scene = findComponent(TScene::class.java, 1)
+            val workspacePanel = findComponent(WorkspacePanel::class.java, 1)
+            workspacePanel.center = findComponent(DesktopTerminalPanel::class.java, id)
 
-        terminalConsoleTextArea.focusedProperty()
-            .addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
-                if (newVal) {
-                    activeTerminal()
-                    println("Terminal get focus")
-                } else {
-                    println("Terminal lose focus")
+            maxHeightProperty().bind(workspacePanel.prefHeightProperty())
+            maxWidthProperty().bind(workspacePanel.prefWidthProperty())
+            prefHeightProperty().bind(workspacePanel.prefHeightProperty().multiply(0.8))
+            prefWidthProperty().bind(workspacePanel.prefWidthProperty())
+            children.add(terminalScrollPane)
+
+            val ctrlU: KeyCombination = KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN)
+            scene.accelerators[ctrlU] = Runnable { terminalConsoleTextArea.clear() }
+            val ctrlT: KeyCombination = KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN)
+            scene.accelerators[ctrlT] = Runnable { terminalConsoleTextArea.clear() }
+        }
+
+        terminalOutputService.apply { start() }
+
+        terminalScrollPane.apply { initialize() }
+
+        terminalConsoleTextArea.apply {
+            initialize()
+
+            onInputMethodTextChanged = EventHandler { event: InputMethodEvent ->
+                if (StrUtil.isEmpty(event.committed)) {
+                    return@EventHandler
+                }
+                try {
+                    terminalReaderInputStream.write(event.committed.toByteArray(StandardCharsets.UTF_8))
+                    terminalReaderInputStream.flush()
+                } catch (e: IOException) {
+                    error("Write to reader failed, msg = ${e.message}")
                 }
             }
-        val ctrlU: KeyCombination = KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN)
-        scene.accelerators[ctrlU] = Runnable { terminalConsoleTextArea.clear() }
-        val ctrlT: KeyCombination = KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN)
-        scene.accelerators[ctrlT] = Runnable { terminalConsoleTextArea.clear() }
+            onKeyTyped = EventHandler { event: KeyEvent ->
+                if (event.isShortcutDown || event.isControlDown || event.isAltDown || event.isMetaDown) {
+                    return@EventHandler
+                }
+                try {
+                    terminalReaderInputStream.write(event.character.toByteArray(StandardCharsets.UTF_8))
+                    terminalReaderInputStream.flush()
+                } catch (e: IOException) {
+                    error("Write to reader failed, msg = ${e.message}")
+                }
+            }
+            onMouseClicked = EventHandler { terminalConsoleTextArea.requestFocus() }
+
+            focusedProperty()
+                .addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
+                    if (newVal) {
+                        activeTerminal()
+                        println("Terminal get focus")
+                    } else {
+                        println("Terminal lose focus")
+                    }
+                }
+        }
     }
 
     override fun actionAfterShow() {}
@@ -115,7 +125,7 @@ class DesktopTerminalPanel(id: Long) : TAnchorPane(id), IActiveAble, Loggable {
                         }
                         Thread.sleep(1)
                     } catch (e: Exception) {
-                        warn("TerminalOutputService catch excetion, e = {}, msg = {}", e.javaClass.name, e.message)
+                        warn("TerminalOutputService catch exception, e = ${e.javaClass.name}, msg = ${e.message}")
                     }
                 }
             }, "terminal-output-service")
