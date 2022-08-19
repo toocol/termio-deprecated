@@ -12,7 +12,7 @@ class TestEscapeSupporter: EscapeCodeSequenceSupporter<TestEscapeSupporter> {
 
     }
 
-    override fun getActionMap(): Map<Class<out IEscapeMode>, AnsiEscapeAction<TestEscapeSupporter>>? {
+    override fun getActionMap(): Map<Class<out IEscapeMode>, AnsiEscapeAction<TestEscapeSupporter>> {
         return mutableMapOf()
     }
 }
