@@ -34,6 +34,15 @@ public enum EscapeColorISOMode implements IEscapeMode {
     public final int colorCode;
     public final String hexCode;
 
+    public static EscapeColorISOMode codeOf(int code) {
+        for (EscapeColorISOMode value : values()) {
+            if (value.colorCode == code) {
+                return value;
+            }
+        }
+        return null;
+    }
+
 
     EscapeColorISOMode(int colorCode, String hexCode) {
         this.colorCode = colorCode;

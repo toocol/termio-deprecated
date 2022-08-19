@@ -68,13 +68,8 @@ public class TermioCommunityBootstrap extends Termio {
 
     public static void waitingStartDesktop() {
         try {
-            boolean ret = initialLatch.await(30, TimeUnit.SECONDS);
-            if (!ret) {
-                throw new RuntimeException("Waiting timeout.");
-            }
             while (true) {
                 if (Printer.LOADING_ACCOMPLISH) {
-                    loadingLatch.await();
                     vertx.eventBus().send(ACCEPT_COMMAND_DESKTOP.address(), null);
 
                     loadingLatch = null;

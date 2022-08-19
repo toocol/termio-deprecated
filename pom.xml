@@ -32,6 +32,7 @@
         <!-- third party dependency -->
         <kotlin.version>1.7.10</kotlin.version>
         <vertx.version>4.2.6</vertx.version>
+        <vertx-lang-kotlin-coroutines.version>4.3.3</vertx-lang-kotlin-coroutines.version>
         <jsch.version>0.1.55</jsch.version>
         <jline.version>2.14.2</jline.version>
         <commons.lang3.version>3.12.0</commons.lang3.version>
@@ -64,6 +65,11 @@
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-core</artifactId>
                 <version>${vertx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-lang-kotlin-coroutines</artifactId>
+                <version>${vertx-lang-kotlin-coroutines.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.jcraft</groupId>

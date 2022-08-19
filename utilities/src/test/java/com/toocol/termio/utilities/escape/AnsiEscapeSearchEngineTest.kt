@@ -17,6 +17,12 @@ internal class AnsiEscapeSearchEngineTest {
         regex.findAll(msg).forEach { line -> println(line.value.replace("\u001b", "ESC")) }
     }
 
+    @Test
+    fun testSearchEngine() {
+        val searchEngine = AnsiEscapeSearchEngine(TestEscapeSupporter())
+        searchEngine.actionOnEscapeMode(msg)
+    }
+
     companion object {
         private const val uberEscapeModePattern = """(\u001b\[\d{1,4};\d{1,4}[Hf])""" +
                 """|((\u001b\[\d{0,4}([HABCDEFGsu]|(6n)))|(\u001b [M78]))""" +
@@ -29,8 +35,16 @@ internal class AnsiEscapeSearchEngineTest {
                 """|(\u001b\[\?\d{2,4}[lh])""" +
                 """|(\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\w ]+((\\")|'|");?)|(\d{1,2};?))+p)"""
 
-        private const val msg = """[0m[1;49r[49;1H
-            [r[25;1H[root@vultrguest /]# ll -a
+        private const val msg = """[0;84;"Hello";0;110;"World"p
+            [?25l[?1049h
+            [=7l[=3l
+            [=0h[=3h[=7h[=19h
+            [38;2;123;33;23m[48;2;32;44;23m
+            [38;5;123m[48;5;32m
+            [32m[43m[101m
+            [J[0J[K[2K
+            [6E 7[6n[0m[1;49r[49;1H
+            [r[25;1H[root@vultrguest /]# ll -a\[6A
             total 80
             dr-xr-xr-x.  19 root root  4096 Jul  2 21:35 [0;1;34m.
             [0mdr-xr-xr-x.  19 root root  4096 Jul  2 21:35 [0;1;34m..

@@ -21,7 +21,7 @@ public enum EscapeCommonPrivateMode implements IEscapeMode {
         this.desc = desc;
     }
 
-    public EscapeCommonPrivateMode codeOf(String code) {
+    public static EscapeCommonPrivateMode codeOf(String code) {
         for (EscapeCommonPrivateMode mode : values()) {
             if (mode.code.equals(code)) {
                 return mode;

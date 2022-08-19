@@ -30,7 +30,7 @@ public enum EscapeCursorControlMode implements IEscapeMode {
         this.desc = desc;
     }
 
-    public EscapeCursorControlMode codeOf(String code) {
+    public static EscapeCursorControlMode codeOf(String code) {
         for (EscapeCursorControlMode mode : values()) {
             if (mode.code.equals(code)) {
                 return mode;

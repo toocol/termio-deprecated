@@ -70,17 +70,20 @@ class TerminalConsoleTextArea(private val id: Long) : EscapedTextStyleClassArea(
         useInitialStyleForInsertion = true
         showCaret = Caret.CaretVisibility.OFF
         inputMethodRequests = InputMethodRequestsObject()
-        updateDefaultChineseStyle(TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc"))
-            .updateFontSize(9))
-        updateDefaultEnglishStyle(TextStyle.EMPTY.updateFontFamily("\"Consolas\"")
-            .updateTextColor(Color.valueOf("#cccccc")).updateFontSize(10))
+        updateDefaultChineseStyle(
+            TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(9)
+        )
+        updateDefaultEnglishStyle(
+            TextStyle.EMPTY.updateFontFamily("\"Consolas\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(10)
+        )
         val desktopTerminalPanel = findComponent(DesktopTerminalPanel::class.java, id)
         prefWidthProperty().bind(desktopTerminalPanel.prefWidthProperty().multiply(1))
         prefHeightProperty().bind(desktopTerminalPanel.prefHeightProperty().multiply(0.99))
 
         /*
          * Prevent auto caret movement when user pressed '←', '→', '↑', '↓', 'Home', 'PgUp', 'PgDn', instead of setting the caret manually
-         */addEventFilter(KeyEvent.ANY) { event: KeyEvent ->
+         */
+        addEventFilter(KeyEvent.ANY) { event: KeyEvent ->
             when (event.code) {
                 KeyCode.LEFT -> {
                     event.consume()

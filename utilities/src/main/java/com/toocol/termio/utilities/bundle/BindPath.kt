@@ -1,25 +1,20 @@
-package com.toocol.termio.utilities.bundle;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package com.toocol.termio.utilities.bundle
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/10 22:23
  * @version: 0.0.1
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface BindPath {
+@Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class BindPath(
     /**
      * The path to bundle message properties
      */
-    String bundlePath();
+    val bundlePath: String,
 
     /**
      * the path to the message properties
      */
-    String[] languages();
-}
+    val languages: Array<String>
+)

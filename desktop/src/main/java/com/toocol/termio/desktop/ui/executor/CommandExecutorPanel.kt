@@ -39,44 +39,50 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
     }
 
     override fun initialize() {
-        styled()
-        val workspacePanel = findComponent(WorkspacePanel::class.java, id)
-        workspacePanel.bottom = this
-        prefWidthProperty().bind(workspacePanel.prefWidthProperty().multiply(1))
-        prefHeightProperty().bind(workspacePanel.prefHeightProperty().multiply(0.3))
-        commandExecutorInput.initialize()
-        commandExecutorResultTextArea.initialize()
-        commandExecutorResultScrollPane.initialize()
-        executorOutputService.start()
-        commandExecutorInput.addEventFilter(KeyEvent.KEY_TYPED) { event: KeyEvent ->
-            if (StrUtil.isNewLine(event.character)) {
-                try {
-                    executorReaderInputStream.write((commandExecutorInput.text + StrUtil.LF).toByteArray(StandardCharsets.UTF_8))
-                    executorReaderInputStream.flush()
-                } catch (e: IOException) {
-                    error("Write to reader failed, msg = {}", e.message)
-                }
-                event.consume()
-            }
-        }
-        commandExecutorInput.focusedProperty()
-            .addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
+        apply {
+            styled()
+            val workspacePanel = findComponent(WorkspacePanel::class.java, id)
+            workspacePanel.bottom = this
+            prefWidthProperty().bind(workspacePanel.prefWidthProperty().multiply(1))
+            prefHeightProperty().bind(workspacePanel.prefHeightProperty().multiply(0.3))
+
+            focusedProperty().addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
                 if (newVal) {
                     setPrinter(commandExecutorPrintStream)
-                    println("Executor input get focus")
+                    println("Executor get focus")
                 } else {
-                    println("Executor input lose focus")
+                    println("Executor lose focus")
                 }
             }
-        focusedProperty().addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
-            if (newVal) {
-                setPrinter(commandExecutorPrintStream)
-                println("Executor get focus")
-            } else {
-                println("Executor lose focus")
-            }
         }
-        commandExecutorInput.onMouseClicked = EventHandler { commandExecutorInput.requestFocus() }
+
+        executorOutputService.apply { start() }
+        commandExecutorResultTextArea.apply { initialize() }
+        commandExecutorResultScrollPane.apply { initialize() }
+        commandExecutorInput.apply {
+            initialize()
+            addEventFilter(KeyEvent.KEY_TYPED) { event: KeyEvent ->
+                if (StrUtil.isNewLine(event.character)) {
+                    try {
+                        executorReaderInputStream.write((commandExecutorInput.text + StrUtil.LF).toByteArray(StandardCharsets.UTF_8))
+                        executorReaderInputStream.flush()
+                    } catch (e: IOException) {
+                        error("Write to reader failed, msg = ${e.message}")
+                    }
+                    event.consume()
+                }
+            }
+            focusedProperty()
+                .addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
+                    if (newVal) {
+                        setPrinter(commandExecutorPrintStream)
+                        println("Executor input get focus")
+                    } else {
+                        println("Executor input lose focus")
+                    }
+                }
+            onMouseClicked = EventHandler { commandExecutorInput.requestFocus() }
+        }
     }
 
     override fun actionAfterShow() {
@@ -94,7 +100,7 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
                         }
                         Thread.sleep(1)
                     } catch (e: Exception) {
-                        warn("TerminalOutputService catch excetion, e = {}, msg = {}", e.javaClass.name, e.message)
+                        warn("TerminalOutputService catch exception, e = ${e.javaClass.name}, msg = ${e.message}")
                     }
                 }
             }, "terminal-output-service")

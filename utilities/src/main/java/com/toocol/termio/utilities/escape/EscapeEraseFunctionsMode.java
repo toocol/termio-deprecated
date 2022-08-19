@@ -24,7 +24,7 @@ public enum EscapeEraseFunctionsMode implements IEscapeMode {
         this.desc = desc;
     }
 
-    public EscapeEraseFunctionsMode codeOf(String code) {
+    public static EscapeEraseFunctionsMode codeOf(String code) {
         for (EscapeEraseFunctionsMode mode : values()) {
             if (mode.code.equals(code)) {
                 return mode;

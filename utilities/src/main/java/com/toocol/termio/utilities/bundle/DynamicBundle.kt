@@ -1,12 +1,8 @@
-package com.toocol.termio.utilities.bundle;
+package com.toocol.termio.utilities.bundle
 
-import com.google.common.collect.ImmutableMap;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import com.google.common.collect.ImmutableMap
+import java.util.*
+import javax.annotation.Nonnull
 
 /**
  * A DynamicBundle should be annotated with @BindPath
@@ -15,57 +11,41 @@ import java.util.Map;
  * @date: 2022/8/10 22:10
  * @version: 0.0.1
  */
-public abstract class DynamicBundle {
-    private final Map<Locale, BundleMessage> bundleMessages;
+abstract class DynamicBundle protected constructor() {
+    private var bundleMessages: Map<Locale, BundleMessage>? = null
+    private var initialize = false
 
-    private boolean initialize = false;
+    init {
+        val bindPath = this.javaClass.getAnnotation(BindPath::class.java)
 
-    protected DynamicBundle() {
-        BindPath bindPath = this.getClass().getAnnotation(BindPath.class);
-        int length = bindPath.languages().length;
-        if (length == 0) {
-            bundleMessages = null;
-            return;
-        }
-
-        Map<Locale, BundleMessage> map = new HashMap<>();
-        int sucCnt = 0;
-        for (String language : bindPath.languages()) {
-            Locale locale = Locale.forLanguageTag(language);
-            if (locale == null) {
-                continue;
+        when(bindPath.languages.size) {
+            0 -> {}
+            else -> {
+                val map: MutableMap<Locale, BundleMessage> = HashMap()
+                var sucCnt = 0
+                for (language in bindPath.languages) {
+                    val locale = Locale.forLanguageTag(language) ?: continue
+                    val bundleMessage = BundleMessage(bindPath.bundlePath + "_" + language, locale)
+                    val suc = bundleMessage.load()
+                    if (!suc) {
+                        continue
+                    }
+                    sucCnt++
+                    map[locale] = bundleMessage
+                }
+                if (sucCnt != 0) {
+                    bundleMessages = ImmutableMap.copyOf(map)
+                    initialize = true
+                }
             }
-            BundleMessage bundleMessage = new BundleMessage(bindPath.bundlePath() + "_" + language, locale);
-            boolean suc = bundleMessage.load();
-            if (!suc) {
-                continue;
-            }
-            sucCnt++;
-            map.put(locale, bundleMessage);
         }
-        if (sucCnt == 0) {
-            bundleMessages = null;
-            return;
-        }
-        bundleMessages = ImmutableMap.copyOf(map);
-        initialize = true;
     }
 
-    @Nullable
-    public String message(@Nonnull Locale locale, @Nonnull String key, Object... params) {
+    fun message(@Nonnull locale: Locale = Locale.getDefault(), @Nonnull key: String, vararg fillParams: Any?): String? {
         if (!initialize) {
-            return null;
+            return null
         }
-        BundleMessage bundleMessage = bundleMessages.get(locale);
-        if (bundleMessage == null) {
-            return null;
-        }
-        return bundleMessage.get(key, params);
+        val bundleMessage = bundleMessages!![locale] ?: return null
+        return bundleMessage.get(key, *fillParams)
     }
-
-    @Nullable
-    public String message(@Nonnull String key, Object... params) {
-        return message(Locale.ENGLISH, key, params);
-    }
-
 }

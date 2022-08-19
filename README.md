@@ -16,7 +16,7 @@
 
 <div align="center" >
 
-![Purely java project](https://img.shields.io/badge/Language-Java/OracleOpenJDK17-orange) ![License](https://img.shields.io/badge/License-Apache--2.0-red) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux-%2320B2AA) 
+![Purely java project](https://img.shields.io/badge/Language-Java/Kotlin-orange) ![License](https://img.shields.io/badge/License-Apache--2.0-red) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux-%2320B2AA) 
 
 </div>
 
