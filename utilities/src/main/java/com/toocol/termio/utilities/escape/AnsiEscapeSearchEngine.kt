@@ -1,7 +1,5 @@
 package com.toocol.termio.utilities.escape
 
-import com.google.common.collect.ImmutableMap
-import com.toocol.termio.utilities.escape.actions.AnsiEscapeAction
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.Castable
 import com.toocol.termio.utilities.utils.StrUtil
@@ -14,10 +12,8 @@ import java.util.function.BiConsumer
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/8 10:45
  */
-class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>>(private val executeTarget: T) : Loggable, Castable {
-    private var actionMap: Map<Class<out IEscapeMode>, AnsiEscapeAction<T>>? = null
-
-    companion object {
+class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Castable {
+    companion object Instance {
         private val wordNumberRegex = Regex(pattern = """\w+""")
         private val numberRegex = Regex(pattern = """\d+""")
         private val wordRegex = Regex(pattern = """[a-zA-Z]+""")
@@ -75,11 +71,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>>(private val exe
      *
      * Then we print out the split text in loop, and getting and invoking AnsiEscapeAction from the head of Queue<Tuple<IEscapeMode,List<Object>>>.
      */
-    fun actionOnEscapeMode(text: String) {
-        if (actionMap == null) {
-            warn("AnsiEscapeSearchEngine is not initialized.")
-            return
-        }
+    fun actionOnEscapeMode(text: String, executeTarget: T) {
         val queue: Queue<Tuple2<IEscapeMode, List<Any>>> = ArrayDeque()
         val split = text.split(uberEscapeModeRegex).toTypedArray()
         uberEscapeModeRegex.findAll(text).forEach { lineRet ->
@@ -221,6 +213,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>>(private val exe
                     } }
             }, dealAlready)
         }
+        val actionMap = executeTarget.getActionMap()
         for (sp in split) {
             if (StrUtil.isNotEmpty(sp)) {
                 executeTarget.printOut(sp)
@@ -250,17 +243,5 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>>(private val exe
         func.accept(match.value, tuple)
         tuple._1() ?: return null
         return tuple
-    }
-
-    private fun registerActions(actions: List<AnsiEscapeAction<T>>) {
-        val map: MutableMap<Class<out IEscapeMode>, AnsiEscapeAction<T>> = HashMap()
-        for (action in actions) {
-            map[action.focusMode()] = action
-        }
-        actionMap = ImmutableMap.copyOf(map)
-    }
-
-    init {
-        registerActions(executeTarget.registerActions())
     }
 }

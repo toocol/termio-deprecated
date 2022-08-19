@@ -19,8 +19,8 @@ internal class AnsiEscapeSearchEngineTest {
 
     @Test
     fun testSearchEngine() {
-        val searchEngine = AnsiEscapeSearchEngine(TestEscapeSupporter())
-        searchEngine.actionOnEscapeMode(msg)
+        val searchEngine: AnsiEscapeSearchEngine<TestEscapeSupporter> = AnsiEscapeSearchEngine()
+        searchEngine.actionOnEscapeMode(msg, TestEscapeSupporter())
     }
 
     companion object {

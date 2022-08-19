@@ -1,5 +1,6 @@
 package com.toocol.termio.platform.text
 
+import com.google.common.collect.ImmutableMap
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.utilities.escape.AnsiEscapeSearchEngine
 import com.toocol.termio.utilities.escape.EscapeCodeSequenceSupporter
@@ -52,6 +53,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     protected var cursor: Cursor
 
     private var ansiEscapeSearchEngine: AnsiEscapeSearchEngine<EscapedTextStyleClassArea>? = null
+    private var actionMap: Map<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>>? = null
 
     fun updateDefaultChineseStyle(style: TextStyle) {
         defaultChineseTextStyle = style
@@ -61,13 +63,22 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         defaultEnglishTextStyle = style
     }
 
-    override fun registerActions(): MutableList<AnsiEscapeAction<EscapedTextStyleClassArea>> {
-        val actionList: MutableList<AnsiEscapeAction<EscapedTextStyleClassArea>> = ArrayList()
-        actionList.add(EscapeCursorControlAction())
-        return actionList
+    override fun getActionMap(): Map<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>>? {
+        return actionMap
     }
 
     override fun printOut(text: String) {}
+
+    private fun registerActions() {
+        val actions: MutableList<AnsiEscapeAction<EscapedTextStyleClassArea>> = ArrayList()
+        actions.add(EscapeCursorControlAction())
+        val map: MutableMap<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>> = HashMap()
+        for (action in actions) {
+            map[action.focusMode()] = action
+        }
+        actionMap = ImmutableMap.copyOf(map)
+    }
+
     private class EscapeCursorControlAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
         override fun focusMode(): Class<out IEscapeMode> {
             return EscapeCursorControlMode::class.java
@@ -81,10 +92,16 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             ParagraphStyle.CODEC,
             Codec.styledSegmentCodec(Codec.STRING_CODEC, TextStyle.CODEC)
         )
+        registerActions()
+
         defaultChineseTextStyle = TextStyle.EMPTY
         defaultEnglishTextStyle = TextStyle.EMPTY
         cursor = Cursor(id)
-        ansiEscapeSearchEngine = AnsiEscapeSearchEngine(this)
+        ansiEscapeSearchEngine = AnsiEscapeSearchEngine()
+    }
+
+    override fun id(): Long {
+        return id
     }
 
     companion object {
@@ -95,9 +112,5 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         ): Node {
             return StyledTextArea.createStyledTextNode(seg.segment, seg.style, applyStyle)
         }
-    }
-
-    override fun id(): Long {
-        return id
     }
 }

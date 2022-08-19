@@ -8,7 +8,7 @@ import com.toocol.termio.utilities.escape.actions.AnsiEscapeAction
  * @version: 0.0.1
  */
 interface EscapeCodeSequenceSupporter<T> {
-    fun registerActions(): List<AnsiEscapeAction<T>>
+    fun getActionMap(): Map<Class<out IEscapeMode>, AnsiEscapeAction<T>>?
 
     fun printOut(text: String)
 }

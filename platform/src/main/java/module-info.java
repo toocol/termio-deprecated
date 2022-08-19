@@ -7,6 +7,7 @@ module termio.platform {
     requires io.vertx.core;
     requires org.fxmisc.richtext;
     requires kotlin.stdlib;
+    requires com.google.common;
 
     exports com.toocol.termio.platform.console;
     exports com.toocol.termio.platform.component;
