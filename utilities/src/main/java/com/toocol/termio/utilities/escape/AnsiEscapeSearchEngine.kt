@@ -14,7 +14,7 @@ import java.util.function.Consumer
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/8 10:45
  */
-class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>?>(private val executeTarget: T) : Loggable, Castable {
+class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>>(private val executeTarget: T) : Loggable, Castable {
     private var actionMap: Map<Class<out IEscapeMode>, AnsiEscapeAction<T>>? = null
 
     companion object {
@@ -81,7 +81,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>?>(private val ex
             warn("AnsiEscapeSearchEngine is not initialized.")
             return
         }
-        val queue: Queue<Tuple2<IEscapeMode?, List<Any>>> = ArrayDeque()
+        val queue: Queue<Tuple2<IEscapeMode, List<Any>>> = ArrayDeque()
         val split = text.split(uberEscapeModeRegex).toTypedArray()
         uberEscapeModeRegex.findAll(text).forEach { lineRet ->
             val escapeSequence = lineRet.value;
@@ -133,7 +133,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>?>(private val ex
         }
         for (sp in split) {
             if (StrUtil.isNotEmpty(sp)) {
-                executeTarget!!.printOut(sp)
+                executeTarget.printOut(sp)
             }
             if (!queue.isEmpty()) {
                 val tuple = queue.poll()
@@ -162,6 +162,6 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>?>(private val ex
     }
 
     init {
-        registerActions(executeTarget!!.registerActions())
+        registerActions(executeTarget.registerActions())
     }
 }

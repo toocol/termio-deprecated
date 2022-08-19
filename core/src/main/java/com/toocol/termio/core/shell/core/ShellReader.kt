@@ -16,7 +16,7 @@ class ShellReader(private val shell: Shell, private val reader: ConsoleReader?) 
         /*
          * custom handle CTRL+C
          */
-        Signal.handle(Signal("INT")) { signal: Signal? ->
+        Signal.handle(Signal("INT")) {
             if (Term.status == TermStatus.TERMIO) {
                 return@handle
             }
