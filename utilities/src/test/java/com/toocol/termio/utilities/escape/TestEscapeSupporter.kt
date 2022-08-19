@@ -8,11 +8,11 @@ import com.toocol.termio.utilities.escape.actions.AnsiEscapeAction
  * @version: 0.0.1
  */
 class TestEscapeSupporter: EscapeCodeSequenceSupporter<TestEscapeSupporter> {
-    override fun registerActions(): List<AnsiEscapeAction<TestEscapeSupporter>> {
-        return mutableListOf()
-    }
-
     override fun printOut(text: String) {
 
+    }
+
+    override fun getActionMap(): Map<Class<out IEscapeMode>, AnsiEscapeAction<TestEscapeSupporter>>? {
+        return mutableMapOf()
     }
 }
