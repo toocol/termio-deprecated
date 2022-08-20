@@ -16,6 +16,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -34,13 +35,14 @@ public final class BlockingExecuteCmdInShellHandler extends BlockingMessageHandl
         super(vertx, context, parallel);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return ShellAddress.EXECUTE_SINGLE_COMMAND_IN_CERTAIN_SHELL;
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<String> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(@NotNull Promise<String> promise, @NotNull Message<T> message) throws Exception {
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String cmd = request.getString("cmd");
@@ -79,7 +81,7 @@ public final class BlockingExecuteCmdInShellHandler extends BlockingMessageHandl
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(@NotNull AsyncResult<String> asyncResult, @NotNull Message<T> message) throws Exception {
         if (asyncResult.succeeded()) {
             message.reply(asyncResult.result());
         } else {

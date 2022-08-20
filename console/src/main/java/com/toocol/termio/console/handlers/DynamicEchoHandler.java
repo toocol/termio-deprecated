@@ -16,7 +16,9 @@ import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
@@ -38,8 +40,14 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
         super(vertx, context);
     }
 
+    @NotNull
     @Override
-    public <T> void handleInline(Message<T> message) {
+    public IAddress consume() {
+        return TermAddress.TERMINAL_ECHO;
+    }
+
+    @Override
+    public <T> void handleInline(@NotNull Message<T> message) {
         String cmd = cast(message.body());
         int backgroundColor = Term.theme.displayBackGroundColor.color;
         int commandHighlightColor = Term.theme.commandHighlightColor.color;
@@ -108,11 +116,6 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
                 lastInput = builder.toString();
             }
         }
-    }
-
-    @Override
-    public IAddress consume() {
-        return TermAddress.TERMINAL_ECHO;
     }
 
     private void spaceProcess(Term term, String cmd) {

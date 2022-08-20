@@ -22,6 +22,8 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,7 +49,7 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<JsonObject> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(@NotNull Promise<JsonObject> promise, @NotNull Message<T> message) throws Exception {
         JsonObject ret = new JsonObject();
         JsonArray success = new JsonArray();
         JsonArray failed = new JsonArray();
@@ -119,7 +121,7 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<JsonObject> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(@NotNull AsyncResult<JsonObject> asyncResult, @NotNull Message<T> message) throws Exception {
 
         if (asyncResult.succeeded()) {
             Term term = Term.instance;
@@ -175,6 +177,7 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
 
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return SshAddress.ACTIVE_SSH_SESSION;

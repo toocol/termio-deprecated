@@ -14,7 +14,9 @@ import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -30,13 +32,14 @@ public final class ExecuteCommandHandler extends NonBlockingMessageHandler {
         super(vertx, context);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return TermAddress.EXECUTE_OUTSIDE_CONSOLE;
     }
 
     @Override
-    public <T> void handleInline(Message<T> message) {
+    public <T> void handleInline(@NotNull Message<T> message) {
         String cmd = String.valueOf(message.body());
 
         Tuple2<Boolean, String> resultAndMessage = new Tuple2<>();

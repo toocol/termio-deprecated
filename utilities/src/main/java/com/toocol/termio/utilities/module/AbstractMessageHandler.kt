@@ -1,50 +1,46 @@
-package com.toocol.termio.utilities.module;
+package com.toocol.termio.utilities.module
 
-import com.toocol.termio.utilities.execeptions.IStacktraceParser;
-import com.toocol.termio.utilities.log.Loggable;
-import com.toocol.termio.utilities.utils.Castable;
-import io.vertx.core.Context;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.Message;
+import com.toocol.termio.utilities.execeptions.IStacktraceParser
+import com.toocol.termio.utilities.log.Loggable
+import com.toocol.termio.utilities.utils.Castable
+import io.vertx.core.Context
+import io.vertx.core.Vertx
+import io.vertx.core.eventbus.EventBus
+import io.vertx.core.eventbus.Message
+import org.jetbrains.annotations.NotNull
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 10:34
  */
-public abstract class AbstractMessageHandler implements Castable, Loggable, IStacktraceParser {
-    /**
-     * the vertx system object.
-     */
-    protected final Vertx vertx;
-    /**
-     * the context of verticle.
-     */
-    protected final Context context;
+abstract class AbstractMessageHandler protected constructor(
+    @JvmField
+    // the vertx system object.
+    protected val vertx: Vertx,
+    @JvmField
+    // the context of verticle.
+    protected val context: Context,
+) : Castable, Loggable, IStacktraceParser {
+
     /**
      * the event bus of Vert.x
      */
-    protected final EventBus eventBus;
-
-    protected AbstractMessageHandler(Vertx vertx, Context context) {
-        this.vertx = vertx;
-        this.context = context;
-        this.eventBus = vertx.eventBus();
-    }
+    @JvmField
+    protected val eventBus: EventBus = vertx.eventBus()
 
     /**
      * handle the message event
      *
      * @param message message event
      * @param <T>     generic type
-     */
-    public abstract <T> void handle(Message<T> message);
+    </T> */
+    abstract fun <T> handle(message: Message<T>)
 
     /**
      * return the address that handler handle of.
      *
      * @return address
      */
-    public abstract IAddress consume();
-
+    @NotNull
+    abstract fun consume(): IAddress
 }

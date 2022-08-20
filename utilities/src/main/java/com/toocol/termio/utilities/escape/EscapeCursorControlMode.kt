@@ -1,11 +1,11 @@
-package com.toocol.termio.utilities.escape;
+package com.toocol.termio.utilities.escape
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/7 21:46
  * @version: 0.0.1
  */
-public enum EscapeCursorControlMode implements IEscapeMode {
+enum class EscapeCursorControlMode(val code: String, val desc: String) : IEscapeMode {
     MOVE_CURSOR_TO_CERTAIN("Hf", "ESC[#;#H /Moves cursor to line <b>#</b>, column <b>#</b>."),
     MOVE_HOME_POSITION("H", "moves cursor to home position (0, 0)."),
     MOVE_CURSOR_UP("A", "moves cursor up # lines (# represent a num)."),
@@ -20,22 +20,16 @@ public enum EscapeCursorControlMode implements IEscapeMode {
     SAVE_CURSOR_POSITION_DEC("7", "save cursor position (DEC)."),
     RESTORE_CURSOR_POSITION_DEC("8", "restores the cursor to the last saved position (DEC)."),
     SAVE_CURSOR_POSITION_SCO("s", "save cursor position (SCO)."),
-    RESTORE_CURSOR_POSITION_SCO("u", "restores the cursor to the last saved position (SCO)."),
-    ;
-    public final String code;
-    public final String desc;
+    RESTORE_CURSOR_POSITION_SCO("u", "restores the cursor to the last saved position (SCO).");
 
-    EscapeCursorControlMode(String code, String desc) {
-        this.code = code;
-        this.desc = desc;
-    }
-
-    public static EscapeCursorControlMode codeOf(String code) {
-        for (EscapeCursorControlMode mode : values()) {
-            if (mode.code.equals(code)) {
-                return mode;
+    companion object {
+        fun codeOf(code: String?): EscapeCursorControlMode? {
+            for (mode in values()) {
+                if (mode.code == code) {
+                    return mode
+                }
             }
+            return null
         }
-        return null;
     }
 }

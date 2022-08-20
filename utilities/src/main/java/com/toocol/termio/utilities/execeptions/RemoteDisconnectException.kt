@@ -1,13 +1,9 @@
-package com.toocol.termio.utilities.execeptions;
+package com.toocol.termio.utilities.execeptions
+
+import java.lang.RuntimeException
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/19 16:49
  */
-public class RemoteDisconnectException extends RuntimeException {
-
-    public RemoteDisconnectException(String message) {
-        super(message);
-    }
-
-}
+class RemoteDisconnectException(message: String?) : RuntimeException(message)

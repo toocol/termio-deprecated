@@ -1,6 +1,6 @@
-package com.toocol.termio.utilities.escape;
+package com.toocol.termio.utilities.escape
 
-public enum EscapeColorGraphicsMode implements IEscapeMode {
+enum class EscapeColorGraphicsMode(val code: Int) : IEscapeMode {
     RESET_ALL_MODE(0),
     BOLD_MODE(1),
     DIM_FAINT_MODE(2),
@@ -16,20 +16,16 @@ public enum EscapeColorGraphicsMode implements IEscapeMode {
     HIDDEN_VISIBLE_MODE(8),
     RESET_HIDDEN_VISIBLE(28),
     STRIKETHROUGH_MODE(9),
-    RESET_STRIKETHROUGH(29),
-    ;
-    public final int code;
+    RESET_STRIKETHROUGH(29);
 
-    EscapeColorGraphicsMode(int code) {
-        this.code = code;
-    }
-
-    public static EscapeColorGraphicsMode codeOf(int code) {
-        for (EscapeColorGraphicsMode mode : values()) {
-            if (mode.code == code) {
-                return mode;
+    companion object {
+        fun codeOf(code: Int): EscapeColorGraphicsMode? {
+            for (mode in values()) {
+                if (mode.code == code) {
+                    return mode
+                }
             }
+            return null
         }
-        return null;
     }
 }

@@ -13,6 +13,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.Nonnull;
 
 import static com.toocol.termio.core.auth.AuthAddress.DELETE_CREDENTIAL;
 
@@ -28,13 +31,14 @@ public final class DeleteCredentialHandler extends NonBlockingMessageHandler {
         super(vertx, context);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return DELETE_CREDENTIAL;
     }
 
     @Override
-    public <T> void handleInline(Message<T> message) {
+    public <T> void handleInline(@NotNull Message<T> message) {
         int index = cast(message.body());
         String host = credentialCache.deleteCredential(index);
         if (StringUtils.isNotEmpty(host)) {
@@ -56,10 +60,8 @@ public final class DeleteCredentialHandler extends NonBlockingMessageHandler {
             }
         }
 
-        if (credentialsJson != null) {
-            vertx.fileSystem().writeFile(filePath, Buffer.buffer(credentialsJson), result -> {
-            });
-        }
+        vertx.fileSystem().writeFile(filePath, Buffer.buffer(credentialsJson), result -> {
+        });
 
         message.reply(null);
     }

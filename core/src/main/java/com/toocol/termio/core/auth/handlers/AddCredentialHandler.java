@@ -11,6 +11,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
+import org.jetbrains.annotations.NotNull;
 
 import static com.toocol.termio.core.auth.AuthAddress.ADD_CREDENTIAL;
 
@@ -26,13 +27,14 @@ public final class AddCredentialHandler extends NonBlockingMessageHandler {
         super(vertx, context);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return ADD_CREDENTIAL;
     }
 
     @Override
-    public <T> void handleInline(Message<T> message) {
+    public <T> void handleInline(@NotNull Message<T> message) {
         SshCredential credential = SshCredential.transFromJson(cast(message.body()));
         credentialCache.addCredential(credential);
 
@@ -50,10 +52,8 @@ public final class AddCredentialHandler extends NonBlockingMessageHandler {
             }
         }
 
-        if (credentialsJson != null) {
-            vertx.fileSystem().writeFile(filePath, Buffer.buffer(credentialsJson), result -> {
-            });
-        }
+        vertx.fileSystem().writeFile(filePath, Buffer.buffer(credentialsJson), result -> {
+        });
 
         message.reply(null);
     }

@@ -1,30 +1,28 @@
-package com.toocol.termio.utilities.module;
+package com.toocol.termio.utilities.module
 
-import com.toocol.termio.utilities.utils.MessageBox;
-import io.vertx.core.Context;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.Message;
+import com.toocol.termio.utilities.utils.MessageBox
+import io.vertx.core.Context
+import io.vertx.core.Vertx
+import io.vertx.core.eventbus.Message
+import org.jetbrains.annotations.NotNull
+import kotlin.system.exitProcess
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/6/27 10:40
  */
-public abstract class NonBlockingMessageHandler extends AbstractMessageHandler {
+abstract class NonBlockingMessageHandler protected constructor(vertx: Vertx, context: Context)
+    : AbstractMessageHandler(vertx, context) {
 
-    protected NonBlockingMessageHandler(Vertx vertx, Context context) {
-        super(vertx, context);
-    }
-
-    @Override
-    public <T> void handle(Message<T> message) {
+    override fun <T> handle(message: Message<T>) {
         try {
-            handleInline(message);
-        } catch (Exception e) {
-            MessageBox.setExitMessage("Caught exception, exit program, message = " + e.getMessage());
-            error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e));
-            System.exit(-1);
+            handleInline(message)
+        } catch (e: Exception) {
+            MessageBox.setExitMessage("Caught exception, exit program, message = " + e.message)
+            error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e))
+            exitProcess(-1)
         }
     }
 
-    public abstract <T> void handleInline(Message<T> message);
+    abstract fun <T> handleInline(@NotNull message: Message<T>)
 }

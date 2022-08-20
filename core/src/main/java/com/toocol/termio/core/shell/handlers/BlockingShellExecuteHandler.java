@@ -24,6 +24,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
@@ -42,13 +43,14 @@ public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Lo
         super(vertx, context, parallel);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return ShellAddress.RECEIVE_SHELL;
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<Long> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(@NotNull Promise<Long> promise, @NotNull Message<T> message) throws Exception {
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = true;
 
         long sessionId = cast(message.body());
@@ -179,7 +181,7 @@ public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Lo
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(@NotNull AsyncResult<Long> asyncResult, @NotNull Message<T> message) throws Exception {
         StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING = false;
         Term.status = TermStatus.TERMIO;
 

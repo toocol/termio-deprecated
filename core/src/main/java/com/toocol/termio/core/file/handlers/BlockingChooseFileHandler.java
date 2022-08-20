@@ -9,6 +9,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -21,19 +22,20 @@ public final class BlockingChooseFileHandler extends BlockingMessageHandler<Stri
         super(vertx, context, parallel);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return FileAddress.CHOOSE_FILE;
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<String> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(@NotNull Promise<String> promise, @NotNull Message<T> message) throws Exception {
         FileChooser fileChooser = new FileChooser();
         promise.complete(fileChooser.showOpenDialog());
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<String> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(@NotNull AsyncResult<String> asyncResult, @NotNull Message<T> message) throws Exception {
         message.reply(asyncResult.result());
     }
 }

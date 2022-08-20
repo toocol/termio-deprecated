@@ -4,19 +4,20 @@ import com.jcraft.jsch.ChannelShell;
 import com.toocol.termio.core.cache.ShellCache;
 import com.toocol.termio.core.cache.SshSessionCache;
 import com.toocol.termio.core.cache.StatusCache;
+import com.toocol.termio.core.shell.ShellAddress;
 import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.ansi.Printer;
-import com.toocol.termio.utilities.module.BlockingMessageHandler;
 import com.toocol.termio.utilities.log.Loggable;
+import com.toocol.termio.utilities.module.BlockingMessageHandler;
+import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.sync.SharedCountdownLatch;
-import com.toocol.termio.core.shell.ShellAddress;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -39,13 +40,14 @@ public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Lo
         super(vertx, context, parallel);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return ShellAddress.DISPLAY_SHELL;
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<Long> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(@NotNull Promise<Long> promise, @NotNull Message<T> message) throws Exception {
         long sessionId = cast(message.body());
 
         Shell shell = shellCache.getShell(sessionId);
@@ -132,7 +134,7 @@ public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Lo
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(@NotNull AsyncResult<Long> asyncResult, @NotNull Message<T> message) throws Exception {
         if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
             StatusCache.JUST_CLOSE_EXHIBIT_SHELL = false;
             cmdHasFeedbackWhenJustExit = false;

@@ -1,18 +1,18 @@
-package com.toocol.termio.utilities.action;
+package com.toocol.termio.utilities.action
 
-import com.toocol.termio.utilities.event.CharEvent;
+import com.toocol.termio.utilities.event.CharEvent
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 18:23
  */
-public abstract class AbstractCharAction<D extends AbstractDevice> {
+abstract class AbstractCharAction<D : AbstractDevice?> {
     /**
      * subscribe the interested char event;
      *
      * @return interested char event
      */
-    public abstract CharEvent[] watch();
+    abstract fun watch(): Array<CharEvent?>?
 
     /**
      * @param device    the char event action which belongs to.
@@ -20,5 +20,5 @@ public abstract class AbstractCharAction<D extends AbstractDevice> {
      * @param inChar    the input char.
      * @return true: break the outside loop; false: continue
      */
-    public abstract boolean act(D device, CharEvent charEvent, char inChar);
+    abstract fun act(device: D, charEvent: CharEvent?, inChar: Char): Boolean
 }

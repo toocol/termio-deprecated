@@ -8,6 +8,8 @@ module termio.desktop {
     requires org.apache.commons.io;
     requires org.apache.commons.codec;
     requires org.apache.commons.lang3;
+    requires kotlin.stdlib;
+    requires annotations;
 
     requires javafx.controls;
     requires javafx.fxml;
@@ -16,7 +18,6 @@ module termio.desktop {
     requires org.fxmisc.flowless;
     requires org.controlsfx.controls;
     requires reactfx;
-    requires kotlin.stdlib;
 
     requires termio.utilities;
     requires termio.core;

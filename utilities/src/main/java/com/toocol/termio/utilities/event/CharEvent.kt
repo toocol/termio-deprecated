@@ -1,12 +1,12 @@
-package com.toocol.termio.utilities.event;
+package com.toocol.termio.utilities.event
 
-import com.toocol.termio.utilities.utils.CharUtil;
+import com.toocol.termio.utilities.utils.CharUtil
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 10:11
  */
-public enum CharEvent {
+enum class CharEvent(val represent: Char) {
     UP_ARROW(CharUtil.UP_ARROW),
     DOWN_ARROW(CharUtil.DOWN_ARROW),
     LEFT_ARROW(CharUtil.LEFT_ARROW),
@@ -18,26 +18,24 @@ public enum CharEvent {
     CTRL_U(CharUtil.CTRL_U),
     CTRL_K(CharUtil.CTRL_K),
     ESCAPE(CharUtil.ESCAPE),
-    ASCII_PRINTABLE('\0'),
-    CHINESE_CHARACTER('\0');
-    public final char represent;
+    ASCII_PRINTABLE('\u0000'),
+    CHINESE_CHARACTER('\u0000');
 
-    CharEvent(char represent) {
-        this.represent = represent;
-    }
-
-    public static CharEvent eventOf(char ch) {
-        if (CharUtil.isAsciiPrintable(ch)) {
-            return ASCII_PRINTABLE;
-        }
-        if (CharUtil.isChinese(ch)) {
-            return CHINESE_CHARACTER;
-        }
-        for (CharEvent event : values()) {
-            if (ch == event.represent) {
-                return event;
+    companion object {
+        @JvmStatic
+        fun eventOf(ch: Char): CharEvent? {
+            if (CharUtil.isAsciiPrintable(ch)) {
+                return ASCII_PRINTABLE
             }
+            if (CharUtil.isChinese(ch.code)) {
+                return CHINESE_CHARACTER
+            }
+            for (event in values()) {
+                if (ch == event.represent) {
+                    return event
+                }
+            }
+            return null
         }
-        return null;
     }
 }

@@ -1,103 +1,95 @@
-package com.toocol.termio.utilities.sync;
+package com.toocol.termio.utilities.sync
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/12 16:43
  */
-public class SharedCountdownLatch {
+object SharedCountdownLatch {
+    private val sharedCountdownLatchMap: java.util.AbstractMap<String, CountDownLatch?> = HashMap()
+    private val lock = ReentrantLock()
 
-    private static final Map<String, CountDownLatch> sharedCountdownLatchMap = new HashMap<>();
-    private static final ReentrantLock lock = new ReentrantLock();
-
-    private SharedCountdownLatch() {
-
-    }
-
-    public static void countdown(Class<?> awaitClass, Class<?> workClass) {
-        lock.lock();
+    @JvmStatic
+    fun countdown(awaitClass: Class<*>?, workClass: Class<*>?) {
+        lock.lock()
         try {
-            sharedCountdownLatchMap.computeIfPresent(transferKey(awaitClass, workClass), (k, v) -> {
-                v.countDown();
-                return v;
-            });
-        } catch (Exception e) {
-            // do nothing
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public static void await(Runnable runBeforeAwait, Class<?> awaitClass, Class<?>... workClasses) {
-        CountDownLatch latch = null;
-        lock.lock();
-        try {
-            latch = new CountDownLatch(workClasses.length);
-            for (Class<?> workClass : workClasses) {
-                sharedCountdownLatchMap.put(transferKey(awaitClass, workClass), latch);
+            sharedCountdownLatchMap.computeIfPresent(transferKey(awaitClass!!,
+                workClass!!)) { _: String?, v: CountDownLatch? ->
+                v!!.countDown()
+                v
             }
-        } catch (Exception e) {
+        } catch (e: Exception) {
             // do nothing
         } finally {
-            lock.unlock();
+            lock.unlock()
         }
+    }
 
-        runBeforeAwait.run();
-
+    @JvmStatic
+    fun await(runBeforeAwait: Runnable, awaitClass: Class<*>?, vararg workClasses: Class<*>?) {
+        var latch: CountDownLatch? = null
+        lock.lock()
+        try {
+            latch = CountDownLatch(workClasses.size)
+            for (workClass in workClasses) {
+                sharedCountdownLatchMap[transferKey(awaitClass!!, workClass!!)] = latch
+            }
+        } catch (e: Exception) {
+            // do nothing
+        } finally {
+            lock.unlock()
+        }
+        runBeforeAwait.run()
         if (latch == null) {
-            return;
+            return
         }
         try {
-            latch.await();
-            for (Class<?> workClass : workClasses) {
-                sharedCountdownLatchMap.put(transferKey(awaitClass, workClass), null);
+            latch.await()
+            for (workClass in workClasses) {
+                sharedCountdownLatchMap[transferKey(awaitClass!!, workClass!!)] = null
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
         }
     }
 
-    public static void await(Runnable runBeforeAwait, long wait, Class<?> awaitClass, Class<?>... workClasses) {
-        CountDownLatch latch = null;
-        lock.lock();
+    @JvmStatic
+    fun await(runBeforeAwait: Runnable, wait: Long, awaitClass: Class<*>?, vararg workClasses: Class<*>?) {
+        var latch: CountDownLatch? = null
+        lock.lock()
         try {
-            latch = new CountDownLatch(workClasses.length);
-            for (Class<?> workClass : workClasses) {
-                sharedCountdownLatchMap.put(transferKey(awaitClass, workClass), latch);
+            latch = CountDownLatch(workClasses.size)
+            for (workClass in workClasses) {
+                sharedCountdownLatchMap[transferKey(awaitClass!!, workClass!!)] = latch
             }
-        } catch (Exception e) {
+        } catch (e: Exception) {
             // do nothing
         } finally {
-            lock.unlock();
+            lock.unlock()
         }
-
-        runBeforeAwait.run();
-
+        runBeforeAwait.run()
         if (latch == null) {
-            return;
+            return
         }
         try {
-            boolean await = latch.await(wait, TimeUnit.MILLISECONDS);
-            for (Class<?> workClass : workClasses) {
-                sharedCountdownLatchMap.put(transferKey(awaitClass, workClass), null);
+            val await = latch.await(wait, TimeUnit.MILLISECONDS)
+            for (workClass in workClasses) {
+                sharedCountdownLatchMap[transferKey(awaitClass!!, workClass!!)] = null
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
         }
     }
 
-    private static String transferKey(Class<?>... classes) {
-        StringBuilder keyBuilder = new StringBuilder();
-        for (Class<?> aClass : classes) {
-            keyBuilder.append(aClass.getName()).append(":");
+    private fun transferKey(vararg classes: Class<*>): String {
+        val keyBuilder = StringBuilder()
+        for (aClass in classes) {
+            keyBuilder.append(aClass.name).append(":")
         }
-        keyBuilder.deleteCharAt(keyBuilder.length() - 1);
-        return keyBuilder.toString();
+        keyBuilder.deleteCharAt(keyBuilder.length - 1)
+        return keyBuilder.toString()
     }
-
 }

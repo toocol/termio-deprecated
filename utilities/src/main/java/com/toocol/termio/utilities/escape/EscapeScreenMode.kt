@@ -1,11 +1,11 @@
-package com.toocol.termio.utilities.escape;
+package com.toocol.termio.utilities.escape
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/7 21:08
  * @version: 0.0.1
  */
-public enum EscapeScreenMode implements IEscapeMode {
+enum class EscapeScreenMode(val code: Int, val desc: String) : IEscapeMode {
     MONOCHROME_40_25(0, "40 x 25 monochrome (text)"),
     COLOR_4_40_25(1, "40 x 25 color (4-color text)"),
     MONOCHROME_80_25(2, "80 x 25 monochrome (text)"),
@@ -20,22 +20,16 @@ public enum EscapeScreenMode implements IEscapeMode {
     COLOR_16_640_350(16, "640 x 350 color (16-color graphics)"),
     MONOCHROME_640_480(17, "640 x 480 monochrome (2-color graphics)"),
     COLOR_640_480(18, "640 x 480 color (16-color graphics)"),
-    COLOR_256_320_200(19, "320 x 200 color (256-color graphics)"),
-    ;
-    public final int code;
-    public final String desc;
+    COLOR_256_320_200(19, "320 x 200 color (256-color graphics)");
 
-    EscapeScreenMode(int code, String desc) {
-        this.code = code;
-        this.desc = desc;
-    }
-
-    public static EscapeScreenMode codeOf(int code) {
-        for (EscapeScreenMode mode : values()) {
-            if (mode.code == code) {
-                return mode;
+    companion object {
+        fun codeOf(code: Int): EscapeScreenMode? {
+            for (mode in values()) {
+                if (mode.code == code) {
+                    return mode
+                }
             }
+            return null
         }
-        return null;
     }
 }

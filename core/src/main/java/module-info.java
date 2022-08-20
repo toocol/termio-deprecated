@@ -14,6 +14,7 @@ module termio.core {
     requires jsr305;
     requires ini4j;
     requires kotlin.stdlib;
+    requires annotations;
 
     opens com.toocol.termio.core.config.core to termio.utilities;
 

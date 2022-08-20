@@ -7,7 +7,9 @@ import com.toocol.termio.utilities.module.NonBlockingMessageHandler;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.util.Optional;
 
 import static com.toocol.termio.core.mosh.MoshAddress.CLOSE_LOCAL_SOCKET;
@@ -25,14 +27,15 @@ public final class SocketCloseHandler extends NonBlockingMessageHandler {
         super(vertx, context);
     }
 
-    @Override
-    public <T> void handleInline(Message<T> message) {
-        Optional.ofNullable(moshSessionCache.get(cast(message.body())))
-                .ifPresent(MoshSession::close);
-    }
-
+    @NotNull
     @Override
     public IAddress consume() {
         return CLOSE_LOCAL_SOCKET;
+    }
+
+    @Override
+    public <T> void handleInline(@NotNull Message<T> message) {
+        Optional.ofNullable(moshSessionCache.get(cast(message.body())))
+                .ifPresent(MoshSession::close);
     }
 }

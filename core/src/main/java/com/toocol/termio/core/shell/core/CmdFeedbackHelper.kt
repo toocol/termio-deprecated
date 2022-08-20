@@ -9,9 +9,9 @@ import java.io.InputStream
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/11 15:14
  */
-class CmdFeedbackHelper(val inputStream: InputStream, val cmd: String, val shell: Shell, private val prefix: String) {
+class CmdFeedbackHelper(val inputStream: InputStream?, val cmd: String, val shell: Shell, private val prefix: String) {
     @Throws(Exception::class)
-    fun extractFeedback(): String {
+    fun extractFeedback(): String? {
         var feedback: String? = null
         val startTime = System.currentTimeMillis()
         val tmp = ByteArray(1024)
@@ -19,6 +19,7 @@ class CmdFeedbackHelper(val inputStream: InputStream, val cmd: String, val shell
             if (System.currentTimeMillis() - startTime >= 10000) {
                 feedback = StrUtil.EMPTY
             }
+            inputStream ?: break
             while (inputStream.available() > 0) {
                 val i: Int = inputStream.read(tmp, 0, 1024)
                 if (i < 0) {

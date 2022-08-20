@@ -1,56 +1,47 @@
-package com.toocol.termio.utilities.escape;
+package com.toocol.termio.utilities.escape
 
-import java.util.HashMap;
-import java.util.Map;
+import com.toocol.termio.utilities.ansi.ColorClut
 
-import static com.toocol.termio.utilities.ansi.ColorClut.*;
+enum class EscapeColor8To16Mode(val colorCode: Int, val hexCode: String) : IEscapeMode {
+    FOREGROUND_BLACK(30, ColorClut.Black.hex),
+    FOREGROUND_RED(31, ColorClut.Red.hex),
+    FOREGROUND_GREEN(32, ColorClut.Green.hex),
+    FOREGROUND_YELLOW(33, ColorClut.Yellow.hex),
+    FOREGROUND_BLUE(34, ColorClut.Blue.hex),
+    FOREGROUND_MAGENTA(35, ColorClut.Magenta.hex),
+    FOREGROUND_CYAN(36, ColorClut.Cyan.hex),
+    FOREGROUND_WHITE(37, ColorClut.White.hex),
+    FOREGROUND_DEFAULT(39, ColorClut.White.hex),
+    BACKGROUND_BLACK(40, ColorClut.Black.hex),
+    BACKGROUND_RED(41, ColorClut.Red.hex),
+    BACKGROUND_GREEN(42, ColorClut.Green.hex),
+    BACKGROUND_YELLOW(43, ColorClut.Yellow.hex),
+    BACKGROUND_BLUE(44, ColorClut.Blue.hex),
+    BACKGROUND_MAGENTA(45, ColorClut.Magenta.hex),
+    BACKGROUND_CYAN(46, ColorClut.Cyan.hex),
+    BACKGROUND_WHITE(47, ColorClut.White.hex),
+    BACKGROUND_DEFAULT(49, ColorClut.Black.hex);
 
-public enum EscapeColor8To16Mode implements IEscapeMode {
-    FOREGROUND_BLACK(30, Black.hex),
-    FOREGROUND_RED(31, Red.hex),
-    FOREGROUND_GREEN(32, Green.hex),
-    FOREGROUND_YELLOW(33, Yellow.hex),
-    FOREGROUND_BLUE(34, Blue.hex),
-    FOREGROUND_MAGENTA(35, Magenta.hex),
-    FOREGROUND_CYAN(36, Cyan.hex),
-    FOREGROUND_WHITE(37, White.hex),
-    FOREGROUND_DEFAULT(39, White.hex),
-    BACKGROUND_BLACK(40, Black.hex),
-    BACKGROUND_RED(41, Red.hex),
-    BACKGROUND_GREEN(42, Green.hex),
-    BACKGROUND_YELLOW(43, Yellow.hex),
-    BACKGROUND_BLUE(44, Blue.hex),
-    BACKGROUND_MAGENTA(45, Magenta.hex),
-    BACKGROUND_CYAN(46, Cyan.hex),
-    BACKGROUND_WHITE(47, White.hex),
-    BACKGROUND_DEFAULT(49, Black.hex),
-    ;
-    private static final Map<Integer, String> colorHexMap = new HashMap<>();
+    companion object {
+        private val colorHexMap: MutableMap<Int, String> = HashMap()
 
-    static {
-        for (EscapeColor8To16Mode color : values()) {
-            colorHexMap.put(color.colorCode, color.hexCode);
-        }
-    }
-
-    public static EscapeColor8To16Mode codeOf(int code) {
-        for (EscapeColor8To16Mode value : values()) {
-            if (value.colorCode == code) {
-                return value;
+        init {
+            for (color in values()) {
+                colorHexMap[color.colorCode] = color.hexCode
             }
         }
-        return null;
-    }
 
-    public final int colorCode;
-    public final String hexCode;
+        fun codeOf(code: Int): EscapeColor8To16Mode? {
+            for (value in values()) {
+                if (value.colorCode == code) {
+                    return value
+                }
+            }
+            return null
+        }
 
-    EscapeColor8To16Mode(int colorCode, String hexCode) {
-        this.colorCode = colorCode;
-        this.hexCode = hexCode;
-    }
-
-    public static String hexOf(int colorCode) {
-        return colorHexMap.get(colorCode);
+        fun hexOf(colorCode: Int): String? {
+            return colorHexMap[colorCode]
+        }
     }
 }

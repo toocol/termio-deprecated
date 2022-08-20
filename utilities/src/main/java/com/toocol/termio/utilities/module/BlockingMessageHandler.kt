@@ -1,55 +1,52 @@
-package com.toocol.termio.utilities.module;
+package com.toocol.termio.utilities.module
 
-import com.toocol.termio.utilities.utils.MessageBox;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.Message;
+import com.toocol.termio.utilities.utils.MessageBox
+import io.vertx.core.AsyncResult
+import io.vertx.core.Context
+import io.vertx.core.Promise
+import io.vertx.core.Vertx
+import io.vertx.core.eventbus.Message
+import org.jetbrains.annotations.NotNull
+import kotlin.system.exitProcess
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 10:46
  */
-public abstract class BlockingMessageHandler<R> extends AbstractMessageHandler {
-    /**
-     * whether the handler is handle parallel
-     */
-    private final boolean parallel;
-
-    public BlockingMessageHandler(Vertx vertx, Context context, boolean parallel) {
-        super(vertx, context);
-        this.parallel = parallel;
-    }
+abstract class BlockingMessageHandler<R>(
+    vertx: Vertx,
+    context: Context,
+    // whether the handler is handle parallel
+    private val parallel: Boolean
+) : AbstractMessageHandler(vertx, context) {
 
     /**
      * handle the message event
      *
      * @param message message event
      * @param <T>     generic type
-     */
-    public <T> void handle(Message<T> message) {
+    </T> */
+    override fun <T> handle(message: Message<T>) {
         context.executeBlocking(
-                promise -> {
-                    try {
-                        handleBlocking(cast(promise), message);
-                    } catch (Exception e) {
-                        MessageBox.setExitMessage("Caught exception, exit program, message = " + e.getMessage());
-                        error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e));
-                        System.exit(-1);
-                    }
-                },
-                !parallel,
-                asyncResult -> {
-                    try {
-                        resultBlocking(cast(asyncResult), message);
-                    } catch (Exception e) {
-                        MessageBox.setExitMessage("Caught exception, exit program, message = " + e.getMessage());
-                        error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e));
-                        System.exit(-1);
-                    }
+            { promise: Promise<Any?> ->
+                try {
+                    handleBlocking(cast(promise), message)
+                } catch (e: Exception) {
+                    MessageBox.setExitMessage("Caught exception, exit program, message = " + e.message)
+                    error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e))
+                    exitProcess(-1)
                 }
-        );
+            },
+            !parallel
+        ) { asyncResult: AsyncResult<Any?> ->
+            try {
+                resultBlocking(cast(asyncResult), message)
+            } catch (e: Exception) {
+                MessageBox.setExitMessage("Caught exception, exit program, message = " + e.message)
+                error("Caught exception, exit program, stackTrace : {}", parseStackTrace(e))
+                exitProcess(-1)
+            }
+        }
     }
 
     /**
@@ -59,8 +56,9 @@ public abstract class BlockingMessageHandler<R> extends AbstractMessageHandler {
      * @param message message
      * @param <T>     generic type
      * @throws Exception exception
-     */
-    protected abstract <T> void handleBlocking(Promise<R> promise, Message<T> message) throws Exception;
+    </T> */
+    @Throws(Exception::class)
+    protected abstract fun <T> handleBlocking(@NotNull promise: Promise<R>, @NotNull message: Message<T>)
 
     /**
      * response the blocked process result
@@ -69,6 +67,7 @@ public abstract class BlockingMessageHandler<R> extends AbstractMessageHandler {
      * @param message     message
      * @param <T>         generic type
      * @throws Exception exception
-     */
-    protected abstract <T> void resultBlocking(AsyncResult<R> asyncResult, Message<T> message) throws Exception;
+    </T> */
+    @Throws(Exception::class)
+    protected abstract fun <T> resultBlocking(@NotNull asyncResult: AsyncResult<R>, @NotNull message: Message<T>)
 }
