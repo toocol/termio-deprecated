@@ -1,48 +1,46 @@
-package com.toocol.termio.core.term.core;
+package com.toocol.termio.core.term.core
 
-import com.toocol.termio.utilities.event.CharEvent;
-import com.toocol.termio.utilities.utils.CharUtil;
-
+import com.toocol.termio.core.term.core.HistoryOutputInfoHelper.Companion.instance
+import com.toocol.termio.core.term.core.Term.Companion.promptLen
+import com.toocol.termio.utilities.event.CharEvent
+import com.toocol.termio.utilities.utils.CharUtil
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/25 18:01
  */
-public final class ActionLeftRightArrow extends TermCharAction {
-    private static final HistoryOutputInfoHelper historyOutputInfoHelper = HistoryOutputInfoHelper.getInstance();
-
-    public ActionLeftRightArrow() {
+class ActionLeftRightArrow : TermCharAction() {
+    override fun watch(): Array<CharEvent?> {
+        return arrayOf(CharEvent.LEFT_ARROW, CharEvent.RIGHT_ARROW)
     }
 
-    public CharEvent[] watch() {
-        return new CharEvent[]{CharEvent.LEFT_ARROW, CharEvent.RIGHT_ARROW};
-    }
-
-    @Override
-    public boolean actOnConsole(Term term, CharEvent charEvent, char inChar) {
-        if (Term.status.equals(TermStatus.HISTORY_OUTPUT)) {
+    override fun actOnConsole(term: Term, charEvent: CharEvent, inChar: Char): Boolean {
+        if (Term.status == TermStatus.HISTORY_OUTPUT) {
             if (inChar == CharUtil.LEFT_ARROW) {
-                historyOutputInfoHelper.pageLeft();
+                historyOutputInfoHelper.pageLeft()
             } else if (inChar == CharUtil.RIGHT_ARROW) {
-                historyOutputInfoHelper.pageRight();
+                historyOutputInfoHelper.pageRight()
             }
         } else {
-            int cursorX = term.getCursorPosition()[0];
+            val cursorX = term.cursorPosition[0]
             if (inChar == '\udddd') {
-                if (cursorX > Term.getPromptLen()) {
-                    term.cursorLeft();
-                    term.executeCursorOldX.getAndDecrement();
+                if (cursorX > promptLen) {
+                    term.cursorLeft()
+                    term.executeCursorOldX.getAndDecrement()
                 }
-            } else if (cursorX < term.lineBuilder.length() + Term.getPromptLen()) {
-                term.cursorRight();
-                term.executeCursorOldX.getAndIncrement();
+            } else if (cursorX < term.lineBuilder.length + promptLen) {
+                term.cursorRight()
+                term.executeCursorOldX.getAndIncrement()
             }
         }
-        return false;
+        return false
     }
 
-    @Override
-    public boolean actOnDesktop(Term term, CharEvent charEvent, char inChar) {
-        return false;
+    override fun actOnDesktop(term: Term, charEvent: CharEvent, inChar: Char): Boolean {
+        return false
+    }
+
+    companion object {
+        private val historyOutputInfoHelper = instance
     }
 }

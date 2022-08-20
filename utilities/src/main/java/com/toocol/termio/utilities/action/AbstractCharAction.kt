@@ -6,13 +6,13 @@ import com.toocol.termio.utilities.event.CharEvent
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/21 18:23
  */
-abstract class AbstractCharAction<D : AbstractDevice?> {
+abstract class AbstractCharAction<D : AbstractDevice> {
     /**
      * subscribe the interested char event;
      *
      * @return interested char event
      */
-    abstract fun watch(): Array<CharEvent?>?
+    abstract fun watch(): Array<CharEvent?>
 
     /**
      * @param device    the char event action which belongs to.
@@ -20,5 +20,5 @@ abstract class AbstractCharAction<D : AbstractDevice?> {
      * @param inChar    the input char.
      * @return true: break the outside loop; false: continue
      */
-    abstract fun act(device: D, charEvent: CharEvent?, inChar: Char): Boolean
+    abstract fun act(device: D, charEvent: CharEvent, inChar: Char): Boolean
 }

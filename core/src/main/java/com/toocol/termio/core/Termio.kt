@@ -27,7 +27,7 @@ abstract class Termio {
     }
 
     companion object {
-        protected const val BLOCKED_CHECK_INTERVAL = 30 * 24 * 60 * 60 * 1000L
+        protected const val blockedCheckInterval = 30 * 24 * 60 * 60 * 1000L
         @JvmStatic
         val logger = getLogger(Termio::class.java)
         @JvmStatic
@@ -89,7 +89,7 @@ abstract class Termio {
 
             /* Because this program involves a large number of IO operations, increasing the blocking check time, we don't need it */
             val options = VertxOptions()
-                .setBlockedThreadCheckInterval(BLOCKED_CHECK_INTERVAL)
+                .setBlockedThreadCheckInterval(blockedCheckInterval)
             val vertx = Vertx.vertx(options)
             init(vertx)
 

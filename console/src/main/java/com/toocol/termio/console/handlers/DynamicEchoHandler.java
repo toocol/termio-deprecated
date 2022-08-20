@@ -18,7 +18,6 @@ import io.vertx.core.eventbus.Message;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
@@ -28,7 +27,7 @@ import java.util.Map;
  */
 public final class DynamicEchoHandler extends NonBlockingMessageHandler {
 
-    private static final Map<String, TermCommand> COMMANDS = TermCommand.COMMANDS;
+    private static final Map<String, TermCommand> COMMANDS = TermCommand.commands;
 
     volatile public static String lastInput = StrUtil.EMPTY;
 

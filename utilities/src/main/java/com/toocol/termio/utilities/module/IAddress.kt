@@ -1,14 +1,14 @@
-package com.toocol.termio.utilities.module;
+package com.toocol.termio.utilities.module
 
 /**
  * @author JoeZane (joezane.cn@gmail.com)
  * @date 2022/03/29 16:51:33
  */
-public interface IAddress {
+interface IAddress {
     /**
      * return the address string
      *
      * @return Address
      */
-    String address();
+    fun address(): String
 }
