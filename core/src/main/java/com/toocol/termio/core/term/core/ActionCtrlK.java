@@ -2,7 +2,6 @@ package com.toocol.termio.core.term.core;
 
 import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.event.CharEvent;
-import com.toocol.termio.utilities.utils.StrUtil;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -20,7 +19,7 @@ public final class ActionCtrlK extends TermCharAction {
         term.lineBuilder.delete(0, term.lineBuilder.length());
         term.executeCursorOldX.set(Term.getPromptLen());
         term.printScene(false);
-        TermPrinter.displayBuffer = StrUtil.EMPTY;
+        term.cleanDisplayBuffer();
         return false;
     }
 

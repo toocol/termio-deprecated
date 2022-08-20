@@ -6,10 +6,12 @@ import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.ui.TBorderPane
 import com.toocol.termio.utilities.ansi.Printer.setPrinter
 import com.toocol.termio.utilities.log.Loggable
+import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.application.Platform
 import javafx.beans.value.ObservableValue
 import javafx.event.EventHandler
+import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import java.io.IOException
 import java.io.PrintStream
@@ -66,9 +68,17 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
                     try {
                         executorReaderInputStream.write((commandExecutorInput.text + StrUtil.LF).toByteArray(StandardCharsets.UTF_8))
                         executorReaderInputStream.flush()
+                        commandExecutorInput.clear()
                     } catch (e: IOException) {
                         error("Write to reader failed, msg = ${e.message}")
                     }
+                    event.consume()
+                }
+            }
+            addEventFilter(KeyEvent.KEY_PRESSED) { event: KeyEvent ->
+                if (event.code == KeyCode.UP || event.code == KeyCode.DOWN) {
+                    executorReaderInputStream.write((if (event.code == KeyCode.UP) CharUtil.UP_ARROW.toString() else CharUtil.DOWN_ARROW.toString()).toByteArray(StandardCharsets.UTF_8))
+                    executorReaderInputStream.flush()
                     event.consume()
                 }
             }

@@ -25,13 +25,13 @@ import java.lang.Exception
  * @date: 2022/4/22 22:03
  * @version: 0.0.1
  */
-class TermPrinter(private val term: Term) {
+class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
     companion object {
         private val credentialCache = CredentialCache.Instance
         private val runtime = Runtime.getRuntime()
 
         @Volatile
-        private var PRINT_STREAM: PrintStream? = null
+        private var printStream: PrintStream? = null
 
         @JvmField
         @Volatile
@@ -40,8 +40,8 @@ class TermPrinter(private val term: Term) {
         @Volatile
         var commandBuffer = StrUtil.EMPTY
         @JvmStatic
-        fun registerPrintStream(printStream: PrintStream?) {
-            PRINT_STREAM = printStream
+        fun registerPrintStream(printStream: PrintStream) {
+            this.printStream = printStream
         }
 
         private fun totalMemory(): Long {
@@ -59,16 +59,16 @@ class TermPrinter(private val term: Term) {
         private fun usedMemory(): Long {
             return totalMemory() - freeMemory()
         }
+    }
 
-        fun clear() {
-            try {
-                ProcessBuilder(OsUtil.getExecution(), OsUtil.getExecuteMode(), OsUtil.getClearCmd())
-                    .inheritIO()
-                    .start()
-                    .waitFor()
-            } catch (e: Exception) {
-                // do nothing
-            }
+    private fun clear() {
+        try {
+            ProcessBuilder(OsUtil.getExecution(), OsUtil.getExecuteMode(), OsUtil.getClearCmd())
+                .inheritIO()
+                .start()
+                .waitFor()
+        } catch (e: Exception) {
+            // do nothing
         }
     }
 
@@ -93,11 +93,11 @@ class TermPrinter(private val term: Term) {
             .background(Term.theme.infoBarBackgroundColor.color)
             .front(Term.theme.infoBarFrontColor.color)
             .append(merge)
-        PRINT_STREAM!!.println(builder)
+        printStream!!.println(builder)
     }
 
     @Synchronized
-    fun printScene(resize: Boolean) {
+    override fun printScene(resize: Boolean) {
         val term = Term.instance
         val oldPosition = term.cursorPosition
         Term.CONSOLE.hideCursor()
@@ -108,7 +108,7 @@ class TermPrinter(private val term: Term) {
         val prompt = "Properties:"
         val builder = AnsiStringBuilder()
         val width = Term.width
-        PRINT_STREAM!!.println(
+        printStream!!.println(
             builder.background(Term.theme.propertiesZoneBgColor.color)
                 .space(width).crlf()
                 .append(prompt).space(width - prompt.length)
@@ -117,7 +117,7 @@ class TermPrinter(private val term: Term) {
         builder.clearStr()
         if (credentialCache.credentialsSize() == 0) {
             val msg = "You have no connection properties, type 'help' to get more information."
-            PRINT_STREAM!!.print(
+            printStream!!.print(
                 builder.append(msg)
                     .space(width - msg.length).crlf()
                     .space(width).crlf()
@@ -126,7 +126,7 @@ class TermPrinter(private val term: Term) {
             credentialCache.showCredentials()
         }
         for (idx in 0 until Term.TOP_MARGIN) {
-            PRINT_STREAM!!.println(builder.space(width).toString())
+            printStream!!.println(builder.space(width).toString())
         }
         val msg = "'←'/'→' to change groups."
         builder.clearColor().clearStr()
@@ -143,7 +143,7 @@ class TermPrinter(private val term: Term) {
             .deBackground()
             .space(width - (8 * 5 + 3) - groupsLen - msg.length)
             .append(msg)
-        PRINT_STREAM!!.println(builder.toString())
+        printStream!!.println(builder.toString())
         Term.executeLine = term.cursorPosition[1]
         term.printExecuteBackground()
         if (resize && oldPosition[0] != 0 && oldPosition[1] != 0) {
@@ -158,24 +158,24 @@ class TermPrinter(private val term: Term) {
     }
 
     @Synchronized
-    fun printTermPrompt() {
+    override fun printTermPrompt() {
         term.printExecuteBackground()
         term.setCursorPosition(Term.promptLen, Term.executeLine)
     }
 
     @Synchronized
-    fun printExecuteBackground() {
+    override fun printExecuteBackground() {
         term.setCursorPosition(Term.LEFT_MARGIN, Term.executeLine)
         val builder = AnsiStringBuilder()
             .background(Term.theme.executeBackgroundColor.color)
             .front(Term.theme.executeFrontColor.color)
             .append(Term.PROMPT + " ".repeat(Term.width - Term.promptLen - Term.LEFT_MARGIN))
-        PRINT_STREAM!!.print(builder.toString())
+        printStream!!.print(builder.toString())
         term.showCursor()
     }
 
     @Synchronized
-    fun printExecution(msg: String) {
+    override fun printExecution(msg: String) {
         commandBuffer = msg
         term.hideCursor()
         term.setCursorPosition(Term.promptLen, Term.executeLine)
@@ -183,36 +183,36 @@ class TermPrinter(private val term: Term) {
             .background(Term.theme.executeBackgroundColor.color)
             .front(Term.theme.executeFrontColor.color)
             .append(" ".repeat(Term.width - Term.promptLen - Term.LEFT_MARGIN))
-        PRINT_STREAM!!.print(builder.toString())
+        printStream!!.print(builder.toString())
         term.setCursorPosition(Term.promptLen, Term.executeLine)
         builder.clearStr().append(msg)
-        PRINT_STREAM!!.print(builder.toString())
+        printStream!!.print(builder.toString())
         term.setCursorPosition(term.executeCursorOldX.get(), Term.executeLine)
         term.showCursor()
     }
 
     @Synchronized
-    fun cleanDisplay() {
+    override fun cleanDisplay() {
         term.setCursorPosition(0, Term.executeLine + 1)
         val windowWidth: Int = Term.width
         while (term.cursorPosition[1] < Term.height - 3) {
-            PRINT_STREAM!!.println(" ".repeat(windowWidth))
+            printStream!!.println(" ".repeat(windowWidth))
         }
     }
 
     @Synchronized
-    fun printDisplayBackground(lines: Int) {
+    override fun printDisplayBackground(lines: Int) {
         term.setCursorPosition(0, Term.executeLine + 1)
         val builder = AnsiStringBuilder()
             .background(Term.theme.displayBackGroundColor.color)
             .append(" ".repeat(Term.width - Term.LEFT_MARGIN - Term.LEFT_MARGIN))
         for (idx in 0 until lines + 2) {
-            PRINT_STREAM!!.println(builder.toString())
+            printStream!!.println(builder.toString())
         }
     }
 
     @Synchronized
-    fun printDisplay(msg: String) {
+    override fun printDisplay(msg: String) {
         if (StringUtils.isEmpty(msg)) {
             displayBuffer = StrUtil.EMPTY
             cleanDisplay()
@@ -226,7 +226,7 @@ class TermPrinter(private val term: Term) {
         printDisplayBackground(split.size)
         for ((idx, line) in split.withIndex()) {
             term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx)
-            PRINT_STREAM!!.println(
+            printStream!!.println(
                 AnsiStringBuilder()
                     .background(Term.theme.displayBackGroundColor.color)
                     .append(line)
@@ -254,7 +254,7 @@ class TermPrinter(private val term: Term) {
             printDisplayBackground(split.size)
             for ((idx, line) in split.withIndex()) {
                 term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx)
-                PRINT_STREAM!!.println(
+                printStream!!.println(
                     AnsiStringBuilder()
                         .background(Term.theme.displayBackGroundColor.color)
                         .append(line)
@@ -268,7 +268,7 @@ class TermPrinter(private val term: Term) {
     }
 
     @Synchronized
-    fun printDisplayBuffer() {
+    override fun printDisplayBuffer() {
         if (StringUtils.isEmpty(displayBuffer)) {
             cleanDisplay()
             term.setCursorPosition(Term.promptLen + term.lineBuilder.length, Term.executeLine)
@@ -279,7 +279,7 @@ class TermPrinter(private val term: Term) {
         printDisplayBackground(split.size)
         for ((idx, line) in split.withIndex()) {
             term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx)
-            PRINT_STREAM!!.println(
+            printStream!!.println(
                 AnsiStringBuilder()
                     .background(Term.theme.displayBackGroundColor.color)
                     .append(line)
@@ -291,7 +291,7 @@ class TermPrinter(private val term: Term) {
     }
 
     @Synchronized
-    fun printDisplayEcho(msg: String) {
+    override fun printDisplayEcho(msg: String) {
         if (StringUtils.isEmpty(msg)) {
             displayBuffer = StrUtil.EMPTY
             cleanDisplay()
@@ -305,7 +305,7 @@ class TermPrinter(private val term: Term) {
         printDisplayBackground(split.size)
         for ((idx, line) in split.withIndex()) {
             term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx)
-            PRINT_STREAM!!.println(
+            printStream!!.println(
                 AnsiStringBuilder()
                     .background(Term.theme.displayBackGroundColor.color)
                     .append(line)
@@ -318,9 +318,9 @@ class TermPrinter(private val term: Term) {
     }
 
     @Synchronized
-    fun printCommandBuffer() {
+    override fun printCommandBuffer() {
         term.setCursorPosition(Term.promptLen, Term.executeLine)
-        PRINT_STREAM!!.print(
+        printStream!!.print(
             AnsiStringBuilder().background(Term.theme.executeBackgroundColor.color)
                 .front(Term.theme.executeFrontColor.color).append(
                 commandBuffer
@@ -329,15 +329,15 @@ class TermPrinter(private val term: Term) {
     }
 
     @Synchronized
-    fun printTest() {
+    override fun printTest() {
         clear()
         //        PRINT_STREAM.print("aaaaaaaaaaaaaaaaaaa");
 //        PRINT_STREAM.print("\u001b[Hbbbbbbbbbbbbbbbbbbb");
 //        PRINT_STREAM.println();
 //        PRINT_STREAM.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-        PRINT_STREAM!!.println("aaaaaaaaaaaaaaaaaaa")
-        PRINT_STREAM!!.print("bbb")
-        PRINT_STREAM!!.print("\u001b[2;0Hc")
+        printStream!!.println("aaaaaaaaaaaaaaaaaaa")
+        printStream!!.print("bbb")
+        printStream!!.print("\u001b[2;0Hc")
         //        String msg = "\u001B[0m\u001B[1;49r\u001B[49;1H\n" +
 //                "\u001B[r\u001B[48;1H[root@vultrguest /]# ls\n" +
 //                "\u001B[0;1;36mbin\u001B[0m  \u001B[0;1;34mboot\u001B[0m  \u001B[0;1;34mdata\u001B[0m  \u001B[0;1;34mdev\u001B[0m  \u001B[0;1;34metc\u001B[0m  \u001B[0;1;34mhome\u001B[0m  \u001B[0;1;36mlib\u001B[0m  \u001B[0;1;36mlib64\u001B[0m  \u001B[0;1;34mlost+found\u001B[0m  \u001B[0;1;34mmedia\u001B[0m  \u001B[0;1;34mmnt\u001B[0m  \u001B[0;1;34mopt\u001B[0m  \u001B[0;1;34mproc\u001B[0m  \u001B[0;1;34mroot\u001B[0m  \u001B[0;1;34mrun\u001B[0m  \u001B[0;1;36msbin\u001B[0m  \u001B[0;1;34msrv\u001B[0m  \u001B[0;1;34msys\u001B[0m  \u001B[0;30;42mtmp\u001B[0m  \u001B[0;1;34musr\u001B[0m  \u001B[0;1;34mvar\u001B[50;22H\u001B[0m";
@@ -372,7 +372,5 @@ class TermPrinter(private val term: Term) {
 //                "\u001B[0mdrwxr-xr-x.  21 root root  4096 Jun 18 16:42 \u001B[0;1;34mvar\u001B[50;22H\u001B[0m";
 //        PRINT_STREAM.print(msg);
     }
-
-    fun printColorPanel() {}
 
 }

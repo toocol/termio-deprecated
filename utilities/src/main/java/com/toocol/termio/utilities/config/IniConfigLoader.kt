@@ -1,98 +1,95 @@
-package com.toocol.termio.utilities.config;
+package com.toocol.termio.utilities.config
 
-import com.google.common.collect.ImmutableMap;
-import com.toocol.termio.utilities.log.Logger;
-import com.toocol.termio.utilities.log.LoggerFactory;
-import com.toocol.termio.utilities.utils.ClassScanner;
-import com.toocol.termio.utilities.utils.FileUtil;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.ini4j.Ini;
-import org.ini4j.Profile;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableMap
+import com.toocol.termio.utilities.log.LoggerFactory.getLogger
+import com.toocol.termio.utilities.utils.ClassScanner
+import com.toocol.termio.utilities.utils.FileUtil
+import org.apache.commons.io.FileUtils
+import org.apache.commons.lang3.StringUtils
+import org.ini4j.Ini
+import java.io.File
+import java.io.IOException
+import java.util.*
+import java.util.function.Consumer
+import java.util.stream.Collectors
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/3 15:07
  */
-public class IniConfigLoader {
-    private static final Logger logger = LoggerFactory.getLogger(IniConfigLoader.class);
+object IniConfigLoader {
+    private val logger = getLogger(IniConfigLoader::class.java)
+    private var sectionConfigureMap: Map<String, Configure>? = null
+    private var configFileRootPath: String? = null
+    private var configurePaths: Array<String>? = null
 
-    private static Map<String, Configure> sectionConfigureMap;
-    private static String configFileRootPath;
-    private static String[] configurePaths;
-
-    public static void setConfigFileRootPath(String rootPath) {
-        configFileRootPath = FileUtil.relativeToFixed(rootPath);
+    fun setConfigFileRootPath(rootPath: String) {
+        configFileRootPath = FileUtil.relativeToFixed(rootPath)
     }
 
-    public static void setConfigurePaths(String[] configurePaths) {
-        IniConfigLoader.configurePaths = configurePaths;
+    fun setConfigurePaths(configurePaths: Array<String>) {
+        IniConfigLoader.configurePaths = configurePaths
     }
 
-    public static void loadConfig() {
+    @JvmStatic
+    fun loadConfig() {
         if (StringUtils.isEmpty(configFileRootPath)) {
-            logger.warn("Config file root path is empty, skip config loading.");
-            return;
+            logger.warn("Config file root path is empty, skip config loading.")
+            return
         }
-        if (configurePaths == null || configurePaths.length == 0) {
-            logger.warn("Configure paths is empty, skip config loading.");
-            return;
+        if (configurePaths == null || configurePaths!!.isEmpty()) {
+            logger.warn("Configure paths is empty, skip config loading.")
+            return
         }
-
-        Set<Class<?>> configures = new HashSet<>();
-        for (String configurePath : configurePaths) {
-            configures.addAll(new ClassScanner(configurePath, clazz -> Optional.of(clazz.getSuperclass())
-                    .map(superClass -> superClass.equals(Configure.class))
-                    .orElse(false)).scan());
+        val configures: MutableSet<Class<*>> = HashSet()
+        for (configurePath in configurePaths!!) {
+            configures.addAll(ClassScanner(configurePath) { clazz: Class<*> ->
+                Optional.of(clazz.superclass)
+                    .map { superClass: Class<*> -> superClass == Configure::class.java }
+                    .orElse(false)
+            }.scan())
         }
 
         sectionConfigureMap = ImmutableMap.copyOf(configures.stream()
-                .map(clazz -> {
-                    try {
-                        Configure configure = (Configure) clazz.getDeclaredConstructor().newInstance();
-                        configure.initSubConfigure();
-                        return configure;
-                    } catch (Exception e) {
-                        logger.error("Failed create Configure object, clazz = {}", clazz.getName());
-                    }
-                    return null;
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(Configure::section, configure -> configure)));
-
-        logger.info("Initialize configures, size = {}", sectionConfigureMap.size());
-        logger.info("Reading ini config file, path = {}", configFileRootPath);
-
-        read().forEach(ini -> {
-            for (Profile.Section section : ini.values()) {
-                String key = section.getName().contains(".") ? section.getName().split("\\.")[0] : section.getName();
-                Optional.ofNullable(sectionConfigureMap.get(key))
-                        .ifPresent(configure -> {
-                            configure.assignAssembleJob(section.getName(), section);
-                            logger.info("Assemble ini config section, section = {}", section.getName());
-                        });
+            .map { clazz: Class<*> ->
+                try {
+                    val configure = clazz.getDeclaredConstructor().newInstance() as Configure
+                    configure.initSubConfigure()
+                    return@map configure
+                } catch (e: Exception) {
+                    logger.error("Failed create Configure object, clazz = {}", clazz.name)
+                }
+                null
             }
-        });
-    }
+            .filter { obj: Configure? -> Objects.nonNull(obj) }
+            .collect(Collectors.toMap({ obj: Configure? -> obj!!.section() }, { configure: Configure? -> configure })))
 
-    protected static Collection<Ini> read() {
-        return FileUtils.listFiles(new File(configFileRootPath), new String[]{"ini"}, true)
-                .stream()
-                .map(file -> {
-                    try {
-                        return new Ini(file);
-                    } catch (IOException e) {
-                        logger.error("Read ini file failed, fileName = ", file.getName());
+        logger.info("Initialize configures, size = ${sectionConfigureMap!!.size}")
+        logger.info("Reading ini config file, path = $configFileRootPath")
+        read().forEach(Consumer { ini: Ini? ->
+            for (section in ini!!.values) {
+                val key = if (section.name.contains(".")) section.name.split("\\.").toTypedArray()[0] else section.name
+                Optional.ofNullable(sectionConfigureMap!![key])
+                    .ifPresent { configure: Configure ->
+                        configure.assignAssembleJob(section.name, section)
+                        logger.info("Assemble ini config section, section = {}", section.name)
                     }
-                    return null;
-                })
-                .filter(Objects::nonNull)
-                .toList();
+            }
+        })
     }
 
+    internal fun read(): Collection<Ini?> {
+        return FileUtils.listFiles(configFileRootPath?.let { File(it) }, arrayOf("ini"), true)
+            .stream()
+            .map { file: File ->
+                try {
+                    return@map Ini(file)
+                } catch (e: IOException) {
+                    logger.error("Read ini file failed, fileName = ", file.name)
+                }
+                null
+            }
+            .filter { obj: Ini? -> Objects.nonNull(obj) }
+            .toList()
+    }
 }

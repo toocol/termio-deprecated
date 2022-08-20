@@ -1,7 +1,6 @@
-package com.toocol.termio.utilities.escape.actions
+package com.toocol.termio.utilities.escape
 
 import com.toocol.termio.utilities.utils.Asable
-import com.toocol.termio.utilities.escape.IEscapeMode
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)

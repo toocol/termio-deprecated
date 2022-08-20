@@ -8,7 +8,7 @@ import com.toocol.termio.utilities.escape.EscapeCommonPrivateMode.*
 import com.toocol.termio.utilities.escape.EscapeCursorControlMode.*
 import com.toocol.termio.utilities.escape.EscapeEraseFunctionsMode.*
 import com.toocol.termio.utilities.escape.EscapeScreenMode.*
-import com.toocol.termio.utilities.escape.actions.AnsiEscapeAction
+import com.toocol.termio.utilities.escape.AnsiEscapeAction
 import javafx.beans.value.ObservableValue
 import javafx.scene.Node
 import javafx.scene.text.TextFlow
@@ -154,7 +154,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                 ERASE_IN_DISPLAY -> {}
                 ERASE_CURSOR_LINE_TO_END -> {}
                 ERASE_CURSOR_LINE_TO_BEGINNING -> {}
-                ERASE_SCREEN -> {}
+                ERASE_SCREEN -> executeTarget.clear()
                 ERASE_SAVED_LINE -> {}
                 ERASE_IN_LINE -> {}
                 ERASE_CURSOR_TO_LINE_END -> {}
