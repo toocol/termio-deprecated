@@ -23,7 +23,7 @@ class TerminalScrollPane(private val id: Long, terminalConsoleTextArea: Terminal
         styled()
         vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
         hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-        totalHeightEstimateProperty().addListener { ob: ObservableValue<out Double?>?, oldVal: Double?, newVal: Double? -> content!!.requestFollowCaret() }
+        totalHeightEstimateProperty().addListener { _: ObservableValue<out Double?>?, _: Double?, _: Double? -> content!!.requestFollowCaret() }
     }
 
     override fun id(): Long {

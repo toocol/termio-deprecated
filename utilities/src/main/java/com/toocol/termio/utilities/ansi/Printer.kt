@@ -6,6 +6,7 @@ import com.toocol.termio.utilities.utils.OsUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import java.io.PrintStream
 import java.util.concurrent.CountDownLatch
+import kotlin.system.exitProcess
 
 /**
  * @author ZhaoZhe
@@ -34,12 +35,12 @@ object Printer {
     }
 
     fun println() {
-        printer!!.println()
+        printer!!.print(StrUtil.LF)
     }
 
     @JvmStatic
     fun println(msg: String?) {
-        printer!!.println(msg)
+        printer!!.print(msg + StrUtil.LF)
     }
 
     @JvmStatic
@@ -89,7 +90,7 @@ object Printer {
                 }
             } catch (e: InterruptedException) {
                 MessageBox.setExitMessage("Start up failed.")
-                System.exit(-1)
+                exitProcess(-1)
             }
             latch.countDown()
             console.showCursor()
