@@ -2,13 +2,14 @@ package com.toocol.termio.core.mosh.handlers;
 
 import com.toocol.termio.core.cache.MoshSessionCache;
 import com.toocol.termio.core.mosh.core.MoshSession;
-import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.module.BlockingMessageHandler;
+import com.toocol.termio.utilities.module.IAddress;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import org.jetbrains.annotations.NotNull;
 
 import static com.toocol.termio.core.mosh.MoshAddress.MOSH_TICK;
 
@@ -26,13 +27,14 @@ public final class BlockingTickHandler extends BlockingMessageHandler<Void> {
         super(vertx, context, parallel);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return MOSH_TICK;
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<Void> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(@NotNull Promise<Void> promise, @NotNull Message<T> message) throws Exception {
         long sessionId = cast(message.body());
         MoshSession moshSession = moshSessionCache.get(sessionId);
 
@@ -48,7 +50,7 @@ public final class BlockingTickHandler extends BlockingMessageHandler<Void> {
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(@NotNull AsyncResult<Void> asyncResult, @NotNull Message<T> message) throws Exception {
 
     }
 }

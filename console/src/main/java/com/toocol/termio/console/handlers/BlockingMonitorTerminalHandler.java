@@ -15,6 +15,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import org.jetbrains.annotations.NotNull;
 
 import static com.toocol.termio.core.term.TermAddress.MONITOR_TERMINAL;
 
@@ -36,13 +37,14 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
         super(vertx, context, parallel);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return MONITOR_TERMINAL;
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<Void> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(@NotNull Promise<Void> promise, @NotNull Message<T> message) throws Exception {
         Term.width = console.getWindowWidth();
         Term.height = console.getWindowHeight();
 
@@ -62,7 +64,7 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(@NotNull AsyncResult<Void> asyncResult, @NotNull Message<T> message) throws Exception {
 
     }
 

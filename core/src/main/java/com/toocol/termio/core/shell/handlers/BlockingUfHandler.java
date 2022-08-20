@@ -14,6 +14,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.FileInputStream;
 import java.util.Objects;
@@ -35,13 +36,14 @@ public final class BlockingUfHandler extends BlockingMessageHandler<Void> {
         super(vertx, context, parallel);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return START_UF_COMMAND;
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<Void> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(@NotNull Promise<Void> promise, @NotNull Message<T> message) throws Exception {
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String remotePath = request.getString("remotePath");
@@ -88,7 +90,7 @@ public final class BlockingUfHandler extends BlockingMessageHandler<Void> {
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<Void> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(@NotNull AsyncResult<Void> asyncResult, @NotNull Message<T> message) throws Exception {
 
     }
 }

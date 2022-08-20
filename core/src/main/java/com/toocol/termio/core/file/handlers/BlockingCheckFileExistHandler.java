@@ -9,6 +9,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -20,13 +21,14 @@ public final class BlockingCheckFileExistHandler extends BlockingMessageHandler<
         super(vertx, context, parallel);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return FileAddress.CHECK_FILE_EXIST;
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<Void> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(@NotNull Promise<Void> promise, @NotNull Message<T> message) throws Exception {
         String filePath = cast(message.body());
         boolean success = FileUtil.checkAndCreateFile(filePath);
         if (!success) {
@@ -36,7 +38,7 @@ public final class BlockingCheckFileExistHandler extends BlockingMessageHandler<
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<Void> asyncResult, Message<T> message) {
+    protected <T> void resultBlocking(@NotNull AsyncResult<Void> asyncResult, @NotNull Message<T> message) {
         message.reply(null);
     }
 }

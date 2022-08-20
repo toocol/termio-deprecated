@@ -14,6 +14,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
 import java.util.Objects;
@@ -37,13 +38,14 @@ public final class BlockingDfHandler extends BlockingMessageHandler<byte[]> {
         super(vertx, context, parallel);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return START_DF_COMMAND;
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<byte[]> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(@NotNull Promise<byte[]> promise, @NotNull Message<T> message) throws Exception {
         JsonObject request = cast(message.body());
         Long sessionId = request.getLong("sessionId");
         String remotePath = request.getString("remotePath");
@@ -122,7 +124,7 @@ public final class BlockingDfHandler extends BlockingMessageHandler<byte[]> {
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<byte[]> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(@NotNull AsyncResult<byte[]> asyncResult, @NotNull Message<T> message) throws Exception {
         byte[] result = asyncResult.result();
         if (result != null && result.length > 0) {
             message.reply(result);

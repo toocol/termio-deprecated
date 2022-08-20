@@ -12,6 +12,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,13 +31,14 @@ public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<B
         super(vertx, context, parallel);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return TermAddress.ACCEPT_COMMAND_CONSOLE;
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<Boolean> promise, Message<T> message) {
+    protected <T> void handleBlocking(@NotNull Promise<Boolean> promise, @NotNull Message<T> message) {
         try {
             int signal = cast(message.body());
             if (signal == NORMAL_BACK || signal == FIRST_IN || signal == CONNECT_FAILED) {
@@ -90,7 +92,7 @@ public final class BlockingAcceptCommandHandler extends BlockingMessageHandler<B
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<Boolean> asyncResult, Message<T> message) {
+    protected <T> void resultBlocking(@NotNull AsyncResult<Boolean> asyncResult, @NotNull Message<T> message) {
         if (asyncResult.result()) {
             eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), ACCEPT_ERROR);
         }

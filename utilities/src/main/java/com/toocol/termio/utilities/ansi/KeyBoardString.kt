@@ -1,11 +1,13 @@
-package com.toocol.termio.utilities.ansi;
+package com.toocol.termio.utilities.ansi
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/8/7 22:40
  * @version: 0.0.1
  */
-public enum KeyBoardString {
+enum class KeyBoardString(
+    val key: String, val code: String?, val shiftCode: String?, val ctrlCode: String?, val altCode: String?,
+) {
     F1("F1", "0;59", "0;84", "0;94", "0;104"),
     F2("F2", "0;60", "0;85", "0;95", "0;105"),
     F3("F3", "0;61", "0;86", "0;96", "0;106"),
@@ -96,19 +98,6 @@ public enum KeyBoardString {
     KEY_MUL_KEYPAD("* (keypad)", "42", "0;144", "0;78", null),
     KEY_MINUS_KEYPAD("- (keypad)", "45", "45", "0;149", "0;164"),
     KEY_PLUS_KEYPAD("+ (keypad)", "43", "43", "0;150", "0;55"),
-    KEY_5_KEYPAD("5 (keypad)", "0;76", "53", "0;143", null),
+    KEY_5_KEYPAD("5 (keypad)", "0;76", "53", "0;143", null)
     ;
-    public final String key;
-    public final String code;
-    public final String shiftCode;
-    public final String ctrlCode;
-    public final String altCode;
-
-    KeyBoardString(String key, String code, String shiftCode, String ctrlCode, String altCode) {
-        this.key = key;
-        this.code = code;
-        this.shiftCode = shiftCode;
-        this.ctrlCode = ctrlCode;
-        this.altCode = altCode;
-    }
 }

@@ -10,6 +10,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import org.jetbrains.annotations.NotNull;
 
 import static com.toocol.termio.core.term.TermAddress.ACCEPT_COMMAND_DESKTOP;
 
@@ -23,13 +24,14 @@ public class BlockingDesktopAcceptCommandHandler extends BlockingMessageHandler<
         super(vertx, context, parallel);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return ACCEPT_COMMAND_DESKTOP;
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<Boolean> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(@NotNull Promise<Boolean> promise, @NotNull Message<T> message) {
         Term term = Term.instance;
         while (true) {
             String cmd = term.readLine();
@@ -45,7 +47,7 @@ public class BlockingDesktopAcceptCommandHandler extends BlockingMessageHandler<
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<Boolean> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(@NotNull AsyncResult<Boolean> asyncResult, @NotNull Message<T> message) {
 
     }
 }

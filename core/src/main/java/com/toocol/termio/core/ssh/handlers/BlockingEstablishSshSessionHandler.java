@@ -19,6 +19,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -39,13 +40,14 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
         super(vertx, context, parallel);
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return SshAddress.ESTABLISH_SSH_SESSION;
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<Long> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(@NotNull Promise<Long> promise, @NotNull Message<T> message) throws Exception {
         int index = cast(message.body());
         SshCredential credential = credentialCache.getCredential(index);
 
@@ -116,7 +118,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(@NotNull AsyncResult<Long> asyncResult, @NotNull Message<T> message) throws Exception {
         Long sessionId = asyncResult.result();
         if (sessionId != null) {
 

@@ -8,6 +8,7 @@ module termio.utilities {
     requires ini4j;
     requires jline;
     requires kotlin.stdlib;
+    requires annotations;
 
     exports com.toocol.termio.utilities.action;
     exports com.toocol.termio.utilities.ansi;

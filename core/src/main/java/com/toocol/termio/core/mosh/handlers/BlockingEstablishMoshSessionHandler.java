@@ -20,6 +20,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import org.jetbrains.annotations.NotNull;
 
 import static com.toocol.termio.core.mosh.MoshAddress.*;
 
@@ -41,7 +42,7 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
     }
 
     @Override
-    protected <T> void handleBlocking(Promise<Long> promise, Message<T> message) throws Exception {
+    protected <T> void handleBlocking(@NotNull Promise<Long> promise, @NotNull Message<T> message) throws Exception {
         int index = cast(message.body());
         SshCredential credential = credentialCache.getCredential(index);
         if (credential == null) {
@@ -92,7 +93,7 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
     }
 
     @Override
-    protected <T> void resultBlocking(AsyncResult<Long> asyncResult, Message<T> message) throws Exception {
+    protected <T> void resultBlocking(@NotNull AsyncResult<Long> asyncResult, @NotNull Message<T> message) throws Exception {
         if (!asyncResult.succeeded()) {
             warn("Establish mosh connection failed.");
             MessageBox.setErrorMessage("Can't touch the mosh-server.");
@@ -100,6 +101,7 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
         }
     }
 
+    @NotNull
     @Override
     public IAddress consume() {
         return ESTABLISH_MOSH_SESSION;
