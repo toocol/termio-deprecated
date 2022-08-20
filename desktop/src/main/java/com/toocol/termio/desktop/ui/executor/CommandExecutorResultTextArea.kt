@@ -25,9 +25,11 @@ class CommandExecutorResultTextArea(private val id: Long) : EscapedTextStyleClas
         styled()
         isWrapText = true
         isEditable = false
+
         val executorPanel = findComponent(CommandExecutorPanel::class.java, id)
         prefWidthProperty().bind(executorPanel.prefWidthProperty().multiply(1))
         prefHeightProperty().bind(executorPanel.prefHeightProperty().multiply(0.9))
+
         updateDefaultChineseStyle(TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc"))
             .updateFontSize(9))
         updateDefaultEnglishStyle(TextStyle.EMPTY.updateFontFamily("\"Consolas\"")
@@ -40,7 +42,7 @@ class CommandExecutorResultTextArea(private val id: Long) : EscapedTextStyleClas
         }
         for (splitText in StrUtil.splitSequenceByChinese(text)) {
             replace(
-                caretPosition, caretPosition,
+                cursor.inlinePosition, cursor.inlinePosition,
                 (StrUtil.join(splitText.toCharArray(), CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR).replace(
                     StrUtil.SPACE.toRegex(),
                     StrUtil.NONE_BREAKING_SPACE),

@@ -34,11 +34,11 @@ open class Cursor(val id: Long) : ImageView(), IComponent, Loggable {
         inlinePosition += 1
     }
 
-    fun update(`val`: Int) {
-        inlinePosition = max(inlinePosition + `val`, 0)
+    fun update(value: Int) {
+        inlinePosition = max(inlinePosition + value, 0)
     }
 
-    fun setTo(`val`: Int) {
-        inlinePosition = `val`
+    fun setTo(value: Int) {
+        inlinePosition = value
     }
 }

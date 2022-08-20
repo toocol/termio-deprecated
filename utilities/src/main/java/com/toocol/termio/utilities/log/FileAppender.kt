@@ -1,69 +1,71 @@
-package com.toocol.termio.utilities.log;
+package com.toocol.termio.utilities.log
 
-import com.toocol.termio.utilities.utils.FileUtil;
-import com.toocol.termio.utilities.utils.StrUtil;
-import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.file.AsyncFile;
-import io.vertx.core.file.OpenOptions;
-
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedDeque
+import kotlin.jvm.Volatile
+import com.toocol.termio.utilities.utils.FileUtil
+import io.vertx.core.Vertx
+import com.toocol.termio.utilities.utils.StrUtil
+import io.vertx.core.file.OpenOptions
+import io.vertx.core.AsyncResult
+import io.vertx.core.Promise
+import io.vertx.core.buffer.Buffer
+import io.vertx.core.file.AsyncFile
+import java.lang.InterruptedException
+import java.util.*
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/6/28 14:33
  */
-public class FileAppender {
+object FileAppender {
+    private const val defaultFilePath = "./"
+    private const val defaultFileName = "termio.log"
+    private val logQueue: Queue<String> = ConcurrentLinkedDeque()
 
-    private static final String DEFAULT_FILE_PATH = "./";
-    private static final String DEFAULT_FILE_NAME = "termio.log";
-
-    private static final Queue<String> LOG_QUEUE = new ConcurrentLinkedDeque<>();
-    private static volatile boolean opened = false;
-
-    protected static String filePath() {
-        return FileUtil.relativeToFixed(DEFAULT_FILE_PATH);
+    @Volatile
+    private var opened = false
+    @JvmStatic
+    fun filePath(): String {
+        return FileUtil.relativeToFixed(defaultFilePath)
     }
 
-    public static void close() {
-        opened = false;
+    @JvmStatic
+    fun close() {
+        opened = false
     }
 
-    @SuppressWarnings("all")
-    protected static void openLogFile(Vertx vertx) {
-        String logFile = System.getProperty("logFile");
-        String fileName = StrUtil.isEmpty(logFile) ? DEFAULT_FILE_PATH : logFile;
-
-        vertx.fileSystem().open(DEFAULT_FILE_PATH + fileName, new OpenOptions().setAppend(true), ar -> {
-            if (ar.succeeded()) {
-                opened = true;
-                AsyncFile ws = ar.result();
-                vertx.executeBlocking(promise -> {
-                    while (true) {
-                        while (!LOG_QUEUE.isEmpty()) {
-                            ws.write(Buffer.buffer(LOG_QUEUE.poll()));
+    @JvmStatic
+    fun openLogFile(vertx: Vertx) {
+        val logFile = System.getProperty("logFile")
+        val fileName = if (StrUtil.isEmpty(logFile)) defaultFileName else logFile
+        vertx.fileSystem()
+            .open(defaultFilePath + fileName, OpenOptions().setAppend(true)) { ar: AsyncResult<AsyncFile> ->
+                if (ar.succeeded()) {
+                    opened = true
+                    val ws = ar.result()
+                    vertx.executeBlocking { promise: Promise<Any?> ->
+                        while (true) {
+                            while (!logQueue.isEmpty()) {
+                                ws.write(Buffer.buffer(logQueue.poll()))
+                            }
+                            if (!opened) {
+                                ws.close()
+                                break
+                            }
+                            try {
+                                Thread.sleep(1)
+                            } catch (e: InterruptedException) {
+                                // do nothing
+                            }
                         }
-
-                        if (!opened) {
-                            ws.close();
-                            break;
-                        }
-
-                        try {
-                            Thread.sleep(1);
-                        } catch (InterruptedException e) {
-                            // do nothing
-                        }
+                        promise.complete()
                     }
-                    promise.complete();
-                });
+                }
             }
-        });
     }
 
-    protected static void logFileAppend(String log) {
-        LOG_QUEUE.offer(log);
+    @JvmStatic
+    fun logFileAppend(log: String) {
+        logQueue.offer(log)
     }
-
 }

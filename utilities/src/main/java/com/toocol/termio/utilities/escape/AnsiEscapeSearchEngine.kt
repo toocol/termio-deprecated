@@ -92,8 +92,8 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 if (code.contains("A") || code.contains("B") || code.contains("C") || code.contains("D")
                     || code.contains("E") || code.contains("F") || code.contains("G")) {
                     val icode = wordRegex.find(code)?.value
-                    val num = numberRegex.find(code)?.value
-                    num ?: return@regexParse
+                    var num = numberRegex.find(code)?.value
+                    if (num == null) num = "1"
                     tuple.first(EscapeCursorControlMode.codeOf(icode)).second(intArrayOf(num.toInt()).toList())
                 } else {
                     tuple.first(EscapeCursorControlMode.codeOf(code))

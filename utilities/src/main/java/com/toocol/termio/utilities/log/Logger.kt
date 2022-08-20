@@ -1,15 +1,15 @@
-package com.toocol.termio.utilities.log;
+package com.toocol.termio.utilities.log
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/6/28 11:55
  */
-public interface Logger {
-    void debug(String message, Object... params);
+interface Logger {
+    fun debug(message: String?, vararg params: Any?)
 
-    void info(String message, Object... params);
+    fun info(message: String?, vararg params: Any?)
 
-    void warn(String message, Object... params);
+    fun warn(message: String?, vararg params: Any?)
 
-    void error(String message, Object... params);
+    fun error(message: String?, vararg params: Any?)
 }

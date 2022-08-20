@@ -1,77 +1,72 @@
-package com.toocol.termio.utilities.log;
+package com.toocol.termio.utilities.log
 
-import com.toocol.termio.utilities.utils.StrUtil;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import com.toocol.termio.utilities.log.FileAppender.logFileAppend
+import com.toocol.termio.utilities.utils.StrUtil
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/6/28 11:52
  */
-public record TermioLogger(Class<?> clazz, StringBuilder logBuilder,
-                           SimpleDateFormat simpleDateFormat) implements Logger {
-
-    private static final String DEBUG = "DEBUG";
-    private static final String INFO = "INFO";
-    private static final String WARN = "WARN";
-    private static final String ERROR = "ERROR";
-
-    private static boolean skip = true;
-
-    public static void skip() {
-        skip = true;
-    }
-
-    public static void nonSkip() {
-        skip = false;
-    }
-
-    @Override
-    public void debug(String message, Object... params) {
-        if (skip) {
-            return;
+class TermioLogger(private val clazz: Class<*>, private val logBuilder: StringBuilder, private val simpleDateFormat: SimpleDateFormat): Logger {
+    companion object {
+        private const val DEBUG = "DEBUG"
+        private const val INFO = "INFO"
+        private const val WARN = "WARN"
+        private const val ERROR = "ERROR"
+        private var skip = true
+        fun skip() {
+            skip = true
         }
-        log(message, DEBUG, params);
-    }
 
-    @Override
-    public void info(String message, Object... params) {
-        if (skip) {
-            return;
+        fun nonSkip() {
+            skip = false
         }
-        log(message, INFO, params);
     }
 
-    @Override
-    public void warn(String message, Object... params) {
+    override fun debug(message: String?, vararg params: Any?) {
         if (skip) {
-            return;
+            return
         }
-        log(message, WARN, params);
+        log(message, DEBUG, *params)
     }
 
-    @Override
-    public void error(String message, Object... params) {
+    override fun info(message: String?, vararg params: Any?) {
         if (skip) {
-            return;
+            return
         }
-        log(message, ERROR, params);
+        log(message, INFO, *params)
     }
 
-    private synchronized void log(String message, String level, Object... params) {
-        logBuilder.delete(0, logBuilder.length());
-        appendTime(logBuilder).append(" ").append(level).append(" ");
-        appendClassThreadInfo(logBuilder).append(StrUtil.fullFillParam(message, params)).append("\r\n");
-        FileAppender.logFileAppend(logBuilder.toString());
+    override fun warn(message: String?, vararg params: Any?) {
+        if (skip) {
+            return
+        }
+        log(message, WARN, *params)
     }
 
-    private StringBuilder appendTime(final StringBuilder logBuilder) {
-        return logBuilder.append(simpleDateFormat.format(new Date()));
+    override fun error(message: String?, vararg params: Any?) {
+        if (skip) {
+            return
+        }
+        log(message, ERROR, *params)
     }
 
-    private StringBuilder appendClassThreadInfo(final StringBuilder logBuilder) {
-        return logBuilder.append("[").append(clazz.getSimpleName()).append(",").append(" ")
-                .append(Thread.currentThread().getName()).append("]").append(" ");
+    @Synchronized
+    private fun log(message: String?, level: String, vararg params: Any?) {
+        logBuilder.delete(0, logBuilder.length)
+        appendTime(logBuilder).append(" ").append(level).append(" ")
+        appendClassThreadInfo(logBuilder).append(StrUtil.fullFillParam(message, *params)).append("\r\n")
+        logFileAppend(logBuilder.toString())
+    }
+
+    private fun appendTime(logBuilder: StringBuilder): StringBuilder {
+        return logBuilder.append(simpleDateFormat.format(Date()))
+    }
+
+    private fun appendClassThreadInfo(logBuilder: StringBuilder): StringBuilder {
+        return logBuilder.append("[").append(clazz.simpleName).append(",").append(" ")
+            .append(Thread.currentThread().name).append("]").append(" ")
     }
 }

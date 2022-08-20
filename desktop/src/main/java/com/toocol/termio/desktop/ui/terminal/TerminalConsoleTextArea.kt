@@ -7,7 +7,6 @@ import com.toocol.termio.platform.text.TextStyle
 import com.toocol.termio.utilities.utils.Castable
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
-import javafx.beans.value.ObservableValue
 import javafx.geometry.Point2D
 import javafx.scene.input.InputMethodRequests
 import javafx.scene.input.KeyCode
@@ -70,15 +69,17 @@ class TerminalConsoleTextArea(private val id: Long) : EscapedTextStyleClassArea(
         useInitialStyleForInsertion = true
         showCaret = Caret.CaretVisibility.OFF
         inputMethodRequests = InputMethodRequestsObject()
+
+        val desktopTerminalPanel = findComponent(DesktopTerminalPanel::class.java, id)
+        prefWidthProperty().bind(desktopTerminalPanel.prefWidthProperty().multiply(1))
+        prefHeightProperty().bind(desktopTerminalPanel.prefHeightProperty().multiply(0.99))
+
         updateDefaultChineseStyle(
             TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(9)
         )
         updateDefaultEnglishStyle(
             TextStyle.EMPTY.updateFontFamily("\"Consolas\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(10)
         )
-        val desktopTerminalPanel = findComponent(DesktopTerminalPanel::class.java, id)
-        prefWidthProperty().bind(desktopTerminalPanel.prefWidthProperty().multiply(1))
-        prefHeightProperty().bind(desktopTerminalPanel.prefHeightProperty().multiply(0.99))
 
         /*
          * Prevent auto caret movement when user pressed '←', '→', '↑', '↓', 'Home', 'PgUp', 'PgDn', instead of setting the caret manually
@@ -104,9 +105,6 @@ class TerminalConsoleTextArea(private val id: Long) : EscapedTextStyleClassArea(
                 KeyCode.UP, KeyCode.DOWN, KeyCode.PAGE_DOWN, KeyCode.PAGE_UP, KeyCode.HOME -> event.consume()
                 else -> {}
             }
-        }
-        textProperty().addListener { _: ObservableValue<out String>?, oldVal: String, newVal: String ->
-            cursor.update(newVal.length - oldVal.length)
         }
     }
 
