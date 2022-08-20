@@ -3,6 +3,7 @@ package com.toocol.termio.utilities.ansi
 import com.toocol.termio.utilities.ansi.ColorHelper.background
 import com.toocol.termio.utilities.ansi.ColorHelper.front
 import com.toocol.termio.utilities.ansi.CursorPositionHelper.cursorMove
+import com.toocol.termio.utilities.escape.*
 import com.toocol.termio.utilities.utils.ASCIIStrCache
 import com.toocol.termio.utilities.utils.StrUtil
 import org.apache.commons.lang3.StringUtils
@@ -123,6 +124,56 @@ class AnsiStringBuilder {
 
     fun append(ansiSb: AnsiStringBuilder): AnsiStringBuilder {
         builder.append(ansiSb.toString())
+        return this
+    }
+
+    fun bold(): AnsiStringBuilder {
+        builder.append(esc1m)
+        return this
+    }
+
+    fun deBold(): AnsiStringBuilder {
+        builder.append(esc22m)
+        return this
+    }
+
+    fun italic(): AnsiStringBuilder {
+        builder.append(esc3m)
+        return this
+    }
+
+    fun deItalic(): AnsiStringBuilder {
+        builder.append(esc23m)
+        return this
+    }
+
+    fun underLine(): AnsiStringBuilder {
+        builder.append(esc4m)
+        return this
+    }
+
+    fun deUnderline(): AnsiStringBuilder {
+        builder.append(esc24m)
+        return this
+    }
+
+    fun blinking(): AnsiStringBuilder {
+        builder.append(esc5m)
+        return this
+    }
+
+    fun deBlinking(): AnsiStringBuilder {
+        builder.append(esc25m)
+        return this
+    }
+
+    fun strikethrough(): AnsiStringBuilder {
+        builder.append(esc9m)
+        return this
+    }
+
+    fun deStrikethrough(): AnsiStringBuilder {
+        builder.append(esc29m)
         return this
     }
 

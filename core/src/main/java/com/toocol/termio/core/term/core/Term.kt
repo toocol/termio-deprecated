@@ -5,6 +5,7 @@ import com.toocol.termio.utilities.action.AbstractDevice
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder
 import com.toocol.termio.utilities.console.Console
 import com.toocol.termio.utilities.utils.MessageBox
+import com.toocol.termio.utilities.utils.StrUtil
 import io.vertx.core.eventbus.EventBus
 import jline.console.ConsoleReader
 import java.io.InputStream
@@ -16,11 +17,11 @@ import kotlin.system.exitProcess
  * @date 2022/4/14 11:09
  */
 class Term : AbstractDevice() {
-    val termPrinter: TermPrinter
     val termCharEventDispatcher: TermCharEventDispatcher
 
     private var termReader: ITermReader? = null
     private val historyOutputInfoHelper = HistoryOutputInfoHelper.instance
+    private val termPrinter: ITermPrinter
 
     @JvmField
     @Volatile
@@ -38,15 +39,20 @@ class Term : AbstractDevice() {
     var lastChar = '\u0000'
 
     init {
-        termReader = if (Termio.runType() == Termio.RunType.CONSOLE) {
-            ConsoleTermReader(this)
+        if (Termio.runType() == Termio.RunType.CONSOLE) {
+            termReader = ConsoleTermReader(this)
+            termPrinter = ConsoleTermPrinter(this)
         } else {
-            DesktopTermReader(this)
+            termReader = DesktopTermReader(this)
+            termPrinter = DesktopTermPrinter(this)
         }
-        termPrinter = TermPrinter(this)
         escapeHelper = EscapeHelper()
         historyCmdHelper = TermHistoryCmdHelper()
         termCharEventDispatcher = TermCharEventDispatcher()
+    }
+
+    fun cleanDisplayBuffer() {
+        ConsoleTermPrinter.displayBuffer = StrUtil.EMPTY
     }
 
     fun printScene(resize: Boolean) {
@@ -98,10 +104,6 @@ class Term : AbstractDevice() {
 
     fun printTest() {
         termPrinter.printTest()
-    }
-
-    fun printColorPanel() {
-        termPrinter.printColorPanel()
     }
 
     fun readLine(): String {

@@ -3,12 +3,10 @@ package com.toocol.termio.desktop.api.term.handlers;
 import com.toocol.termio.core.term.TermAddress;
 import com.toocol.termio.core.term.commands.TermCommand;
 import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.core.term.core.TermPrinter;
-import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
 import com.toocol.termio.utilities.ansi.Printer;
+import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.module.NonBlockingMessageHandler;
-import com.toocol.termio.utilities.utils.StrUtil;
 import com.toocol.termio.utilities.utils.Tuple2;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
@@ -16,7 +14,6 @@ import io.vertx.core.eventbus.Message;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -42,6 +39,7 @@ public final class DesktopExecuteCommandHandler extends NonBlockingMessageHandle
 
         Tuple2<Boolean, String> resultAndMessage = new Tuple2<>();
         AtomicBoolean isBreak = new AtomicBoolean();
+        Term term = Term.instance;
         boolean isCommand = TermCommand.cmdOf(cmd)
                 .map(termCommand -> {
                     try {
@@ -58,9 +56,9 @@ public final class DesktopExecuteCommandHandler extends NonBlockingMessageHandle
 
         String msg = resultAndMessage._2();
         if (StringUtils.isNotEmpty(msg)) {
-            Printer.println(msg);
+            term.printDisplay(msg);
         } else {
-            TermPrinter.displayBuffer = StrUtil.EMPTY;
+            term.cleanDisplayBuffer();
         }
 
         if (!isCommand && StringUtils.isNotEmpty(cmd)) {
@@ -70,7 +68,7 @@ public final class DesktopExecuteCommandHandler extends NonBlockingMessageHandle
                     .append(cmd)
                     .deFront()
                     .append(": command not found.");
-            Printer.println(builder.toString());
+            term.printDisplay(builder.toString());
         }
 
         message.reply(isBreak.get());
