@@ -2,7 +2,6 @@ package com.toocol.termio.desktop.ui.executor
 
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
-import javafx.beans.value.ObservableValue
 import javafx.scene.control.ScrollPane
 import org.fxmisc.flowless.VirtualizedScrollPane
 
@@ -26,7 +25,6 @@ class CommandExecutorResultScrollPane(private val id: Long, terminalConsoleTextA
         hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
         val executorPanel = findComponent(CommandExecutorPanel::class.java, id)
         executorPanel.bottom = this
-        totalHeightEstimateProperty().addListener { _: ObservableValue<out Double?>?, _: Double?, _: Double? -> content!!.requestFollowCaret() }
     }
 
     override fun id(): Long {

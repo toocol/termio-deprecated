@@ -46,9 +46,8 @@ interface IComponent : Asable, Castable {
      */
     fun hide() {
         if (this is Node) {
-            val node = `as`<Node>()
-            node.isManaged = false
-            node.isVisible = false
+            this.isManaged = false
+            this.isVisible = false
         }
     }
 
@@ -57,9 +56,8 @@ interface IComponent : Asable, Castable {
      */
     fun show() {
         if (this is Node) {
-            val node = `as`<Node>()
-            node.isManaged = true
-            node.isVisible = true
+            this.isManaged = true
+            this.isVisible = true
         }
     }
 

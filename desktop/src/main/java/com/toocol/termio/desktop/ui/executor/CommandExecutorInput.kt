@@ -27,7 +27,7 @@ class CommandExecutorInput(private val id: Long) : StyleClassedTextField(), ISty
         executorPanel.top = this
         inputMethodRequests = InputMethodRequestsObject()
         prefWidthProperty().bind(executorPanel.prefWidthProperty().multiply(1))
-        prefHeightProperty().bind(executorPanel.prefHeightProperty().multiply(0.1))
+        prefHeightProperty().bind(executorPanel.prefHeightProperty().multiply(0.15))
     }
 
     override fun id(): Long {

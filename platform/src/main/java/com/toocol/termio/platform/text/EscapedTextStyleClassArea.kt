@@ -81,9 +81,8 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     fun cursorTest() {
-        println(getParagraphLength(0))
-        append("你${StrUtil.NONE_BREAKING_SPACE.repeat(100)}好\n")
-        println(getParagraphLength(0))
+        append("你${StrUtil.NONE_BREAKING_SPACE.repeat(100)}好${StrUtil.NONE_BREAKING_SPACE.repeat(20)}\n")
+        append("Hello World~")
         cursor.setTo(calculateCursorInline(0, 100))
         append("不不不不不")
     }
@@ -101,7 +100,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                 if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle
             )
             if (cursor.inlinePosition != length) {
-                cursor.update(1)
+                cursor.update(2)
             }
         }
     }
@@ -419,6 +418,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             ParagraphStyle.CODEC,
             Codec.styledSegmentCodec(Codec.STRING_CODEC, TextStyle.CODEC)
         )
+        registerComponent(id)
         registerActions()
 
         cursor = Cursor(id)
