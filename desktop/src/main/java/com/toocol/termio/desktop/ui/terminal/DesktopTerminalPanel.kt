@@ -109,7 +109,7 @@ class DesktopTerminalPanel(id: Long) : TAnchorPane(id), IActiveAble, Loggable {
 
     override fun active() {}
 
-    private fun activeTerminal() {
+    fun activeTerminal() {
         currentActiveId = id()
         setPrinter(terminalPrintStream)
     }

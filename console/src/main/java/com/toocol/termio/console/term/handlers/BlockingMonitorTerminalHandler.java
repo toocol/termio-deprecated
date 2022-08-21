@@ -1,4 +1,4 @@
-package com.toocol.termio.console.handlers;
+package com.toocol.termio.console.term.handlers;
 
 import com.toocol.termio.core.cache.CredentialCache;
 import com.toocol.termio.core.cache.ShellCache;

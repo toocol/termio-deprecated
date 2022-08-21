@@ -83,10 +83,10 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
                         System.gc();
                     });
                 } catch (Exception e) {
-                    eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), StatusConstants.CONNECT_FAILED);
+                    eventBus.send(TermAddress.ACCEPT_COMMAND.address(), StatusConstants.CONNECT_FAILED);
                 }
             } else {
-                eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), StatusConstants.CONNECT_FAILED);
+                eventBus.send(TermAddress.ACCEPT_COMMAND.address(), StatusConstants.CONNECT_FAILED);
             }
         });
         promise.complete();
@@ -97,7 +97,7 @@ public final class BlockingEstablishMoshSessionHandler extends BlockingMessageHa
         if (!asyncResult.succeeded()) {
             warn("Establish mosh connection failed.");
             MessageBox.setErrorMessage("Can't touch the mosh-server.");
-            eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), StatusConstants.NORMAL_BACK);
+            eventBus.send(TermAddress.ACCEPT_COMMAND.address(), StatusConstants.NORMAL_BACK);
         }
     }
 

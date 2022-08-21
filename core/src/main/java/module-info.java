@@ -41,7 +41,6 @@ module termio.core {
     exports com.toocol.termio.core.ssh;
     exports com.toocol.termio.core.ssh.core to termio.console, termio.platform, termio.desktop;
     exports com.toocol.termio.core.ssh.handlers;
-    exports com.toocol.termio.core.ssh.module;
     exports com.toocol.termio.core.term;
     exports com.toocol.termio.core.term.commands;
     exports com.toocol.termio.core.term.commands.processors;

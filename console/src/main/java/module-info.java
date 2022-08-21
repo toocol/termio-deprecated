@@ -11,11 +11,14 @@ module termio.console {
     requires jsr305;
     requires kotlin.stdlib;
     requires annotations;
+    requires jsch;
 
-    opens com.toocol.termio.console.module to termio.core;
-    opens com.toocol.termio.console.handlers to termio.core;
+    opens com.toocol.termio.console.term.module to termio.core;
+    opens com.toocol.termio.console.term.handlers to termio.core;
+    opens com.toocol.termio.console.ssh.module to termio.core;
+    opens com.toocol.termio.console.ssh.handlers to termio.core;
 
-    exports com.toocol.termio.console.module;
-    exports com.toocol.termio.console.handlers;
+    exports com.toocol.termio.console.term.module;
+    exports com.toocol.termio.console.term.handlers;
     exports com.toocol.termio.console.bootstrap;
 }

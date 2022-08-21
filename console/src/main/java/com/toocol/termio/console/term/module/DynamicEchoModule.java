@@ -1,6 +1,6 @@
-package com.toocol.termio.console.module;
+package com.toocol.termio.console.term.module;
 
-import com.toocol.termio.console.handlers.DynamicEchoHandler;
+import com.toocol.termio.console.term.handlers.DynamicEchoHandler;
 import com.toocol.termio.utilities.module.AbstractModule;
 import com.toocol.termio.utilities.module.ModuleDeployment;
 import com.toocol.termio.utilities.module.RegisterHandler;

@@ -1,5 +1,7 @@
 package com.toocol.termio.desktop.ui.executor
 
+import com.toocol.termio.core.term.TermAddress
+import com.toocol.termio.desktop.api.term.handlers.DynamicEchoHandler
 import com.toocol.termio.desktop.ui.panel.WorkspacePanel
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
@@ -66,7 +68,8 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
             addEventFilter(KeyEvent.KEY_TYPED) { event: KeyEvent ->
                 if (StrUtil.isNewLine(event.character)) {
                     try {
-                        executorReaderInputStream.write((commandExecutorInput.text + StrUtil.LF).toByteArray(StandardCharsets.UTF_8))
+                        val command = commandExecutorInput.text + StrUtil.LF
+                        executorReaderInputStream.write(command.toByteArray(StandardCharsets.UTF_8))
                         executorReaderInputStream.flush()
                         commandExecutorInput.clear()
                     } catch (e: IOException) {
@@ -75,9 +78,17 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
                     event.consume()
                 }
             }
+            textProperty().addListener { _, _, newVal ->
+                if (StrUtil.isEmpty(newVal)) {
+                    DynamicEchoHandler.lastInput = StrUtil.EMPTY
+                } else {
+                    eventBus().send(TermAddress.TERMINAL_ECHO.address(), newVal)
+                }
+            }
             addEventFilter(KeyEvent.KEY_PRESSED) { event: KeyEvent ->
                 if (event.code == KeyCode.UP || event.code == KeyCode.DOWN) {
-                    executorReaderInputStream.write((if (event.code == KeyCode.UP) CharUtil.UP_ARROW.toString() else CharUtil.DOWN_ARROW.toString()).toByteArray(StandardCharsets.UTF_8))
+                    executorReaderInputStream.write((if (event.code == KeyCode.UP) CharUtil.UP_ARROW.toString() else CharUtil.DOWN_ARROW.toString()).toByteArray(
+                        StandardCharsets.UTF_8))
                     executorReaderInputStream.flush()
                     event.consume()
                 }

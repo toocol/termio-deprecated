@@ -14,33 +14,18 @@ enum class TermAddress(
     /**
      * execute console outside command
      */
-    EXECUTE_OUTSIDE_CONSOLE("ssh.command.execute.outside.console"),
-
-    /**
-     * execute desktop outside command
-     */
-    EXECUTE_OUTSIDE_DESKTOP("ssh.command.execute.outside.desktop"),
+    EXECUTE_OUTSIDE("ssh.command.execute.outside"),
 
     /**
      * to accept the user command input
      */
-    ACCEPT_COMMAND_CONSOLE("ssh.command.accept.console"),
-
-    /**
-     * to accept the user command input
-     */
-    ACCEPT_COMMAND_DESKTOP("ssh.command.accept.desktop"),
+    ACCEPT_COMMAND("ssh.command.accept"),
 
     /**
      * monitor the terminal program's status,
      * include terminal's size and ssh/mosh connection status.
      */
     MONITOR_TERMINAL("ssh.term.listen.size.change"),
-
-    /**
-     * check typewriting status.
-     */
-    CHECK_TYPEWRITING_STATUS("ssh.term.check.typewriting"),
 
     /**
      * deal with the termio command echo and prompt display.

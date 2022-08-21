@@ -30,7 +30,7 @@ public final class DesktopExecuteCommandHandler extends NonBlockingMessageHandle
     @NotNull
     @Override
     public IAddress consume() {
-        return TermAddress.EXECUTE_OUTSIDE_DESKTOP;
+        return TermAddress.EXECUTE_OUTSIDE;
     }
 
     @Override

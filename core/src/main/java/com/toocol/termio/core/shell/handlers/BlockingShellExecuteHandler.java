@@ -199,7 +199,7 @@ public final class BlockingShellExecuteHandler extends BlockingMessageHandler<Lo
             info("Destroy session, sessionId = {}", sessionId);
         }
 
-        eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), StatusConstants.NORMAL_BACK);
+        eventBus.send(TermAddress.ACCEPT_COMMAND.address(), StatusConstants.NORMAL_BACK);
     }
 
 }

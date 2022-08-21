@@ -32,6 +32,8 @@ module termio.desktop {
     opens com.toocol.termio.desktop.demos to javafx.fxml, termio.platform;
     opens com.toocol.termio.desktop.api.term.module to termio.core;
     opens com.toocol.termio.desktop.api.term.handlers to termio.core;
+    opens com.toocol.termio.desktop.api.ssh.module to termio.core;
+    opens com.toocol.termio.desktop.api.ssh.handlers to termio.core;
 
     opens com.toocol.termio.desktop.configure to termio.utilities;
 
@@ -39,5 +41,7 @@ module termio.desktop {
     exports com.toocol.termio.desktop.demos;
     exports com.toocol.termio.desktop.api.term.handlers;
     exports com.toocol.termio.desktop.api.term.module;
+    exports com.toocol.termio.desktop.api.ssh.handlers;
+    exports com.toocol.termio.desktop.api.ssh.module;
     exports com.toocol.termio.desktop.bootstrap;
 }

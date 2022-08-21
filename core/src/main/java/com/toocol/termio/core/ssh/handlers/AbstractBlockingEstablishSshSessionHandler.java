@@ -9,7 +9,6 @@ import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
 import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.functional.Executable;
-import com.toocol.termio.utilities.functional.Ordered;
 import com.toocol.termio.utilities.module.BlockingMessageHandler;
 import com.toocol.termio.core.shell.ShellAddress;
 import com.toocol.termio.core.ssh.SshAddress;
@@ -28,15 +27,14 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 11:43
  */
-@Ordered
-public final class BlockingEstablishSshSessionHandler extends BlockingMessageHandler<Long> {
+public abstract class AbstractBlockingEstablishSshSessionHandler extends BlockingMessageHandler<Long> {
 
-    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
-    private final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
-    private final ShellCache.Instance shellCache = ShellCache.Instance;
-    private final SshSessionFactory.Instance factory = SshSessionFactory.Instance;
+    protected final CredentialCache.Instance credentialCache = CredentialCache.Instance;
+    protected final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
+    protected final ShellCache.Instance shellCache = ShellCache.Instance;
+    protected final SshSessionFactory.Instance factory = SshSessionFactory.Instance;
 
-    public BlockingEstablishSshSessionHandler(Vertx vertx, Context context, boolean parallel) {
+    public AbstractBlockingEstablishSshSessionHandler(Vertx vertx, Context context, boolean parallel) {
         super(vertx, context, parallel);
     }
 
@@ -125,7 +123,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
             Shell shell = shellCache.getShell(sessionId);
             if (shell == null) {
                 warn("Get Shell is null when try to entry shell.");
-                eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), StatusConstants.CONNECT_FAILED);
+                eventBus.send(TermAddress.ACCEPT_COMMAND.address(), StatusConstants.CONNECT_FAILED);
                 return;
             }
             shell.printAfterEstablish();
@@ -139,7 +137,7 @@ public final class BlockingEstablishSshSessionHandler extends BlockingMessageHan
         } else {
 
             warn("Establish ssh connection failed.");
-            eventBus.send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), StatusConstants.CONNECT_FAILED);
+            eventBus.send(TermAddress.ACCEPT_COMMAND.address(), StatusConstants.CONNECT_FAILED);
 
         }
     }
