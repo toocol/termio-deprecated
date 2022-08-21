@@ -116,7 +116,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
         stage.setScene(scene);
         stage.show();
 
-        componentParser.getComponents()
+        ComponentsContainer.getComponents()
                 .stream()
                 .filter(component -> component instanceof IActionAfterShow)
                 .map(component -> (IActionAfterShow) component)

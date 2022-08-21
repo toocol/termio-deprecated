@@ -1,6 +1,7 @@
 package com.toocol.termio.platform.text
 
 import com.google.common.collect.ImmutableMap
+import com.toocol.termio.platform.component.IActionAfterShow
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.utilities.escape.*
 import com.toocol.termio.utilities.escape.EscapeColorGraphicsMode.*
@@ -8,14 +9,12 @@ import com.toocol.termio.utilities.escape.EscapeCommonPrivateMode.*
 import com.toocol.termio.utilities.escape.EscapeCursorControlMode.*
 import com.toocol.termio.utilities.escape.EscapeEraseFunctionsMode.*
 import com.toocol.termio.utilities.escape.EscapeScreenMode.*
-import com.toocol.termio.utilities.escape.AnsiEscapeAction
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.beans.value.ObservableValue
 import javafx.scene.Node
 import javafx.scene.paint.Color
 import javafx.scene.text.TextFlow
-import org.fxmisc.richtext.CaretNode
 import org.fxmisc.richtext.GenericStyledArea
 import org.fxmisc.richtext.StyledTextArea
 import org.fxmisc.richtext.TextExt
@@ -48,7 +47,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             text.style = style.toCss()
         }
     }
-), EscapeCodeSequenceSupporter<EscapedTextStyleClassArea>, IComponent {
+), EscapeCodeSequenceSupporter<EscapedTextStyleClassArea>, IComponent, IActionAfterShow {
 
     protected var paragraphStyle: ParagraphStyle = ParagraphStyle.EMPTY
 
@@ -418,8 +417,8 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             ParagraphStyle.CODEC,
             Codec.styledSegmentCodec(Codec.STRING_CODEC, TextStyle.CODEC)
         )
-        registerComponent(id)
-        registerActions()
+        this.registerComponent(id)
+        this.registerActions()
 
         cursor = Cursor(id)
         ansiEscapeSearchEngine = AnsiEscapeSearchEngine()

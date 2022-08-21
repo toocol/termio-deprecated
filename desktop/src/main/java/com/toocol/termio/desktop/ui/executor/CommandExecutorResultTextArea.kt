@@ -4,6 +4,8 @@ import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
 import com.toocol.termio.platform.text.EscapedTextStyleClassArea
 import com.toocol.termio.platform.text.TextStyle
+import com.toocol.termio.utilities.utils.StrUtil
+import javafx.application.Platform
 import javafx.scene.paint.Color
 
 /**
@@ -32,6 +34,17 @@ class CommandExecutorResultTextArea(private val id: Long) : EscapedTextStyleClas
             .updateFontSize(9))
         updateDefaultEnglishStyle(TextStyle.EMPTY.updateFontFamily("\"Consolas\"")
             .updateTextColor(Color.valueOf("#cccccc")).updateFontSize(10))
+    }
+
+    override fun actionAfterShow() {
+        // Solve the problem of flashing screen, there may be other better ways
+        append(StrUtil.LF.repeat(50))
+        Thread {
+            Thread.sleep(100)
+            Platform.runLater {
+                clear()
+            }
+        }.start()
     }
 
     override fun id(): Long {
