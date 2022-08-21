@@ -42,6 +42,7 @@
 .command-executor-result-text-area {
     -fx-background-color: #101010;
     -fx-fill: #CCCCCC;
+    -fx-padding: 5 15 5 15;
 }
 
 /* homepage */

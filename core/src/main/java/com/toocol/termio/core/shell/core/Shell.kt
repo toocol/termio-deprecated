@@ -421,11 +421,7 @@ class Shell : AbstractDevice, Loggable {
         } else {
             println("Session established: $user@$host")
         }
-        println("""
-    
-    Use protocol ${protocol.name}.
-    
-    """.trimIndent())
+        println("Use protocol ${protocol.name}.")
     }
 
     fun initializeSwitchSessionHelper() {

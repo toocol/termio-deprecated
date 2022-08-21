@@ -31,7 +31,7 @@ object Printer {
 
     @JvmStatic
     fun print(msg: String?) {
-        printer!!.print(msg)
+        printer!!.print(msg?.replace(StrUtil.CRLF, StrUtil.LF))
     }
 
     fun println() {
@@ -40,14 +40,14 @@ object Printer {
 
     @JvmStatic
     fun println(msg: String?) {
-        printer!!.print(msg + StrUtil.LF)
+        printer!!.print(msg?.replace(StrUtil.CRLF, StrUtil.LF) + StrUtil.LF)
     }
 
     @JvmStatic
     fun printErr(msg: String) {
         printer!!.println(AnsiStringBuilder()
             .front(167)
-            .append(msg))
+            .append(msg.replace(StrUtil.CRLF, StrUtil.LF) + StrUtil.LF))
     }
 
     @JvmStatic

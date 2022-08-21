@@ -15,12 +15,14 @@ import javafx.beans.value.ObservableValue
 import javafx.scene.Node
 import javafx.scene.paint.Color
 import javafx.scene.text.TextFlow
+import org.fxmisc.richtext.CaretNode
 import org.fxmisc.richtext.GenericStyledArea
 import org.fxmisc.richtext.StyledTextArea
 import org.fxmisc.richtext.TextExt
 import org.fxmisc.richtext.model.Codec
 import org.fxmisc.richtext.model.SegmentOps
 import org.fxmisc.richtext.model.StyledSegment
+import org.fxmisc.richtext.model.TwoDimensional
 import java.util.function.BiConsumer
 import java.util.function.Function
 
@@ -78,18 +80,29 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         ansiEscapeSearchEngine!!.actionOnEscapeMode(text, this)
     }
 
+    fun cursorTest() {
+        println(getParagraphLength(0))
+        append("你${StrUtil.NONE_BREAKING_SPACE.repeat(100)}好\n")
+        println(getParagraphLength(0))
+        cursor.setTo(calculateCursorInline(0, 100))
+        append("不不不不不")
+    }
+
     override fun printOut(text: String) {
-        if (StrUtil.isNewLine(text)) {
-            cursor.setTo(length)
-        }
-        for (splitText in StrUtil.splitSequenceByChinese(text)) {
-            replace(
-                cursor.inlinePosition, cursor.inlinePosition,
-                (StrUtil.join(splitText.toCharArray(), CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR).replace(
-                    StrUtil.SPACE.toRegex(),
-                    StrUtil.NONE_BREAKING_SPACE),
-                if (StrUtil.isChineseSequenceByHead(splitText)) currentChineseTextStyle else currentEnglishTextStyle
+        for (ch in text.toCharArray()) {
+            val content = if (ch == CharUtil.LF) {
+                cursor.setTo(length)
+                ch.toString()
+            } else ch.toString().replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE) + CharUtil.INVISIBLE_CHAR
+
+            val start = cursor.inlinePosition
+            val end = if (cursor.inlinePosition == length) cursor.inlinePosition else cursor.inlinePosition + content.length
+            replace(start, end, content,
+                if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle
             )
+            if (cursor.inlinePosition != length) {
+                cursor.update(1)
+            }
         }
     }
 
@@ -99,6 +112,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
     private fun registerActions() {
         val actions: MutableList<AnsiEscapeAction<EscapedTextStyleClassArea>> = ArrayList()
+        actions.add(EscapeEnterAction())
         actions.add(EscapeCursorControlAction())
         actions.add(EscapeEraseFunctionsAction())
         actions.add(EscapeColorGraphicsAction())
@@ -116,8 +130,16 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         actionMap = ImmutableMap.copyOf(map)
     }
 
-    private fun calculateCursorInline(line: Int, col: Int): Int {
-        return 0
+    protected fun calculateCursorInline(line: Int, col: Int): Int {
+        return position(line, col).toOffset()
+    }
+
+    private fun getCursorPos(): Array<Int> {
+        val pos: Array<Int> = arrayOf()
+        val position = offsetToPosition(cursor.inlinePosition, TwoDimensional.Bias.Forward)
+        pos[0] = position.major
+        pos[1] = position.minor
+        return pos
     }
 
     private fun cursorLeft(value: Int) {
@@ -137,7 +159,8 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private fun moveCursorLineHead(value: Int) {
-
+        val cursorPos = getCursorPos()
+        cursor.setTo(calculateCursorInline(cursorPos[0] + value, 0))
     }
 
     private fun moveCursorLineUp(value: Int) {
@@ -146,6 +169,16 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
     private fun setColumnTo(value: Int) {
 
+    }
+
+    private class EscapeEnterAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        override fun focusMode(): Class<out IEscapeMode> {
+            return EscapeEnterMode::class.java
+        }
+
+        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            executeTarget.moveCursorLineHead(0)
+        }
     }
 
     private class EscapeCursorControlAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {

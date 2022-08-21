@@ -6,6 +6,7 @@ import com.toocol.termio.desktop.ui.panel.WorkspacePanel
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.ui.TBorderPane
+import com.toocol.termio.platform.ui.TScene
 import com.toocol.termio.utilities.ansi.Printer.setPrinter
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.CharUtil
@@ -14,6 +15,8 @@ import javafx.application.Platform
 import javafx.beans.value.ObservableValue
 import javafx.event.EventHandler
 import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCodeCombination
+import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyEvent
 import java.io.IOException
 import java.io.PrintStream
@@ -57,6 +60,14 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
                 } else {
                     println("Executor lose focus")
                 }
+            }
+
+            val scene = findComponent(TScene::class.java, 1)
+            val ctrlU: KeyCombination = KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN)
+            scene.accelerators[ctrlU] = Runnable {
+                commandExecutorInput.clear()
+                commandExecutorResultTextArea.clear()
+                commandExecutorResultTextArea.cursorTest()
             }
         }
 

@@ -29,11 +29,17 @@ class DesktopConsole : Console() {
     }
 
     override fun setCursorPosition(x: Int, y: Int) {}
+
     override fun cursorBackLine(lines: Int) {}
+
     override fun showCursor() {}
+
     override fun hideCursor() {}
+
     override fun cursorLeft() {}
+
     override fun cursorRight() {}
+
     override fun cleanUnsupportedCharacter(bytes: ByteArray): ByteArray {
         return ByteArray(0)
     }

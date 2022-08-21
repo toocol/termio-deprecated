@@ -8,6 +8,7 @@ module termio.platform {
     requires org.fxmisc.richtext;
     requires kotlin.stdlib;
     requires com.google.common;
+    requires reactfx;
 
     exports com.toocol.termio.platform.console;
     exports com.toocol.termio.platform.component;
