@@ -21,7 +21,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
         private val codeRegex = Regex(pattern = """(\d{1,3};)+""")
         private val stringRegex = Regex(pattern = """[\w ]+;?""")
 
-        private const val uberEscapeModeRegexPattern = """(\u001b\[\d{1,4};\d{1,4}[Hf])""" +
+        private const val uberEscapeModeRegexPattern = """\r|(\u001b\[\d{1,4};\d{1,4}[Hf])""" +
                 """|((\u001b\[\d{0,4}([HABCDEFGsu]|(6n)))|(\u001b [M78]))""" +
                 """|(\u001b\[[0123]?[JK])""" +
                 """|(\u001b\[((?!38)(?!48)\d{1,3};?)+m)""" +
@@ -32,6 +32,8 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 """|(\u001b\[\?\d{2,4}[lh])""" +
                 """|(\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\w ]+((\\")|'|");?)|(\d{1,2};?))+p)"""
         private val uberEscapeModeRegex = Regex(pattern = uberEscapeModeRegexPattern)
+
+        private val enterModeRegex = Regex(pattern = "\r")
 
         // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#cursor-controls
         private val cursorSetPosModeRegex = Regex(pattern = """\u001b\[\d{1,4};\d{1,4}[Hf]""")
@@ -77,6 +79,10 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
         uberEscapeModeRegex.findAll(text).forEach { lineRet ->
             val escapeSequence = lineRet.value
             val dealAlready = AtomicBoolean()
+
+            regexParse(escapeSequence, enterModeRegex, { _: String, tuple: Tuple2<IEscapeMode, List<Any>> ->
+                tuple.first(EscapeEnterMode.ENTER)
+            }, dealAlready)
 
             regexParse(escapeSequence, cursorSetPosModeRegex, { certainEscape: String, tuple: Tuple2<IEscapeMode, List<Any>> ->
                 tuple.first(EscapeCursorControlMode.codeOf("Hf")).second(

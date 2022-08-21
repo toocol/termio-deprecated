@@ -56,8 +56,6 @@ class DesktopTerminalPanel(id: Long) : TAnchorPane(id), IActiveAble, Loggable {
             prefWidthProperty().bind(workspacePanel.prefWidthProperty())
             children.add(terminalScrollPane)
 
-            val ctrlU: KeyCombination = KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN)
-            scene.accelerators[ctrlU] = Runnable { terminalConsoleTextArea.clear() }
             val ctrlT: KeyCombination = KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN)
             scene.accelerators[ctrlT] = Runnable { terminalConsoleTextArea.clear() }
         }
