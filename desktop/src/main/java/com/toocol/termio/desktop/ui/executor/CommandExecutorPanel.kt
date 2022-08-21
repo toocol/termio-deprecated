@@ -3,6 +3,8 @@ package com.toocol.termio.desktop.ui.executor
 import com.toocol.termio.core.term.TermAddress
 import com.toocol.termio.desktop.api.term.handlers.DynamicEchoHandler
 import com.toocol.termio.desktop.ui.panel.WorkspacePanel
+import com.toocol.termio.desktop.ui.terminal.DesktopTerminalPanel
+import com.toocol.termio.desktop.ui.terminal.TerminalConsoleTextArea
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.ui.TBorderPane
@@ -51,7 +53,7 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
             val workspacePanel = findComponent(WorkspacePanel::class.java, id)
             workspacePanel.bottom = this
             prefWidthProperty().bind(workspacePanel.prefWidthProperty().multiply(1))
-            prefHeightProperty().bind(workspacePanel.prefHeightProperty().multiply(0.3))
+            prefHeightProperty().bind(workspacePanel.prefHeightProperty().multiply(0.2))
 
             focusedProperty().addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
                 if (newVal) {
@@ -69,10 +71,31 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
                 commandExecutorResultTextArea.clear()
                 commandExecutorResultTextArea.cursorTest()
             }
+
+            val ctrlAltP: KeyCombination = KeyCodeCombination(KeyCode.P, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN)
+            scene.accelerators[ctrlAltP] = Runnable {
+                if (!commandExecutorInput.isFocused && isVisible) {
+                    commandExecutorInput.requestFocus()
+                } else {
+                    val ratio = if (isVisible) {
+                        hide()
+                        findComponent(TerminalConsoleTextArea::class.java, 1).requestFocus()
+                        1.0
+                    } else {
+                        show()
+                        commandExecutorInput.requestFocus()
+                        0.8
+                    }
+                    findComponent(DesktopTerminalPanel::class.java, 1).prefHeightProperty().bind(workspacePanel.prefHeightProperty().multiply(ratio))
+                }
+            }
         }
 
         executorOutputService.apply { start() }
-        commandExecutorResultTextArea.apply { initialize() }
+        commandExecutorResultTextArea.apply {
+            initialize()
+            onMouseClicked = EventHandler { commandExecutorInput.requestFocus() }
+        }
         commandExecutorResultScrollPane.apply { initialize() }
         commandExecutorInput.apply {
             initialize()
@@ -89,19 +112,19 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
                     event.consume()
                 }
             }
-            textProperty().addListener { _, _, newVal ->
-                if (StrUtil.isEmpty(newVal)) {
-                    DynamicEchoHandler.lastInput = StrUtil.EMPTY
-                } else {
-                    eventBus().send(TermAddress.TERMINAL_ECHO.address(), newVal)
-                }
-            }
             addEventFilter(KeyEvent.KEY_PRESSED) { event: KeyEvent ->
                 if (event.code == KeyCode.UP || event.code == KeyCode.DOWN) {
                     executorReaderInputStream.write((if (event.code == KeyCode.UP) CharUtil.UP_ARROW.toString() else CharUtil.DOWN_ARROW.toString()).toByteArray(
                         StandardCharsets.UTF_8))
                     executorReaderInputStream.flush()
                     event.consume()
+                }
+            }
+            textProperty().addListener { _, _, newVal ->
+                if (StrUtil.isEmpty(newVal)) {
+                    DynamicEchoHandler.lastInput = StrUtil.EMPTY
+                } else {
+                    eventBus().send(TermAddress.TERMINAL_ECHO.address(), newVal)
                 }
             }
             focusedProperty()
