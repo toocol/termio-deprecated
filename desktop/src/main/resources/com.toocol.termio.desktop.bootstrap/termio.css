@@ -30,7 +30,7 @@
 .command-executor-panel {
     -fx-background-color: #101010;
     -fx-border-color: #FFFFFF;
-    -fx-border-width: 1 1 1 1;
+    -fx-border-width: 1 0 1 0;
     -fx-border-style: solid;
 }
 .command-executor-input {

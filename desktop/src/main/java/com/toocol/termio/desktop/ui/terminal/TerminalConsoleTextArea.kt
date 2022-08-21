@@ -106,6 +106,8 @@ class TerminalConsoleTextArea(private val id: Long) : EscapedTextStyleClassArea(
         }
     }
 
+    override fun actionAfterShow() {}
+
     val physicLines: Int
         get() = paragraphs.size
 

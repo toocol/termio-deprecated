@@ -18,6 +18,11 @@ object ComponentsContainer {
         return componentsMap[generateFullId(clazz, id)]!!.`as`()
     }
 
+    @JvmStatic
+    fun getComponents(): MutableCollection<IComponent> {
+        return componentsMap.values
+    }
+
     private fun generateFullId(clazz: Class<*>, id: Long): String {
         return clazz.name + "." + id
     }
