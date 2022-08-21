@@ -13,7 +13,7 @@ import java.util.function.BiConsumer
  * @date 2022/8/8 10:45
  */
 class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Castable {
-    companion object Instance {
+    companion object {
         private val wordNumberRegex = Regex(pattern = """\w+""")
         private val numberRegex = Regex(pattern = """\d+""")
         private val wordRegex = Regex(pattern = """[a-zA-Z]+""")

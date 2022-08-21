@@ -1,4 +1,4 @@
-package com.toocol.termio.console.handlers;
+package com.toocol.termio.desktop.api.term.handlers;
 
 import com.toocol.termio.core.auth.core.SshCredential;
 import com.toocol.termio.core.cache.CredentialCache;
@@ -6,9 +6,9 @@ import com.toocol.termio.core.cache.SshSessionCache;
 import com.toocol.termio.core.term.TermAddress;
 import com.toocol.termio.core.term.commands.TermCommand;
 import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder;
 import com.toocol.termio.utilities.ansi.ColorHelper;
+import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.module.NonBlockingMessageHandler;
 import com.toocol.termio.utilities.utils.CharUtil;
 import com.toocol.termio.utilities.utils.StrUtil;
@@ -48,7 +48,6 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
     @Override
     public <T> void handleInline(@NotNull Message<T> message) {
         String cmd = cast(message.body());
-        int backgroundColor = Term.theme.displayBackGroundColor.color;
         int commandHighlightColor = Term.theme.commandHighlightColor.color;
         String finalCmd = cmd.trim();
 
@@ -60,7 +59,7 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
                 return;
             }
             if (StringUtils.isNumeric(finalCmd)) {
-                AnsiStringBuilder connectionPrompt = new AnsiStringBuilder().background(backgroundColor);
+                AnsiStringBuilder connectionPrompt = new AnsiStringBuilder();
                 connectionPrompt.append("Connection [").append(finalCmd.length() == 1 ? "0" + finalCmd : finalCmd).append("]");
                 connectionPrompt.append("\n\n");
 
@@ -101,7 +100,7 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
                 }
                 lastInput = command.getSpecify();
             } else {
-                AnsiStringBuilder builder = new AnsiStringBuilder().background(backgroundColor)
+                AnsiStringBuilder builder = new AnsiStringBuilder()
                         .append("Didn't find command '")
                         .front(commandHighlightColor).append(cmd).deFront()
                         .append("'\n\n")
@@ -119,13 +118,12 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
 
     private void spaceProcess(Term term, String cmd) {
         int commandHighlightColor = Term.theme.commandHighlightColor.color;
-        int backgroundColor = Term.theme.displayBackGroundColor.color;
 
         if (cmd.contains(StrUtil.SPACE)) {
             String[] split = cmd.split(StrUtil.SPACE);
             TermCommand splitCommand = COMMANDS.get(split[0]);
             if (splitCommand == null) {
-                AnsiStringBuilder printMsg = new AnsiStringBuilder().background(backgroundColor)
+                AnsiStringBuilder printMsg = new AnsiStringBuilder()
                         .append("Didn't find command '")
                         .front(commandHighlightColor).append(split[0]).deFront().append("'");
                 String alikeCommand = TermCommand.findAlike(split[0]);
@@ -152,8 +150,8 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
                 }
             }
         } else {
-            AnsiStringBuilder titleMsg = new AnsiStringBuilder().background(backgroundColor).append("Alternative commands: ");
-            AnsiStringBuilder printMsg = new AnsiStringBuilder().background(backgroundColor);
+            AnsiStringBuilder titleMsg = new AnsiStringBuilder().append("Alternative commands: ");
+            AnsiStringBuilder printMsg = new AnsiStringBuilder();
             for (TermCommand value : TermCommand.values()) {
                 if (value.cmd().startsWith(cmd)) {
                     if (StringUtils.isNotEmpty(value.getSpecify())) {
@@ -168,7 +166,7 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
                 }
                 lastInput = titleMsg.toString();
             } else {
-                AnsiStringBuilder builder = new AnsiStringBuilder().background(backgroundColor)
+                AnsiStringBuilder builder = new AnsiStringBuilder()
                         .append("Didn't find command '")
                         .front(commandHighlightColor).append(cmd).deFront()
                         .append("'\n\n")

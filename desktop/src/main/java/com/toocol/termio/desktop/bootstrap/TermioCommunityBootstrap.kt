@@ -72,7 +72,7 @@ object TermioCommunityBootstrap : Termio() {
         try {
             while (true) {
                 if (Printer.LOADING_ACCOMPLISH) {
-                    vertx!!.eventBus().send(TermAddress.ACCEPT_COMMAND_DESKTOP.address(), null)
+                    vertx!!.eventBus().send(TermAddress.ACCEPT_COMMAND.address(), null)
                     loadingLatch = null
                     initialLatch = null
                     verticleClassList = null

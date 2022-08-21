@@ -1,7 +1,8 @@
-package com.toocol.termio.core.ssh.module;
+package com.toocol.termio.desktop.api.ssh.module;
 
 import com.toocol.termio.core.ssh.handlers.BlockingActiveSshSessionHandler;
-import com.toocol.termio.core.ssh.handlers.BlockingEstablishSshSessionHandler;
+import com.toocol.termio.core.ssh.handlers.AbstractBlockingEstablishSshSessionHandler;
+import com.toocol.termio.desktop.api.ssh.handlers.BlockingEstablishSshSessionHandler;
 import com.toocol.termio.utilities.module.AbstractModule;
 import com.toocol.termio.utilities.module.ModuleDeployment;
 import com.toocol.termio.utilities.module.RegisterHandler;

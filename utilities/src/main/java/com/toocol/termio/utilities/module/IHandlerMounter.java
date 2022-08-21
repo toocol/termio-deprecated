@@ -34,14 +34,16 @@ public interface IHandlerMounter extends Castable {
         Arrays.stream(registerHandler.handlers()).forEach(handlerClass -> {
             try {
 
-                if (handlerClass.getSuperclass().equals(NonBlockingMessageHandler.class)) {
+                if (handlerClass.getSuperclass().equals(NonBlockingMessageHandler.class) ||
+                        handlerClass.getSuperclass().getSuperclass().equals(NonBlockingMessageHandler.class)) {
 
                     Constructor<? extends NonBlockingMessageHandler> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, Context.class));
                     declaredConstructor.setAccessible(true);
                     AbstractMessageHandler commandHandler = declaredConstructor.newInstance(vertx, context);
                     vertx.eventBus().consumer(commandHandler.consume().address(), commandHandler::handle);
 
-                } else if (handlerClass.getSuperclass().equals(BlockingMessageHandler.class)) {
+                } else if (handlerClass.getSuperclass().equals(BlockingMessageHandler.class) ||
+                        handlerClass.getSuperclass().getSuperclass().equals(BlockingMessageHandler.class)) {
 
                     Constructor<? extends BlockingMessageHandler<?>> declaredConstructor = cast(handlerClass.getDeclaredConstructor(Vertx.class, Context.class, boolean.class));
                     declaredConstructor.setAccessible(true);

@@ -1,8 +1,8 @@
-package com.toocol.termio.console.module;
+package com.toocol.termio.console.term.module;
 
-import com.toocol.termio.console.handlers.BlockingAcceptCommandHandler;
-import com.toocol.termio.console.handlers.BlockingMonitorTerminalHandler;
-import com.toocol.termio.console.handlers.ExecuteCommandHandler;
+import com.toocol.termio.console.term.handlers.BlockingAcceptCommandHandler;
+import com.toocol.termio.console.term.handlers.BlockingMonitorTerminalHandler;
+import com.toocol.termio.console.term.handlers.ExecuteCommandHandler;
 import com.toocol.termio.utilities.module.AbstractModule;
 import com.toocol.termio.utilities.module.ModuleDeployment;
 import com.toocol.termio.utilities.module.RegisterHandler;

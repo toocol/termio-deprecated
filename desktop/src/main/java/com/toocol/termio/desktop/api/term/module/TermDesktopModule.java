@@ -2,6 +2,7 @@ package com.toocol.termio.desktop.api.term.module;
 
 import com.toocol.termio.desktop.api.term.handlers.BlockingDesktopAcceptCommandHandler;
 import com.toocol.termio.desktop.api.term.handlers.DesktopExecuteCommandHandler;
+import com.toocol.termio.desktop.api.term.handlers.DynamicEchoHandler;
 import com.toocol.termio.utilities.module.AbstractModule;
 import com.toocol.termio.utilities.module.ModuleDeployment;
 import com.toocol.termio.utilities.module.RegisterHandler;
@@ -13,7 +14,8 @@ import com.toocol.termio.utilities.module.RegisterHandler;
 @ModuleDeployment(weight = 10, worker = true, workerPoolName = "term-console-worker-pool")
 @RegisterHandler(handlers = {
         BlockingDesktopAcceptCommandHandler.class,
-        DesktopExecuteCommandHandler.class
+        DesktopExecuteCommandHandler.class,
+        DynamicEchoHandler.class
 })
 public final class TermDesktopModule extends AbstractModule {
 

@@ -4,8 +4,6 @@ import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
 import com.toocol.termio.platform.text.EscapedTextStyleClassArea
 import com.toocol.termio.platform.text.TextStyle
-import com.toocol.termio.utilities.utils.CharUtil
-import com.toocol.termio.utilities.utils.StrUtil
 import javafx.scene.paint.Color
 
 /**
@@ -34,21 +32,6 @@ class CommandExecutorResultTextArea(private val id: Long) : EscapedTextStyleClas
             .updateFontSize(9))
         updateDefaultEnglishStyle(TextStyle.EMPTY.updateFontFamily("\"Consolas\"")
             .updateTextColor(Color.valueOf("#cccccc")).updateFontSize(10))
-    }
-
-    fun append(text: String?) {
-        if (StrUtil.isNewLine(text)) {
-            cursor.setTo(length)
-        }
-        for (splitText in StrUtil.splitSequenceByChinese(text)) {
-            replace(
-                cursor.inlinePosition, cursor.inlinePosition,
-                (StrUtil.join(splitText.toCharArray(), CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR).replace(
-                    StrUtil.SPACE.toRegex(),
-                    StrUtil.NONE_BREAKING_SPACE),
-                if (StrUtil.isChineseSequenceByHead(splitText)) defaultChineseTextStyle else defaultEnglishTextStyle
-            )
-        }
     }
 
     override fun id(): Long {

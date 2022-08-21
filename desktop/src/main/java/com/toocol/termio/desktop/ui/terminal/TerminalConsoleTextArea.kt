@@ -5,8 +5,6 @@ import com.toocol.termio.platform.component.IStyleAble
 import com.toocol.termio.platform.text.EscapedTextStyleClassArea
 import com.toocol.termio.platform.text.TextStyle
 import com.toocol.termio.utilities.utils.Castable
-import com.toocol.termio.utilities.utils.CharUtil
-import com.toocol.termio.utilities.utils.StrUtil
 import javafx.geometry.Point2D
 import javafx.scene.input.InputMethodRequests
 import javafx.scene.input.KeyCode
@@ -105,21 +103,6 @@ class TerminalConsoleTextArea(private val id: Long) : EscapedTextStyleClassArea(
                 KeyCode.UP, KeyCode.DOWN, KeyCode.PAGE_DOWN, KeyCode.PAGE_UP, KeyCode.HOME -> event.consume()
                 else -> {}
             }
-        }
-    }
-
-    fun append(text: String?) {
-        if (StrUtil.isNewLine(text)) {
-            cursor.setTo(length)
-        }
-        for (splitText in StrUtil.splitSequenceByChinese(text)) {
-            replace(
-                cursor.inlinePosition, cursor.inlinePosition,
-                (StrUtil.join(splitText.toCharArray(), CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR).replace(
-                    StrUtil.SPACE.toRegex(),
-                    StrUtil.NONE_BREAKING_SPACE),
-                if (StrUtil.isChineseSequenceByHead(splitText)) defaultChineseTextStyle else defaultEnglishTextStyle
-            )
         }
     }
 

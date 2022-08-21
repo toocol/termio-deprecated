@@ -10,5 +10,5 @@ import com.toocol.termio.utilities.utils.Asable
 abstract class AnsiEscapeAction<T> : Asable {
     abstract fun focusMode(): Class<out IEscapeMode>
 
-    abstract fun action(executeTarget: T, escapeMode: IEscapeMode, params: List<Any>)
+    abstract fun action(executeTarget: T, escapeMode: IEscapeMode, params: List<Any>?)
 }

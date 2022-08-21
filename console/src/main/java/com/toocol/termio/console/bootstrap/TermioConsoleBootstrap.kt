@@ -70,7 +70,7 @@ object TermioConsoleBootstrap : Termio() {
                 if (Printer.LOADING_ACCOMPLISH) {
                     loadingLatch!!.await()
                     vertx!!.eventBus().send(TermAddress.MONITOR_TERMINAL.address(), null)
-                    vertx!!.eventBus().send(TermAddress.ACCEPT_COMMAND_CONSOLE.address(), FIRST_IN)
+                    vertx!!.eventBus().send(TermAddress.ACCEPT_COMMAND.address(), FIRST_IN)
                     loadingLatch = null
                     initialLatch = null
                     verticleClassList = null

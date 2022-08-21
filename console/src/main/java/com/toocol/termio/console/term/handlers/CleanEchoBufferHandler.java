@@ -1,7 +1,6 @@
-package com.toocol.termio.console.handlers;
+package com.toocol.termio.console.term.handlers;
 
 import com.toocol.termio.core.term.TermAddress;
-import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.module.NonBlockingMessageHandler;
 import com.toocol.termio.utilities.utils.StrUtil;
@@ -16,8 +15,6 @@ import org.jetbrains.annotations.NotNull;
  * @date 2022/3/30 11:09
  */
 public final class CleanEchoBufferHandler extends NonBlockingMessageHandler {
-
-    private final Term term = Term.instance;
 
     public CleanEchoBufferHandler(Vertx vertx, Context context) {
         super(vertx, context);
