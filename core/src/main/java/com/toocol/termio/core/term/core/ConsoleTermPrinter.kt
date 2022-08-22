@@ -1,5 +1,6 @@
 package com.toocol.termio.core.term.core
 
+import com.toocol.termio.core.Termio
 import com.toocol.termio.core.cache.SshSessionCache
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder
 import java.util.Arrays
@@ -13,6 +14,7 @@ import java.io.PrintStream
 import java.lang.ProcessBuilder
 import org.apache.commons.lang3.StringUtils
 import java.lang.Exception
+import kotlin.math.max
 
 /**
  * The print area of the term screen, from top to bottom is:
@@ -73,8 +75,8 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
     }
 
     private fun printInformationBar() {
-        val windowWidth = Term.CONSOLE.windowWidth
-        Term.CONSOLE.setCursorPosition(0, 0)
+        val windowWidth = Term.console!!.getWindowWidth()
+        Term.console!!.setCursorPosition(0, 0)
         val termioVersion = " termio: V${PomUtil.getVersion()}"
         val memoryUse = "memory-use: ${usedMemory()}MB"
         val active = "alive: ${SshSessionCache.getAlive()}"
@@ -100,14 +102,14 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
     override fun printScene(resize: Boolean) {
         val term = Term.instance
         val oldPosition = term.cursorPosition
-        Term.CONSOLE.hideCursor()
+        Term.console!!.hideCursor()
         if (resize) {
             clear()
         }
         printInformationBar()
         val prompt = "Properties:"
         val builder = AnsiStringBuilder()
-        val width = Term.width
+        val width = Termio.windowWidth
         printStream!!.println(
             builder.background(Term.theme.propertiesZoneBgColor.color)
                 .space(width).crlf()
@@ -125,7 +127,7 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
         } else {
             credentialCache.showCredentials()
         }
-        for (idx in 0 until Term.TOP_MARGIN) {
+        for (idx in 0 until Term.topMargin) {
             printStream!!.println(builder.space(width).toString())
         }
         val msg = "'←'/'→' to change groups."
@@ -141,7 +143,7 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
             .background(Term.theme.groupIdleBgColor.color)
             .space(5).append(groups[3]).space(5)
             .deBackground()
-            .space(width - (8 * 5 + 3) - groupsLen - msg.length)
+            .space(max(width - (8 * 5 + 3) - groupsLen - msg.length, 0))
             .append(msg)
         printStream!!.println(builder.toString())
         Term.executeLine = term.cursorPosition[1]
@@ -154,7 +156,7 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
         if (!resize) {
             term.setCursorPosition(Term.promptLen, Term.executeLine)
         }
-        Term.CONSOLE.showCursor()
+        Term.console!!.showCursor()
     }
 
     @Synchronized
@@ -165,11 +167,11 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
 
     @Synchronized
     override fun printExecuteBackground() {
-        term.setCursorPosition(Term.LEFT_MARGIN, Term.executeLine)
+        term.setCursorPosition(Term.leftMargin, Term.executeLine)
         val builder = AnsiStringBuilder()
             .background(Term.theme.executeBackgroundColor.color)
             .front(Term.theme.executeFrontColor.color)
-            .append(Term.PROMPT + " ".repeat(Term.width - Term.promptLen - Term.LEFT_MARGIN))
+            .append(Term.prompt + " ".repeat(Termio.windowWidth - Term.promptLen - Term.leftMargin))
         printStream!!.print(builder.toString())
         term.showCursor()
     }
@@ -182,7 +184,7 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
         val builder = AnsiStringBuilder()
             .background(Term.theme.executeBackgroundColor.color)
             .front(Term.theme.executeFrontColor.color)
-            .append(" ".repeat(Term.width - Term.promptLen - Term.LEFT_MARGIN))
+            .append(" ".repeat(Termio.windowWidth - Term.promptLen - Term.leftMargin))
         printStream!!.print(builder.toString())
         term.setCursorPosition(Term.promptLen, Term.executeLine)
         builder.clearStr().append(msg)
@@ -194,8 +196,8 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
     @Synchronized
     override fun cleanDisplay() {
         term.setCursorPosition(0, Term.executeLine + 1)
-        val windowWidth: Int = Term.width
-        while (term.cursorPosition[1] < Term.height - 3) {
+        val windowWidth: Int = Termio.windowWidth
+        while (term.cursorPosition[1] < Termio.windowHeight - 3) {
             printStream!!.println(" ".repeat(windowWidth))
         }
     }
@@ -205,7 +207,7 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
         term.setCursorPosition(0, Term.executeLine + 1)
         val builder = AnsiStringBuilder()
             .background(Term.theme.displayBackGroundColor.color)
-            .append(" ".repeat(Term.width - Term.LEFT_MARGIN - Term.LEFT_MARGIN))
+            .append(" ".repeat(Termio.windowWidth - Term.leftMargin - Term.leftMargin))
         for (idx in 0 until lines + 2) {
             printStream!!.println(builder.toString())
         }
@@ -225,7 +227,7 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
         val split = msg.split("\n").toTypedArray()
         printDisplayBackground(split.size)
         for ((idx, line) in split.withIndex()) {
-            term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx)
+            term.setCursorPosition(Term.textLeftMargin, Term.executeLine + 2 + idx)
             printStream!!.println(
                 AnsiStringBuilder()
                     .background(Term.theme.displayBackGroundColor.color)
@@ -253,7 +255,7 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
             val split = msg.split("\n").toTypedArray()
             printDisplayBackground(split.size)
             for ((idx, line) in split.withIndex()) {
-                term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx)
+                term.setCursorPosition(Term.textLeftMargin, Term.executeLine + 2 + idx)
                 printStream!!.println(
                     AnsiStringBuilder()
                         .background(Term.theme.displayBackGroundColor.color)
@@ -278,7 +280,7 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
         val split = displayBuffer.split("\n").toTypedArray()
         printDisplayBackground(split.size)
         for ((idx, line) in split.withIndex()) {
-            term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx)
+            term.setCursorPosition(Term.textLeftMargin, Term.executeLine + 2 + idx)
             printStream!!.println(
                 AnsiStringBuilder()
                     .background(Term.theme.displayBackGroundColor.color)
@@ -304,7 +306,7 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
         val split = msg.split("\n").toTypedArray()
         printDisplayBackground(split.size)
         for ((idx, line) in split.withIndex()) {
-            term.setCursorPosition(Term.TEXT_LEFT_MARGIN, Term.executeLine + 2 + idx)
+            term.setCursorPosition(Term.textLeftMargin, Term.executeLine + 2 + idx)
             printStream!!.println(
                 AnsiStringBuilder()
                     .background(Term.theme.displayBackGroundColor.color)

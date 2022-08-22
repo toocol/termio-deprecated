@@ -1,5 +1,6 @@
 package com.toocol.termio.console.term.handlers;
 
+import com.toocol.termio.core.Termio;
 import com.toocol.termio.core.cache.CredentialCache;
 import com.toocol.termio.core.cache.ShellCache;
 import com.toocol.termio.core.cache.SshSessionCache;
@@ -45,8 +46,8 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
 
     @Override
     protected <T> void handleBlocking(@NotNull Promise<Void> promise, @NotNull Message<T> message) throws Exception {
-        Term.width = console.getWindowWidth();
-        Term.height = console.getWindowHeight();
+        Termio.windowWidth = console.getWindowWidth();
+        Termio.windowHeight = console.getWindowHeight();
 
         while (true) {
             monitorTerminalSize();
@@ -75,9 +76,9 @@ public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler
             return;
         }
 
-        if (Term.width != terminalWidth || Term.height != terminalHeight) {
-            Term.width = terminalWidth;
-            Term.height = terminalHeight;
+        if (Termio.windowWidth != terminalWidth || Termio.windowHeight != terminalHeight) {
+            Termio.windowWidth = terminalWidth;
+            Termio.windowHeight = terminalHeight;
             if (Term.status.equals(TermStatus.SHELL)) {
                 ShellCache.Instance.getShell(StatusCache.MONITOR_SESSION_ID).resize(terminalWidth, terminalHeight, StatusCache.MONITOR_SESSION_ID);
             } else if (Term.status.equals(TermStatus.TERMIO)) {

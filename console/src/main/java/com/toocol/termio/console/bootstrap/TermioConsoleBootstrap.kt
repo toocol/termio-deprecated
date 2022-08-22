@@ -15,6 +15,7 @@ import com.toocol.termio.utilities.ansi.Printer.printErr
 import com.toocol.termio.utilities.ansi.Printer.printLoading
 import com.toocol.termio.utilities.ansi.Printer.println
 import com.toocol.termio.utilities.config.IniConfigLoader
+import com.toocol.termio.utilities.console.Console
 import com.toocol.termio.utilities.functional.Ignore
 import com.toocol.termio.utilities.log.FileAppender.close
 import com.toocol.termio.utilities.utils.MessageBox
@@ -36,6 +37,7 @@ object TermioConsoleBootstrap : Termio() {
         Signal.handle(Signal("INT")) { }
         componentInitialise()
 
+        Term.registerConsole(Console.get())
         Term.initializeReader(System.`in`)
         Shell.initializeReader(System.`in`)
         registerPrintStream(System.out)

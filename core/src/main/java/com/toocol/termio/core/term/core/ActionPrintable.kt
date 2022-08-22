@@ -1,5 +1,6 @@
 package com.toocol.termio.core.term.core
 
+import com.toocol.termio.core.Termio
 import com.toocol.termio.core.term.core.Term.Companion.promptLen
 import com.toocol.termio.utilities.event.CharEvent
 import com.toocol.termio.utilities.utils.CharUtil
@@ -21,7 +22,7 @@ class ActionPrintable : TermCharAction() {
             return false
         }
         val cursorX = term.executeCursorOldX.get()
-        if (cursorX >= Term.width - 1) {
+        if (cursorX >= Termio.windowWidth - 1) {
             return false
         }
         if (cursorX < term.lineBuilder.length + promptLen) {

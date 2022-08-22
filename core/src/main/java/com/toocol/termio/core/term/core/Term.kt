@@ -26,12 +26,14 @@ class Term : AbstractDevice() {
     @JvmField
     @Volatile
     var lineBuilder = StringBuilder()
+
     @JvmField
     @Volatile
     var executeCursorOldX = AtomicInteger(0)
 
     @JvmField
     val escapeHelper: EscapeHelper
+
     @JvmField
     val historyCmdHelper: TermHistoryCmdHelper
 
@@ -112,7 +114,7 @@ class Term : AbstractDevice() {
 
     val cursorPosition: IntArray
         get() {
-            val coord = CONSOLE.cursorPosition.split(",").toTypedArray()
+            val coord = console!!.getCursorPosition().split(",").toTypedArray()
             return intArrayOf(coord[0].toInt(), coord[1].toInt())
         }
 
@@ -121,27 +123,27 @@ class Term : AbstractDevice() {
     }
 
     fun setCursorPosition(x: Int, y: Int) {
-        CONSOLE.setCursorPosition(x, y)
+        console!!.setCursorPosition(x, y)
     }
 
     fun showCursor() {
-        CONSOLE.showCursor()
+        console!!.showCursor()
     }
 
     fun hideCursor() {
-        CONSOLE.hideCursor()
+        console!!.hideCursor()
     }
 
     fun cursorLeft() {
-        CONSOLE.cursorLeft()
+        console!!.cursorLeft()
     }
 
     fun cursorRight() {
-        CONSOLE.cursorRight()
+        console!!.cursorRight()
     }
 
     fun cursorBackLine(lines: Int) {
-        CONSOLE.cursorBackLine(lines)
+        console!!.cursorBackLine(lines)
     }
 
     fun eventBus(): EventBus {
@@ -149,26 +151,22 @@ class Term : AbstractDevice() {
     }
 
     companion object {
-        const val PROMPT = " [termio] > "
-        const val TOP_MARGIN = 1
-        const val LEFT_MARGIN = 0
-        const val TEXT_LEFT_MARGIN = 1
-        val CONSOLE: Console = Console.get()
+        const val prompt = " [termio] > "
+        const val topMargin = 1
+        const val leftMargin = 0
+        const val textLeftMargin = 1
+        var console: Console? = null
+
         @JvmField
         val instance = Term()
 
-        @JvmField
-        @Volatile
-        var width = CONSOLE.windowWidth
-        @JvmField
-        @Volatile
-        var height = CONSOLE.windowHeight
         @JvmField
         @Volatile
         var status = TermStatus.TERMIO
 
         @JvmField
         var theme = TermTheme.DARK_THEME
+
         @JvmField
         var executeLine = 0
 
@@ -184,8 +182,12 @@ class Term : AbstractDevice() {
             }
         }
 
+        fun registerConsole(console: Console) {
+            Term.console = console
+        }
+
         @JvmStatic
         val promptLen: Int
-            get() = PROMPT.length + LEFT_MARGIN
+            get() = prompt.length + leftMargin
     }
 }

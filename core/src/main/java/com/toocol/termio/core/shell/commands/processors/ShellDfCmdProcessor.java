@@ -8,6 +8,7 @@ import com.toocol.termio.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -21,11 +22,12 @@ import static com.toocol.termio.utilities.utils.FilePathUtil.*;
  */
 public class ShellDfCmdProcessor extends ShellCommandProcessor {
 
+    @NotNull
     @Override
-    public Tuple2<String, Long> process(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String cmd) {
+    public Tuple2<String, Long> process(@NotNull EventBus eventBus, @NotNull Shell shell, @NotNull AtomicBoolean isBreak, String cmd) {
         String[] split = cmd.trim().replaceAll(" {2,}", StrUtil.SPACE).split(StrUtil.SPACE);
         if (split.length < 2) {
-            return new Tuple2<>(EMPTY, null);
+            return new Tuple2<>(StrUtil.EMPTY, null);
         }
 
         StringBuilder remotePath = new StringBuilder();

@@ -49,6 +49,8 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 ), EscapeCodeSequenceSupporter<EscapedTextStyleClassArea>, IComponent, IActionAfterShow {
 
+    var cursor: Cursor
+
     protected var paragraphStyle: ParagraphStyle = ParagraphStyle.EMPTY
 
     @JvmField
@@ -58,8 +60,6 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
     private var currentChineseTextStyle: TextStyle = TextStyle.EMPTY
     private var currentEnglishTextStyle: TextStyle = TextStyle.EMPTY
-
-    protected var cursor: Cursor
 
     private var ansiEscapeSearchEngine: AnsiEscapeSearchEngine<EscapedTextStyleClassArea>? = null
     private var actionMap: Map<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>>? = null
@@ -128,16 +128,13 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         actionMap = ImmutableMap.copyOf(map)
     }
 
-    protected fun calculateCursorInline(line: Int, col: Int): Int {
+    fun calculateCursorInline(line: Int, col: Int): Int {
         return position(line, col).toOffset()
     }
 
-    private fun getCursorPos(): Array<Int> {
-        val pos: Array<Int> = arrayOf()
+    fun getCursorPos(): Array<Int> {
         val position = offsetToPosition(cursor.inlinePosition, TwoDimensional.Bias.Forward)
-        pos[0] = position.major
-        pos[1] = position.minor
-        return pos
+        return arrayOf(position.major, position.minor)
     }
 
     private fun cursorLeft(value: Int) {

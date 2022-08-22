@@ -20,7 +20,7 @@ internal class ConsoleTest {
             [root@vultrguest /]# cd /[?25h
             """.trimIndent()
         var diff = console.cleanUnsupportedCharacter(msg.toByteArray(StandardCharsets.UTF_8))
-        println(String(diff!!, StandardCharsets.UTF_8))
+        println(String(diff, StandardCharsets.UTF_8))
         msg = """
             :@
             

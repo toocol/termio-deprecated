@@ -1,5 +1,6 @@
 package com.toocol.termio.core.shell.core
 
+import com.toocol.termio.core.Termio
 import com.toocol.termio.core.cache.CredentialCache
 import com.toocol.termio.core.cache.CredentialCache.Instance.indexOf
 import com.toocol.termio.core.cache.SWITCH_SESSION_WAIT_HANG_PREVIOUS
@@ -64,7 +65,7 @@ class SessionQuickSwitchHelper(private val shell: Shell) : Loggable, IStacktrace
             reset()
             var cursorPosition = term.cursorPosition
             var offset = 0
-            val height = Term.height
+            val height = Termio.windowHeight
             if (cursorPosition[1] > height - bottomLineOffset + 1) {
                 while (offset < bottomLineOffset - 1) {
                     println(AsciiControl.ANIS_ERASE_LINE)
@@ -80,7 +81,7 @@ class SessionQuickSwitchHelper(private val shell: Shell) : Loggable, IStacktrace
             recordCursorPos[0] = shell.getPrompt().length
             recordCursorPos[1] = cursorPosition[1] - 1 - offset
             term.setCursorPosition(0, recordCursorPos[1] + helpInfoLine)
-            val width = Term.width
+            val width = Termio.windowWidth
             print(
                 AnsiStringBuilder().background(Term.theme.switchSessionPanelBottomBgColor.color)
                     .append(HELP_INFO)
@@ -167,7 +168,7 @@ class SessionQuickSwitchHelper(private val shell: Shell) : Loggable, IStacktrace
     private fun printSwitchPanel() {
         val builder = AnsiStringBuilder()
         val partLength = IntArray(5)
-        val width = Term.width
+        val width = Termio.windowWidth
         var totalPartLength = 0
         for (i in 0..4) {
             partLength[i] = width * PART_PROPORTION[i] / 10
