@@ -5,6 +5,7 @@ import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.jni.TermioJNI;
 import com.toocol.termio.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 
@@ -48,6 +49,7 @@ public final class WindowsConsole extends Console {
         return windowHeight;
     }
 
+    @NotNull
     @Override
     public String getCursorPosition() {
         return jni.getCursorPosition();
@@ -83,13 +85,14 @@ public final class WindowsConsole extends Console {
         jni.cursorRight();
     }
 
+    @NotNull
     @Override
-    public byte[] cleanUnsupportedCharacter(byte[] bytes) {
+    public byte[] cleanUnsupportedCharacter(@NotNull byte[] bytes) {
         return innerClearUnsupportedCharacter(bytes);
     }
 
     @Override
-    public void rollingProcessing(String msg) {
+    public void rollingProcessing(@NotNull String msg) {
         if (AsciiControl.detectRolling(msg)) {
             int cnt = 0;
             for (char ch : msg.toCharArray()) {

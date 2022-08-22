@@ -1,15 +1,14 @@
-package com.toocol.termio.core.term.commands;
+package com.toocol.termio.core.term.commands
 
-import com.toocol.termio.utilities.log.Loggable;
-import com.toocol.termio.utilities.utils.Tuple2;
-import io.vertx.core.eventbus.EventBus;
+import com.toocol.termio.utilities.log.Loggable
+import com.toocol.termio.utilities.utils.Tuple2
+import io.vertx.core.eventbus.EventBus
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/2 17:32
  */
-public abstract class TermCommandProcessor implements Loggable {
-
+abstract class TermCommandProcessor : Loggable {
     /**
      * process command
      *
@@ -17,6 +16,5 @@ public abstract class TermCommandProcessor implements Loggable {
      * @param cmd          cmd
      * @param resultAndMsg resultAndMsg
      */
-    public abstract void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg);
-
+    abstract fun process(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean?, String?>)
 }

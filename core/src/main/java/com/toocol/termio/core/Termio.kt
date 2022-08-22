@@ -42,6 +42,16 @@ abstract class Termio {
         var vertx: Vertx? = null
         @JvmStatic
         var eventBus: EventBus? = null
+        @JvmStatic
+        @Volatile
+        var finish = false
+
+        @JvmField
+        @Volatile
+        var windowWidth: Int = 0
+        @JvmField
+        @Volatile
+        var windowHeight: Int = 0
 
         @JvmStatic
         fun runType(): RunType {

@@ -53,6 +53,8 @@ class Shell : AbstractDevice, Loggable {
     private val shellPrinter: ShellPrinter
     private val shellReader: ShellReader
 
+    var console: Console? = null
+
     @JvmField
     val historyCmdHelper: ShellHistoryCmdHelper
 
@@ -248,6 +250,10 @@ class Shell : AbstractDevice, Loggable {
         }
     }
 
+    fun registerConsole(console: Console) {
+        this.console = console
+    }
+
     fun print(msg: String): Boolean {
         val matcher = PROMPT_PATTERN.find(msg.trim { it <= ' ' })
         if (matcher != null) {
@@ -277,7 +283,7 @@ class Shell : AbstractDevice, Loggable {
             else -> {}
         }
         if (protocol == ShellProtocol.MOSH) {
-            CONSOLE.showCursor()
+            console!!.showCursor()
         }
         if (status == Status.VIM_BEFORE) {
             status = Status.VIM_UNDER
@@ -736,7 +742,6 @@ class Shell : AbstractDevice, Loggable {
     companion object {
         @JvmField
         val PROMPT_PATTERN: Regex = Regex(pattern = """(\[(\w*?)@(.*?)][$#])""")
-        val CONSOLE: Console = Console.get()
         const val RESIZE_COMMAND = AsciiControl.DC2 + CharUtil.BRACKET_START + "resize"
         var reader: ConsoleReader? = null
 

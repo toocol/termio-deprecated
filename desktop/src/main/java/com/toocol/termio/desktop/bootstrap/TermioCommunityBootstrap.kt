@@ -9,9 +9,7 @@ import com.toocol.termio.core.term.TermAddress
 import com.toocol.termio.core.term.core.DesktopTermPrinter.Companion.registerPrintStream
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.desktop.ui.executor.CommandExecutorPanel
-import com.toocol.termio.desktop.ui.terminal.DesktopConsole
 import com.toocol.termio.desktop.ui.terminal.DesktopTerminalPanel
-import com.toocol.termio.utilities.ansi.Printer
 import com.toocol.termio.utilities.ansi.Printer.println
 import com.toocol.termio.utilities.config.IniConfigLoader
 import com.toocol.termio.utilities.console.Console
@@ -19,6 +17,7 @@ import com.toocol.termio.utilities.functional.Ignore
 import com.toocol.termio.utilities.log.FileAppender.close
 import com.toocol.termio.utilities.utils.MessageBox
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.system.exitProcess
 
 /**
@@ -31,16 +30,15 @@ object TermioCommunityBootstrap : Termio() {
     fun runDesktop(runClass: Class<*>) {
         runType = RunType.DESKTOP
         System.setProperty("logFile", "termio-desktop.log")
-        Console.setConsole(DesktopConsole())
         IniConfigLoader.setConfigFileRootPath("/config")
         IniConfigLoader.setConfigurePaths(arrayOf("com.toocol.termio.desktop.configure"))
         componentInitialise()
 
+        Term.registerConsole(Console.get())
         Term.initializeReader(CommandExecutorPanel.executorReaderInputStream)
         Shell.initializeReader(DesktopTerminalPanel.terminalReaderInputStream)
         registerPrintStream(CommandExecutorPanel.commandExecutorPrintStream)
 
-        loadingLatch!!.countDown()
         vertx = prepareVertxEnvironment(
             Optional.ofNullable(runClass.getAnnotation(
                 Ignore::class.java))
@@ -53,7 +51,8 @@ object TermioCommunityBootstrap : Termio() {
                 .orElse(null)
         )
         eventBus = vertx!!.eventBus()
-        waitingStartDesktop()
+
+        watchStart()
     }
 
     @JvmStatic
@@ -68,23 +67,31 @@ object TermioCommunityBootstrap : Termio() {
         vertx!!.close()
     }
 
-    private fun waitingStartDesktop() {
-        try {
-            while (true) {
-                if (Printer.LOADING_ACCOMPLISH) {
-                    vertx!!.eventBus().send(TermAddress.ACCEPT_COMMAND.address(), null)
-                    loadingLatch = null
-                    initialLatch = null
-                    verticleClassList = null
-                    System.gc()
-                    logger.info("Start termio success.")
-                    break
-                }
-            }
-        } catch (e: Exception) {
-            vertx!!.close()
-            MessageBox.setExitMessage("Termio start up error.")
-            exitProcess(-1)
+    @JvmStatic
+    fun actionOnUiInitialized() {
+        while (!finish) {
+            // empty loop to wait TermioCommunityBootstrap finish
         }
+        vertx!!.eventBus().send(TermAddress.ACCEPT_COMMAND.address(), null)
+    }
+
+    private fun watchStart() {
+        Thread {
+            try {
+                val ret = initialLatch!!.await(30, TimeUnit.SECONDS)
+                if (!ret) {
+                    throw RuntimeException("Waiting timeout.")
+                }
+                finish = true
+                loadingLatch = null
+                initialLatch = null
+                verticleClassList = null
+                System.gc()
+                logger.info("Bootstrap Termio community success.")
+            } catch (e: Exception) {
+                logger.error("Bootstrap Termio community failed.")
+                exitProcess(-1)
+            }
+        }.start()
     }
 }

@@ -1,8 +1,10 @@
 package com.toocol.termio.desktop.ui.executor
 
 import com.toocol.termio.core.term.TermAddress
+import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.desktop.api.term.handlers.DynamicEchoHandler
 import com.toocol.termio.desktop.ui.panel.WorkspacePanel
+import com.toocol.termio.desktop.ui.terminal.DesktopConsole
 import com.toocol.termio.desktop.ui.terminal.DesktopTerminalPanel
 import com.toocol.termio.desktop.ui.terminal.TerminalConsoleTextArea
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
@@ -35,6 +37,8 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
     private val commandExecutorResultTextArea: CommandExecutorResultTextArea
     private val commandExecutorResultScrollPane: CommandExecutorResultScrollPane
 
+    private var commandOut = false
+
     init {
         commandExecutorInput = CommandExecutorInput(id)
         commandExecutorResultTextArea = CommandExecutorResultTextArea(id)
@@ -50,6 +54,7 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
     override fun initialize() {
         apply {
             styled()
+            Term.registerConsole(DesktopConsole(commandExecutorResultTextArea))
             val workspacePanel = findComponent(WorkspacePanel::class.java, id)
             workspacePanel.bottom = this
             prefWidthProperty().bind(workspacePanel.prefWidthProperty().multiply(1))
@@ -72,7 +77,8 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
                 commandExecutorResultTextArea.cursorTest()
             }
 
-            val ctrlAltP: KeyCombination = KeyCodeCombination(KeyCode.P, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN)
+            val ctrlAltP: KeyCombination =
+                KeyCodeCombination(KeyCode.P, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN)
             scene.accelerators[ctrlAltP] = Runnable {
                 if (!commandExecutorInput.isFocused && isVisible) {
                     commandExecutorInput.requestFocus()
@@ -86,7 +92,8 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
                         commandExecutorInput.requestFocus()
                         0.8
                     }
-                    findComponent(DesktopTerminalPanel::class.java, 1).prefHeightProperty().bind(workspacePanel.prefHeightProperty().multiply(ratio))
+                    findComponent(DesktopTerminalPanel::class.java, 1).prefHeightProperty()
+                        .bind(workspacePanel.prefHeightProperty().multiply(ratio))
                 }
             }
         }
@@ -102,6 +109,7 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
             addEventFilter(KeyEvent.KEY_TYPED) { event: KeyEvent ->
                 if (StrUtil.isNewLine(event.character)) {
                     try {
+                        commandOut = true
                         val command = commandExecutorInput.text + StrUtil.LF
                         executorReaderInputStream.write(command.toByteArray(StandardCharsets.UTF_8))
                         executorReaderInputStream.flush()
@@ -121,8 +129,9 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
                 }
             }
             textProperty().addListener { _, _, newVal ->
-                if (StrUtil.isEmpty(newVal)) {
+                if (commandOut) {
                     DynamicEchoHandler.lastInput = StrUtil.EMPTY
+                    commandOut = false
                 } else {
                     eventBus().send(TermAddress.TERMINAL_ECHO.address(), newVal)
                 }

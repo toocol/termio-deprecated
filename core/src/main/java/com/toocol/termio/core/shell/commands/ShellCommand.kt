@@ -38,11 +38,11 @@ enum class ShellCommand(private val cmd: String, commandProcessor: ShellCommandP
         this.comment = comment
     }
 
-    fun processCmd(eventBus: EventBus?, shell: Shell, isBreak: AtomicBoolean, msg: String?): Tuple2<String, Long?> {
+    fun processCmd(eventBus: EventBus, shell: Shell, isBreak: AtomicBoolean, msg: String): Tuple2<String?, Long?> {
         if (commandProcessor == null) {
             return Tuple2(StrUtil.EMPTY, null)
         }
-        var result = Tuple2<String, Long?>()
+        var result = Tuple2<String?, Long?>()
         try {
             if (shell.getRemoteCmd().isNotEmpty()) {
                 for (idx in 0 until shell.getRemoteCmd().length) {

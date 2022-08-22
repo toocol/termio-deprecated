@@ -1,54 +1,52 @@
-package com.toocol.termio.utilities.console;
+package com.toocol.termio.utilities.console
 
-import com.toocol.termio.utilities.utils.OsUtil;
+import com.toocol.termio.utilities.utils.OsUtil
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/24 11:45
  */
-public abstract class Console {
-    private static Console console;
+abstract class Console {
+    abstract fun chooseFiles(): String?
 
-    public synchronized static Console get() {
-        if (console != null) {
-            return console;
+    abstract fun chooseDirectory(): String?
+
+    abstract fun getWindowWidth(): Int
+
+    abstract fun getWindowHeight(): Int
+
+    abstract fun getCursorPosition(): String
+
+    abstract fun setCursorPosition(x: Int, y: Int)
+
+    abstract fun cursorBackLine(lines: Int)
+
+    abstract fun showCursor()
+
+    abstract fun hideCursor()
+
+    abstract fun cursorLeft()
+
+    abstract fun cursorRight()
+
+    abstract fun cleanUnsupportedCharacter(bytes: ByteArray): ByteArray
+
+    abstract fun rollingProcessing(msg: String)
+
+    companion object {
+        private var console: Console? = null
+        @JvmStatic
+        @Synchronized
+        fun get(): Console {
+            if (console != null) {
+                return console!!
+            }
+            console = if (OsUtil.isWindows()) {
+                WindowsConsole()
+            } else {
+                UnixConsole()
+            }
+            return console!!
         }
-        if (OsUtil.isWindows()) {
-            console = new WindowsConsole();
-        } else {
-            console = null;
-        }
-        return console;
     }
-
-    public synchronized static void setConsole(Console console) {
-        Console.console = console;
-    }
-
-    public abstract String chooseFiles();
-
-    public abstract String chooseDirectory();
-
-    public abstract int getWindowWidth();
-
-    public abstract int getWindowHeight();
-
-    public abstract String getCursorPosition();
-
-    public abstract void setCursorPosition(int x, int y);
-
-    public abstract void cursorBackLine(int lines);
-
-    public abstract void showCursor();
-
-    public abstract void hideCursor();
-
-    public abstract void cursorLeft();
-
-    public abstract void cursorRight();
-
-    public abstract byte[] cleanUnsupportedCharacter(byte[] bytes);
-
-    public abstract void rollingProcessing(String msg);
-
 }

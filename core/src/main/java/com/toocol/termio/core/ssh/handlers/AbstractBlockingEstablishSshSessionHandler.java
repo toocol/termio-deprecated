@@ -1,5 +1,6 @@
 package com.toocol.termio.core.ssh.handlers;
 
+import com.toocol.termio.core.Termio;
 import com.toocol.termio.core.auth.core.SshCredential;
 import com.toocol.termio.core.cache.*;
 import com.toocol.termio.core.shell.core.Shell;
@@ -57,8 +58,8 @@ public abstract class AbstractBlockingEstablishSshSessionHandler extends Blockin
             // execute in the final
             Executable execute = () -> {
                 Optional.ofNullable(sshSessionCache.getChannelShell(sessionId.get())).ifPresent(channelShell -> {
-                    int width = Term.width;
-                    int height = Term.height;
+                    int width = Termio.windowWidth;
+                    int height = Termio.windowHeight;
                     channelShell.setPtySize(width, height, width, height);
                 });
                 StatusCache.HANGED_QUIT = false;

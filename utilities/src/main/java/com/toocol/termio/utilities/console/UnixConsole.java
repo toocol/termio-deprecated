@@ -1,6 +1,7 @@
 package com.toocol.termio.utilities.console;
 
 import com.toocol.termio.utilities.ansi.Printer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -28,9 +29,10 @@ public final class UnixConsole extends Console {
         return 0;
     }
 
+    @NotNull
     @Override
     public String getCursorPosition() {
-        return null;
+        return "0,0";
     }
 
     @Override
@@ -63,13 +65,14 @@ public final class UnixConsole extends Console {
         Printer.print("\u001B[1C");
     }
 
+    @NotNull
     @Override
-    public byte[] cleanUnsupportedCharacter(byte[] bytes) {
+    public byte[] cleanUnsupportedCharacter(@NotNull byte[] bytes) {
         return bytes;
     }
 
     @Override
-    public void rollingProcessing(String msg) {
+    public void rollingProcessing(@NotNull String msg) {
 
     }
 }

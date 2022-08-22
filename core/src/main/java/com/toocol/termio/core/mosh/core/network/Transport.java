@@ -1,5 +1,6 @@
 package com.toocol.termio.core.mosh.core.network;
 
+import com.toocol.termio.core.Termio;
 import com.toocol.termio.core.mosh.core.proto.InstructionPB;
 import com.toocol.termio.core.mosh.core.statesnyc.CompleteTerminal;
 import com.toocol.termio.core.mosh.core.statesnyc.State;
@@ -41,7 +42,7 @@ public final class Transport<RemoteState extends State> implements Loggable {
         this.sender.setSendDelay(1);
         this.receivePool.init();
         // tell the server the size of the terminal
-        pushBackEvent(new UserEvent.Resize(Term.width, Term.height));
+        pushBackEvent(new UserEvent.Resize(Termio.windowWidth, Termio.windowHeight));
     }
 
     @DiffThread

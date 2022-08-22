@@ -1,5 +1,6 @@
 package com.toocol.termio.core.ssh.handlers;
 
+import com.toocol.termio.core.Termio;
 import com.toocol.termio.core.auth.core.SshCredential;
 import com.toocol.termio.core.cache.CredentialCache;
 import com.toocol.termio.core.cache.ShellCache;
@@ -64,8 +65,8 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
 
                 Executable execute = () -> {
                     Optional.ofNullable(sshSessionCache.getChannelShell(sessionId.get())).ifPresent(channelShell -> {
-                        int width = Term.width;
-                        int height = Term.height;
+                        int width = Termio.windowWidth;
+                        int height = Termio.windowHeight;
                         channelShell.setPtySize(width, height, width, height);
                     });
 
@@ -128,7 +129,7 @@ public final class BlockingActiveSshSessionHandler extends BlockingMessageHandle
             term.printScene(false);
             JsonObject activeMsg = asyncResult.result();
             AnsiStringBuilder ansiStringBuilder = new AnsiStringBuilder();
-            int width = Term.width;
+            int width = Termio.windowWidth;
             for (Map.Entry<String, Object> stringObjectEntry : activeMsg) {
                 if ("success".equals(stringObjectEntry.getKey())) {
                     ansiStringBuilder.append(stringObjectEntry.getKey() + ":" + "\n");

@@ -1,5 +1,6 @@
 package com.toocol.termio.core.cache
 
+import com.toocol.termio.core.Termio
 import com.toocol.termio.core.auth.core.SshCredential
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder
@@ -61,7 +62,7 @@ class CredentialCache private constructor() {
                     val index = idx.getAndIncrement()
                     Printer.print(AnsiStringBuilder()
                         .background(theme.propertiesZoneBgColor.color)
-                        .append(StrUtil.SPACE.repeat(Term.width))
+                        .append(StrUtil.SPACE.repeat(Termio.windowWidth))
                         .toString()
                     )
                     term.setCursorPosition(0, term.cursorPosition[1])
