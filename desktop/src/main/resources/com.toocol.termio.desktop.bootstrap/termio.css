@@ -2,6 +2,9 @@
 .central-panel {
     -fx-background-color: #4F4F4F;
 }
+.left-side-panel {
+    -fx-background-color: #FFFFFF;
+}
 .workspace-panel {
     -fx-background-color: #101010;
     -fx-border-color: #FFFFFF;

@@ -62,6 +62,8 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
         private val keyBoardStringModeRegex = Regex(pattern = """\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\w ]+((\\")|'|");?)|(\d{1,2};?))+p""")
     }
 
+    private val queue: Queue<Tuple2<IEscapeMode, List<Any>>> = ArrayDeque()
+
     /*
      * Suppose we have such text:
      * ######ESC[K######
@@ -73,8 +75,8 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
      *
      * Then we print out the split text in loop, and getting and invoking AnsiEscapeAction from the head of Queue<Tuple<IEscapeMode,List<Object>>>.
      */
+    @Synchronized
     fun actionOnEscapeMode(text: String, executeTarget: T) {
-        val queue: Queue<Tuple2<IEscapeMode, List<Any>>> = ArrayDeque()
         val split = text.split(uberEscapeModeRegex).toTypedArray()
         uberEscapeModeRegex.findAll(text).forEach { lineRet ->
             val escapeSequence = lineRet.value
@@ -231,6 +233,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 ansiEscapeAction.action(executeTarget, tuple._1(), tuple._2())
             }
         }
+        queue.clear()
     }
 
     private fun regexParse(

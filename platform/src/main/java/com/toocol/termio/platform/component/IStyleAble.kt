@@ -7,7 +7,7 @@ import javafx.scene.Node
  * @date 2022/8/11 14:00
  */
 interface IStyleAble {
-    fun styleClasses(): Array<String>
+    fun styleClasses(): Array<String>?
 
     /**
      * add styles to components
@@ -16,6 +16,6 @@ interface IStyleAble {
         if (this !is Node) {
             return
         }
-        (this as Node).styleClass.addAll(*styleClasses())
+        (this as Node).styleClass.addAll(*styleClasses() ?: return)
     }
 }

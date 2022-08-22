@@ -8,8 +8,8 @@ import com.toocol.termio.core.shell.core.Shell
 import com.toocol.termio.core.term.TermAddress
 import com.toocol.termio.core.term.core.DesktopTermPrinter.Companion.registerPrintStream
 import com.toocol.termio.core.term.core.Term
-import com.toocol.termio.desktop.ui.executor.CommandExecutorPanel
-import com.toocol.termio.desktop.ui.terminal.DesktopTerminalPanel
+import com.toocol.termio.desktop.ui.executor.CommandExecutor
+import com.toocol.termio.desktop.ui.terminal.DesktopTerminal
 import com.toocol.termio.utilities.ansi.Printer.println
 import com.toocol.termio.utilities.config.IniConfigLoader
 import com.toocol.termio.utilities.console.Console
@@ -35,9 +35,9 @@ object TermioCommunityBootstrap : Termio() {
         componentInitialise()
 
         Term.registerConsole(Console.get())
-        Term.initializeReader(CommandExecutorPanel.executorReaderInputStream)
-        Shell.initializeReader(DesktopTerminalPanel.terminalReaderInputStream)
-        registerPrintStream(CommandExecutorPanel.commandExecutorPrintStream)
+        Term.initializeReader(CommandExecutor.executorReaderInputStream)
+        Shell.initializeReader(DesktopTerminal.terminalReaderInputStream)
+        registerPrintStream(CommandExecutor.commandExecutorPrintStream)
 
         vertx = prepareVertxEnvironment(
             Optional.ofNullable(runClass.getAnnotation(

@@ -2,7 +2,9 @@ package com.toocol.termio.platform.component
 
 import com.toocol.termio.utilities.log.Loggable
 import javafx.scene.Node
+import java.lang.ref.WeakReference
 import java.lang.reflect.Constructor
+import java.util.function.Consumer
 import kotlin.system.exitProcess
 
 /**
@@ -10,8 +12,9 @@ import kotlin.system.exitProcess
  * @date: 2022/8/12 1:00
  * @version: 0.0.1
  */
-class ComponentsAnnotationParser : Loggable {
-    private val components: MutableList<IComponent> = ArrayList()
+class ComponentsParser : Loggable {
+    private val components: MutableList<WeakReference<IComponent>> = ArrayList()
+
     fun parse(clazz: Class<*>) {
         val register = clazz.getAnnotation(RegisterComponent::class.java) ?: return
         try {
@@ -25,7 +28,7 @@ class ComponentsAnnotationParser : Loggable {
                         iComponent.isManaged = false
                     }
                 }
-                components.add(iComponent)
+                components.add(WeakReference(iComponent))
             }
         } catch (e: Exception) {
             error("Parse register components failed.")
@@ -33,7 +36,14 @@ class ComponentsAnnotationParser : Loggable {
         }
     }
 
-    fun getComponents(): List<IComponent> {
-        return components
+    fun initializeAll() {
+        components.forEach(Consumer { obj: WeakReference<IComponent> -> obj.get()?.initialize() })
+    }
+
+    fun get(clazz: Class<*>): Node {
+        return components.asSequence()
+            .map { ref -> ref.get() }
+            .filter { component -> if (component == null) false else clazz == component::class.java}
+            .first() as Node
     }
 }

@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/4 11:06
  */
-class DesktopTerminalPanel(id: Long) : TAnchorPane(id), IActiveAble, Loggable {
+class DesktopTerminal(id: Long) : TAnchorPane(id), IActiveAble, Loggable {
     /**
      * Each DesktopTerminalPanel or CommandExecutorPanel has one onw MetadataPrinterOutputStream and PrintStream correspondent:
      * Feedback data.
@@ -48,7 +48,7 @@ class DesktopTerminalPanel(id: Long) : TAnchorPane(id), IActiveAble, Loggable {
             styled()
             val scene = findComponent(TScene::class.java, 1)
             val workspacePanel = findComponent(WorkspacePanel::class.java, 1)
-            workspacePanel.center = findComponent(DesktopTerminalPanel::class.java, id)
+            workspacePanel.center = findComponent(DesktopTerminal::class.java, id)
 
             maxHeightProperty().bind(workspacePanel.prefHeightProperty())
             maxWidthProperty().bind(workspacePanel.prefWidthProperty())
