@@ -26,7 +26,7 @@ class CommandExecutorResultTextArea(private val id: Long) : EscapedTextStyleClas
         isWrapText = true
         isEditable = false
 
-        val executorPanel = findComponent(CommandExecutorPanel::class.java, id)
+        val executorPanel = findComponent(CommandExecutor::class.java, id)
         prefWidthProperty().bind(executorPanel.prefWidthProperty().multiply(1))
         prefHeightProperty().bind(executorPanel.prefHeightProperty().multiply(0.9))
 

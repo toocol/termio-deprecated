@@ -7,7 +7,7 @@ import com.toocol.termio.platform.ui.TAnchorPane
  * @date: 2022/8/12 0:43
  * @version: 0.0.1
  */
-class HomepagePanel(id: Long) : TAnchorPane(id) {
+class Homepage(id: Long) : TAnchorPane(id) {
     override fun styleClasses(): Array<String> {
         return arrayOf(
             "homepage-panel"

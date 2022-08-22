@@ -23,7 +23,7 @@ class CommandExecutorResultScrollPane(private val id: Long, terminalConsoleTextA
         styled()
         vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
         hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-        val executorPanel = findComponent(CommandExecutorPanel::class.java, id)
+        val executorPanel = findComponent(CommandExecutor::class.java, id)
         executorPanel.bottom = this
     }
 

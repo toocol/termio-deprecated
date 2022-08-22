@@ -5,7 +5,7 @@ import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.desktop.api.term.handlers.DynamicEchoHandler
 import com.toocol.termio.desktop.ui.panel.WorkspacePanel
 import com.toocol.termio.desktop.ui.terminal.DesktopConsole
-import com.toocol.termio.desktop.ui.terminal.DesktopTerminalPanel
+import com.toocol.termio.desktop.ui.terminal.DesktopTerminal
 import com.toocol.termio.desktop.ui.terminal.TerminalConsoleTextArea
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets
  * @date: 2022/8/12 0:42
  * @version: 0.0.1
  */
-class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
+class CommandExecutor(id: Long) : TBorderPane(id), Loggable {
     private val executorOutputService = ExecutorOutputService()
     private val commandExecutorInput: CommandExecutorInput
     private val commandExecutorResultTextArea: CommandExecutorResultTextArea
@@ -56,7 +56,6 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
             styled()
             Term.registerConsole(DesktopConsole(commandExecutorResultTextArea))
             val workspacePanel = findComponent(WorkspacePanel::class.java, id)
-            workspacePanel.bottom = this
             prefWidthProperty().bind(workspacePanel.prefWidthProperty().multiply(1))
             prefHeightProperty().bind(workspacePanel.prefHeightProperty().multiply(0.2))
 
@@ -92,7 +91,7 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
                         commandExecutorInput.requestFocus()
                         0.8
                     }
-                    findComponent(DesktopTerminalPanel::class.java, 1).prefHeightProperty()
+                    findComponent(DesktopTerminal::class.java, 1).prefHeightProperty()
                         .bind(workspacePanel.prefHeightProperty().multiply(ratio))
                 }
             }
@@ -117,6 +116,8 @@ class CommandExecutorPanel(id: Long) : TBorderPane(id), Loggable {
                     } catch (e: IOException) {
                         error("Write to reader failed, msg = ${e.message}")
                     }
+                    event.consume()
+                } else if (text.length >= 100) {
                     event.consume()
                 }
             }

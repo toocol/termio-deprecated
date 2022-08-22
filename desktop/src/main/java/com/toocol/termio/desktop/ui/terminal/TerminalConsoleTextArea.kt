@@ -68,9 +68,9 @@ class TerminalConsoleTextArea(private val id: Long) : EscapedTextStyleClassArea(
         showCaret = Caret.CaretVisibility.OFF
         inputMethodRequests = InputMethodRequestsObject()
 
-        val desktopTerminalPanel = findComponent(DesktopTerminalPanel::class.java, id)
-        prefWidthProperty().bind(desktopTerminalPanel.prefWidthProperty().multiply(1))
-        prefHeightProperty().bind(desktopTerminalPanel.prefHeightProperty().multiply(0.99))
+        val desktopTerminal = findComponent(DesktopTerminal::class.java, id)
+        prefWidthProperty().bind(desktopTerminal.prefWidthProperty().multiply(1))
+        prefHeightProperty().bind(desktopTerminal.prefHeightProperty().multiply(0.99))
 
         updateDefaultChineseStyle(
             TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(9)

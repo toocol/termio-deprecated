@@ -8,7 +8,7 @@ import com.toocol.termio.core.ssh.handlers.AbstractBlockingEstablishSshSessionHa
 import com.toocol.termio.core.term.TermAddress;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
-import com.toocol.termio.desktop.ui.terminal.DesktopTerminalPanel;
+import com.toocol.termio.desktop.ui.terminal.DesktopTerminal;
 import com.toocol.termio.platform.component.ComponentsContainer;
 import com.toocol.termio.utilities.functional.Ordered;
 import io.vertx.core.AsyncResult;
@@ -39,7 +39,7 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingEs
                 return;
             }
 
-            DesktopTerminalPanel panel = ComponentsContainer.get(DesktopTerminalPanel.class, 1);
+            DesktopTerminal panel = ComponentsContainer.get(DesktopTerminal.class, 1);
             panel.activeTerminal();
 
             shell.printAfterEstablish();

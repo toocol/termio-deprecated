@@ -1,11 +1,9 @@
 package com.toocol.termio.desktop.bootstrap;
 
-import com.toocol.termio.desktop.ui.executor.CommandExecutorPanel;
-import com.toocol.termio.desktop.ui.homepage.HomepagePanel;
 import com.toocol.termio.desktop.ui.panel.CentralPanel;
+import com.toocol.termio.desktop.ui.panel.LeftSidePanel;
 import com.toocol.termio.desktop.ui.panel.WorkspacePanel;
 import com.toocol.termio.desktop.ui.sidebar.SessionManageSidebar;
-import com.toocol.termio.desktop.ui.terminal.DesktopTerminalPanel;
 import com.toocol.termio.platform.component.*;
 import com.toocol.termio.platform.css.CssFileAnnotationParser;
 import com.toocol.termio.platform.css.RegisterCssFile;
@@ -34,7 +32,7 @@ import java.io.InputStream;
  *                         <ul>
  *                             <li><b>HomepagePanel</b>: Home page panel</li>
  *                             <li>
- *                                 <b>CommandExecutorPanel</b>: Term Command Executor panel
+ *                                 <b>CommandExecutor</b>: Term Command Executor panel
  *                                 <ul>
  *                                     <li>CommandExecutorInput</li>
  *                                     <li>
@@ -46,7 +44,7 @@ import java.io.InputStream;
  *                                 </ul>
  *                             </li>
  *                             <li>
- *                                 <b>DesktopTerminalPanel</b>: The Terminal component
+ *                                 <b>DesktopTerminal</b>: The Terminal component
  *                                 <ul>
  *                                     <li>TerminalScrollPane</li>
  *                                     <ul>
@@ -69,10 +67,8 @@ import java.io.InputStream;
 @RegisterComponent(
         value = {
                 @Component(clazz = SessionManageSidebar.class, id = 1, initialVisible = true),
+                @Component(clazz = LeftSidePanel.class, id = 1, initialVisible = true),
                 @Component(clazz = WorkspacePanel.class, id = 1, initialVisible = true),
-                @Component(clazz = HomepagePanel.class, id = 1),
-                @Component(clazz = CommandExecutorPanel.class, id = 1, initialVisible = true),
-                @Component(clazz = DesktopTerminalPanel.class, id = 1, initialVisible = true),
         }
 )
 @RegisterCssFile(
@@ -81,7 +77,7 @@ import java.io.InputStream;
         }
 )
 public class TermioCommunityApplication extends Application implements Loggable {
-    private static final ComponentsAnnotationParser componentParser = new ComponentsAnnotationParser();
+    private static final ComponentsParser componentParser = new ComponentsParser();
     private static final CssFileAnnotationParser cssParser = new CssFileAnnotationParser();
 
     public static void main(String[] args) {
@@ -111,7 +107,10 @@ public class TermioCommunityApplication extends Application implements Loggable 
 
         cssParser.parse(this.getClass(), scene);
         componentParser.parse(this.getClass());
-        componentParser.getComponents().forEach(IComponent::initialize);
+        componentParser.initializeAll();
+
+        centralPanel.setCenter(componentParser.get(WorkspacePanel.class));
+        centralPanel.setLeft(componentParser.get(LeftSidePanel.class));
 
         stage.setScene(scene);
         stage.show();
