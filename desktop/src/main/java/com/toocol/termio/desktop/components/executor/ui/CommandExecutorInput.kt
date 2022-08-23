@@ -1,4 +1,4 @@
-package com.toocol.termio.desktop.ui.executor
+package com.toocol.termio.desktop.components.executor.ui
 
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble

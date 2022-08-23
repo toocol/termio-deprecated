@@ -1,6 +1,6 @@
-package com.toocol.termio.desktop.ui.panel
+package com.toocol.termio.desktop.components.panel.ui
 
-import com.toocol.termio.desktop.ui.sidebar.SessionManageSidebar
+import com.toocol.termio.desktop.components.sidebar.ui.SessionManageSidebar
 import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent

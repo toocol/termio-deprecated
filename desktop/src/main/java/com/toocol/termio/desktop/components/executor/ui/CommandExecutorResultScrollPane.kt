@@ -1,8 +1,7 @@
-package com.toocol.termio.desktop.ui.terminal
+package com.toocol.termio.desktop.components.executor.ui
 
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
-import javafx.beans.value.ObservableValue
 import javafx.scene.control.ScrollPane
 import org.fxmisc.flowless.VirtualizedScrollPane
 
@@ -11,11 +10,12 @@ import org.fxmisc.flowless.VirtualizedScrollPane
  * @date: 2022/8/11 23:15
  * @version: 0.0.1
  */
-class TerminalScrollPane(private val id: Long, terminalConsoleTextArea: TerminalConsoleTextArea?) :
-    VirtualizedScrollPane<TerminalConsoleTextArea?>(terminalConsoleTextArea), IStyleAble, IComponent {
+class CommandExecutorResultScrollPane(private val id: Long, terminalConsoleTextArea: CommandExecutorResultTextArea) :
+    VirtualizedScrollPane<CommandExecutorResultTextArea?>(terminalConsoleTextArea), IStyleAble, IComponent {
+
     override fun styleClasses(): Array<String> {
         return arrayOf(
-            "terminal-scroll-pane"
+            "command-executor-result-scroll-pane"
         )
     }
 
@@ -23,7 +23,8 @@ class TerminalScrollPane(private val id: Long, terminalConsoleTextArea: Terminal
         styled()
         vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
         hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-        totalHeightEstimateProperty().addListener { _: ObservableValue<out Double?>?, _: Double?, _: Double? -> content!!.requestFollowCaret() }
+        val executorPanel = findComponent(CommandExecutor::class.java, id)
+        executorPanel.bottom = this
     }
 
     override fun id(): Long {

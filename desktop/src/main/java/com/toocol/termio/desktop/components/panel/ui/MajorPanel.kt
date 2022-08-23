@@ -1,4 +1,4 @@
-package com.toocol.termio.desktop.ui.panel
+package com.toocol.termio.desktop.components.panel.ui
 
 import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser

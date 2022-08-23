@@ -19,10 +19,11 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @email joezane.cn@gmail.com
  * @date 2021/2/22 13:21
  */
-enum class ShellCommand(private val cmd: String, commandProcessor: ShellCommandProcessor, comment: String?) : ICommand {
+enum class ShellCommand(private val cmd: String, commandProcessor: ShellCommandProcessor?, comment: String?) : ICommand {
     /**
      * shell's command enums
      */
+    DEFAULT(StrUtil.EMPTY, null, null),
     CMD_EXIT("exit", ShellExitCmdProcessor(), "Exit current shell, close ssh connection and destroy connect channel."),
     CMD_HANG("hang", ShellHangCmdProcessor(), "Will not close the connection, exit shell with connection running in the background."),
     CMD_UF("uf", ShellUfCmdProcessor(), "Batch upload local files to remote connection."),
@@ -50,7 +51,7 @@ enum class ShellCommand(private val cmd: String, commandProcessor: ShellCommandP
                 }
                 shell.flush()
             }
-            result = commandProcessor.processInner(eventBus, shell, isBreak, msg)
+            result = commandProcessor.processInner(eventBus, shell, isBreak, msg, this)
         } catch (e: RemoteDisconnectException) {
             isBreak.set(true)
             result.second(shell.sessionId)

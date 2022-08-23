@@ -1,6 +1,6 @@
-package com.toocol.termio.desktop.ui.sidebar
+package com.toocol.termio.desktop.components.sidebar.ui
 
-import com.toocol.termio.desktop.ui.panel.LeftSidePanel
+import com.toocol.termio.desktop.components.panel.ui.LeftSidePanel
 import com.toocol.termio.platform.ui.TAnchorPane
 
 /**

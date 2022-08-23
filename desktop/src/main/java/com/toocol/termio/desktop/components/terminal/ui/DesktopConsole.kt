@@ -1,4 +1,4 @@
-package com.toocol.termio.desktop.ui.terminal
+package com.toocol.termio.desktop.components.terminal.ui
 
 import com.toocol.termio.platform.text.EscapedTextStyleClassArea
 import com.toocol.termio.utilities.console.Console

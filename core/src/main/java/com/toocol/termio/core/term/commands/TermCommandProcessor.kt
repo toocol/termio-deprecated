@@ -18,11 +18,11 @@ abstract class TermCommandProcessor : Loggable {
      */
     abstract fun process(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any?
 
-    fun processInner(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean, String?>) {
-        BeforeTermCommandProcessSyncEvent(cmd).dispatch()
+    fun processInner(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean, String?>, termCommand: TermCommand) {
+        BeforeTermCommandProcessSyncEvent(termCommand, cmd).dispatch()
 
         val ret = process(eventBus, cmd, resultAndMsg)
 
-        AfterTermCommandProcessSyncEvent(resultAndMsg._1(), ret).dispatch()
+        AfterTermCommandProcessSyncEvent(termCommand, resultAndMsg._1(), ret).dispatch()
     }
 }

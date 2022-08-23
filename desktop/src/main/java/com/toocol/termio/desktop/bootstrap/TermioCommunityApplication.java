@@ -1,6 +1,6 @@
 package com.toocol.termio.desktop.bootstrap;
 
-import com.toocol.termio.desktop.ui.panel.MajorPanel;
+import com.toocol.termio.desktop.components.panel.ui.MajorPanel;
 import com.toocol.termio.platform.component.*;
 import com.toocol.termio.platform.css.CssFileAnnotationParser;
 import com.toocol.termio.platform.css.RegisterCssFile;

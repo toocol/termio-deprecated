@@ -23,8 +23,12 @@ abstract class ShellCommandProcessor : Loggable{
     abstract fun process(eventBus: EventBus, shell: Shell, isBreak: AtomicBoolean, cmd: String)
             : Tuple2<String?, Long?>
 
-    fun processInner(eventBus: EventBus, shell: Shell, isBreak: AtomicBoolean, cmd: String): Tuple2<String?, Long?>{
+    fun processInner(eventBus: EventBus, shell: Shell, isBreak: AtomicBoolean, cmd: String, shellCommand: ShellCommand): Tuple2<String?, Long?>{
+        BeforeShellCommandProcessSyncEvent(shellCommand, cmd, shell.sessionId).dispatch()
+
         val ret = process(eventBus, shell, isBreak, cmd)
+
+        AfterShellCommandProcessSyncEvent(shellCommand, shell.sessionId)
         return ret
     }
 

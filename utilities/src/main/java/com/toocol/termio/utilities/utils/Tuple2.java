@@ -35,6 +35,14 @@ public final class Tuple2<F, S> {
         return second;
     }
 
+    public void setFirst(F first) {
+        this.first = first;
+    }
+
+    public void setSecond(S second) {
+        this.second = second;
+    }
+
     public Tuple2<F, S> first(F first) {
         this.first = first;
         return this;

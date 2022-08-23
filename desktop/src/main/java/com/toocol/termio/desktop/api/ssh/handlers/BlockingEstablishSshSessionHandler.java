@@ -8,7 +8,7 @@ import com.toocol.termio.core.ssh.handlers.AbstractBlockingEstablishSshSessionHa
 import com.toocol.termio.core.term.TermAddress;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
-import com.toocol.termio.desktop.ui.terminal.DesktopTerminal;
+import com.toocol.termio.desktop.components.terminal.ui.DesktopTerminal;
 import com.toocol.termio.platform.component.ComponentsContainer;
 import com.toocol.termio.utilities.functional.Ordered;
 import io.vertx.core.AsyncResult;

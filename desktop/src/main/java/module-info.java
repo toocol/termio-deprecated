@@ -24,15 +24,16 @@ module termio.desktop {
     requires termio.platform;
 
     opens com.toocol.termio.desktop.bootstrap to termio.platform, javafx.fxml;
-    opens com.toocol.termio.desktop.ui.panel to termio.platform, javafx.fxml;
-    opens com.toocol.termio.desktop.ui.sidebar to termio.platform, javafx.fxml;
-    opens com.toocol.termio.desktop.ui.terminal to termio.platform, javafx.fxml;
-    opens com.toocol.termio.desktop.ui.homepage to javafx.fxml, termio.platform;
-    opens com.toocol.termio.desktop.ui.executor to javafx.fxml, termio.platform;
+    opens com.toocol.termio.desktop.components.panel.ui to termio.platform, javafx.fxml;
+    opens com.toocol.termio.desktop.components.sidebar.ui to termio.platform, javafx.fxml;
+    opens com.toocol.termio.desktop.components.terminal.ui to termio.platform, javafx.fxml;
+    opens com.toocol.termio.desktop.components.homepage.ui to javafx.fxml, termio.platform;
+    opens com.toocol.termio.desktop.components.executor.ui to javafx.fxml, termio.platform;
     opens com.toocol.termio.desktop.api.term.module to termio.core;
     opens com.toocol.termio.desktop.api.term.handlers to termio.core;
     opens com.toocol.termio.desktop.api.ssh.module to termio.core;
     opens com.toocol.termio.desktop.api.ssh.handlers to termio.core;
+    opens com.toocol.termio.desktop.components.terminal.listeners to termio.utilities;
 
     opens com.toocol.termio.desktop.configure to termio.utilities;
 
