@@ -50,7 +50,7 @@ enum class ShellCommand(private val cmd: String, commandProcessor: ShellCommandP
                 }
                 shell.flush()
             }
-            result = commandProcessor.process(eventBus, shell, isBreak, msg)
+            result = commandProcessor.processInner(eventBus, shell, isBreak, msg)
         } catch (e: RemoteDisconnectException) {
             isBreak.set(true)
             result.second(shell.sessionId)

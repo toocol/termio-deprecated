@@ -1,6 +1,6 @@
 package com.toocol.termio.utilities.action
 
-import com.toocol.termio.utilities.event.CharEvent
+import com.toocol.termio.utilities.event.core.CharEvent
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

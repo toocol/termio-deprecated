@@ -3,10 +3,9 @@ package com.toocol.termio.desktop.ui.executor
 import com.toocol.termio.core.term.TermAddress
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.desktop.api.term.handlers.DynamicEchoHandler
+import com.toocol.termio.desktop.ui.panel.CenterPanel
 import com.toocol.termio.desktop.ui.panel.WorkspacePanel
 import com.toocol.termio.desktop.ui.terminal.DesktopConsole
-import com.toocol.termio.desktop.ui.terminal.DesktopTerminal
-import com.toocol.termio.desktop.ui.terminal.TerminalConsoleTextArea
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.ui.TBorderPane
@@ -55,9 +54,9 @@ class CommandExecutor(id: Long) : TBorderPane(id), Loggable {
         apply {
             styled()
             Term.registerConsole(DesktopConsole(commandExecutorResultTextArea))
-            val workspacePanel = findComponent(WorkspacePanel::class.java, id)
-            prefWidthProperty().bind(workspacePanel.prefWidthProperty().multiply(1))
-            prefHeightProperty().bind(workspacePanel.prefHeightProperty().multiply(0.2))
+            val centerPanel = findComponent(CenterPanel::class.java, id)
+            prefWidthProperty().bind(centerPanel.prefWidthProperty().multiply(1))
+            prefHeightProperty().bind(centerPanel.prefHeightProperty().multiply(0.2))
 
             focusedProperty().addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
                 if (newVal) {
@@ -84,15 +83,14 @@ class CommandExecutor(id: Long) : TBorderPane(id), Loggable {
                 } else {
                     val ratio = if (isVisible) {
                         hide()
-                        findComponent(TerminalConsoleTextArea::class.java, 1).requestFocus()
                         1.0
                     } else {
                         show()
                         commandExecutorInput.requestFocus()
                         0.8
                     }
-                    findComponent(DesktopTerminal::class.java, 1).prefHeightProperty()
-                        .bind(workspacePanel.prefHeightProperty().multiply(ratio))
+                    findComponent(WorkspacePanel::class.java, 1).prefHeightProperty()
+                        .bind(centerPanel.prefHeightProperty().multiply(ratio))
                 }
             }
         }

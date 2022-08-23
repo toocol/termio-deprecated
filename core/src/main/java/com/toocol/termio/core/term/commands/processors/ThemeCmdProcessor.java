@@ -14,23 +14,25 @@ import io.vertx.core.eventbus.EventBus;
  */
 public class ThemeCmdProcessor extends TermCommandProcessor {
     @Override
-    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
+    public Object process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         String[] split = cmd.trim().replaceAll(" {2,}", " ").split(" ");
         if (split.length != 2) {
             resultAndMsg.first(false).second("Please select the theme, alternative themes:\n\n" + TermTheme.listTheme());
-            return;
+            return null;
         }
 
         String theme = split[1];
         TermTheme termTheme = TermTheme.nameOf(theme);
         if (termTheme == null) {
             resultAndMsg.first(false).second(theme + ": theme not found.  alternative themes:\n\n" + TermTheme.listTheme());
-            return;
+            return null;
         }
 
         Term.theme = termTheme;
         Printer.clear();
         Term.instance.printScene(false);
         Term.instance.printTermPrompt();
+        resultAndMsg.first(true);
+        return null;
     }
 }

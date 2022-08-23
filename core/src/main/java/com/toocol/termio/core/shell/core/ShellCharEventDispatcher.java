@@ -1,7 +1,7 @@
 package com.toocol.termio.core.shell.core;
 
 import com.google.common.collect.ImmutableMap;
-import com.toocol.termio.utilities.event.CharEvent;
+import com.toocol.termio.utilities.event.core.CharEvent;
 import com.toocol.termio.utilities.utils.CastUtil;
 import com.toocol.termio.utilities.utils.ClassScanner;
 import com.toocol.termio.utilities.utils.MessageBox;

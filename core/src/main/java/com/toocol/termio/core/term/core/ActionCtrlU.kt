@@ -1,7 +1,7 @@
 package com.toocol.termio.core.term.core
 
 import com.toocol.termio.core.term.core.Term.Companion.promptLen
-import com.toocol.termio.utilities.event.CharEvent
+import com.toocol.termio.utilities.event.core.CharEvent
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

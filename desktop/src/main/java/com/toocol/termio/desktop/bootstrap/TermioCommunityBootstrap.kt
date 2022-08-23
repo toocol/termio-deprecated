@@ -6,7 +6,7 @@ import com.toocol.termio.core.cache.STOP_PROGRAM
 import com.toocol.termio.core.cache.SshSessionCache
 import com.toocol.termio.core.shell.core.Shell
 import com.toocol.termio.core.term.TermAddress
-import com.toocol.termio.core.term.core.DesktopTermPrinter.Companion.registerPrintStream
+import com.toocol.termio.core.term.core.DesktopTermPrinter
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.desktop.ui.executor.CommandExecutor
 import com.toocol.termio.desktop.ui.terminal.DesktopTerminal
@@ -37,7 +37,7 @@ object TermioCommunityBootstrap : Termio() {
         Term.registerConsole(Console.get())
         Term.initializeReader(CommandExecutor.executorReaderInputStream)
         Shell.initializeReader(DesktopTerminal.terminalReaderInputStream)
-        registerPrintStream(CommandExecutor.commandExecutorPrintStream)
+        DesktopTermPrinter.registerPrintStream(CommandExecutor.commandExecutorPrintStream)
 
         vertx = prepareVertxEnvironment(
             Optional.ofNullable(runClass.getAnnotation(
@@ -70,7 +70,7 @@ object TermioCommunityBootstrap : Termio() {
     @JvmStatic
     fun actionOnUiInitialized() {
         while (!finish) {
-            // empty loop to wait TermioCommunityBootstrap finish
+            // empty loop to wait vert.x environment prepare finished
         }
         vertx!!.eventBus().send(TermAddress.ACCEPT_COMMAND.address(), null)
     }

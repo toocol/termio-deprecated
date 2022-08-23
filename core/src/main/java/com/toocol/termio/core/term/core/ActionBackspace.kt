@@ -2,7 +2,7 @@ package com.toocol.termio.core.term.core
 
 import com.toocol.termio.core.term.core.Term.Companion.promptLen
 import com.toocol.termio.utilities.ansi.Printer.bel
-import com.toocol.termio.utilities.event.CharEvent
+import com.toocol.termio.utilities.event.core.CharEvent
 import com.toocol.termio.utilities.utils.CharUtil
 import kotlin.math.max
 

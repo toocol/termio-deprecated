@@ -9,11 +9,13 @@ import io.vertx.core.eventbus.EventBus;
 
 public class HistoryCmdProcessor extends TermCommandProcessor {
 
-      private final HistoryOutputInfoHelper historyOutputInfoHelper = HistoryOutputInfoHelper.getInstance();
+    private final HistoryOutputInfoHelper historyOutputInfoHelper = HistoryOutputInfoHelper.getInstance();
 
-      public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
-          Term.status = TermStatus.HISTORY_OUTPUT;
-          historyOutputInfoHelper.displayInformation();
-      }
+    public Object process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
+        Term.status = TermStatus.HISTORY_OUTPUT;
+        historyOutputInfoHelper.displayInformation();
+        resultAndMsg.first(true);
+        return null;
+    }
 
 }

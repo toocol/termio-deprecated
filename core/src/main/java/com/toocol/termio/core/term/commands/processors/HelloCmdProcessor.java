@@ -13,7 +13,9 @@ import io.vertx.core.eventbus.EventBus;
 public final class HelloCmdProcessor extends TermCommandProcessor {
 
     @Override
-    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
+    public Object process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         Term.instance.printDisplay("Hello you ~");
+        resultAndMsg.first(true);
+        return null;
     }
 }

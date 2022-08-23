@@ -10,7 +10,7 @@ import io.vertx.core.eventbus.EventBus;
  */
 public class StopCmdProcessor extends TermCommandProcessor {
     @Override
-    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
-
+    public Object process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
+        return null;
     }
 }

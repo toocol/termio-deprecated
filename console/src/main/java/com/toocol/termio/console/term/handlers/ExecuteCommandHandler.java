@@ -46,7 +46,7 @@ public final class ExecuteCommandHandler extends NonBlockingMessageHandler {
                     try {
                         termCommand.processCmd(eventBus, cmd, resultAndMessage);
                         if ((TermCommand.CMD_NUMBER.equals(termCommand) || TermCommand.CMD_MOSH.equals(termCommand))
-                                && StringUtils.isEmpty(resultAndMessage._2())) {
+                                && resultAndMessage._1()) {
                             isBreak.set(true);
                         }
                     } catch (Exception e) {

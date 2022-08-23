@@ -12,7 +12,8 @@ import io.vertx.core.eventbus.EventBus;
  */
 public class HelpCmdProcessor extends TermCommandProcessor {
     @Override
-    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
+    public Object process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         resultAndMsg.first(true).second(TermCommand.help() + ShellCommand.help());
+        return null;
     }
 }

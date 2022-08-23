@@ -1,7 +1,7 @@
 package com.toocol.termio.core.shell.core
 
 import com.toocol.termio.utilities.action.AbstractCharAction
-import com.toocol.termio.utilities.event.CharEvent
+import com.toocol.termio.utilities.event.core.CharEvent
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)

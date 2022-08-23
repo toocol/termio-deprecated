@@ -1,15 +1,13 @@
 package com.toocol.termio.desktop.bootstrap;
 
-import com.toocol.termio.desktop.ui.panel.CentralPanel;
-import com.toocol.termio.desktop.ui.panel.LeftSidePanel;
-import com.toocol.termio.desktop.ui.panel.WorkspacePanel;
-import com.toocol.termio.desktop.ui.sidebar.SessionManageSidebar;
+import com.toocol.termio.desktop.ui.panel.MajorPanel;
 import com.toocol.termio.platform.component.*;
 import com.toocol.termio.platform.css.CssFileAnnotationParser;
 import com.toocol.termio.platform.css.RegisterCssFile;
 import com.toocol.termio.platform.ui.TScene;
 import com.toocol.termio.utilities.log.Loggable;
 import javafx.application.Application;
+import javafx.scene.Parent;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -24,13 +22,17 @@ import java.io.InputStream;
  *         <b>Stage - Scene</b>
  *         <ul>
  *             <li>
- *                 <b>CentralPanel</b>
+ *                 <b>MajorPanel</b>
  *                 <ul>
- *                     <li><b>SessionManageSidebar</b></li>
  *                     <li>
- *                         <b>WorkspacePanel</b>
+ *                         <b>LeftSidePanel</b>
  *                         <ul>
- *                             <li><b>HomepagePanel</b>: Home page panel</li>
+ *                              <li><b>SessionManageSidebar</b></li>
+ *                         </ul>
+ *                     </li>
+ *                     <li>
+ *                         <b>CenterPanel</b>
+ *                         <ul>
  *                             <li>
  *                                 <b>CommandExecutor</b>: Term Command Executor panel
  *                                 <ul>
@@ -44,13 +46,19 @@ import java.io.InputStream;
  *                                 </ul>
  *                             </li>
  *                             <li>
- *                                 <b>DesktopTerminal</b>: The Terminal component
- *                                 <ul>
- *                                     <li>TerminalScrollPane</li>
- *                                     <ul>
- *                                          <li>TerminalConsoleTextArea</li>
- *                                     </ul>
- *                                 </ul>
+ *                                  <b>WorkspacePanel</b>
+ *                                  <ul>
+ *                                      <li><b>HomepagePanel</b>: Home page panel</li>
+ *                                      <li>
+ *                                          <b>DesktopTerminal</b>: The Terminal component
+ *                                          <ul>
+ *                                              <li>TerminalScrollPane</li>
+ *                                                <ul>
+ *                                                   <li>TerminalConsoleTextArea</li>
+ *                                                </ul>
+ *                                             </ul>
+ *                                       </li>
+ *                                   </ul>
  *                             </li>
  *                         </ul>
  *                     </li>
@@ -66,9 +74,7 @@ import java.io.InputStream;
  */
 @RegisterComponent(
         value = {
-                @Component(clazz = SessionManageSidebar.class, id = 1, initialVisible = true),
-                @Component(clazz = LeftSidePanel.class, id = 1, initialVisible = true),
-                @Component(clazz = WorkspacePanel.class, id = 1, initialVisible = true),
+                @Component(clazz = MajorPanel.class, id = 1, initialVisible = true),
         }
 )
 @RegisterCssFile(
@@ -101,16 +107,11 @@ public class TermioCommunityApplication extends Application implements Loggable 
             stage.getIcons().add(new Image(image));
         }
 
-        CentralPanel centralPanel = new CentralPanel(1);
-        TScene scene = new TScene(1, centralPanel);
-        centralPanel.initialize();
+        componentParser.parse(this.getClass());
+        TScene scene = new TScene(1, (Parent) componentParser.get(MajorPanel.class));
 
         cssParser.parse(this.getClass(), scene);
-        componentParser.parse(this.getClass());
         componentParser.initializeAll();
-
-        centralPanel.setCenter(componentParser.get(WorkspacePanel.class));
-        centralPanel.setLeft(componentParser.get(LeftSidePanel.class));
 
         stage.setScene(scene);
         stage.show();

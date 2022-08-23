@@ -1,7 +1,7 @@
 package com.toocol.termio.core.shell.core
 
 import com.toocol.termio.utilities.ansi.Printer.print
-import com.toocol.termio.utilities.event.CharEvent
+import com.toocol.termio.utilities.event.core.CharEvent
 import com.toocol.termio.utilities.utils.ASCIIStrCache
 import com.toocol.termio.utilities.utils.CharUtil
 import java.nio.charset.StandardCharsets

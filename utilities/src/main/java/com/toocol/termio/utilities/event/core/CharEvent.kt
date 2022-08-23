@@ -1,4 +1,4 @@
-package com.toocol.termio.utilities.event
+package com.toocol.termio.utilities.event.core
 
 import com.toocol.termio.utilities.utils.CharUtil
 

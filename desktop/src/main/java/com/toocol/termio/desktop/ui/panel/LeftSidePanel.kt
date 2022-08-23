@@ -33,9 +33,9 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
 
         styled()
 
-        val centralPanel = findComponent(CentralPanel::class.java, 1)
-        prefHeightProperty().bind(centralPanel.heightProperty())
-        prefWidthProperty().bind(centralPanel.widthProperty().multiply(0.15))
+        val majorPanel = findComponent(MajorPanel::class.java, 1)
+        prefHeightProperty().bind(majorPanel.heightProperty())
+        prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.15))
 
         val scene = findComponent(TScene::class.java, 1)
         val alt1: KeyCombination = KeyCodeCombination(KeyCode.DIGIT1, KeyCombination.ALT_DOWN)
@@ -47,7 +47,7 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
                 show()
                 0.85
             }
-            findComponent(WorkspacePanel::class.java, 1).prefWidthProperty().bind(centralPanel.widthProperty().multiply(ratio))
+            findComponent(WorkspacePanel::class.java, 1).prefWidthProperty().bind(majorPanel.widthProperty().multiply(ratio))
         }
 
         center = parser.get(SessionManageSidebar::class.java)

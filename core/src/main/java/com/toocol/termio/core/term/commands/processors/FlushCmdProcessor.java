@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FlushCmdProcessor extends TermCommandProcessor {
     @Override
-    public void process(@NotNull EventBus eventBus, @NotNull String cmd, Tuple2<Boolean, String> resultAndMsg) {
+    public Object process(@NotNull EventBus eventBus, @NotNull String cmd, Tuple2<Boolean, String> resultAndMsg) {
         Printer.clear();
         Term term = Term.instance;
         term.printScene(false);
@@ -30,5 +30,6 @@ public class FlushCmdProcessor extends TermCommandProcessor {
         term.cleanDisplayBuffer();
 
         resultAndMsg.first(true);
+        return null;
     }
 }
