@@ -69,6 +69,7 @@ enum class ShellCommand(private val cmd: String, commandProcessor: ShellCommandP
         init {
             Arrays.stream(values())
                 .forEach { command: ShellCommand ->
+                    if (command == DEFAULT) return@forEach
                     commands[command.cmd] = command
                 }
         }

@@ -69,6 +69,7 @@ enum class TermCommand(
         init {
             Arrays.stream(values())
                 .forEach { command: TermCommand ->
+                    if (command == DEFAULT) return@forEach
                     commands[command.cmd] = command
                 }
         }

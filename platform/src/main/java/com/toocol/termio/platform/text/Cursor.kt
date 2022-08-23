@@ -22,6 +22,7 @@ open class Cursor(val id: Long) : ImageView(), IComponent, Loggable {
     }
 
     override fun initialize() {}
+
     override fun id(): Long {
         return id
     }

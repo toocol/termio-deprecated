@@ -8,5 +8,5 @@ import com.toocol.termio.utilities.event.core.SyncEvent
  * @version: 0.0.1
  */
 class AfterTermCommandProcessSyncEvent(
-    val termCommand: TermCommand = TermCommand.DEFAULT, val success: Boolean = false, val param: Any? = Any()
+    val termCommand: TermCommand = TermCommand.DEFAULT, val success: Boolean = false, val ret: Any? = Any()
 ) : SyncEvent()
