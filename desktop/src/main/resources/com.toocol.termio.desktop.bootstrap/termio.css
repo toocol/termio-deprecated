@@ -51,4 +51,5 @@
 /* homepage */
 .homepage-panel {
     -fx-background-color: #101010;
+    -fx-padding: 5 15 5 15;
 }

@@ -49,11 +49,11 @@ enum class TermCommand(
         this.specify = specify
     }
 
-    fun <T> processCmd(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean?, String?>) {
+    fun <T> processCmd(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean, String?>) {
         if (commandProcessor == null) {
             return
         }
-        commandProcessor.process(eventBus, cmd, resultAndMsg)
+        commandProcessor.processInner(eventBus, cmd, resultAndMsg)
     }
 
     fun cmd(): String {

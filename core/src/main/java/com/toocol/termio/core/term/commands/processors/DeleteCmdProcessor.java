@@ -19,21 +19,21 @@ public class DeleteCmdProcessor extends TermCommandProcessor {
     private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
 
     @Override
-    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
+    public Object process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         String[] split = cmd.trim().replaceAll(" {2,}", " ").split(" ");
         if (split.length != 2) {
             resultAndMsg.first(false).second("Wrong 'delete' command, the correct pattern is 'delete index'.");
-            return;
+            return null;
         }
         String indexStr = split[1];
         if (!StringUtils.isNumeric(indexStr)) {
             resultAndMsg.first(false).second("The index must be number.");
-            return;
+            return null;
         }
         int index = Integer.parseInt(indexStr);
         if (credentialCache.credentialsSize() < index) {
             resultAndMsg.first(false).second("The index correspond credential didn't exist.");
-            return;
+            return null;
         }
 
         eventBus.request(DELETE_CREDENTIAL.address(), index, res -> {
@@ -44,6 +44,7 @@ public class DeleteCmdProcessor extends TermCommandProcessor {
         });
 
         resultAndMsg.first(true);
+        return null;
     }
 
 }

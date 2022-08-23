@@ -82,10 +82,12 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
             val escapeSequence = lineRet.value
             val dealAlready = AtomicBoolean()
 
+            if (dealAlready.get()) return@forEach
             regexParse(escapeSequence, enterModeRegex, { _: String, tuple: Tuple2<IEscapeMode, List<Any>> ->
                 tuple.first(EscapeEnterMode.ENTER)
-            }, dealAlready)
+            }, dealAlready)?.apply { queue.offer(this) }
 
+            if (dealAlready.get()) return@forEach
             regexParse(escapeSequence, cursorSetPosModeRegex, { certainEscape: String, tuple: Tuple2<IEscapeMode, List<Any>> ->
                 tuple.first(EscapeCursorControlMode.codeOf("Hf")).second(
                     numberRegex.findAll(certainEscape)
@@ -95,6 +97,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 )
             }, dealAlready)?.apply { queue.offer(this) }
 
+            if (dealAlready.get()) return@forEach
             regexParse(escapeSequence, cursorControlModeRegex, { certainEscape: String, tuple: Tuple2<IEscapeMode, List<Any>> ->
                 val code = wordNumberRegex.find(certainEscape)?.value ?: return@regexParse
                 if (code.contains("A") || code.contains("B") || code.contains("C") || code.contains("D")
@@ -108,12 +111,14 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 }
             }, dealAlready)?.apply { queue.offer(this) }
 
+            if (dealAlready.get()) return@forEach
             regexParse(escapeSequence, eraseFunctionModeRegex, { certainEscape: String, tuple: Tuple2<IEscapeMode, List<Any>> ->
                 val code = wordNumberRegex.find(certainEscape)?.value
                 code ?: return@regexParse
                 tuple.first(EscapeEraseFunctionsMode.codeOf(code))
             }, dealAlready)?.apply { queue.offer(this) }
 
+            if (dealAlready.get()) return@forEach
             regexParse(escapeSequence, colorGraphicsModeRegex, { certainEscape: String, tuple: Tuple2<IEscapeMode, List<Any>> ->
                 numberRegex.findAll(certainEscape)
                     .asSequence()
@@ -132,6 +137,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                     } }
             }, dealAlready)?.apply { queue.offer(this) }
 
+            if (dealAlready.get()) return@forEach
             regexParse(escapeSequence, color256ModeRegex, { certainEscape: String, tuple: Tuple2<IEscapeMode, List<Any>> ->
                 var params: List<Any> = listOf()
                 var mode: IEscapeMode? = null
@@ -157,6 +163,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 tuple.first(mode).second(params)
             }, dealAlready)?.apply { queue.offer(this) }
 
+            if (dealAlready.get()) return@forEach
             regexParse(escapeSequence, colorRgbModeRegex, { certainEscape: String, tuple: Tuple2<IEscapeMode, List<Any>> ->
                 var params: List<Any> = listOf()
                 var illegalClz = false
@@ -183,6 +190,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 tuple.first(EscapeColorRgbMode.COLOR_RGB_MODE).second(params)
             }, dealAlready)?.apply { queue.offer(this) }
 
+            if (dealAlready.get()) return@forEach
             regexParse(escapeSequence, screenModeRegex, { certainEscape: String, tuple: Tuple2<IEscapeMode, List<Any>> ->
                 val code = numberRegex.find(certainEscape)?.value?.toInt()
                 code ?: return@regexParse
@@ -190,6 +198,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 tuple.first(EscapeScreenMode.codeOf(code)).second(listOf(true))
             }, dealAlready)?.apply { queue.offer(this) }
 
+            if (dealAlready.get()) return@forEach
             regexParse(escapeSequence, disableScreenModeRegex, { certainEscape: String, tuple: Tuple2<IEscapeMode, List<Any>> ->
                 val code = numberRegex.find(certainEscape)?.value?.toInt()
                 code ?: return@regexParse
@@ -197,12 +206,14 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 tuple.first(EscapeScreenMode.codeOf(code)).second(listOf(false))
             }, dealAlready)?.apply { queue.offer(this) }
 
+            if (dealAlready.get()) return@forEach
             regexParse(escapeSequence, commonPrivateModeRegex, { certainEscape: String, tuple: Tuple2<IEscapeMode, List<Any>> ->
                 val code = wordNumberRegex.find(certainEscape)?.value
                 code ?: return@regexParse
                 tuple.first(EscapeCommonPrivateMode.codeOf(code))
             }, dealAlready)?.apply { queue.offer(this) }
 
+            if (dealAlready.get()) return@forEach
             regexParse(escapeSequence, keyBoardStringModeRegex, { certainEscape: String, _: Tuple2<IEscapeMode, List<Any>> ->
                 codeStringRegex.findAll(certainEscape)
                     .asSequence()
@@ -243,7 +254,6 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
         dealAlready: AtomicBoolean,
     )
     : Tuple2<IEscapeMode, List<Any>>? {
-
         if (dealAlready.get()) return null
         val match = regex.find(text) ?: return null
 

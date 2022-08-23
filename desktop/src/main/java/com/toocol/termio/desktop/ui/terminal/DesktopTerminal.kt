@@ -48,7 +48,6 @@ class DesktopTerminal(id: Long) : TAnchorPane(id), IActiveAble, Loggable {
             styled()
             val scene = findComponent(TScene::class.java, 1)
             val workspacePanel = findComponent(WorkspacePanel::class.java, 1)
-            workspacePanel.center = findComponent(DesktopTerminal::class.java, id)
 
             maxHeightProperty().bind(workspacePanel.prefHeightProperty())
             maxWidthProperty().bind(workspacePanel.prefWidthProperty())

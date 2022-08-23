@@ -21,10 +21,9 @@ public interface IHandlerMounter extends Castable {
      * @param context  the verticle's executor
      * @param parallel whether the handlers is handle parallel
      * @param injects  objs to inject
-     * @param <T>      generic type
      */
     @SuppressWarnings("all")
-    default <T> void mountHandler(Vertx vertx, Context context) {
+    default void mountHandler(Vertx vertx, Context context) {
         Class<? extends IHandlerMounter> clazz = this.getClass();
         RegisterHandler registerHandler = clazz.getAnnotation(RegisterHandler.class);
         if (registerHandler == null) {

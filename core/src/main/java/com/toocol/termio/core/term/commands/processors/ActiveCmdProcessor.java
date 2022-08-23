@@ -22,31 +22,31 @@ public final class ActiveCmdProcessor extends TermCommandProcessor {
     private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
 
     @Override
-    public void process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
+    public Object process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
         List<Integer> idxs = new ArrayList<>();
         String[] split = cmd.trim().replaceAll(" {2,}", " ").split(" ");
         try {
             if (split.length <= 1) {
                 resultAndMsg.first(false).second("No connection properties selected");
-                return;
+                return null;
             } else if (split.length == 2) {
                 if (split[1].contains("-")) {
                     String[] nums = split[1].trim().split("-");
                     if (nums.length > 2) {
                         resultAndMsg.first(false).second("the input format must be num-num");
-                        return;
+                        return null;
                     } else {
                         for (String num : nums) {
                             if (!StringUtils.isNumeric(num)) {
                                 resultAndMsg.first(false).second("The input parameters must be numeric.");
-                                return;
+                                return null;
                             }
                         }
                         int start = Integer.parseInt(nums[0]);
                         int end = Integer.parseInt(nums[1]);
                         if (start > end) {
                             resultAndMsg.first(false).second("The input parameters must be from small to large");
-                            return;
+                            return null;
                         } else {
                             for (int i = start; i <= end; i++) {
                                 idxs.add(i);
@@ -56,16 +56,16 @@ public final class ActiveCmdProcessor extends TermCommandProcessor {
                 } else {
                     if (!StringUtils.isNumeric(split[1])) {
                         resultAndMsg.first(false).second("The input parameters must be numeric.");
-                        return;
+                        return null;
                     } else {
                         int idx = Integer.parseInt(split[1]);
                         if (idx <= 0) {
                             resultAndMsg.first(false).second("The input number must > 0.");
-                            return;
+                            return null;
                         }
                         if (idx > credentialCache.credentialsSize()) {
                             resultAndMsg.first(false).second("The input number exceeds stored credentials' size, max number should be " + credentialCache.credentialsSize() + ".");
-                            return;
+                            return null;
                         } else {
                             idxs.add(idx);
                         }
@@ -76,16 +76,16 @@ public final class ActiveCmdProcessor extends TermCommandProcessor {
                 for (String s : list) {
                     if (!StringUtils.isNumeric(s)) {
                         resultAndMsg.first(false).second("The input parameters must be numeric.");
-                        return;
+                        return null;
                     }
                     int idx = Integer.parseInt(s);
                     if (idx <= 0) {
                         resultAndMsg.first(false).second("The input number must > 0.");
-                        return;
+                        return null;
                     }
                     if (idx > credentialCache.credentialsSize()) {
                         resultAndMsg.first(false).second("The input number exceeds stored credentials' size, max number should be " + credentialCache.credentialsSize() + ".");
-                        return;
+                        return null;
                     } else {
                         idxs.add(idx);
                     }
@@ -97,6 +97,8 @@ public final class ActiveCmdProcessor extends TermCommandProcessor {
         }
         JsonArray jsonArray = new JsonArray(idxs.stream().distinct().collect(Collectors.toList()));
         eventBus.send(SshAddress.ACTIVE_SSH_SESSION.address(), jsonArray);
+        resultAndMsg.first(true);
+        return null;
     }
 }
 
