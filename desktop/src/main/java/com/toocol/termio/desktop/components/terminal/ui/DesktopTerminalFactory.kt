@@ -1,4 +1,4 @@
-package com.toocol.termio.desktop.ui.terminal
+package com.toocol.termio.desktop.components.terminal.ui
 
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap

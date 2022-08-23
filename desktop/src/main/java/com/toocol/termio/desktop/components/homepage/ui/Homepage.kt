@@ -1,6 +1,6 @@
-package com.toocol.termio.desktop.ui.homepage
+package com.toocol.termio.desktop.components.homepage.ui
 
-import com.toocol.termio.desktop.ui.panel.WorkspacePanel
+import com.toocol.termio.desktop.components.panel.ui.WorkspacePanel
 import com.toocol.termio.platform.ui.TAnchorPane
 import javafx.scene.paint.Paint
 import javafx.scene.text.Text

@@ -6,6 +6,7 @@ import com.toocol.termio.core.term.core.TermTheme.Companion.listTheme
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder
 import com.toocol.termio.utilities.command.ICommand
 import com.toocol.termio.utilities.utils.CharUtil
+import com.toocol.termio.utilities.utils.StrUtil
 import com.toocol.termio.utilities.utils.Tuple2
 import io.vertx.core.eventbus.EventBus
 import org.apache.commons.lang3.StringUtils
@@ -18,13 +19,14 @@ import java.util.*
  */
 enum class TermCommand(
     private val cmd: String,
-    commandProcessor: TermCommandProcessor,
+    commandProcessor: TermCommandProcessor?,
     comment: String?,
     specify: String?,
 ) : ICommand {
     /**
      * outside command enums
      */
+    DEFAULT(StrUtil.EMPTY, null, null, null),
     CMD_HELP("help", HelpCmdProcessor(), "Show holistic executive command.", "Show holistic executive command of Termio."),
     CMD_CLEAR("flush", FlushCmdProcessor(), "Flush the screen.", "Refresh and clear the screen"),
     CMD_EXIT("exit", ExitCmdProcessor(), "Exit Termio.", "Exit termio."),
@@ -53,7 +55,7 @@ enum class TermCommand(
         if (commandProcessor == null) {
             return
         }
-        commandProcessor.processInner(eventBus, cmd, resultAndMsg)
+        commandProcessor.processInner(eventBus, cmd, resultAndMsg, this)
     }
 
     fun cmd(): String {

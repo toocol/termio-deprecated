@@ -1,7 +1,7 @@
-package com.toocol.termio.desktop.ui.panel
+package com.toocol.termio.desktop.components.panel.ui
 
-import com.toocol.termio.desktop.ui.homepage.Homepage
-import com.toocol.termio.desktop.ui.terminal.DesktopTerminalFactory
+import com.toocol.termio.desktop.components.homepage.ui.Homepage
+import com.toocol.termio.desktop.components.terminal.ui.DesktopTerminalFactory
 import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent

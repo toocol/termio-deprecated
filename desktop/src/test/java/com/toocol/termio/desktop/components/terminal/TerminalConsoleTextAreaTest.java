@@ -1,4 +1,4 @@
-package com.toocol.termio.desktop.ui.terminal;
+package com.toocol.termio.desktop.components.terminal;
 
 import com.toocol.termio.utilities.utils.CharUtil;
 import com.toocol.termio.utilities.utils.StrUtil;

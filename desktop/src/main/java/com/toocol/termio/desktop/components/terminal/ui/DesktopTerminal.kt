@@ -1,6 +1,6 @@
-package com.toocol.termio.desktop.ui.terminal
+package com.toocol.termio.desktop.components.terminal.ui
 
-import com.toocol.termio.desktop.ui.panel.WorkspacePanel
+import com.toocol.termio.desktop.components.panel.ui.WorkspacePanel
 import com.toocol.termio.platform.component.IActiveAble
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream

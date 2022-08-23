@@ -1,11 +1,11 @@
-package com.toocol.termio.desktop.ui.executor
+package com.toocol.termio.desktop.components.executor.ui
 
 import com.toocol.termio.core.term.TermAddress
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.desktop.api.term.handlers.DynamicEchoHandler
-import com.toocol.termio.desktop.ui.panel.CenterPanel
-import com.toocol.termio.desktop.ui.panel.WorkspacePanel
-import com.toocol.termio.desktop.ui.terminal.DesktopConsole
+import com.toocol.termio.desktop.components.panel.ui.CenterPanel
+import com.toocol.termio.desktop.components.panel.ui.WorkspacePanel
+import com.toocol.termio.desktop.components.terminal.ui.DesktopConsole
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.ui.TBorderPane
