@@ -1,5 +1,6 @@
 package com.toocol.termio.desktop.components.terminal.ui
 
+import com.toocol.termio.desktop.components.panel.ui.MajorPanel
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
 import com.toocol.termio.platform.text.EscapedTextStyleClassArea
@@ -7,8 +8,6 @@ import com.toocol.termio.platform.text.TextStyle
 import com.toocol.termio.utilities.utils.Castable
 import javafx.geometry.Point2D
 import javafx.scene.input.InputMethodRequests
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
 import javafx.scene.paint.Color
 import org.fxmisc.richtext.Caret
 
@@ -68,9 +67,9 @@ class TerminalConsoleTextArea(private val id: Long) : EscapedTextStyleClassArea(
         showCaret = Caret.CaretVisibility.OFF
         inputMethodRequests = InputMethodRequestsObject()
 
-        val desktopTerminal = findComponent(DesktopTerminal::class.java, id)
-        prefWidthProperty().bind(desktopTerminal.widthProperty())
-        prefHeightProperty().bind(desktopTerminal.heightProperty())
+        val majorPanel = findComponent(MajorPanel::class.java, 1)
+        prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.85))
+        prefHeightProperty().bind(majorPanel.heightProperty().multiply(0.79))
 
         updateDefaultChineseStyle(
             TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(9)

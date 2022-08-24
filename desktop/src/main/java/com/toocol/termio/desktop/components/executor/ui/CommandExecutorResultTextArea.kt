@@ -1,5 +1,6 @@
 package com.toocol.termio.desktop.components.executor.ui
 
+import com.toocol.termio.desktop.components.panel.ui.MajorPanel
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
 import com.toocol.termio.platform.text.EscapedTextStyleClassArea
@@ -26,9 +27,9 @@ class CommandExecutorResultTextArea(private val id: Long) : EscapedTextStyleClas
         isWrapText = true
         isEditable = false
 
-        val executorPanel = findComponent(CommandExecutor::class.java, id)
-        prefWidthProperty().bind(executorPanel.widthProperty())
-        prefHeightProperty().bind(executorPanel.heightProperty().multiply(0.85))
+        val majorPanel = findComponent(MajorPanel::class.java, 1)
+        prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.85))
+        prefHeightProperty().bind(majorPanel.heightProperty().multiply(0.17))
 
         updateDefaultChineseStyle(TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc"))
             .updateFontSize(9))

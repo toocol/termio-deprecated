@@ -1,6 +1,6 @@
 package com.toocol.termio.desktop.components.terminal.ui
 
-import com.toocol.termio.desktop.components.panel.ui.WorkspacePanel
+import com.toocol.termio.desktop.components.panel.ui.MajorPanel
 import com.toocol.termio.platform.component.IActiveAble
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
@@ -47,9 +47,9 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
         apply {
             styled()
             val scene = findComponent(TScene::class.java, 1)
-            val workspacePanel = findComponent(WorkspacePanel::class.java, 1)
-            prefHeightProperty().bind(workspacePanel.heightProperty())
-            prefWidthProperty().bind(workspacePanel.widthProperty())
+            val majorPanel = findComponent(MajorPanel::class.java, 1)
+            prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.85))
+            prefHeightProperty().bind(majorPanel.heightProperty().multiply(0.8))
 
             children.add(terminalScrollPane)
 

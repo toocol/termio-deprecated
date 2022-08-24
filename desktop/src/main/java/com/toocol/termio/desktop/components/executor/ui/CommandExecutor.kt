@@ -3,9 +3,10 @@ package com.toocol.termio.desktop.components.executor.ui
 import com.toocol.termio.core.term.TermAddress
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.desktop.api.term.handlers.DynamicEchoHandler
-import com.toocol.termio.desktop.components.panel.ui.CenterPanel
+import com.toocol.termio.desktop.components.panel.ui.MajorPanel
 import com.toocol.termio.desktop.components.panel.ui.WorkspacePanel
 import com.toocol.termio.desktop.components.terminal.ui.DesktopConsole
+import com.toocol.termio.desktop.components.terminal.ui.DesktopTerminalFactory
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.ui.TScene
@@ -53,9 +54,9 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
         apply {
             styled()
             Term.registerConsole(DesktopConsole(commandExecutorResultTextArea))
-            val centerPanel = findComponent(CenterPanel::class.java, id)
-            prefHeightProperty().bind(centerPanel.heightProperty().multiply(0.2))
-            prefWidthProperty().bind(centerPanel.widthProperty().multiply(1))
+            val majorPanel = findComponent(MajorPanel::class.java, 1)
+            prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.85))
+            prefHeightProperty().bind(majorPanel.heightProperty().multiply(0.2))
 
             focusedProperty().addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
                 if (newVal) {
@@ -88,7 +89,11 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                         0.8
                     }
                     findComponent(WorkspacePanel::class.java, 1).prefHeightProperty()
-                        .bind(centerPanel.heightProperty().multiply(ratio))
+                        .bind(majorPanel.heightProperty().multiply(ratio))
+                    DesktopTerminalFactory.getAllTerminals().forEach {
+                        it.prefHeightProperty().bind(majorPanel.heightProperty().multiply(ratio))
+                        it.getConsoleTextAre().prefHeightProperty().bind(majorPanel.heightProperty().multiply(ratio))
+                    }
                 }
             }
 

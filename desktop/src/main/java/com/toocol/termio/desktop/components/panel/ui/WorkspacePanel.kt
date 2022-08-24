@@ -23,7 +23,7 @@ import java.util.concurrent.CountDownLatch
 class WorkspacePanel(id: Long) : TStackPane(id) {
 
     private val parser: ComponentsParser = ComponentsParser()
-    private val terminalFactory: DesktopTerminalFactory = DesktopTerminalFactory()
+    private val terminalFactory: DesktopTerminalFactory.Instance = DesktopTerminalFactory.Instance
     private val terminalIds: MutableSet<Int> = TreeSet()
     private val shellCache: ShellCache.Instance = ShellCache.Instance
 
@@ -35,9 +35,9 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
 
     override fun initialize() {
         styled()
-        val centerPanel = findComponent(CenterPanel::class.java, 1)
-        prefWidthProperty().bind(centerPanel.widthProperty())
-        prefHeightProperty().bind(centerPanel.heightProperty().multiply(0.8))
+        val majorPanel = findComponent(MajorPanel::class.java, 1)
+        prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.85))
+        prefHeightProperty().bind(majorPanel.heightProperty().multiply(0.8))
 
         parser.parse(WorkspacePanel::class.java)
         parser.initializeAll()
