@@ -18,25 +18,22 @@ abstract class DynamicBundle protected constructor() {
     init {
         val bindPath = this.javaClass.getAnnotation(BindPath::class.java)
 
-        when(bindPath.languages.size) {
-            0 -> {}
-            else -> {
-                val map: MutableMap<Locale, BundleMessage> = HashMap()
-                var sucCnt = 0
-                for (language in bindPath.languages) {
-                    val locale = Locale.forLanguageTag(language) ?: continue
-                    val bundleMessage = BundleMessage(bindPath.bundlePath + "_" + language, locale)
-                    val suc = bundleMessage.load()
-                    if (!suc) {
-                        continue
-                    }
-                    sucCnt++
-                    map[locale] = bundleMessage
+        takeIf { bindPath.languages.isNotEmpty() }?.let {
+            val map: MutableMap<Locale, BundleMessage> = HashMap()
+            var sucCnt = 0
+            for (language in bindPath.languages) {
+                val locale = Locale.forLanguageTag(language) ?: continue
+                val bundleMessage = BundleMessage(bindPath.bundlePath + "_" + language, locale)
+                val suc = bundleMessage.load()
+                if (!suc) {
+                    continue
                 }
-                if (sucCnt != 0) {
-                    bundleMessages = ImmutableMap.copyOf(map)
-                    initialize = true
-                }
+                sucCnt++
+                map[locale] = bundleMessage
+            }
+            takeIf { sucCnt != 0 }?.let {
+                bundleMessages = ImmutableMap.copyOf(map)
+                initialize = true
             }
         }
     }

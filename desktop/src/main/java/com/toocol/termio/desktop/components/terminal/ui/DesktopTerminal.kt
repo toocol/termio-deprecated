@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/4 11:06
  */
-class DesktopTerminal(id: Long) : TAnchorPane(id), IActiveAble, Loggable {
+class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble, Loggable {
     /**
      * Each DesktopTerminalPanel or CommandExecutorPanel has one onw MetadataPrinterOutputStream and PrintStream correspondent:
      * Feedback data.
@@ -48,15 +48,14 @@ class DesktopTerminal(id: Long) : TAnchorPane(id), IActiveAble, Loggable {
             styled()
             val scene = findComponent(TScene::class.java, 1)
             val workspacePanel = findComponent(WorkspacePanel::class.java, 1)
+            prefHeightProperty().bind(workspacePanel.heightProperty())
+            prefWidthProperty().bind(workspacePanel.widthProperty())
 
-            maxHeightProperty().bind(workspacePanel.prefHeightProperty())
-            maxWidthProperty().bind(workspacePanel.prefWidthProperty())
-            prefHeightProperty().bind(workspacePanel.prefHeightProperty().multiply(0.8))
-            prefWidthProperty().bind(workspacePanel.prefWidthProperty())
             children.add(terminalScrollPane)
 
             val ctrlT: KeyCombination = KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN)
             scene.accelerators[ctrlT] = Runnable { terminalConsoleTextArea.clear() }
+            setOnMouseClicked { terminalConsoleTextArea.requestFocus() }
         }
 
         terminalOutputService.apply { start() }
@@ -65,6 +64,32 @@ class DesktopTerminal(id: Long) : TAnchorPane(id), IActiveAble, Loggable {
 
         terminalConsoleTextArea.apply {
             initialize()
+
+            /*
+             * Prevent auto caret movement when user pressed '←', '→', '↑', '↓', 'Home', 'PgUp', 'PgDn', instead of setting the caret manually
+             */
+            addEventFilter(KeyEvent.ANY) { event: KeyEvent ->
+                when (event.code) {
+                    KeyCode.LEFT -> {
+                        event.consume()
+                        if (cursor.inlinePosition > currentLineStartInParargraph) {
+                            cursor.moveLeft()
+                        }
+                    }
+                    KeyCode.RIGHT -> {
+                        event.consume()
+                        val index = paragraphs.size - 1
+                        if (cursor.inlinePosition < getParagraphLength(index)) {
+                            cursor.moveRight()
+                        }
+                    }
+                    KeyCode.END -> {
+                        cursor.setTo(length)
+                    }
+                    KeyCode.UP, KeyCode.DOWN, KeyCode.PAGE_DOWN, KeyCode.PAGE_UP, KeyCode.HOME -> event.consume()
+                    else -> {}
+                }
+            }
 
             onInputMethodTextChanged = EventHandler { event: InputMethodEvent ->
                 if (StrUtil.isEmpty(event.committed)) {
@@ -109,6 +134,10 @@ class DesktopTerminal(id: Long) : TAnchorPane(id), IActiveAble, Loggable {
     fun activeTerminal() {
         currentActiveId = id()
         setPrinter(terminalPrintStream)
+    }
+
+    fun getConsoleTextAre(): TerminalConsoleTextArea {
+        return terminalConsoleTextArea
     }
 
     private inner class TerminalOutputService : Loggable {

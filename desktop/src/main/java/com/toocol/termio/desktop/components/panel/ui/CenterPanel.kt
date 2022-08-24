@@ -4,7 +4,7 @@ import com.toocol.termio.desktop.components.executor.ui.CommandExecutor
 import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent
-import com.toocol.termio.platform.ui.TBorderPane
+import com.toocol.termio.platform.ui.TVBox
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -15,7 +15,7 @@ import com.toocol.termio.platform.ui.TBorderPane
     Component(clazz = WorkspacePanel::class, id = 1, initialVisible = true),
     Component(clazz = CommandExecutor::class, id = 1, initialVisible = true)
 ])
-class CenterPanel(id: Long) : TBorderPane(id) {
+class CenterPanel(id: Long) : TVBox(id) {
 
     private val parser = ComponentsParser()
 
@@ -28,16 +28,13 @@ class CenterPanel(id: Long) : TBorderPane(id) {
     override fun initialize() {
         styled()
         val majorPanel = findComponent(MajorPanel::class.java, 1)
-        maxHeightProperty().bind(majorPanel.heightProperty())
-        maxWidthProperty().bind(majorPanel.widthProperty())
-        prefHeightProperty().bind(majorPanel.heightProperty())
         prefWidthProperty().bind(majorPanel.widthProperty())
+        prefHeightProperty().bind(majorPanel.heightProperty())
 
         parser.parse(CenterPanel::class.java)
         parser.initializeAll()
 
-        center = parser.get(WorkspacePanel::class.java)
-        bottom = parser.get(CommandExecutor::class.java)
+        children.addAll(parser.getAsNode(WorkspacePanel::class.java), parser.getAsNode(CommandExecutor::class.java))
     }
 
     override fun actionAfterShow() {

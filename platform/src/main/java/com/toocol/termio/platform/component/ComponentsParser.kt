@@ -4,6 +4,7 @@ import com.toocol.termio.utilities.log.Loggable
 import javafx.scene.Node
 import java.lang.ref.WeakReference
 import java.lang.reflect.Constructor
+import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 import kotlin.system.exitProcess
 
@@ -13,7 +14,7 @@ import kotlin.system.exitProcess
  * @version: 0.0.1
  */
 class ComponentsParser : Loggable {
-    private val components: MutableList<WeakReference<IComponent>> = ArrayList()
+    private val components: MutableMap<Class<*>, WeakReference<IComponent>> = ConcurrentHashMap()
 
     fun parse(clazz: Class<*>) {
         val register = clazz.getAnnotation(RegisterComponent::class.java) ?: return
@@ -28,7 +29,7 @@ class ComponentsParser : Loggable {
                         iComponent.isManaged = false
                     }
                 }
-                components.add(WeakReference(iComponent))
+                components[component.clazz.java] = WeakReference(iComponent)
             }
         } catch (e: Exception) {
             error("Parse register components failed.")
@@ -37,13 +38,14 @@ class ComponentsParser : Loggable {
     }
 
     fun initializeAll() {
-        components.forEach(Consumer { obj: WeakReference<IComponent> -> obj.get()?.initialize() })
+        components.values.forEach(Consumer { obj: WeakReference<IComponent> -> obj.get()?.initialize() })
     }
 
-    fun get(clazz: Class<*>): Node {
-        return components.asSequence()
-            .map { ref -> ref.get() }
-            .filter { component -> if (component == null) false else clazz == component::class.java}
-            .first() as Node
+    fun getAsNode(clazz: Class<*>): Node? {
+        return components[clazz]?.get() as Node?
+    }
+
+    fun getAsComponent(clazz: Class<*>): IComponent? {
+        return components[clazz]?.get()
     }
 }

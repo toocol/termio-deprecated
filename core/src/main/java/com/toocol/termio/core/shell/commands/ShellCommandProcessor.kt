@@ -28,7 +28,7 @@ abstract class ShellCommandProcessor : Loggable{
 
         val ret = process(eventBus, shell, isBreak, cmd)
 
-        AfterShellCommandProcessSyncEvent(shellCommand, shell.sessionId)
+        AfterShellCommandProcessSyncEvent(shellCommand, shell.sessionId).dispatch()
         return ret
     }
 

@@ -17,9 +17,8 @@ class SessionManageSidebar(id: Long) : TAnchorPane(id) {
     override fun initialize() {
         styled()
         val leftSidePanel = findComponent(LeftSidePanel::class.java, 1)
-        prefHeightProperty().bind(leftSidePanel.heightProperty())
         prefWidthProperty().bind(leftSidePanel.widthProperty())
-
+        prefHeightProperty().bind(leftSidePanel.heightProperty())
     }
 
     override fun actionAfterShow() {}
