@@ -8,9 +8,8 @@ import com.toocol.termio.desktop.components.panel.ui.WorkspacePanel
 import com.toocol.termio.desktop.components.terminal.ui.DesktopConsole
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
-import com.toocol.termio.platform.ui.TBorderPane
 import com.toocol.termio.platform.ui.TScene
-import com.toocol.termio.utilities.ansi.Printer.setPrinter
+import com.toocol.termio.platform.ui.TVBox
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
@@ -30,7 +29,7 @@ import java.nio.charset.StandardCharsets
  * @date: 2022/8/12 0:42
  * @version: 0.0.1
  */
-class CommandExecutor(id: Long) : TBorderPane(id), Loggable {
+class CommandExecutor(id: Long) : TVBox(id), Loggable {
     private val executorOutputService = ExecutorOutputService()
     private val commandExecutorInput: CommandExecutorInput
     private val commandExecutorResultTextArea: CommandExecutorResultTextArea
@@ -55,12 +54,11 @@ class CommandExecutor(id: Long) : TBorderPane(id), Loggable {
             styled()
             Term.registerConsole(DesktopConsole(commandExecutorResultTextArea))
             val centerPanel = findComponent(CenterPanel::class.java, id)
-            prefWidthProperty().bind(centerPanel.prefWidthProperty().multiply(1))
-            prefHeightProperty().bind(centerPanel.prefHeightProperty().multiply(0.2))
+            prefHeightProperty().bind(centerPanel.heightProperty().multiply(0.2))
+            prefWidthProperty().bind(centerPanel.widthProperty().multiply(1))
 
             focusedProperty().addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
                 if (newVal) {
-                    setPrinter(commandExecutorPrintStream)
                     println("Executor get focus")
                 } else {
                     println("Executor lose focus")
@@ -90,17 +88,22 @@ class CommandExecutor(id: Long) : TBorderPane(id), Loggable {
                         0.8
                     }
                     findComponent(WorkspacePanel::class.java, 1).prefHeightProperty()
-                        .bind(centerPanel.prefHeightProperty().multiply(ratio))
+                        .bind(centerPanel.heightProperty().multiply(ratio))
                 }
             }
+
+            children.addAll(commandExecutorInput, commandExecutorResultScrollPane)
         }
 
         executorOutputService.apply { start() }
+
         commandExecutorResultTextArea.apply {
             initialize()
             onMouseClicked = EventHandler { commandExecutorInput.requestFocus() }
         }
+
         commandExecutorResultScrollPane.apply { initialize() }
+
         commandExecutorInput.apply {
             initialize()
             addEventFilter(KeyEvent.KEY_TYPED) { event: KeyEvent ->
@@ -138,7 +141,6 @@ class CommandExecutor(id: Long) : TBorderPane(id), Loggable {
             focusedProperty()
                 .addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
                     if (newVal) {
-                        setPrinter(commandExecutorPrintStream)
                         println("Executor input get focus")
                     } else {
                         println("Executor input lose focus")

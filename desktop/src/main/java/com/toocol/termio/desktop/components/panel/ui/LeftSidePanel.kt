@@ -28,14 +28,13 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
     }
 
     override fun initialize() {
-        parser.parse(LeftSidePanel::class.java)
-        parser.initializeAll()
-
         styled()
-
         val majorPanel = findComponent(MajorPanel::class.java, 1)
         prefHeightProperty().bind(majorPanel.heightProperty())
         prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.15))
+
+        parser.parse(LeftSidePanel::class.java)
+        parser.initializeAll()
 
         val scene = findComponent(TScene::class.java, 1)
         val alt1: KeyCombination = KeyCodeCombination(KeyCode.DIGIT1, KeyCombination.ALT_DOWN)
@@ -47,10 +46,10 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
                 show()
                 0.85
             }
-            findComponent(WorkspacePanel::class.java, 1).prefWidthProperty().bind(majorPanel.widthProperty().multiply(ratio))
+            findComponent(WorkspacePanel::class.java, 1).prefWidthProperty().bind(majorPanel.prefWidthProperty().multiply(ratio))
         }
 
-        center = parser.get(SessionManageSidebar::class.java)
+        center = parser.getAsNode(SessionManageSidebar::class.java)
     }
 
     override fun actionAfterShow() {

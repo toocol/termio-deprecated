@@ -108,7 +108,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
         }
 
         componentParser.parse(this.getClass());
-        TScene scene = new TScene(1, (Parent) componentParser.get(MajorPanel.class));
+        TScene scene = new TScene(1, (Parent) componentParser.getAsNode(MajorPanel.class));
 
         cssParser.parse(this.getClass(), scene);
         componentParser.initializeAll();

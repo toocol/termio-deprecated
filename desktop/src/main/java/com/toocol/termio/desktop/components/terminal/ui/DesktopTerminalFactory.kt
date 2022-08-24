@@ -10,11 +10,21 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class DesktopTerminalFactory {
     private val instances: MutableMap<Long, WeakReference<DesktopTerminal>> = ConcurrentHashMap()
+    private val idMap: MutableMap<Long, Long> = ConcurrentHashMap()
 
-    fun getInstance(id: Long): DesktopTerminal {
-        val instance = instances.getOrDefault(id, WeakReference(DesktopTerminal(id)))
+    fun create(id: Long, sessionId: Long): DesktopTerminal {
+        val instance = instances.getOrDefault(id, WeakReference(DesktopTerminal(id, sessionId)))
         instances[id] = instance
+        idMap[sessionId] = id
         return instance.get()!!
+    }
+
+    fun getBySessionId(sessionId: Long): DesktopTerminal? {
+        return instances[idMap[sessionId]]?.get()
+    }
+
+    fun getById(id: Long): DesktopTerminal? {
+        return instances[id]?.get()
     }
 
     fun release(id: Long) {

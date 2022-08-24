@@ -21,10 +21,8 @@ class Homepage(id: Long) : TAnchorPane(id) {
         styled()
 
         val workspacePanel = findComponent(WorkspacePanel::class.java, 1)
-        maxHeightProperty().bind(workspacePanel.prefHeightProperty())
-        maxWidthProperty().bind(workspacePanel.prefWidthProperty())
-        prefHeightProperty().bind(workspacePanel.prefHeightProperty().multiply(0.8))
-        prefWidthProperty().bind(workspacePanel.prefWidthProperty())
+        prefWidthProperty().bind(workspacePanel.widthProperty())
+        prefHeightProperty().bind(workspacePanel.heightProperty())
 
         val text = Text("This is Homepage.")
         text.fill = Paint.valueOf("#CCCCCC")

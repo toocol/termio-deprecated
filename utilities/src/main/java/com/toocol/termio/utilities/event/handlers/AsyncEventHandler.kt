@@ -24,7 +24,7 @@ class AsyncEventHandler(vertx: Vertx, context: Context) : NonBlockingMessageHand
     override fun <T> handleInline(message: Message<T>) {
         val event = message.body() as AsyncEvent
         EventListenerContainer.getListeners(event::class)?.forEach { listener: EventListener<out AbstractEvent> ->
-            vertx.executeBlocking<Void> { promise ->
+            context.executeBlocking<Void> { promise ->
                 listener.actOn(event.`as`())
                 promise.complete()
             }

@@ -24,10 +24,9 @@ class CommandExecutorInput(private val id: Long) : StyleClassedTextField(), ISty
         isEditable = true
         showCaret = Caret.CaretVisibility.ON
         val executorPanel = findComponent(CommandExecutor::class.java, id)
-        executorPanel.top = this
         inputMethodRequests = InputMethodRequestsObject()
-        prefWidthProperty().bind(executorPanel.prefWidthProperty().multiply(1))
-        prefHeightProperty().bind(executorPanel.prefHeightProperty().multiply(0.15))
+        prefWidthProperty().bind(executorPanel.widthProperty())
+        prefHeightProperty().bind(executorPanel.heightProperty().multiply(0.15))
     }
 
     override fun id(): Long {

@@ -30,8 +30,8 @@ class MajorPanel(id: Long) : TBorderPane(id) {
         parser.parse(MajorPanel::class.java)
         parser.initializeAll()
 
-        center = parser.get(CenterPanel::class.java)
-        left = parser.get(LeftSidePanel::class.java)
+        center = parser.getAsNode(CenterPanel::class.java)
+        left = parser.getAsNode(LeftSidePanel::class.java)
     }
 
     override fun actionAfterShow() {}

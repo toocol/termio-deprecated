@@ -69,8 +69,8 @@ class TerminalConsoleTextArea(private val id: Long) : EscapedTextStyleClassArea(
         inputMethodRequests = InputMethodRequestsObject()
 
         val desktopTerminal = findComponent(DesktopTerminal::class.java, id)
-        prefWidthProperty().bind(desktopTerminal.prefWidthProperty().multiply(1))
-        prefHeightProperty().bind(desktopTerminal.prefHeightProperty().multiply(0.99))
+        prefWidthProperty().bind(desktopTerminal.widthProperty())
+        prefHeightProperty().bind(desktopTerminal.heightProperty())
 
         updateDefaultChineseStyle(
             TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(9)
@@ -78,32 +78,6 @@ class TerminalConsoleTextArea(private val id: Long) : EscapedTextStyleClassArea(
         updateDefaultEnglishStyle(
             TextStyle.EMPTY.updateFontFamily("\"Consolas\"").updateTextColor(Color.valueOf("#cccccc")).updateFontSize(10)
         )
-
-        /*
-         * Prevent auto caret movement when user pressed '←', '→', '↑', '↓', 'Home', 'PgUp', 'PgDn', instead of setting the caret manually
-         */
-        addEventFilter(KeyEvent.ANY) { event: KeyEvent ->
-            when (event.code) {
-                KeyCode.LEFT -> {
-                    event.consume()
-                    if (cursor.inlinePosition > currentLineStartInParargraph) {
-                        cursor.moveLeft()
-                    }
-                }
-                KeyCode.RIGHT -> {
-                    event.consume()
-                    val index = paragraphs.size - 1
-                    if (cursor.inlinePosition < getParagraphLength(index)) {
-                        cursor.moveRight()
-                    }
-                }
-                KeyCode.END -> {
-                    cursor.setTo(length)
-                }
-                KeyCode.UP, KeyCode.DOWN, KeyCode.PAGE_DOWN, KeyCode.PAGE_UP, KeyCode.HOME -> event.consume()
-                else -> {}
-            }
-        }
     }
 
     override fun actionAfterShow() {}

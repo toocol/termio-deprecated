@@ -27,8 +27,8 @@ class CommandExecutorResultTextArea(private val id: Long) : EscapedTextStyleClas
         isEditable = false
 
         val executorPanel = findComponent(CommandExecutor::class.java, id)
-        prefWidthProperty().bind(executorPanel.prefWidthProperty().multiply(1))
-        prefHeightProperty().bind(executorPanel.prefHeightProperty().multiply(0.9))
+        prefWidthProperty().bind(executorPanel.widthProperty())
+        prefHeightProperty().bind(executorPanel.heightProperty().multiply(0.85))
 
         updateDefaultChineseStyle(TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc"))
             .updateFontSize(9))

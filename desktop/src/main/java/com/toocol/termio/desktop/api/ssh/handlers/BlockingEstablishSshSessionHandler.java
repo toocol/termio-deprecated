@@ -4,12 +4,12 @@ import com.toocol.termio.core.cache.StatusCache;
 import com.toocol.termio.core.cache.StatusConstants;
 import com.toocol.termio.core.shell.ShellAddress;
 import com.toocol.termio.core.shell.core.Shell;
+import com.toocol.termio.core.ssh.core.SessionEstablishedAsync;
+import com.toocol.termio.core.ssh.core.SessionEstablishedSync;
 import com.toocol.termio.core.ssh.handlers.AbstractBlockingEstablishSshSessionHandler;
 import com.toocol.termio.core.term.TermAddress;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
-import com.toocol.termio.desktop.components.terminal.ui.DesktopTerminal;
-import com.toocol.termio.platform.component.ComponentsContainer;
 import com.toocol.termio.utilities.functional.Ordered;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -39,8 +39,8 @@ public final class BlockingEstablishSshSessionHandler extends AbstractBlockingEs
                 return;
             }
 
-            DesktopTerminal panel = ComponentsContainer.get(DesktopTerminal.class, 1);
-            panel.activeTerminal();
+            new SessionEstablishedSync(sessionId).dispatch();
+            new SessionEstablishedAsync(sessionId).dispatch();
 
             shell.printAfterEstablish();
             StatusCache.SHOW_WELCOME = true;
