@@ -1,6 +1,7 @@
 package com.toocol.termio.desktop.components.panel.ui
 
 import com.toocol.termio.desktop.components.sidebar.ui.SessionManageSidebar
+import com.toocol.termio.desktop.components.terminal.ui.DesktopTerminalFactory
 import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent
@@ -30,8 +31,8 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
     override fun initialize() {
         styled()
         val majorPanel = findComponent(MajorPanel::class.java, 1)
-        prefHeightProperty().bind(majorPanel.heightProperty())
         prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.15))
+        prefHeightProperty().bind(majorPanel.heightProperty())
 
         parser.parse(LeftSidePanel::class.java)
         parser.initializeAll()
@@ -46,7 +47,11 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
                 show()
                 0.85
             }
-            findComponent(WorkspacePanel::class.java, 1).prefWidthProperty().bind(majorPanel.prefWidthProperty().multiply(ratio))
+            findComponent(WorkspacePanel::class.java, 1).prefWidthProperty().bind(majorPanel.widthProperty().multiply(ratio))
+            DesktopTerminalFactory.getAllTerminals().forEach {
+                it.prefWidthProperty().bind(majorPanel.widthProperty().multiply(ratio))
+                it.getConsoleTextAre().prefWidthProperty().bind(majorPanel.widthProperty().multiply(ratio))
+            }
         }
 
         center = parser.getAsNode(SessionManageSidebar::class.java)

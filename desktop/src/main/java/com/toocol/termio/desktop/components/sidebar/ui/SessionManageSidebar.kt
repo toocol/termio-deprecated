@@ -1,6 +1,6 @@
 package com.toocol.termio.desktop.components.sidebar.ui
 
-import com.toocol.termio.desktop.components.panel.ui.LeftSidePanel
+import com.toocol.termio.desktop.components.panel.ui.MajorPanel
 import com.toocol.termio.platform.ui.TAnchorPane
 
 /**
@@ -16,9 +16,9 @@ class SessionManageSidebar(id: Long) : TAnchorPane(id) {
 
     override fun initialize() {
         styled()
-        val leftSidePanel = findComponent(LeftSidePanel::class.java, 1)
-        prefWidthProperty().bind(leftSidePanel.widthProperty())
-        prefHeightProperty().bind(leftSidePanel.heightProperty())
+        val majorPanel = findComponent(MajorPanel::class.java, 1)
+        prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.15))
+        prefHeightProperty().bind(majorPanel.heightProperty())
     }
 
     override fun actionAfterShow() {}

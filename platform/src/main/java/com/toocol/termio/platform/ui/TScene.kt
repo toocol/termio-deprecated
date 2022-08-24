@@ -14,6 +14,7 @@ open class TScene(protected val id: Long, root: Parent?) : Scene(root), ICompone
     }
 
     override fun initialize() {}
+
     override fun id(): Long {
         return id
     }

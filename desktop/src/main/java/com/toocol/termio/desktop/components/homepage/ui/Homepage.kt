@@ -1,6 +1,6 @@
 package com.toocol.termio.desktop.components.homepage.ui
 
-import com.toocol.termio.desktop.components.panel.ui.WorkspacePanel
+import com.toocol.termio.desktop.components.panel.ui.MajorPanel
 import com.toocol.termio.platform.ui.TAnchorPane
 import javafx.scene.paint.Paint
 import javafx.scene.text.Text
@@ -20,9 +20,9 @@ class Homepage(id: Long) : TAnchorPane(id) {
     override fun initialize() {
         styled()
 
-        val workspacePanel = findComponent(WorkspacePanel::class.java, 1)
-        prefWidthProperty().bind(workspacePanel.widthProperty())
-        prefHeightProperty().bind(workspacePanel.heightProperty())
+        val majorPanel = findComponent(MajorPanel::class.java, 1)
+        prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.85))
+        prefHeightProperty().bind(majorPanel.heightProperty().multiply(0.8))
 
         val text = Text("This is Homepage.")
         text.fill = Paint.valueOf("#CCCCCC")

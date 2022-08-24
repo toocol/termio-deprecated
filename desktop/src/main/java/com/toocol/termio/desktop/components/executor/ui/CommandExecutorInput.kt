@@ -1,5 +1,6 @@
 package com.toocol.termio.desktop.components.executor.ui
 
+import com.toocol.termio.desktop.components.panel.ui.MajorPanel
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
 import javafx.geometry.Point2D
@@ -23,10 +24,10 @@ class CommandExecutorInput(private val id: Long) : StyleClassedTextField(), ISty
         styled()
         isEditable = true
         showCaret = Caret.CaretVisibility.ON
-        val executorPanel = findComponent(CommandExecutor::class.java, id)
         inputMethodRequests = InputMethodRequestsObject()
-        prefWidthProperty().bind(executorPanel.widthProperty())
-        prefHeightProperty().bind(executorPanel.heightProperty().multiply(0.15))
+        val majorPanel = findComponent(MajorPanel::class.java, 1)
+        prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.85))
+        prefHeightProperty().bind(majorPanel.heightProperty().multiply(0.03))
     }
 
     override fun id(): Long {

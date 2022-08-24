@@ -14,7 +14,6 @@ abstract class TTextFlow(protected val id: Long) : TextFlow(), IComponent, IStyl
         this.registerComponent(id)
     }
 
-    override fun initialize() {}
     override fun id(): Long {
         return id
     }
