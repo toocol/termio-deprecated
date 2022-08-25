@@ -4,6 +4,7 @@ import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
 import javafx.beans.value.ObservableValue
 import javafx.scene.control.ScrollPane
+import javafx.scene.layout.Pane
 import org.fxmisc.flowless.VirtualizedScrollPane
 
 /**
@@ -28,5 +29,9 @@ class TerminalScrollPane(private val id: Long, terminalConsoleTextArea: Terminal
 
     override fun id(): Long {
         return id
+    }
+
+    override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
+
     }
 }

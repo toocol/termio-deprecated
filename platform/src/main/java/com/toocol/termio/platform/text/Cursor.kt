@@ -3,6 +3,7 @@ package com.toocol.termio.platform.text
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.utilities.log.Loggable
 import javafx.scene.image.ImageView
+import javafx.scene.layout.Pane
 import kotlin.math.max
 
 /**
@@ -25,6 +26,10 @@ open class Cursor(val id: Long) : ImageView(), IComponent, Loggable {
 
     override fun id(): Long {
         return id
+    }
+
+    override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
+
     }
 
     fun moveLeft() {

@@ -5,6 +5,7 @@ import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent
 import com.toocol.termio.platform.ui.TVBox
+import javafx.scene.layout.Pane
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -27,14 +28,19 @@ class CenterPanel(id: Long) : TVBox(id) {
 
     override fun initialize() {
         styled()
-        val majorPanel = findComponent(MajorPanel::class.java, 1)
-        prefWidthProperty().bind(majorPanel.widthProperty())
-        prefHeightProperty().bind(majorPanel.heightProperty())
 
         parser.parse(CenterPanel::class.java)
         parser.initializeAll()
 
         children.addAll(parser.getAsNode(WorkspacePanel::class.java), parser.getAsNode(CommandExecutor::class.java))
+    }
+
+    override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
+        widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
+        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
+
+        parser.getAsComponent(WorkspacePanel::class.java)?.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.8)
+        parser.getAsComponent(CommandExecutor::class.java)?.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.2)
     }
 
     override fun actionAfterShow() {

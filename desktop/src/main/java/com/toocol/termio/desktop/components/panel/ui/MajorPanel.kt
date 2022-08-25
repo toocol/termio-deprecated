@@ -4,6 +4,7 @@ import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent
 import com.toocol.termio.platform.ui.TBorderPane
+import javafx.scene.layout.Pane
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -29,9 +30,15 @@ class MajorPanel(id: Long) : TBorderPane(id) {
 
         parser.parse(MajorPanel::class.java)
         parser.initializeAll()
+        sizePropertyBind(this, 1.0, 1.0)
 
         center = parser.getAsNode(CenterPanel::class.java)
         left = parser.getAsNode(LeftSidePanel::class.java)
+    }
+
+    override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
+        parser.getAsComponent(CenterPanel::class.java)?.sizePropertyBind(this, widthRatio!! * 0.85, heightRatio!! * 1.0)
+        parser.getAsComponent(LeftSidePanel::class.java)?.sizePropertyBind(this, widthRatio!! * 0.15, heightRatio!! * 1.0)
     }
 
     override fun actionAfterShow() {}

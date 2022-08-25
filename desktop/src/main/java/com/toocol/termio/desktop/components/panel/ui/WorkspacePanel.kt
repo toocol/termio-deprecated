@@ -9,6 +9,7 @@ import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent
 import com.toocol.termio.platform.ui.TStackPane
 import javafx.application.Platform
+import javafx.scene.layout.Pane
 import java.util.*
 import java.util.concurrent.CountDownLatch
 
@@ -27,6 +28,9 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
     private val terminalIds: MutableSet<Int> = TreeSet()
     private val shellCache: ShellCache.Instance = ShellCache.Instance
 
+    private var widthRatio: Double = 1.0
+    private var heightRatio: Double = 1.0
+
     override fun styleClasses(): Array<String> {
         return arrayOf(
             "workspace-panel"
@@ -35,14 +39,28 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
 
     override fun initialize() {
         styled()
-        val majorPanel = findComponent(MajorPanel::class.java, 1)
-        prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.85))
-        prefHeightProperty().bind(majorPanel.heightProperty().multiply(0.8))
 
         parser.parse(WorkspacePanel::class.java)
         parser.initializeAll()
 
         children.add(parser.getAsNode(Homepage::class.java))
+    }
+
+    override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
+        val panel = this
+        widthRatio?.run {
+            prefWidthProperty().bind(major.widthProperty().multiply(widthRatio))
+            panel.widthRatio = widthRatio
+        }
+        heightRatio?.run {
+            prefHeightProperty().bind(major.heightProperty().multiply(heightRatio))
+            panel.heightRatio = heightRatio
+        }
+
+        parser.getAsComponent(Homepage::class.java)?.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.99)
+        terminalFactory.getAllTerminals()
+            .asSequence()
+            .forEach { it.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.99) }
     }
 
     override fun actionAfterShow() {}
@@ -53,6 +71,7 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             hideHomepage()
             val terminal = terminalFactory.create(assignTerminalId(), sessionId)
             terminal.initialize()
+            terminal.sizePropertyBind(findComponent(MajorPanel::class.java, 1), widthRatio, heightRatio * 0.99)
             shellCache.getShell(sessionId)!!.registerConsole(DesktopConsole(terminal.getConsoleTextAre()))
             children.add(terminal)
             terminal.activeTerminal()

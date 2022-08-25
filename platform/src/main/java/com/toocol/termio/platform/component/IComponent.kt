@@ -13,7 +13,7 @@ import javafx.scene.Node
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/5 17:44
  */
-interface IComponent : Asable, Castable {
+interface IComponent : Asable, Castable, ISizeDynamicBinding {
     /**
      * Initialize the component.
      */
