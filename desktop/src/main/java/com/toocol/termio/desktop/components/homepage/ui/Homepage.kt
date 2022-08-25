@@ -1,7 +1,7 @@
 package com.toocol.termio.desktop.components.homepage.ui
 
-import com.toocol.termio.desktop.components.panel.ui.MajorPanel
 import com.toocol.termio.platform.ui.TAnchorPane
+import javafx.scene.layout.Pane
 import javafx.scene.paint.Paint
 import javafx.scene.text.Text
 
@@ -20,15 +20,16 @@ class Homepage(id: Long) : TAnchorPane(id) {
     override fun initialize() {
         styled()
 
-        val majorPanel = findComponent(MajorPanel::class.java, 1)
-        prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.85))
-        prefHeightProperty().bind(majorPanel.heightProperty().multiply(0.8))
-
         val text = Text("This is Homepage.")
         text.fill = Paint.valueOf("#CCCCCC")
         text.layoutX = 10.0
         text.layoutY = 20.0
         children.add(text)
+    }
+
+    override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
+        widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
+        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
     }
 
     override fun actionAfterShow() {}

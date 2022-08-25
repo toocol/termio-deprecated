@@ -3,6 +3,7 @@ package com.toocol.termio.desktop.components.executor.ui
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
 import javafx.scene.control.ScrollPane
+import javafx.scene.layout.Pane
 import org.fxmisc.flowless.VirtualizedScrollPane
 
 /**
@@ -27,5 +28,9 @@ class CommandExecutorResultScrollPane(private val id: Long, terminalConsoleTextA
 
     override fun id(): Long {
         return id
+    }
+
+    override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
+
     }
 }

@@ -6,7 +6,6 @@ import com.toocol.termio.desktop.api.term.handlers.DynamicEchoHandler
 import com.toocol.termio.desktop.components.panel.ui.MajorPanel
 import com.toocol.termio.desktop.components.panel.ui.WorkspacePanel
 import com.toocol.termio.desktop.components.terminal.ui.DesktopConsole
-import com.toocol.termio.desktop.components.terminal.ui.DesktopTerminalFactory
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.ui.TScene
@@ -21,6 +20,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyEvent
+import javafx.scene.layout.Pane
 import java.io.IOException
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
@@ -54,9 +54,6 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
         apply {
             styled()
             Term.registerConsole(DesktopConsole(commandExecutorResultTextArea))
-            val majorPanel = findComponent(MajorPanel::class.java, 1)
-            prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.85))
-            prefHeightProperty().bind(majorPanel.heightProperty().multiply(0.2))
 
             focusedProperty().addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
                 if (newVal) {
@@ -88,12 +85,8 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                         commandExecutorInput.requestFocus()
                         0.8
                     }
-                    findComponent(WorkspacePanel::class.java, 1).prefHeightProperty()
-                        .bind(majorPanel.heightProperty().multiply(ratio))
-                    DesktopTerminalFactory.getAllTerminals().forEach {
-                        it.prefHeightProperty().bind(majorPanel.heightProperty().multiply(ratio))
-                        it.getConsoleTextAre().prefHeightProperty().bind(majorPanel.heightProperty().multiply(ratio))
-                    }
+                    val majorPanel = findComponent(MajorPanel::class.java, 1)
+                    findComponent(WorkspacePanel::class.java, 1).sizePropertyBind(majorPanel, null, ratio)
                 }
             }
 
@@ -153,6 +146,14 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                 }
             onMouseClicked = EventHandler { commandExecutorInput.requestFocus() }
         }
+    }
+
+    override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
+        widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
+        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
+
+        commandExecutorInput.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.15)
+        commandExecutorResultTextArea.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.85)
     }
 
     override fun actionAfterShow() {

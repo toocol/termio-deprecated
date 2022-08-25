@@ -1,7 +1,6 @@
 package com.toocol.termio.desktop.components.panel.ui
 
 import com.toocol.termio.desktop.components.sidebar.ui.SessionManageSidebar
-import com.toocol.termio.desktop.components.terminal.ui.DesktopTerminalFactory
 import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent
@@ -10,6 +9,7 @@ import com.toocol.termio.platform.ui.TScene
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
+import javafx.scene.layout.Pane
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -30,9 +30,6 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
 
     override fun initialize() {
         styled()
-        val majorPanel = findComponent(MajorPanel::class.java, 1)
-        prefWidthProperty().bind(majorPanel.widthProperty().multiply(0.15))
-        prefHeightProperty().bind(majorPanel.heightProperty())
 
         parser.parse(LeftSidePanel::class.java)
         parser.initializeAll()
@@ -47,14 +44,18 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
                 show()
                 0.85
             }
-            findComponent(WorkspacePanel::class.java, 1).prefWidthProperty().bind(majorPanel.widthProperty().multiply(ratio))
-            DesktopTerminalFactory.getAllTerminals().forEach {
-                it.prefWidthProperty().bind(majorPanel.widthProperty().multiply(ratio))
-                it.getConsoleTextAre().prefWidthProperty().bind(majorPanel.widthProperty().multiply(ratio))
-            }
+            val majorPanel = findComponent(MajorPanel::class.java, 1)
+            findComponent(WorkspacePanel::class.java, 1).sizePropertyBind(majorPanel, ratio, null)
         }
 
         center = parser.getAsNode(SessionManageSidebar::class.java)
+    }
+
+    override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
+        widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
+        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
+
+        parser.getAsComponent(SessionManageSidebar::class.java)?.sizePropertyBind(major, widthRatio, heightRatio)
     }
 
     override fun actionAfterShow() {
