@@ -337,7 +337,8 @@ class ConsoleTermPrinter(private val term: Term) : ITermPrinter{
 //        PRINT_STREAM.print("\u001b[Hbbbbbbbbbbbbbbbbbbb");
 //        PRINT_STREAM.println();
 //        PRINT_STREAM.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-        printStream!!.print("\u001b[2;0Hcc")
+        printStream!!.print("\u001b[0;0Hcc")
+        printStream!!.print("\u001b[1;0Hbb")
         printStream!!.println("\r\r\naa")
         //        String msg = "\u001B[0m\u001B[1;49r\u001B[49;1H\n" +
 //                "\u001B[r\u001B[48;1H[root@vultrguest /]# ls\n" +

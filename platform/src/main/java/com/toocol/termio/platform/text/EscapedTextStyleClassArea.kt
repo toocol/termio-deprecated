@@ -22,6 +22,7 @@ import org.fxmisc.richtext.model.Codec
 import org.fxmisc.richtext.model.SegmentOps
 import org.fxmisc.richtext.model.StyledSegment
 import org.fxmisc.richtext.model.TwoDimensional
+import java.util.concurrent.ConcurrentHashMap
 import java.util.function.BiConsumer
 import java.util.function.Function
 
@@ -55,6 +56,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
     @JvmField
     protected var defaultChineseTextStyle: TextStyle = TextStyle.EMPTY
+
     @JvmField
     protected var defaultEnglishTextStyle: TextStyle = TextStyle.EMPTY
 
@@ -63,6 +65,9 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
     private var ansiEscapeSearchEngine: AnsiEscapeSearchEngine<EscapedTextStyleClassArea>? = null
     private var actionMap: Map<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>>? = null
+    private var paragraphSizeWatch: Int = 0
+
+    private val lineIndexParagraphIndexMap: MutableMap<Int, Int> = ConcurrentHashMap()
 
     fun updateDefaultChineseStyle(style: TextStyle) {
         defaultChineseTextStyle = style
@@ -80,9 +85,8 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     fun cursorTest() {
-        append("你${StrUtil.NONE_BREAKING_SPACE.repeat(100)}好${StrUtil.NONE_BREAKING_SPACE.repeat(20)}\n")
-        append("Hello World~")
-        cursor.setTo(calculateCursorInline(0, 100))
+        append("${"你".repeat(300)}\n")
+        setCursorTo(1, 10)
         append("不不不不不")
     }
 
@@ -94,7 +98,9 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             } else ch.toString().replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE) + CharUtil.INVISIBLE_CHAR
 
             val start = cursor.inlinePosition
-            val end = if (cursor.inlinePosition == length) cursor.inlinePosition else cursor.inlinePosition + content.length
+            val end =
+                if (cursor.inlinePosition == length) cursor.inlinePosition else cursor.inlinePosition + content.length
+
             replace(start, end, content,
                 if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle
             )
@@ -128,20 +134,38 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         actionMap = ImmutableMap.copyOf(map)
     }
 
-    fun calculateCursorInline(line: Int, col: Int): Int {
+    private fun calculateCursorInline(line: Int, col: Int): Int {
         return position(line, col).toOffset()
     }
 
+    private fun lineToParagraph(line: Int) : Int? {
+        return lineIndexParagraphIndexMap[line]
+    }
+
     fun getCursorPos(): Array<Int> {
-        val position = offsetToPosition(cursor.inlinePosition, TwoDimensional.Bias.Forward)
-        return arrayOf(position.major, position.minor)
+        val pos = offsetToPosition(cursor.inlinePosition, TwoDimensional.Bias.Forward)
+        return arrayOf(pos.major, pos.minor)
     }
 
-    private fun cursorLeft(value: Int) {
+    fun setCursorTo(row: Int, col: Int) {
+        val paragraphIndex = lineToParagraph(row)
+        paragraphIndex?: return
+        cursor.setTo(calculateCursorInline(paragraphIndex, col))
+    }
+
+    fun showCursor() {
 
     }
 
-    private fun cursorRight(value: Int) {
+    fun hideCursor() {
+
+    }
+
+    fun cursorLeft(value: Int) {
+
+    }
+
+    fun cursorRight(value: Int) {
 
     }
 
@@ -155,7 +179,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
     private fun moveCursorLineHead(value: Int) {
         val cursorPos = getCursorPos()
-        cursor.setTo(calculateCursorInline(cursorPos[0] + value, 0))
+        setCursorTo(cursorPos[0] + value, 0)
     }
 
     private fun moveCursorLineUp(value: Int) {
@@ -186,9 +210,9 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                 MOVE_CURSOR_TO_CERTAIN -> {
                     val line = params!![0].toString().toInt()
                     val col = params[1].toString().toInt()
-                    executeTarget.cursor.setTo(executeTarget.calculateCursorInline(line, col))
+                    executeTarget.setCursorTo(line, col * 2)
                 }
-                MOVE_HOME_POSITION -> executeTarget.cursor.setTo(0)
+                MOVE_HOME_POSITION -> executeTarget.setCursorTo(0, 0)
                 MOVE_CURSOR_UP -> executeTarget.cursorUp(params!![0].toString().toInt())
                 MOVE_CURSOR_DOWN -> executeTarget.cursorDown(params!![0].toString().toInt())
                 MOVE_CURSOR_LEFT -> executeTarget.cursorLeft(params!![0].toString().toInt())
@@ -216,7 +240,9 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                 ERASE_IN_DISPLAY -> {}
                 ERASE_CURSOR_LINE_TO_END -> {}
                 ERASE_CURSOR_LINE_TO_BEGINNING -> {}
-                ERASE_SCREEN -> executeTarget.clear()
+                ERASE_SCREEN -> {
+                    executeTarget.clear()
+                }
                 ERASE_SAVED_LINE -> {}
                 ERASE_IN_LINE -> {}
                 ERASE_CURSOR_TO_LINE_END -> {}
@@ -269,12 +295,16 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                 HIDDEN_VISIBLE_MODE -> {}
                 RESET_HIDDEN_VISIBLE -> {}
                 STRIKETHROUGH_MODE -> {
-                    executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateStrikethrough(true)
-                    executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateStrikethrough(true)
+                    executeTarget.currentChineseTextStyle =
+                        executeTarget.currentChineseTextStyle.updateStrikethrough(true)
+                    executeTarget.currentEnglishTextStyle =
+                        executeTarget.currentEnglishTextStyle.updateStrikethrough(true)
                 }
                 RESET_STRIKETHROUGH -> {
-                    executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateStrikethrough(false)
-                    executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateStrikethrough(false)
+                    executeTarget.currentChineseTextStyle =
+                        executeTarget.currentChineseTextStyle.updateStrikethrough(false)
+                    executeTarget.currentEnglishTextStyle =
+                        executeTarget.currentEnglishTextStyle.updateStrikethrough(false)
                 }
             }
         }
@@ -289,11 +319,15 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             val mode = escapeMode as EscapeColor8To16Mode
             val colorHex = mode.hexCode
             if (mode.foreground) {
-                executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateTextColor(Color.valueOf(colorHex))
-                executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateTextColor(Color.valueOf(colorHex))
+                executeTarget.currentChineseTextStyle =
+                    executeTarget.currentChineseTextStyle.updateTextColor(Color.valueOf(colorHex))
+                executeTarget.currentEnglishTextStyle =
+                    executeTarget.currentEnglishTextStyle.updateTextColor(Color.valueOf(colorHex))
             } else {
-                executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
-                executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
+                executeTarget.currentChineseTextStyle =
+                    executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
+                executeTarget.currentEnglishTextStyle =
+                    executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
             }
         }
     }
@@ -307,11 +341,15 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             val mode = escapeMode as EscapeColorISOMode
             val colorHex = mode.hexCode
             if (mode.foreground) {
-                executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateTextColor(Color.valueOf(colorHex))
-                executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateTextColor(Color.valueOf(colorHex))
+                executeTarget.currentChineseTextStyle =
+                    executeTarget.currentChineseTextStyle.updateTextColor(Color.valueOf(colorHex))
+                executeTarget.currentEnglishTextStyle =
+                    executeTarget.currentEnglishTextStyle.updateTextColor(Color.valueOf(colorHex))
             } else {
-                executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
-                executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
+                executeTarget.currentChineseTextStyle =
+                    executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
+                executeTarget.currentEnglishTextStyle =
+                    executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
             }
         }
     }
@@ -326,11 +364,15 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             val mode = escapeMode as EscapeColor256Mode
             val colorHex = mode.hexCode
             if (foreground) {
-                executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateTextColor(Color.valueOf(colorHex))
-                executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateTextColor(Color.valueOf(colorHex))
+                executeTarget.currentChineseTextStyle =
+                    executeTarget.currentChineseTextStyle.updateTextColor(Color.valueOf(colorHex))
+                executeTarget.currentEnglishTextStyle =
+                    executeTarget.currentEnglishTextStyle.updateTextColor(Color.valueOf(colorHex))
             } else {
-                executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
-                executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
+                executeTarget.currentChineseTextStyle =
+                    executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
+                executeTarget.currentEnglishTextStyle =
+                    executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
             }
         }
     }
@@ -346,11 +388,15 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             val g = params[3].toString().toDouble()
             val b = params[4].toString().toDouble()
             if (foreground) {
-                executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateTextColor(Color.color(r, g, b))
-                executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateTextColor(Color.color(r, g, b))
+                executeTarget.currentChineseTextStyle =
+                    executeTarget.currentChineseTextStyle.updateTextColor(Color.color(r, g, b))
+                executeTarget.currentEnglishTextStyle =
+                    executeTarget.currentEnglishTextStyle.updateTextColor(Color.color(r, g, b))
             } else {
-                executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.color(r, g, b))
-                executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.color(r, g, b))
+                executeTarget.currentChineseTextStyle =
+                    executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.color(r, g, b))
+                executeTarget.currentEnglishTextStyle =
+                    executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.color(r, g, b))
             }
         }
     }
@@ -422,7 +468,24 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
         textProperty().addListener { _: ObservableValue<out String>?, oldVal: String, newVal: String ->
             cursor.update(newVal.length - oldVal.length)
+            takeIf { paragraphSizeWatch != paragraphs.size }?.run {
+                paragraphSizeWatch = paragraphs.size
+                updateLineIndexParagraphIndexMap()
+            }
         }
+
+        widthProperty().addListener { _, _, _ -> updateLineIndexParagraphIndexMap() }
+    }
+
+    private fun updateLineIndexParagraphIndexMap() {
+        var lineIndex = 1
+        paragraphs.forEachIndexed { index, _ ->
+            for (i in 1..getParagraphLinesCount(index)) {
+                lineIndexParagraphIndexMap[lineIndex++] = index
+            }
+        }
+        // in X-Term console, line 0 equals line 1
+        lineIndexParagraphIndexMap[0] = 0
     }
 
     override fun id(): Long {

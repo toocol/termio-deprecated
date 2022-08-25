@@ -32,25 +32,25 @@ class DesktopConsole<T : EscapedTextStyleClassArea>(private val textArea: T) : C
     }
 
     override fun setCursorPosition(x: Int, y: Int) {
-        textArea.cursor.setTo(textArea.calculateCursorInline(y, x))
+        textArea.setCursorTo(y, x * 2)
     }
 
     override fun cursorBackLine(lines: Int) {}
 
     override fun showCursor() {
-        textArea.cursor.show()
+        textArea.showCursor()
     }
 
     override fun hideCursor() {
-        textArea.hide()
+        textArea.hideCursor()
     }
 
     override fun cursorLeft() {
-        textArea.cursor.moveLeft()
+        textArea.cursorLeft(1)
     }
 
     override fun cursorRight() {
-        textArea.cursor.moveRight()
+        textArea.cursorRight(1)
     }
 
     override fun cleanUnsupportedCharacter(bytes: ByteArray): ByteArray {

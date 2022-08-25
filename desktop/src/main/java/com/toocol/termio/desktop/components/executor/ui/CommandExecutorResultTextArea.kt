@@ -4,8 +4,12 @@ import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
 import com.toocol.termio.platform.text.EscapedTextStyleClassArea
 import com.toocol.termio.platform.text.TextStyle
+import com.toocol.termio.platform.ui.TScene
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.application.Platform
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCodeCombination
+import javafx.scene.input.KeyCombination
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
 
@@ -26,6 +30,23 @@ class CommandExecutorResultTextArea(private val id: Long) : EscapedTextStyleClas
         styled()
         isWrapText = true
         isEditable = false
+
+        val scene = findComponent(TScene::class.java, 1)
+        val ctrlT: KeyCombination = KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN)
+        scene.accelerators[ctrlT] = Runnable {
+//            val pos = getCursorPos()
+//            println("line:${pos[0]}, col:${pos[1]}")
+//            val paragraph = paragraphs[pos[0] - 1]
+//            println(paragraph.text.length)
+//            println(paragraph.text.replace(StrUtil.INVISIBLE_CHAR, "").length)
+//            println(lineIndex(0, 140))
+//            println(lineToParagraph(5))
+//            println(paragraphs[lineToParagraph(5)!!].text)
+            println(paragraphs[0].text)
+            println(paragraphs[1].text)
+            println(paragraphs[2].text)
+            println(paragraphs[3].text)
+        }
 
         updateDefaultChineseStyle(TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc"))
             .updateFontSize(9))
