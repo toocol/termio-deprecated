@@ -9,7 +9,6 @@ import kotlin.system.exitProcess
  */
 class DesktopTermReader(private val term: Term) : ITermReader {
     override fun readLine(): String {
-        term.executeCursorOldX.set(term.cursorPosition[0])
         try {
             while (true) {
                 val inChar = Term.reader!!.readCharacter().toChar()

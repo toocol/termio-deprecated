@@ -13,7 +13,6 @@ import com.toocol.termio.platform.ui.TVBox
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
-import javafx.application.Platform
 import javafx.beans.value.ObservableValue
 import javafx.event.EventHandler
 import javafx.scene.input.KeyCode
@@ -158,7 +157,7 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                     try {
                         if (commandExecutorPrinterOutputStream.available() > 0) {
                             val text = commandExecutorPrinterOutputStream.read()
-                            Platform.runLater { commandExecutorResultTextArea.append(text) }
+                            commandExecutorResultTextArea.append(text)
                         }
                         Thread.sleep(1)
                     } catch (e: Exception) {

@@ -1,10 +1,13 @@
-package com.toocol.termio.utilities.escape
+package com.toocol.termio.platform.text
 
+import com.toocol.termio.utilities.escape.*
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.Castable
 import com.toocol.termio.utilities.utils.StrUtil
 import com.toocol.termio.utilities.utils.Tuple2
+import javafx.application.Platform
 import java.util.*
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -66,6 +69,9 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
     }
 
     private val queue: Queue<Tuple2<IEscapeMode, List<Any>>> = ArrayDeque()
+
+    @Volatile
+    private var flag = false
 
     /*
      * Suppose we have such text:
@@ -269,19 +275,23 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
         }
 
         val actionMap = executeTarget.getActionMap()
-        text.split(uberEscapeModeRegex).toTypedArray().forEach { sp ->
-            if (StrUtil.isNotEmpty(sp)) {
-                executeTarget.printOut(sp)
+        val latch = CountDownLatch(1)
+        Platform.runLater {
+            text.split(uberEscapeModeRegex).toTypedArray().forEach { sp ->
+                if (StrUtil.isNotEmpty(sp)) {
+                    executeTarget.printOut(sp)
+                }
+                if (!queue.isEmpty()) {
+                    val tuple = queue.poll()
+                    val ansiEscapeAction = actionMap!![tuple._1()!!.javaClass]
+                    ansiEscapeAction ?: return@forEach
+                    ansiEscapeAction.action(executeTarget, tuple._1(), tuple._2())
+                }
             }
-            if (!queue.isEmpty()) {
-                val tuple = queue.poll()
-                val ansiEscapeAction = actionMap!![tuple._1()!!.javaClass]
-                ansiEscapeAction ?: return@forEach
-                ansiEscapeAction.action(executeTarget, tuple._1(), tuple._2())
-            }
+            queue.clear()
+            latch.countDown()
         }
-        System.gc()
-        queue.clear()
+        latch.await()
     }
 
     private fun tuple(): Tuple2<IEscapeMode, List<Any>> {
