@@ -1,6 +1,7 @@
 package com.toocol.termio.utilities.console;
 
 import com.toocol.termio.utilities.ansi.Printer;
+import com.toocol.termio.utilities.utils.OsUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -74,5 +75,17 @@ public final class UnixConsole extends Console {
     @Override
     public void rollingProcessing(@NotNull String msg) {
 
+    }
+
+    @Override
+    public void clear() {
+        try {
+            new ProcessBuilder(OsUtil.getExecution(), OsUtil.getExecuteMode(), OsUtil.getClearCmd())
+                    .inheritIO()
+                    .start()
+                    .waitFor();
+        } catch (Exception e) {
+            // do nothing
+        }
     }
 }

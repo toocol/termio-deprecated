@@ -3,6 +3,7 @@ package com.toocol.termio.utilities.console;
 import com.toocol.termio.utilities.ansi.AsciiControl;
 import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.jni.TermioJNI;
+import com.toocol.termio.utilities.utils.OsUtil;
 import com.toocol.termio.utilities.utils.StrUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -156,5 +157,17 @@ public final class WindowsConsole extends Console {
         }
         source = AsciiControl.ignore(source);
         return source;
+    }
+
+    @Override
+    public void clear() {
+        try {
+            new ProcessBuilder(OsUtil.getExecution(), OsUtil.getExecuteMode(), OsUtil.getClearCmd())
+                    .inheritIO()
+                    .start()
+                    .waitFor();
+        } catch (Exception e) {
+            // do nothing
+        }
     }
 }

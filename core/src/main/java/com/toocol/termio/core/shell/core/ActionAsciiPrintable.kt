@@ -25,7 +25,7 @@ class ActionAsciiPrintable : ShellCharAction() {
         if (inChar == CharUtil.SPACE && shell.currentPrint.isEmpty()) {
             return false
         }
-        val cursorPosition = shell.cursorPosition
+        val cursorPosition = shell.getCursorPosition()
         if (cursorPosition[0] < shell.currentPrint.length + shell.prompt.get().length) {
             // cursor has moved
             val index = cursorPosition[0] - shell.prompt.get().length

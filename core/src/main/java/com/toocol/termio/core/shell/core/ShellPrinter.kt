@@ -105,7 +105,7 @@ class ShellPrinter(private val shell: Shell) {
                         }
                     }
                 }
-                val cursorPosition: IntArray = shell.cursorPosition
+                val cursorPosition: IntArray = shell.getCursorPosition()
                 if (cursorPosition[0] != 0) {
                     shell.setCursorPosition(0, cursorPosition[1])
                 }

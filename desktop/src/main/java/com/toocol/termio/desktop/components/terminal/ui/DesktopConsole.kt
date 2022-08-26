@@ -9,6 +9,9 @@ import com.toocol.termio.utilities.console.Console
  * @version: 0.0.1
  */
 class DesktopConsole<T : EscapedTextStyleClassArea>(private val textArea: T) : Console() {
+    override fun clear() {
+        textArea.clear()
+    }
 
     override fun chooseFiles(): String? {
         return null

@@ -21,7 +21,7 @@ class ActionBackspace : ShellCharAction() {
         if (shell.status == Shell.Status.QUICK_SWITCH) {
             return false
         }
-        val cursorPosition = shell.cursorPosition
+        val cursorPosition = shell.getCursorPosition()
         if (cursorPosition[0] <= shell.prompt.get().length) {
             bel()
             shell.status = Shell.Status.NORMAL
