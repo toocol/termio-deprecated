@@ -67,14 +67,6 @@ object TermioCommunityBootstrap : Termio() {
         vertx!!.close()
     }
 
-    @JvmStatic
-    fun actionOnUiInitialized() {
-        while (!finish) {
-            // empty loop to wait vert.x environment prepare finished
-        }
-        vertx!!.eventBus().send(TermAddress.ACCEPT_COMMAND.address(), null)
-    }
-
     private fun watchStart() {
         Thread {
             try {
@@ -86,8 +78,9 @@ object TermioCommunityBootstrap : Termio() {
                 loadingLatch = null
                 initialLatch = null
                 verticleClassList = null
-                System.gc()
+                vertx!!.eventBus().send(TermAddress.ACCEPT_COMMAND.address(), null)
                 logger.info("Bootstrap Termio community success.")
+                System.gc()
             } catch (e: Exception) {
                 logger.error("Bootstrap Termio community failed.")
                 exitProcess(-1)

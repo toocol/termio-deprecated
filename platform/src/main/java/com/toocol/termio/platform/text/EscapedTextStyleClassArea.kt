@@ -64,10 +64,10 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     private var currentChineseTextStyle: TextStyle = TextStyle.EMPTY
     private var currentEnglishTextStyle: TextStyle = TextStyle.EMPTY
 
-    private var ansiEscapeSearchEngine: AnsiEscapeSearchEngine<EscapedTextStyleClassArea>? = null
     private var actionMap: Map<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>>? = null
     private var paragraphSizeWatch: Int = 0
 
+    private val ansiEscapeSearchEngine: AnsiEscapeSearchEngine<EscapedTextStyleClassArea> = AnsiEscapeSearchEngine()
     private val lineIndexParagraphIndexMap: MutableMap<Int, Int> = ConcurrentHashMap()
 
     fun updateDefaultChineseStyle(style: TextStyle) {
@@ -82,7 +82,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
     fun append(text: String?) {
         text ?: return
-        ansiEscapeSearchEngine!!.actionOnEscapeMode(text, this)
+        ansiEscapeSearchEngine.actionOnEscapeMode(text, this)
     }
 
     fun cursorTest() {
@@ -491,7 +491,6 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         this.registerActions()
 
         cursor = Cursor(id)
-        ansiEscapeSearchEngine = AnsiEscapeSearchEngine()
 
         textProperty().addListener { _: ObservableValue<out String>?, oldVal: String, newVal: String ->
             cursor.update(newVal.length - oldVal.length)

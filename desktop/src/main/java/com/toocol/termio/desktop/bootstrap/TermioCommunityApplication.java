@@ -121,10 +121,6 @@ public class TermioCommunityApplication extends Application implements Loggable 
                 .filter(component -> component instanceof IActionAfterShow)
                 .map(component -> (IActionAfterShow) component)
                 .forEach(IActionAfterShow::actionAfterShow);
-
-        TermioCommunityBootstrap.actionOnUiInitialized();
-
-        System.gc();
     }
 
     @Override
