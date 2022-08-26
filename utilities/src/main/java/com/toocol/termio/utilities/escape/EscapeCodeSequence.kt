@@ -55,3 +55,5 @@ const val esc0K = "\u001b[0K"
 const val esc1K = "\u001b[1K"
 
 const val esc2K = "\u001b[2K"
+
+const val escH = "\u001b[H"

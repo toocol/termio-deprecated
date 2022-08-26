@@ -16,7 +16,7 @@ open class Cursor(val id: Long) : ImageView(), IComponent, Loggable {
      * This is the position which text should be inserted at.
      */
     var inlinePosition = 0
-        private set
+        internal set
 
     init {
         this.registerComponent(id)

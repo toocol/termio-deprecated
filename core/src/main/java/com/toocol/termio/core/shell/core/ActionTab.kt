@@ -18,7 +18,7 @@ class ActionTab : ShellCharAction() {
             return false
         }
         if (shell.bottomLinePrint.contains(shell.prompt.get())) {
-            val cursorPosition = shell.cursorPosition
+            val cursorPosition = shell.getCursorPosition()
             shell.setCursorPosition(shell.currentPrint.length + shell.prompt.get().length, cursorPosition[1])
         }
         if (shell.status == Shell.Status.NORMAL) {

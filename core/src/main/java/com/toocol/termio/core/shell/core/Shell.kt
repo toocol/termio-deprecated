@@ -17,7 +17,6 @@ import com.toocol.termio.utilities.ansi.AsciiControl.cleanCursorMode
 import com.toocol.termio.utilities.ansi.AsciiControl.extractCursorPosition
 import com.toocol.termio.utilities.ansi.AsciiControl.setCursorToLineHead
 import com.toocol.termio.utilities.ansi.Printer
-import com.toocol.termio.utilities.ansi.Printer.clear
 import com.toocol.termio.utilities.ansi.Printer.println
 import com.toocol.termio.utilities.console.Console
 import com.toocol.termio.utilities.execeptions.RemoteDisconnectException
@@ -403,11 +402,14 @@ class Shell : AbstractDevice, Loggable {
         return msg
     }
 
-    val cursorPosition: IntArray
-        get() {
-            val coord = console!!.getCursorPosition().split(",").toTypedArray()
-            return intArrayOf(coord[0].toInt(), coord[1].toInt())
-        }
+    fun getCursorPosition(): IntArray {
+        val coord = console!!.getCursorPosition().split(",").toTypedArray()
+        return intArrayOf(coord[0].toInt(), coord[1].toInt())
+    }
+
+    fun clear() {
+        console!!.clear()
+    }
 
     fun setCursorPosition(x: Int, y: Int) {
         console!!.setCursorPosition(x, y)
@@ -615,7 +617,7 @@ class Shell : AbstractDevice, Loggable {
 
     fun clearShellLineWithPrompt() {
         val promptLen = prompt.get()!!.length
-        val position = cursorPosition
+        val position = getCursorPosition()
         val cursorX = position[0]
         val cursorY = position[1]
         hideCursor()

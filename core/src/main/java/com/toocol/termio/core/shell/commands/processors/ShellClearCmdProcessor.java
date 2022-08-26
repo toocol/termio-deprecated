@@ -4,6 +4,7 @@ import com.toocol.termio.core.shell.commands.ShellCommandProcessor;
 import com.toocol.termio.core.shell.core.Shell;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.utilities.ansi.Printer;
+import com.toocol.termio.utilities.escape.EscapeCodeSequence;
 import com.toocol.termio.utilities.utils.Tuple2;
 import io.vertx.core.eventbus.EventBus;
 
@@ -17,8 +18,7 @@ public class ShellClearCmdProcessor extends ShellCommandProcessor {
     @Override
     public Tuple2<String, Long> process(EventBus eventBus, Shell shell, AtomicBoolean isBreak, String cmd) {
         Term.instance.hideCursor();
-        Printer.clear();
-        shell.print(shell.getPrompt());
+        shell.print(EscapeCodeSequence.escH + EscapeCodeSequence.esc2J + shell.getPrompt());
         Term.instance.showCursor();
         return new Tuple2<>("clear", null);
     }

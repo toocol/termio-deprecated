@@ -7,6 +7,8 @@ import com.toocol.termio.utilities.utils.OsUtil
  * @date 2022/4/24 11:45
  */
 abstract class Console {
+    abstract fun clear()
+
     abstract fun chooseFiles(): String?
 
     abstract fun chooseDirectory(): String?

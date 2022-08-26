@@ -8,8 +8,8 @@ import com.toocol.termio.utilities.escape.EscapeColorGraphicsMode.*
 import com.toocol.termio.utilities.escape.EscapeCommonPrivateMode.*
 import com.toocol.termio.utilities.escape.EscapeCursorControlMode.*
 import com.toocol.termio.utilities.escape.EscapeEraseFunctionsMode.*
-import com.toocol.termio.utilities.escape.EscapeScreenMode.*
 import com.toocol.termio.utilities.escape.EscapeOSCMode.*
+import com.toocol.termio.utilities.escape.EscapeScreenMode.*
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.beans.value.ObservableValue
@@ -98,9 +98,11 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                 ch.toString()
             } else ch.toString().replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE) + CharUtil.INVISIBLE_CHAR
 
-            val start = cursor.inlinePosition
-            val end =
-                if (cursor.inlinePosition == length) cursor.inlinePosition else cursor.inlinePosition + content.length
+            val start = if (cursor.inlinePosition <= length) cursor.inlinePosition else length
+
+            val end = if (cursor.inlinePosition == length) cursor.inlinePosition
+            else if (cursor.inlinePosition < length) cursor.inlinePosition + content.length
+            else length
 
             replace(start, end, content,
                 if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle
@@ -493,9 +495,11 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
         textProperty().addListener { _: ObservableValue<out String>?, oldVal: String, newVal: String ->
             cursor.update(newVal.length - oldVal.length)
+            cursor.inlinePosition = if (cursor.inlinePosition > length) length else cursor.inlinePosition
             takeIf { paragraphSizeWatch != paragraphs.size }?.run {
                 paragraphSizeWatch = paragraphs.size
                 updateLineIndexParagraphIndexMap()
+                System.gc()
             }
         }
 

@@ -16,7 +16,7 @@ class ActionLeftRightArrow : ShellCharAction() {
         if (shell.status == Shell.Status.QUICK_SWITCH) {
             return false
         }
-        val cursorX = shell.cursorPosition[0]
+        val cursorX = shell.getCursorPosition()[0]
         if (inChar == CharUtil.LEFT_ARROW) {
             if (cursorX > shell.prompt.get().length) {
                 shell.cursorLeft()
