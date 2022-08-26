@@ -32,12 +32,12 @@ open class Cursor(val id: Long) : ImageView(), IComponent, Loggable {
 
     }
 
-    fun moveLeft() {
-        inlinePosition = max(inlinePosition - 1, 0)
+    fun moveLeft(value: Int) {
+        inlinePosition = max(inlinePosition - value, 0)
     }
 
-    fun moveRight() {
-        inlinePosition += 1
+    fun moveRight(value: Int) {
+        inlinePosition += value
     }
 
     fun update(value: Int) {

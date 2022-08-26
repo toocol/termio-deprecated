@@ -24,7 +24,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
         private val codeRegex = Regex(pattern = """(\d{1,3};)+""")
         private val stringRegex = Regex(pattern = """[\w ]+;?""")
 
-        private const val uberEscapeModeRegexPattern = """\r|(\u001b\[\d{1,4};\d{1,4}[Hf])""" +
+        private const val uberEscapeModeRegexPattern = """\u0007|\u0008|\u000d|(\u001b\[\d{1,4};\d{1,4}[Hf])""" +
                 """|((\u001b\[\d{0,4}([HABCDEFGsu]|(6n)))|(\u001b [M78]))""" +
                 """|(\u001b\[[0123]?[JK])""" +
                 """|(\u001b\[((?!38)(?!48)\d{1,3};?)+m)""" +
@@ -34,10 +34,12 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 """|(\u001b\[=\d{1,2}l)""" +
                 """|(\u001b\[\?\d{2,4}[lh])""" +
                 """|(\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\w ]+((\\")|'|");?)|(\d{1,2};?))+p)""" +
-                """|\u001b][01267];.+\u0007"""
+                """|\u001b]\d;.+\u0007"""
         private val uberEscapeModeRegex = Regex(pattern = uberEscapeModeRegexPattern)
 
-        private val enterModeRegex = Regex(pattern = "\r")
+        private val belModeRegex = Regex(pattern = """\u0007""")
+        private val backspaceModeRex = Regex(pattern = """\u0008""")
+        private val enterModeRegex = Regex(pattern = """\u000d""")
 
         // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#cursor-controls
         private val cursorSetPosModeRegex = Regex(pattern = """\u001b\[\d{1,4};\d{1,4}[Hf]""")
@@ -91,9 +93,20 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 val dealAlready = AtomicBoolean()
                 val tuple = tuple()
 
+                parseRegex(escapeSequence, belModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                    tuple.first(EscapeAsciiControlMode.BEL)
+                    tuple
+                }?.apply { escapeTask.get()!!.queue!!.offer(this) }
+
+                if (dealAlready.get()) return@forEach
+                parseRegex(escapeSequence, backspaceModeRex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                    tuple.first(EscapeAsciiControlMode.BACKSPACE)
+                    tuple
+                }?.apply { escapeTask.get()!!.queue!!.offer(this) }
+
+                if (dealAlready.get()) return@forEach
                 parseRegex(escapeSequence, enterModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                    tuple.first(EscapeEnterMode.ENTER)
-                    tuple._1() ?: return@let null
+                    tuple.first(EscapeAsciiControlMode.ENTER)
                     tuple
                 }?.apply { escapeTask.get()!!.queue!!.offer(this) }
 
@@ -297,7 +310,6 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                     task?: continue
                     val actionMap = task.executeTarget.getActionMap()
                     Platform.runLater {
-                        println("starting")
                         val startTime = System.currentTimeMillis()
                         task.text.forEach { sp ->
                             if (StrUtil.isNotEmpty(sp)) {

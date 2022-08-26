@@ -57,9 +57,7 @@ object Printer {
 
     @JvmStatic
     fun virtualBackspace() {
-        print(StrUtil.BACKSPACE)
-        print(StrUtil.SPACE)
-        print(StrUtil.BACKSPACE)
+        print(StrUtil.VIRTUAL_BACKSPACE)
     }
 
     @JvmStatic

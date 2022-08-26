@@ -67,14 +67,14 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
                     KeyCode.LEFT -> {
                         event.consume()
                         if (cursor.inlinePosition > currentLineStartInParargraph) {
-                            cursor.moveLeft()
+                            cursor.moveLeft(1)
                         }
                     }
                     KeyCode.RIGHT -> {
                         event.consume()
                         val index = paragraphs.size - 1
                         if (cursor.inlinePosition < getParagraphLength(index)) {
-                            cursor.moveRight()
+                            cursor.moveRight(1)
                         }
                     }
                     KeyCode.END -> {

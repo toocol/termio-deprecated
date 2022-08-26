@@ -10,6 +10,7 @@ import com.toocol.termio.utilities.escape.EscapeCursorControlMode.*
 import com.toocol.termio.utilities.escape.EscapeEraseFunctionsMode.*
 import com.toocol.termio.utilities.escape.EscapeOSCMode.*
 import com.toocol.termio.utilities.escape.EscapeScreenMode.*
+import com.toocol.termio.utilities.escape.EscapeAsciiControlMode.*
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.beans.value.ObservableValue
@@ -150,7 +151,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
     private fun registerActions() {
         val actions: MutableList<AnsiEscapeAction<EscapedTextStyleClassArea>> = ArrayList()
-        actions.add(EscapeEnterAction())
+        actions.add(EscapeAsciiControlAction())
         actions.add(EscapeCursorControlAction())
         actions.add(EscapeEraseFunctionsAction())
         actions.add(EscapeColorGraphicsAction())
@@ -203,11 +204,11 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     fun cursorLeft(value: Int) {
-
+        cursor.moveLeft(value * 2)
     }
 
     fun cursorRight(value: Int) {
-
+        cursor.moveRight(value * 2)
     }
 
     private fun cursorUp(value: Int) {
@@ -231,13 +232,17 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
     }
 
-    private class EscapeEnterAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+    private class EscapeAsciiControlAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
         override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeEnterMode::class.java
+            return EscapeAsciiControlMode::class.java
         }
 
         override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            executeTarget.moveCursorLineHead(0)
+            when (escapeMode) {
+                BEL -> println("System bel")
+                BACKSPACE -> executeTarget.cursorLeft(1)
+                ENTER -> executeTarget.moveCursorLineHead(0)
+            }
         }
     }
 
