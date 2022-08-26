@@ -19,15 +19,17 @@ public class MetadataPrinterOutputStream extends ReadableOutputStream<String> {
         Arrays.fill(buffer, (byte) -1);
     }
 
-    private final AtomicInteger readIndicator = new AtomicInteger(0);
-    private final AtomicInteger writeIndicator = new AtomicInteger(0);
+    private volatile int readIndicator = 0;
+    private volatile int writeIndicator = 0;
 
     @Override
     public void write(int b) throws IOException {
         if (buffer == null) {
             throw new IOException("MetadataPrinterOutputStream has been closed.");
         }
-        writeToRingBuffer((byte) b);
+        synchronized (this) {
+            writeToRingBuffer((byte) b);
+        }
     }
 
     @Override
@@ -47,14 +49,14 @@ public class MetadataPrinterOutputStream extends ReadableOutputStream<String> {
         }
         synchronized (this) {
             try {
-                if (readIndicator.get() == writeIndicator.get()) {
+                if (readIndicator == writeIndicator) {
                     this.wait();
                 }
             } catch (Exception e) {
                 throw new IOException("MetadataReaderOutputStream interrupt.");
             }
+            return readFromRingBuffer();
         }
-        return readFromRingBuffer();
     }
 
     @Override
@@ -62,8 +64,10 @@ public class MetadataPrinterOutputStream extends ReadableOutputStream<String> {
         if (buffer == null) {
             throw new IOException("MetadataPrinterOutputStream has been closed.");
         }
-        return writeIndicator.get() < readIndicator.get() ?
-                BUFFER_SIZE - readIndicator.get() + writeIndicator.get() : writeIndicator.get() - readIndicator.get();
+        synchronized (this) {
+            return writeIndicator < readIndicator ?
+                    BUFFER_SIZE - readIndicator + writeIndicator : writeIndicator - readIndicator;
+        }
     }
 
     @Override
@@ -71,19 +75,19 @@ public class MetadataPrinterOutputStream extends ReadableOutputStream<String> {
         buffer = null;
     }
 
-    private String readFromRingBuffer() throws IOException {
+    private synchronized String readFromRingBuffer() throws IOException {
         byte[] rec = new byte[available()];
         int idx = 0;
-        while (readIndicator.get() != writeIndicator.get()) {
-            rec[idx++] = buffer[readIndicator.get()];
-            buffer[readIndicator.get()] = -1;
-            readIndicator.set(readIndicator.get() + 1 >= BUFFER_SIZE ? 0 : readIndicator.get() + 1);
+        while (readIndicator != writeIndicator) {
+            rec[idx++] = buffer[readIndicator];
+            buffer[readIndicator] = -1;
+            readIndicator = readIndicator + 1 >= BUFFER_SIZE ? 0 : readIndicator + 1;
         }
         return new String(rec, StandardCharsets.UTF_8);
     }
 
-    private void writeToRingBuffer(byte b) {
-        buffer[writeIndicator.get()] = b;
-        writeIndicator.set(writeIndicator.get() + 1 >= BUFFER_SIZE ? 0 : writeIndicator.get() + 1);
+    private synchronized void writeToRingBuffer(byte b) {
+        buffer[writeIndicator] = b;
+        writeIndicator = writeIndicator + 1 >= BUFFER_SIZE ? 0 : writeIndicator + 1;
     }
 }

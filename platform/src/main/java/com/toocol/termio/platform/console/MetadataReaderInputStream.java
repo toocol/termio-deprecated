@@ -18,8 +18,8 @@ public class MetadataReaderInputStream extends WritableInputStream<byte[]> {
         Arrays.fill(buffer, (byte) -1);
     }
 
-    private final AtomicInteger readIndicator = new AtomicInteger(0);
-    private final AtomicInteger writeIndicator = new AtomicInteger(0);
+    private volatile int readIndicator = 0;
+    private volatile int writeIndicator = 0;
 
     @Override
     public int read() throws IOException {
@@ -28,21 +28,21 @@ public class MetadataReaderInputStream extends WritableInputStream<byte[]> {
         }
         synchronized (this) {
             try {
-                if (readIndicator.get() == writeIndicator.get()) {
+                if (readIndicator == writeIndicator) {
                     this.wait();
                 }
             } catch (Exception e) {
                 throw new IOException("MetadataReaderInputStream interrupt.");
             }
+            return readFromRingBuffer();
         }
-        return readFromRingBuffer();
     }
 
     @Override
     public byte[] readAllBytes() throws IOException {
         byte[] bytes = new byte[available()];
         int idx = 0;
-        while (writeIndicator.get() != readIndicator.get()) {
+        while (writeIndicator != readIndicator) {
             bytes[idx++] = (byte) readFromRingBuffer();
         }
         return bytes;
@@ -53,8 +53,10 @@ public class MetadataReaderInputStream extends WritableInputStream<byte[]> {
         if (buffer == null) {
             throw new IOException("MetadataPrinterOutputStream has been closed.");
         }
-        return writeIndicator.get() < readIndicator.get() ?
-                BUFFER_SIZE - readIndicator.get() + writeIndicator.get() : writeIndicator.get() - readIndicator.get();
+        synchronized (this) {
+            return writeIndicator < readIndicator ?
+                    BUFFER_SIZE - readIndicator + writeIndicator : writeIndicator - readIndicator;
+        }
     }
 
     @Override
@@ -62,8 +64,10 @@ public class MetadataReaderInputStream extends WritableInputStream<byte[]> {
         if (buffer == null) {
             throw new IOException("MetadataPrinterOutputStream has been closed.");
         }
-        for (byte b : bytes) {
-            writeToRingBuffer(b);
+        synchronized (this) {
+            for (byte b : bytes) {
+                writeToRingBuffer(b);
+            }
         }
     }
 
@@ -82,15 +86,15 @@ public class MetadataReaderInputStream extends WritableInputStream<byte[]> {
         buffer = null;
     }
 
-    private int readFromRingBuffer() {
-        int ch = buffer[readIndicator.get()];
-        buffer[readIndicator.get()] = -1;
-        readIndicator.set(readIndicator.get() + 1 >= BUFFER_SIZE ? 0 : readIndicator.get() + 1);
+    private synchronized int readFromRingBuffer() {
+        int ch = buffer[readIndicator];
+        buffer[readIndicator] = -1;
+        readIndicator = readIndicator + 1 >= BUFFER_SIZE ? 0 : readIndicator + 1;
         return ch;
     }
 
-    private void writeToRingBuffer(byte b) {
-        buffer[writeIndicator.get()] = b;
-        writeIndicator.set(writeIndicator.get() + 1 >= BUFFER_SIZE ? 0 : writeIndicator.get() + 1);
+    private synchronized void writeToRingBuffer(byte b) {
+        buffer[writeIndicator] = b;
+        writeIndicator = writeIndicator + 1 >= BUFFER_SIZE ? 0 : writeIndicator + 1;
     }
 }

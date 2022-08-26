@@ -67,14 +67,14 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
                     KeyCode.LEFT -> {
                         event.consume()
                         if (cursor.inlinePosition > currentLineStartInParargraph) {
-                            cursor.moveLeft()
+                            cursor.moveLeft(1)
                         }
                     }
                     KeyCode.RIGHT -> {
                         event.consume()
                         val index = paragraphs.size - 1
                         if (cursor.inlinePosition < getParagraphLength(index)) {
-                            cursor.moveRight()
+                            cursor.moveRight(1)
                         }
                     }
                     KeyCode.END -> {
@@ -90,8 +90,10 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
                     return@EventHandler
                 }
                 try {
-                    terminalReaderInputStream.write(event.committed.toByteArray(StandardCharsets.UTF_8))
-                    terminalReaderInputStream.flush()
+                    if (StrUtil.isChineseSequence(event.committed)) {
+                        terminalReaderInputStream.write(event.committed.toByteArray(StandardCharsets.UTF_8))
+                        terminalReaderInputStream.flush()
+                    }
                 } catch (e: IOException) {
                     error("Write to reader failed, msg = ${e.message}")
                 }

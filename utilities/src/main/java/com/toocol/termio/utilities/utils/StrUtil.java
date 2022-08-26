@@ -39,6 +39,7 @@ public final class StrUtil extends StringUtils {
      * {@code "\b"}
      */
     public static final String BACKSPACE = "\b";
+    public static final String VIRTUAL_BACKSPACE = "\b \b";
     /**
      * {@code "\uFEFF"}
      */
