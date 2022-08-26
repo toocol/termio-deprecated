@@ -90,8 +90,10 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
                     return@EventHandler
                 }
                 try {
-                    terminalReaderInputStream.write(event.committed.toByteArray(StandardCharsets.UTF_8))
-                    terminalReaderInputStream.flush()
+                    if (StrUtil.isChineseSequence(event.committed)) {
+                        terminalReaderInputStream.write(event.committed.toByteArray(StandardCharsets.UTF_8))
+                        terminalReaderInputStream.flush()
+                    }
                 } catch (e: IOException) {
                     error("Write to reader failed, msg = ${e.message}")
                 }

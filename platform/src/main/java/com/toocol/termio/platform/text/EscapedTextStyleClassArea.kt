@@ -83,15 +83,20 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         currentEnglishTextStyle = style
     }
 
+    /**
+     * This method can't invoke in the Javafx Application Thread
+     */
     fun append(text: String?) {
         text ?: return
         ansiEscapeSearchEngine.actionOnEscapeMode(text, this)
     }
 
     fun cursorTest() {
-        append("${"你".repeat(300)}\n")
-        setCursorTo(1, 10)
-        append("不不不不不")
+        Thread {
+            append("${"你".repeat(300)}\n")
+            setCursorTo(1, 10)
+            append("不不不不不")
+        }.start()
     }
 
     override fun printOut(text: String) {
@@ -118,9 +123,8 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                 }
 
                 if (index != split.size - 1) {
-                    cursor.setTo(length)
                     replace(length, length, "\n", currentEnglishTextStyle)
-                    cursor.update(1)
+                    cursor.setTo(length)
                 }
             }
         } else {
