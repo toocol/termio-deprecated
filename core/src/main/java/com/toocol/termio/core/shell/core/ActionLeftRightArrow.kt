@@ -16,14 +16,14 @@ class ActionLeftRightArrow : ShellCharAction() {
         if (shell.status == Shell.Status.QUICK_SWITCH) {
             return false
         }
-        val cursorX = shell.term.cursorPosition[0]
+        val cursorX = shell.cursorPosition[0]
         if (inChar == CharUtil.LEFT_ARROW) {
             if (cursorX > shell.prompt.get().length) {
-                shell.term.cursorLeft()
+                shell.cursorLeft()
             }
         } else {
             if (cursorX < shell.currentPrint.length + shell.prompt.get().length) {
-                shell.term.cursorRight()
+                shell.cursorRight()
             }
         }
         return false

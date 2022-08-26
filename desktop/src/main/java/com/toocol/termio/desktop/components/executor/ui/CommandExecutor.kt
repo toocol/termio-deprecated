@@ -71,9 +71,8 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                 commandExecutorResultTextArea.cursorTest()
             }
 
-            val ctrlAltP: KeyCombination =
-                KeyCodeCombination(KeyCode.P, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN)
-            scene.accelerators[ctrlAltP] = Runnable {
+            val ctrlI: KeyCombination = KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN)
+            scene.accelerators[ctrlI] = Runnable {
                 if (!commandExecutorInput.isFocused && isVisible) {
                     commandExecutorInput.requestFocus()
                 } else {
@@ -136,14 +135,6 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                     eventBus().send(TermAddress.TERMINAL_ECHO.address(), newVal)
                 }
             }
-            focusedProperty()
-                .addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
-                    if (newVal) {
-                        println("Executor input get focus")
-                    } else {
-                        println("Executor input lose focus")
-                    }
-                }
             onMouseClicked = EventHandler { commandExecutorInput.requestFocus() }
         }
     }

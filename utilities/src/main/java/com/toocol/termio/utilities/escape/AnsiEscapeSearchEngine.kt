@@ -29,7 +29,8 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 """|(\u001b\[=\d{1,2}h)""" +
                 """|(\u001b\[=\d{1,2}l)""" +
                 """|(\u001b\[\?\d{2,4}[lh])""" +
-                """|(\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\w ]+((\\")|'|");?)|(\d{1,2};?))+p)"""
+                """|(\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\w ]+((\\")|'|");?)|(\d{1,2};?))+p)""" +
+                """|\u001b][01267];.+\u0007"""
         private val uberEscapeModeRegex = Regex(pattern = uberEscapeModeRegexPattern)
 
         private val enterModeRegex = Regex(pattern = "\r")
@@ -58,8 +59,10 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
         private val commonPrivateModeRegex = Regex(pattern = """\u001b\[\?\d{2,4}[lh]""")
 
         // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#keyboard-strings
-        private val keyBoardStringModeRegex =
-            Regex(pattern = """\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\w ]+((\\")|'|");?)|(\d{1,2};?))+p""")
+        private val keyBoardStringModeRegex = Regex(pattern = """\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\w ]+((\\")|'|");?)|(\d{1,2};?))+p""")
+
+        // see: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Definitions
+        private val oscBelRegex = Regex(pattern = """\u001b][01267];.+\u0007""")
     }
 
     private val queue: Queue<Tuple2<IEscapeMode, List<Any>>> = ArrayDeque()
@@ -249,6 +252,18 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                         }
                     }
                 tuple._1()?: return@let null
+                tuple
+            }?.apply { queue.offer(this) }
+
+            if (dealAlready.get()) return@forEach
+            parseRegex(escapeSequence, oscBelRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                val split = it.replace("\u001b]", "").replace("\u0007", "").split(";")
+                if (split.size != 2) return@let null
+                val code = split[0].toInt()
+                tuple.first(EscapeOSCMode.codeOf(code))
+                tuple._1()?: return@let null
+                val parameter = split[1]
+                tuple.second(listOf(parameter))
                 tuple
             }?.apply { queue.offer(this) }
         }

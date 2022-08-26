@@ -21,7 +21,7 @@ class ActionBackspace : ShellCharAction() {
         if (shell.status == Shell.Status.QUICK_SWITCH) {
             return false
         }
-        val cursorPosition = shell.term.cursorPosition
+        val cursorPosition = shell.cursorPosition
         if (cursorPosition[0] <= shell.prompt.get().length) {
             bel()
             shell.status = Shell.Status.NORMAL
@@ -43,11 +43,11 @@ class ActionBackspace : ShellCharAction() {
                 shell.cmd.deleteCharAt(index)
             }
             shell.currentPrint.deleteCharAt(index)
-            shell.term.hideCursor()
+            shell.hideCursor()
             virtualBackspace()
             print(shell.currentPrint.substring(index, shell.currentPrint.length) + CharUtil.SPACE)
-            shell.term.setCursorPosition(cursorPosition[0] - 1, cursorPosition[1])
-            shell.term.showCursor()
+            shell.setCursorPosition(cursorPosition[0] - 1, cursorPosition[1])
+            shell.showCursor()
         } else {
             if (localLastInputBuffer.isNotEmpty()) {
                 localLastInputBuffer.deleteCharAt(localLastInputBuffer.length - 1)

@@ -18,8 +18,8 @@ class ActionTab : ShellCharAction() {
             return false
         }
         if (shell.bottomLinePrint.contains(shell.prompt.get())) {
-            val cursorPosition = shell.term.cursorPosition
-            shell.term.setCursorPosition(shell.currentPrint.length + shell.prompt.get().length, cursorPosition[1])
+            val cursorPosition = shell.cursorPosition
+            shell.setCursorPosition(shell.currentPrint.length + shell.prompt.get().length, cursorPosition[1])
         }
         if (shell.status == Shell.Status.NORMAL) {
             shell.localLastCmd.delete(0, shell.localLastCmd.length).append(shell.cmd)
