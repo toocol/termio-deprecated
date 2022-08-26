@@ -8,6 +8,7 @@ import com.toocol.termio.core.shell.core.ShellProtocol;
 import com.toocol.termio.core.ssh.core.SshSessionFactory;
 import com.toocol.termio.core.term.core.Term;
 import com.toocol.termio.core.term.core.TermStatus;
+import com.toocol.termio.utilities.console.Console;
 import com.toocol.termio.utilities.module.IAddress;
 import com.toocol.termio.utilities.functional.Executable;
 import com.toocol.termio.utilities.module.BlockingMessageHandler;

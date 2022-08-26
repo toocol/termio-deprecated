@@ -135,14 +135,6 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                     eventBus().send(TermAddress.TERMINAL_ECHO.address(), newVal)
                 }
             }
-            focusedProperty()
-                .addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
-                    if (newVal) {
-                        println("Executor input get focus")
-                    } else {
-                        println("Executor input lose focus")
-                    }
-                }
             onMouseClicked = EventHandler { commandExecutorInput.requestFocus() }
         }
     }

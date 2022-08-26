@@ -27,10 +27,7 @@ class SftpChannelProvider private constructor() {
             @Nonnull
             @Throws(Exception::class)
             override fun load(sessionId: Long): ChannelSftp {
-                val session = sshSessionCache.getSession(sessionId)
-                if (session == null) {
-                    throw RuntimeException("Session is null, sessionId = $session")
-                }
+                val session = sshSessionCache.getSession(sessionId) ?: throw RuntimeException("Session is null, sessionId = null")
                 if (!session.isConnected) {
                     throw RuntimeException("Session is not connected, sessionId = $sessionId")
                 }

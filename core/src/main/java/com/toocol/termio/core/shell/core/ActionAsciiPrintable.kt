@@ -25,7 +25,7 @@ class ActionAsciiPrintable : ShellCharAction() {
         if (inChar == CharUtil.SPACE && shell.currentPrint.isEmpty()) {
             return false
         }
-        val cursorPosition = shell.term.cursorPosition
+        val cursorPosition = shell.cursorPosition
         if (cursorPosition[0] < shell.currentPrint.length + shell.prompt.get().length) {
             // cursor has moved
             val index = cursorPosition[0] - shell.prompt.get().length
@@ -45,10 +45,10 @@ class ActionAsciiPrintable : ShellCharAction() {
                 localLastInputBuffer.insert(index, inChar)
             }
             shell.currentPrint.insert(index, inChar)
-            shell.term.hideCursor()
+            shell.hideCursor()
             print(shell.currentPrint.substring(index, shell.currentPrint.length))
-            shell.term.setCursorPosition(cursorPosition[0] + 1, cursorPosition[1])
-            shell.term.showCursor()
+            shell.setCursorPosition(cursorPosition[0] + 1, cursorPosition[1])
+            shell.showCursor()
         } else {
             // cursor hasn't moved
             if (shell.status == Shell.Status.TAB_ACCOMPLISH) {

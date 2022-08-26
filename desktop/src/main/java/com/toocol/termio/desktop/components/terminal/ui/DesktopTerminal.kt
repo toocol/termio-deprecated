@@ -4,14 +4,15 @@ import com.toocol.termio.platform.component.IActiveAble
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.ui.TAnchorPane
-import com.toocol.termio.platform.ui.TScene
 import com.toocol.termio.utilities.ansi.Printer.setPrinter
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.application.Platform
 import javafx.beans.value.ObservableValue
 import javafx.event.EventHandler
-import javafx.scene.input.*
+import javafx.scene.input.InputMethodEvent
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Pane
 import java.io.IOException
 import java.io.PrintStream
@@ -46,12 +47,9 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
     override fun initialize() {
         apply {
             styled()
-            val scene = findComponent(TScene::class.java, 1)
 
             children.add(terminalScrollPane)
 
-            val ctrlT: KeyCombination = KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN)
-            scene.accelerators[ctrlT] = Runnable { terminalConsoleTextArea.clear() }
             setOnMouseClicked { terminalConsoleTextArea.requestFocus() }
         }
 
@@ -116,9 +114,6 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
                 .addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
                     if (newVal) {
                         activeTerminal()
-                        println("Terminal get focus")
-                    } else {
-                        println("Terminal lose focus")
                     }
                 }
         }

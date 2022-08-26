@@ -10,7 +10,6 @@ import com.toocol.termio.core.mosh.core.MoshSession
 import com.toocol.termio.core.shell.ShellAddress
 import com.toocol.termio.core.shell.handlers.BlockingDfHandler
 import com.toocol.termio.core.term.core.EscapeHelper
-import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.utilities.action.AbstractDevice
 import com.toocol.termio.utilities.ansi.AsciiControl
 import com.toocol.termio.utilities.ansi.AsciiControl.clean
@@ -48,8 +47,6 @@ import kotlin.system.exitProcess
  * @date: 2022/4/3 20:57
  */
 class Shell : AbstractDevice, Loggable {
-    @JvmField
-    val term: Term = Term.instance
     private val shellPrinter: ShellPrinter
     private val shellReader: ShellReader
 
@@ -406,6 +403,32 @@ class Shell : AbstractDevice, Loggable {
         return msg
     }
 
+    val cursorPosition: IntArray
+        get() {
+            val coord = console!!.getCursorPosition().split(",").toTypedArray()
+            return intArrayOf(coord[0].toInt(), coord[1].toInt())
+        }
+
+    fun setCursorPosition(x: Int, y: Int) {
+        console!!.setCursorPosition(x, y)
+    }
+
+    fun showCursor() {
+        console!!.showCursor()
+    }
+
+    fun hideCursor() {
+        console!!.hideCursor()
+    }
+
+    fun cursorLeft() {
+        console!!.cursorLeft()
+    }
+
+    fun cursorRight() {
+        console!!.cursorRight()
+    }
+
     fun hasWelcome(): Boolean {
         return when (protocol) {
             ShellProtocol.SSH -> sshWelcome != null
@@ -592,14 +615,14 @@ class Shell : AbstractDevice, Loggable {
 
     fun clearShellLineWithPrompt() {
         val promptLen = prompt.get()!!.length
-        val position = term.cursorPosition
+        val position = cursorPosition
         val cursorX = position[0]
         val cursorY = position[1]
-        term.hideCursor()
-        term.setCursorPosition(promptLen, cursorY)
+        hideCursor()
+        setCursorPosition(promptLen, cursorY)
         Printer.print(" ".repeat(cursorX - promptLen))
-        term.setCursorPosition(promptLen, cursorY)
-        term.showCursor()
+        setCursorPosition(promptLen, cursorY)
+        showCursor()
     }
 
     fun cleanUp() {

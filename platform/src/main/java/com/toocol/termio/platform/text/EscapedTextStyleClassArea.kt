@@ -9,6 +9,7 @@ import com.toocol.termio.utilities.escape.EscapeCommonPrivateMode.*
 import com.toocol.termio.utilities.escape.EscapeCursorControlMode.*
 import com.toocol.termio.utilities.escape.EscapeEraseFunctionsMode.*
 import com.toocol.termio.utilities.escape.EscapeScreenMode.*
+import com.toocol.termio.utilities.escape.EscapeOSCMode.*
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.beans.value.ObservableValue
@@ -127,6 +128,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         actions.add(EscapeScreenAction())
         actions.add(EscapeCommonPrivateAction())
         actions.add(EscapeKeyBoardStringAction())
+        actions.add(EscapeOscBelAction())
         val map: MutableMap<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>> = HashMap()
         for (action in actions) {
             map[action.focusMode()] = action
@@ -138,18 +140,24 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         return position(line, col).toOffset()
     }
 
-    private fun lineToParagraph(line: Int) : Int? {
+    private fun lineToParagraph(line: Int): Int? {
         return lineIndexParagraphIndexMap[line]
     }
 
     fun getCursorPos(): Array<Int> {
-        val pos = offsetToPosition(cursor.inlinePosition, TwoDimensional.Bias.Forward)
-        return arrayOf(pos.major, pos.minor)
+        val pos = offsetToPosition(cursor.inlinePosition, TwoDimensional.Bias.Backward)
+        var line = 0
+        lineIndexParagraphIndexMap.forEach { (k, v) ->
+            if (v == pos.major) {
+                line = k
+            }
+        }
+        return arrayOf(line, pos.minor / 2)
     }
 
     fun setCursorTo(row: Int, col: Int) {
         val paragraphIndex = lineToParagraph(row)
-        paragraphIndex?: return
+        paragraphIndex ?: return
         cursor.setTo(calculateCursorInline(paragraphIndex, col))
     }
 
@@ -455,6 +463,23 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         }
     }
 
+    private class EscapeOscBelAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        override fun focusMode(): Class<out IEscapeMode> {
+            return EscapeOSCMode::class.java
+        }
+
+        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            val parameter = params!![0]
+            when (escapeMode) {
+                RENAMING_TAB_TITLE_0 -> println("Renaming tab: $parameter")
+                RENAMING_TAB_TITLE_1 -> println("Renaming tab: $parameter")
+                RENAMING_WIDOW_TITLE -> println("Renaming window: $parameter")
+                ECHO_WORKING_DOCUMENT -> {}
+                ECHO_WORKING_DIRECTORY -> {}
+            }
+        }
+    }
+
     init {
         this.setStyleCodecs(
             ParagraphStyle.CODEC,
@@ -479,6 +504,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
     private fun updateLineIndexParagraphIndexMap() {
         var lineIndex = 1
+        lineIndexParagraphIndexMap.clear()
         paragraphs.forEachIndexed { index, _ ->
             for (i in 1..getParagraphLinesCount(index)) {
                 lineIndexParagraphIndexMap[lineIndex++] = index
