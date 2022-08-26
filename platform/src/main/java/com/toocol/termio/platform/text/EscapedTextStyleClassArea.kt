@@ -70,6 +70,8 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     private val ansiEscapeSearchEngine: AnsiEscapeSearchEngine<EscapedTextStyleClassArea> = AnsiEscapeSearchEngine()
     private val lineIndexParagraphIndexMap: MutableMap<Int, Int> = ConcurrentHashMap()
 
+    private var lineIndex: Int = 1
+
     fun updateDefaultChineseStyle(style: TextStyle) {
         defaultChineseTextStyle = style
         currentChineseTextStyle = style
@@ -92,23 +94,52 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     override fun printOut(text: String) {
-        for (ch in text.toCharArray()) {
-            val content = if (ch == CharUtil.LF) {
-                cursor.setTo(length)
-                ch.toString()
-            } else ch.toString().replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE) + CharUtil.INVISIBLE_CHAR
+        if (text.contains("\n")) {
+            val split = text.split("\n")
+            split.forEachIndexed { index, str ->
+                StrUtil.splitSequenceByChinese(str).forEach {
+                    val content = if (it.isNotEmpty()) StrUtil.join(it.toCharArray(), CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR
+                    else it
+                    content.replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE)
 
-            val start = if (cursor.inlinePosition <= length) cursor.inlinePosition else length
+                    val start = if (cursor.inlinePosition <= length) cursor.inlinePosition else length
 
-            val end = if (cursor.inlinePosition == length) cursor.inlinePosition
-            else if (cursor.inlinePosition < length) cursor.inlinePosition + content.length
-            else length
+                    val end = if (cursor.inlinePosition == length) cursor.inlinePosition
+                    else if (cursor.inlinePosition < length) cursor.inlinePosition + content.length
+                    else length
 
-            replace(start, end, content,
-                if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle
-            )
-            if (cursor.inlinePosition != length) {
-                cursor.update(2)
+                    replace(start, end, content,
+                        if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle
+                    )
+                    if (cursor.inlinePosition != length) {
+                        cursor.update(content.length)
+                    }
+                }
+
+                if (index != split.size - 1) {
+                    cursor.setTo(length)
+                    replace(length, length, "\n", currentEnglishTextStyle)
+                    cursor.update(1)
+                }
+            }
+        } else {
+            StrUtil.splitSequenceByChinese(text).forEach {
+                val content = if (it.isNotEmpty()) StrUtil.join(it.toCharArray(), CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR
+                else it
+                content.replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE)
+
+                val start = if (cursor.inlinePosition <= length) cursor.inlinePosition else length
+
+                val end = if (cursor.inlinePosition == length) cursor.inlinePosition
+                else if (cursor.inlinePosition < length) cursor.inlinePosition + content.length
+                else length
+
+                replace(start, end, content,
+                    if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle
+                )
+                if (cursor.inlinePosition != length) {
+                    cursor.update(content.length)
+                }
             }
         }
     }
@@ -496,25 +527,30 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             cursor.update(newVal.length - oldVal.length)
             cursor.inlinePosition = if (cursor.inlinePosition > length) length else cursor.inlinePosition
             takeIf { paragraphSizeWatch != paragraphs.size }?.run {
+                updateLineIndexParagraphIndexMap(currentParagraph)
                 paragraphSizeWatch = paragraphs.size
-                updateLineIndexParagraphIndexMap()
-                System.gc()
             }
         }
 
-        widthProperty().addListener { _, _, _ -> updateLineIndexParagraphIndexMap() }
+        widthProperty().addListener { _, _, _ -> updateLineIndexParagraphIndexMap(null) }
     }
 
-    private fun updateLineIndexParagraphIndexMap() {
-        var lineIndex = 1
-        lineIndexParagraphIndexMap.clear()
-        paragraphs.forEachIndexed { index, _ ->
-            for (i in 1..getParagraphLinesCount(index)) {
-                lineIndexParagraphIndexMap[lineIndex++] = index
+    private fun updateLineIndexParagraphIndexMap(currentParagraph: Int?) {
+        if (currentParagraph == null) {
+            lineIndex = 1
+            lineIndexParagraphIndexMap.clear()
+            paragraphs.forEachIndexed { index, _ ->
+                for (i in 1..getParagraphLinesCount(index)) {
+                    lineIndexParagraphIndexMap[lineIndex++] = index
+                }
+            }
+            // in X-Term console, line 0 equals line 1
+            lineIndexParagraphIndexMap[0] = 0
+        } else {
+            for (i in 1..getParagraphLinesCount(currentParagraph)) {
+                lineIndexParagraphIndexMap[lineIndex++] = currentParagraph
             }
         }
-        // in X-Term console, line 0 equals line 1
-        lineIndexParagraphIndexMap[0] = 0
     }
 
     override fun id(): Long {

@@ -154,6 +154,9 @@ public final class StrUtil extends StringUtils {
     }
 
     public static boolean isChineseSequenceByHead(@Nonnull String str) {
+        if (isEmpty(str)) {
+            return false;
+        }
         return CharUtil.isChinese(str.charAt(0));
     }
 

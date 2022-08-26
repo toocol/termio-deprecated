@@ -68,7 +68,7 @@ object TermioCommunityBootstrap : Termio() {
     }
 
     private fun watchStart() {
-        Thread {
+        Thread ({
             try {
                 val ret = initialLatch!!.await(30, TimeUnit.SECONDS)
                 if (!ret) {
@@ -80,11 +80,10 @@ object TermioCommunityBootstrap : Termio() {
                 verticleClassList = null
                 vertx!!.eventBus().send(TermAddress.ACCEPT_COMMAND.address(), null)
                 logger.info("Bootstrap Termio community success.")
-                System.gc()
             } catch (e: Exception) {
                 logger.error("Bootstrap Termio community failed.")
                 exitProcess(-1)
             }
-        }.start()
+        }, "bootstrap-watch-thread").start()
     }
 }
