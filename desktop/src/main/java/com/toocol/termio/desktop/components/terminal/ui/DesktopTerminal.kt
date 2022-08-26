@@ -7,7 +7,6 @@ import com.toocol.termio.platform.ui.TAnchorPane
 import com.toocol.termio.utilities.ansi.Printer.setPrinter
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.StrUtil
-import javafx.application.Platform
 import javafx.beans.value.ObservableValue
 import javafx.event.EventHandler
 import javafx.scene.input.InputMethodEvent
@@ -146,7 +145,7 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
                     try {
                         if (terminalWriterOutputStream.available() > 0) {
                             val text = terminalWriterOutputStream.read()
-                            Platform.runLater { terminalConsoleTextArea.append(text) }
+                            terminalConsoleTextArea.append(text)
                         }
                         Thread.sleep(1)
                     } catch (e: Exception) {

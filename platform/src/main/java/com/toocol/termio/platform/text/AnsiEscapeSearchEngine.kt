@@ -6,8 +6,9 @@ import com.toocol.termio.utilities.utils.Castable
 import com.toocol.termio.utilities.utils.StrUtil
 import com.toocol.termio.utilities.utils.Tuple2
 import javafx.application.Platform
+import java.lang.ref.WeakReference
 import java.util.*
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -68,10 +69,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
         private val oscBelRegex = Regex(pattern = """\u001b][01267];.+\u0007""")
     }
 
-    private val queue: Queue<Tuple2<IEscapeMode, List<Any>>> = ArrayDeque()
-
-    @Volatile
-    private var flag = false
+    private val taskQueue: Queue<WeakReference<EscapeTask>> = ConcurrentLinkedQueue()
 
     /*
      * Suppose we have such text:
@@ -86,212 +84,197 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
      */
     @Synchronized
     fun actionOnEscapeMode(text: String, executeTarget: T) {
-        uberEscapeModeRegex.findAll(text).forEach { lineRet ->
-            val escapeSequence = lineRet.value
-            val dealAlready = AtomicBoolean()
-            val tuple = tuple()
+        synchronized(this) {
+            val escapeTask: WeakReference<EscapeTask> = WeakReference(EscapeTask(text.split(uberEscapeModeRegex).toTypedArray(), executeTarget))
+            uberEscapeModeRegex.findAll(text).forEach { lineRet ->
+                val escapeSequence = lineRet.value
+                val dealAlready = AtomicBoolean()
+                val tuple = tuple()
 
-            parseRegex(escapeSequence, enterModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                tuple.first(EscapeEnterMode.ENTER)
-                tuple._1()?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
+                parseRegex(escapeSequence, enterModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                    tuple.first(EscapeEnterMode.ENTER)
+                    tuple._1() ?: return@let null
+                    tuple
+                }?.apply { escapeTask.get()!!.queue!!.offer(this) }
 
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, cursorSetPosModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                tuple.first(EscapeCursorControlMode.codeOf("Hf")).second(
+                if (dealAlready.get()) return@forEach
+                parseRegex(escapeSequence, cursorSetPosModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                    tuple.first(EscapeCursorControlMode.codeOf("Hf")).second(
+                        numberRegex.findAll(it)
+                            .asSequence()
+                            .map { matchResult -> matchResult.value.toInt() }
+                            .toList()
+                    )
+                    tuple._1() ?: return@let null
+                    tuple
+                }?.apply { escapeTask.get()!!.queue!!.offer(this) }
+
+                if (dealAlready.get()) return@forEach
+                parseRegex(escapeSequence, cursorControlModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                    val code = wordNumberRegex.find(it)?.value ?: return@let null
+                    if (code.contains("A") || code.contains("B") || code.contains("C") || code.contains("D")
+                        || code.contains("E") || code.contains("F") || code.contains("G")
+                    ) {
+                        val icode = wordRegex.find(code)?.value
+                        var num = numberRegex.find(code)?.value
+                        if (num == null) num = "1"
+                        tuple.first(EscapeCursorControlMode.codeOf(icode)).second(intArrayOf(num.toInt()).toList())
+                    } else {
+                        tuple.first(EscapeCursorControlMode.codeOf(code))
+                    }
+                    tuple._1() ?: return@let null
+                    tuple
+                }?.apply { escapeTask.get()!!.queue!!.offer(this) }
+
+                if (dealAlready.get()) return@forEach
+                parseRegex(escapeSequence, eraseFunctionModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                    val code = wordNumberRegex.find(it)?.value
+                    code ?: return@let null
+                    tuple.first(EscapeEraseFunctionsMode.codeOf(code))
+                    tuple._1() ?: return@let null
+                    tuple
+                }?.apply { escapeTask.get()!!.queue!!.offer(this) }
+
+                if (dealAlready.get()) return@forEach
+                parseRegex(escapeSequence, colorGraphicsModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
                     numberRegex.findAll(it)
                         .asSequence()
-                        .map { matchResult -> matchResult.value.toInt() }
-                        .toList()
-                )
-                tuple._1()?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, cursorControlModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                val code = wordNumberRegex.find(it)?.value ?: return@let null
-                if (code.contains("A") || code.contains("B") || code.contains("C") || code.contains("D")
-                    || code.contains("E") || code.contains("F") || code.contains("G")
-                ) {
-                    val icode = wordRegex.find(code)?.value
-                    var num = numberRegex.find(code)?.value
-                    if (num == null) num = "1"
-                    tuple.first(EscapeCursorControlMode.codeOf(icode)).second(intArrayOf(num.toInt()).toList())
-                } else {
-                    tuple.first(EscapeCursorControlMode.codeOf(code))
-                }
-                tuple._1()?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, eraseFunctionModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                val code = wordNumberRegex.find(it)?.value
-                code ?: return@let null
-                tuple.first(EscapeEraseFunctionsMode.codeOf(code))
-                tuple._1()?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, colorGraphicsModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                numberRegex.findAll(it)
-                    .asSequence()
-                    .forEach { result ->
-                        run {
-                            val code = result.value.toInt()
-                            val mode = if (code < 30) {
-                                EscapeColorGraphicsMode.codeOf(code)
-                            } else if (code in 30..49) {
-                                EscapeColor8To16Mode.codeOf(code)
-                            } else if (code in 90..107) {
-                                EscapeColorISOMode.codeOf(code)
-                            } else {
-                                null
-                            }
-                            tuple.first(mode)
-                        }
-                    }
-                tuple._1()?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, color256ModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                var params: List<Any> = listOf()
-                var mode: IEscapeMode? = null
-                numberRegex.findAll(it)
-                    .asSequence()
-                    .forEachIndexed { index, matchResult ->
-                        run {
-                            when (index) {
-                                // 38-foreground 48-background
-                                0 -> params = params.plusElement(matchResult.value == "38")
-                                1 -> if (matchResult.value != "5") return@let null
-                                2 -> {
-                                    val code = matchResult.value.toInt()
-                                    mode = EscapeColor256Mode.codeOf(code)
+                        .forEach { result ->
+                            run {
+                                val code = result.value.toInt()
+                                val mode = if (code < 30) {
+                                    EscapeColorGraphicsMode.codeOf(code)
+                                } else if (code in 30..49) {
+                                    EscapeColor8To16Mode.codeOf(code)
+                                } else if (code in 90..107) {
+                                    EscapeColorISOMode.codeOf(code)
+                                } else {
+                                    null
                                 }
-                                else -> {}
+                                tuple.first(mode)
                             }
                         }
-                    }
-                tuple.first(mode).second(params)
-                tuple._1()?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
+                    tuple._1() ?: return@let null
+                    tuple
+                }?.apply { escapeTask.get()!!.queue!!.offer(this) }
 
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, colorRgbModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                var params: List<Any> = listOf()
-                numberRegex.findAll(it)
-                    .asSequence()
-                    .forEachIndexed { index, matchResult ->
-                        run {
-                            when (index) {
-                                // 38-foreground 48-background
-                                0 -> params = params.plusElement(matchResult.value == "38")
-                                1 -> if (matchResult.value != "2") return@let null
-                                // R
-                                2 -> params = params.plusElement(matchResult.value.toInt())
-                                // G
-                                3 -> params = params.plusElement(matchResult.value.toInt())
-                                // B
-                                4 -> params = params.plusElement(matchResult.value.toInt())
-                                else -> {}
+                if (dealAlready.get()) return@forEach
+                parseRegex(escapeSequence, color256ModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                    var params: List<Any> = listOf()
+                    var mode: IEscapeMode? = null
+                    numberRegex.findAll(it)
+                        .asSequence()
+                        .forEachIndexed { index, matchResult ->
+                            run {
+                                when (index) {
+                                    // 38-foreground 48-background
+                                    0 -> params = params.plusElement(matchResult.value == "38")
+                                    1 -> if (matchResult.value != "5") return@let null
+                                    2 -> {
+                                        val code = matchResult.value.toInt()
+                                        mode = EscapeColor256Mode.codeOf(code)
+                                    }
+                                    else -> {}
+                                }
                             }
                         }
-                    }
-                tuple.first(EscapeColorRgbMode.COLOR_RGB_MODE).second(params)
-                tuple._1()?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
+                    tuple.first(mode).second(params)
+                    tuple._1() ?: return@let null
+                    tuple
+                }?.apply { escapeTask.get()!!.queue!!.offer(this) }
 
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, screenModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                val code = numberRegex.find(it)?.value?.toInt()
-                code ?: return@let null
-                // enable screen mode
-                tuple.first(EscapeScreenMode.codeOf(code)).second(listOf(true))
-                tuple._1()?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, disableScreenModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                val code = numberRegex.find(it)?.value?.toInt()
-                code ?: return@let null
-                // enable screen mode
-                tuple.first(EscapeScreenMode.codeOf(code)).second(listOf(false))
-                tuple._1()?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, commonPrivateModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                val code = wordNumberRegex.find(it)?.value
-                code ?: return@let null
-                tuple.first(EscapeCommonPrivateMode.codeOf(code))
-                tuple._1()?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, keyBoardStringModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                codeStringRegex.findAll(it)
-                    .asSequence()
-                    .forEach { matchResult ->
-                        run {
-                            val codeString = matchResult.value
-                            var code = codeRegex.find(codeString)?.value
-                            code ?: return@run
-                            var string = stringRegex.find(codeString.replace(code, StrUtil.EMPTY))?.value
-                            string ?: return@run
-
-                            code = if (code[code.length - 1] == ';') code.substring(0, code.length - 1) else code
-                            string = if (string[string.length - 1] == ';') string.substring(0, string.length - 1) else string
-                            val tp: Tuple2<IEscapeMode, List<Any>> = Tuple2()
-                            tp.first(EscapeKeyBoardStringMode.KEY_BOARD_STRING_MODE).second(listOf(code, string))
-                            queue.offer(tp)
+                if (dealAlready.get()) return@forEach
+                parseRegex(escapeSequence, colorRgbModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                    var params: List<Any> = listOf()
+                    numberRegex.findAll(it)
+                        .asSequence()
+                        .forEachIndexed { index, matchResult ->
+                            run {
+                                when (index) {
+                                    // 38-foreground 48-background
+                                    0 -> params = params.plusElement(matchResult.value == "38")
+                                    1 -> if (matchResult.value != "2") return@let null
+                                    // R
+                                    2 -> params = params.plusElement(matchResult.value.toInt())
+                                    // G
+                                    3 -> params = params.plusElement(matchResult.value.toInt())
+                                    // B
+                                    4 -> params = params.plusElement(matchResult.value.toInt())
+                                    else -> {}
+                                }
+                            }
                         }
-                    }
-                tuple._1()?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
+                    tuple.first(EscapeColorRgbMode.COLOR_RGB_MODE).second(params)
+                    tuple._1() ?: return@let null
+                    tuple
+                }?.apply { escapeTask.get()!!.queue!!.offer(this) }
 
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, oscBelRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                val split = it.replace("\u001b]", "").replace("\u0007", "").split(";")
-                if (split.size != 2) return@let null
-                val code = split[0].toInt()
-                tuple.first(EscapeOSCMode.codeOf(code))
-                tuple._1()?: return@let null
-                val parameter = split[1]
-                tuple.second(listOf(parameter))
-                tuple
-            }?.apply { queue.offer(this) }
-        }
+                if (dealAlready.get()) return@forEach
+                parseRegex(escapeSequence, screenModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                    val code = numberRegex.find(it)?.value?.toInt()
+                    code ?: return@let null
+                    // enable screen mode
+                    tuple.first(EscapeScreenMode.codeOf(code)).second(listOf(true))
+                    tuple._1() ?: return@let null
+                    tuple
+                }?.apply { escapeTask.get()!!.queue!!.offer(this) }
 
-        val actionMap = executeTarget.getActionMap()
-        val latch = CountDownLatch(1)
-        Platform.runLater {
-            text.split(uberEscapeModeRegex).toTypedArray().forEach { sp ->
-                if (StrUtil.isNotEmpty(sp)) {
-                    executeTarget.printOut(sp)
+                if (dealAlready.get()) return@forEach
+                parseRegex(escapeSequence, disableScreenModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                    val code = numberRegex.find(it)?.value?.toInt()
+                    code ?: return@let null
+                    // enable screen mode
+                    tuple.first(EscapeScreenMode.codeOf(code)).second(listOf(false))
+                    tuple._1() ?: return@let null
+                    tuple
+                }?.apply { escapeTask.get()!!.queue!!.offer(this) }
+
+                if (dealAlready.get()) return@forEach
+                parseRegex(escapeSequence, commonPrivateModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                    val code = wordNumberRegex.find(it)?.value
+                    code ?: return@let null
+                    tuple.first(EscapeCommonPrivateMode.codeOf(code))
+                    tuple._1() ?: return@let null
+                    tuple
+                }?.apply { escapeTask.get()!!.queue!!.offer(this) }
+
+                if (dealAlready.get()) return@forEach
+                parseRegex(escapeSequence, keyBoardStringModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                    codeStringRegex.findAll(it)
+                        .asSequence()
+                        .forEach { matchResult ->
+                            run {
+                                val codeString = matchResult.value
+                                var code = codeRegex.find(codeString)?.value
+                                code ?: return@run
+                                var string = stringRegex.find(codeString.replace(code, StrUtil.EMPTY))?.value
+                                string ?: return@run
+
+                                code = if (code[code.length - 1] == ';') code.substring(0, code.length - 1) else code
+                                string = if (string[string.length - 1] == ';') string.substring(0,
+                                    string.length - 1) else string
+                                val tp: Tuple2<IEscapeMode, List<Any>> = Tuple2()
+                                tp.first(EscapeKeyBoardStringMode.KEY_BOARD_STRING_MODE).second(listOf(code, string))
+                                escapeTask.get()!!.queue!!.offer(tp)
+                            }
+                        }
                 }
-                if (!queue.isEmpty()) {
-                    val tuple = queue.poll()
-                    val ansiEscapeAction = actionMap!![tuple._1()!!.javaClass]
-                    ansiEscapeAction ?: return@forEach
-                    ansiEscapeAction.action(executeTarget, tuple._1(), tuple._2())
-                }
+
+                if (dealAlready.get()) return@forEach
+                parseRegex(escapeSequence, oscBelRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                    val split = it.replace("\u001b]", "").replace("\u0007", "").split(";")
+                    if (split.size != 2) return@let null
+                    val code = split[0].toInt()
+                    tuple.first(EscapeOSCMode.codeOf(code))
+                    tuple._1() ?: return@let null
+                    val parameter = split[1]
+                    tuple.second(listOf(parameter))
+                    tuple
+                }?.apply { escapeTask.get()!!.queue!!.offer(this) }
             }
-            queue.clear()
-            latch.countDown()
+
+            taskQueue.offer(escapeTask)
         }
-        latch.await()
     }
 
     private fun tuple(): Tuple2<IEscapeMode, List<Any>> {
@@ -304,5 +287,42 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
 
         dealAlready.set(true)
         return match.value
+    }
+
+    init {
+        val thread = Thread ({
+            while (true) {
+                if (taskQueue.isNotEmpty()) {
+                    val task = taskQueue.poll().get()
+                    task?: continue
+                    val actionMap = task.executeTarget.getActionMap()
+                    Platform.runLater {
+                        println("starting")
+                        val startTime = System.currentTimeMillis()
+                        task.text.forEach { sp ->
+                            if (StrUtil.isNotEmpty(sp)) {
+                                task.executeTarget.printOut(sp)
+                            }
+                            if (!task.queue!!.isEmpty()) {
+                                val tuple = task.queue!!.poll()
+                                val ansiEscapeAction = actionMap!![tuple._1()!!.javaClass]
+                                ansiEscapeAction ?: return@forEach
+                                ansiEscapeAction.action(task.executeTarget, tuple._1(), tuple._2())
+                            }
+                        }
+                        println("Spend time: ${(System.currentTimeMillis() - startTime)}ms")
+                        task.queue = null
+                        System.gc()
+                    }
+                }
+                Thread.sleep(1)
+            }
+        }, "ansi-engine-thread")
+        thread.isDaemon = true
+        thread.start()
+    }
+
+    inner class EscapeTask(internal val text: Array<String>, internal val executeTarget: T) {
+        internal var queue: Queue<Tuple2<IEscapeMode, List<Any>>>? = ArrayDeque()
     }
 }
