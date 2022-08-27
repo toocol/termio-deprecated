@@ -8,6 +8,7 @@ import com.toocol.termio.desktop.components.panel.ui.WorkspacePanel
 import com.toocol.termio.desktop.components.terminal.ui.DesktopConsole
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
+import com.toocol.termio.platform.console.TerminalConsolePrintStream
 import com.toocol.termio.platform.ui.TScene
 import com.toocol.termio.platform.ui.TVBox
 import com.toocol.termio.utilities.log.Loggable
@@ -21,7 +22,6 @@ import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Pane
 import java.io.IOException
-import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 
 /**
@@ -158,6 +158,7 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                         if (commandExecutorPrinterOutputStream.available() > 0) {
                             val text = commandExecutorPrinterOutputStream.read()
                             commandExecutorResultTextArea.append(text)
+                            commandExecutorPrintStream.signal()
                         }
                         Thread.sleep(1)
                     } catch (e: Exception) {
@@ -185,6 +186,6 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
         val commandExecutorPrinterOutputStream = MetadataPrinterOutputStream()
 
         @JvmField
-        val commandExecutorPrintStream = PrintStream(commandExecutorPrinterOutputStream)
+        val commandExecutorPrintStream = TerminalConsolePrintStream(commandExecutorPrinterOutputStream)
     }
 }

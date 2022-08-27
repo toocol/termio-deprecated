@@ -9,6 +9,7 @@ module termio.platform {
     requires kotlin.stdlib;
     requires com.google.common;
     requires reactfx;
+    requires annotations;
 
     exports com.toocol.termio.platform.console;
     exports com.toocol.termio.platform.component;

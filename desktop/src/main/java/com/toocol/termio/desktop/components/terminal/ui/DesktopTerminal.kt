@@ -3,6 +3,7 @@ package com.toocol.termio.desktop.components.terminal.ui
 import com.toocol.termio.platform.component.IActiveAble
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
+import com.toocol.termio.platform.console.TerminalConsolePrintStream
 import com.toocol.termio.platform.ui.TAnchorPane
 import com.toocol.termio.utilities.ansi.Printer.setPrinter
 import com.toocol.termio.utilities.log.Loggable
@@ -14,7 +15,6 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Pane
 import java.io.IOException
-import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 
 /**
@@ -27,7 +27,7 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
      * Feedback data.
      */
     private val terminalWriterOutputStream = MetadataPrinterOutputStream()
-    private val terminalPrintStream = PrintStream(terminalWriterOutputStream)
+    private val terminalPrintStream = TerminalConsolePrintStream(terminalWriterOutputStream)
     private val terminalOutputService = TerminalOutputService()
     private val terminalScrollPane: TerminalScrollPane
     private val terminalConsoleTextArea: TerminalConsoleTextArea
@@ -50,6 +50,12 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
             children.add(terminalScrollPane)
 
             setOnMouseClicked { terminalConsoleTextArea.requestFocus() }
+
+            focusedProperty().addListener {_, _, newVal ->
+                if (newVal) {
+                    terminalConsoleTextArea.requestFocus()
+                }
+            }
         }
 
         terminalOutputService.apply { start() }
@@ -148,6 +154,7 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
                         if (terminalWriterOutputStream.available() > 0) {
                             val text = terminalWriterOutputStream.read()
                             terminalConsoleTextArea.append(text)
+                            terminalPrintStream.signal()
                         }
                         Thread.sleep(1)
                     } catch (e: Exception) {

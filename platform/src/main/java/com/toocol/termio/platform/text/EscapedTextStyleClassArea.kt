@@ -4,13 +4,13 @@ import com.google.common.collect.ImmutableMap
 import com.toocol.termio.platform.component.IActionAfterShow
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.utilities.escape.*
+import com.toocol.termio.utilities.escape.EscapeAsciiControlMode.*
 import com.toocol.termio.utilities.escape.EscapeColorGraphicsMode.*
 import com.toocol.termio.utilities.escape.EscapeCommonPrivateMode.*
 import com.toocol.termio.utilities.escape.EscapeCursorControlMode.*
 import com.toocol.termio.utilities.escape.EscapeEraseFunctionsMode.*
 import com.toocol.termio.utilities.escape.EscapeOSCMode.*
 import com.toocol.termio.utilities.escape.EscapeScreenMode.*
-import com.toocol.termio.utilities.escape.EscapeAsciiControlMode.*
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.beans.value.ObservableValue
@@ -18,12 +18,10 @@ import javafx.scene.Node
 import javafx.scene.paint.Color
 import javafx.scene.text.TextFlow
 import org.fxmisc.richtext.GenericStyledArea
+import org.fxmisc.richtext.MultiChangeBuilder
 import org.fxmisc.richtext.StyledTextArea
 import org.fxmisc.richtext.TextExt
-import org.fxmisc.richtext.model.Codec
-import org.fxmisc.richtext.model.SegmentOps
-import org.fxmisc.richtext.model.StyledSegment
-import org.fxmisc.richtext.model.TwoDimensional
+import org.fxmisc.richtext.model.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.BiConsumer
 import java.util.function.Function
@@ -99,12 +97,17 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         }.start()
     }
 
-    override fun printOut(text: String) {
+    override fun createMultiChangeBuilder(): MultiChangeBuilder<ParagraphStyle, String, TextStyle> {
+        return createMultiChange()
+    }
+
+    override fun collectReplacement(text: String, multiChange: MultiChangeBuilder<ParagraphStyle, String, TextStyle>) {
         if (text.contains("\n")) {
             val split = text.split("\n")
             split.forEachIndexed { index, str ->
                 StrUtil.splitSequenceByChinese(str).forEach {
-                    val content = if (it.isNotEmpty()) StrUtil.join(it.toCharArray(), CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR
+                    val content = if (it.isNotEmpty()) StrUtil.join(it.toCharArray(),
+                        CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR
                     else it
                     content.replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE)
 
@@ -114,22 +117,27 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                     else if (cursor.inlinePosition < length) cursor.inlinePosition + content.length
                     else length
 
-                    replace(start, end, content,
-                        if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle
-                    )
+                    multiChange.replace(start, end, ReadOnlyStyledDocument.fromString(content, paragraphStyle,
+                        if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle,
+                        styledTextOps
+                    ))
+
                     if (cursor.inlinePosition != length) {
                         cursor.update(content.length)
                     }
                 }
 
                 if (index != split.size - 1) {
-                    replace(length, length, "\n", currentEnglishTextStyle)
+                    multiChange.replace(length, length, ReadOnlyStyledDocument.fromString(StrUtil.LF, paragraphStyle,
+                        currentEnglishTextStyle, styledTextOps
+                    ))
                     cursor.setTo(length)
                 }
             }
         } else {
             StrUtil.splitSequenceByChinese(text).forEach {
-                val content = if (it.isNotEmpty()) StrUtil.join(it.toCharArray(), CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR
+                val content = if (it.isNotEmpty()) StrUtil.join(it.toCharArray(),
+                    CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR
                 else it
                 content.replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE)
 
@@ -139,9 +147,10 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                 else if (cursor.inlinePosition < length) cursor.inlinePosition + content.length
                 else length
 
-                replace(start, end, content,
-                    if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle
-                )
+                multiChange.replace(start, end, ReadOnlyStyledDocument.fromString(content, paragraphStyle,
+                    if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle,
+                    styledTextOps
+                ))
                 if (cursor.inlinePosition != length) {
                     cursor.update(content.length)
                 }

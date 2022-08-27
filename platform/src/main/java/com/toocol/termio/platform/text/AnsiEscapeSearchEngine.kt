@@ -23,7 +23,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
         private val codeRegex = Regex(pattern = """(\d{1,3};)+""")
         private val stringRegex = Regex(pattern = """[\w ]+;?""")
 
-        private const val uberEscapeModeRegexPattern = """\u0007|\u0008|\u000d|(\u001b\[\d{1,4};\d{1,4}[Hf])""" +
+        private const val uberEscapeModeRegexPattern = """(\u001b\[\d{1,4};\d{1,4}[Hf])""" +
                 """|((\u001b\[\d{0,4}([HABCDEFGsu]|(6n)))|(\u001b [M78]))""" +
                 """|(\u001b\[[0123]?[JK])""" +
                 """|(\u001b\[((?!38)(?!48)\d{1,3};?)+m)""" +
@@ -33,7 +33,8 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 """|(\u001b\[=\d{1,2}l)""" +
                 """|(\u001b\[\?\d{2,4}[lh])""" +
                 """|(\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\w ]+((\\")|'|");?)|(\d{1,2};?))+p)""" +
-                """|\u001b]\d;.+\u0007"""
+                """|\u001b]\d;.+\u0007""" +
+                """|\u0007|\u0008|\u000d"""
         private val uberEscapeModeRegex = Regex(pattern = uberEscapeModeRegexPattern)
 
         private val belModeRegex = Regex(pattern = """\u0007""")
@@ -91,24 +92,6 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
             val dealAlready = AtomicBoolean()
             val tuple = tuple()
 
-            parseRegex(escapeSequence, belModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                tuple.first(EscapeAsciiControlMode.BEL)
-                tuple
-            }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, backspaceModeRex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                tuple.first(EscapeAsciiControlMode.BACKSPACE)
-                tuple
-            }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, enterModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                tuple.first(EscapeAsciiControlMode.ENTER)
-                tuple
-            }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
             parseRegex(escapeSequence, cursorSetPosModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
                 tuple.first(EscapeCursorControlMode.codeOf("Hf")).second(
                     numberRegex.findAll(it)
@@ -282,28 +265,51 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 tuple.second(listOf(parameter))
                 tuple
             }?.apply { queue.offer(this) }
+
+            if (dealAlready.get()) return@forEach
+            parseRegex(escapeSequence, belModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                tuple.first(EscapeAsciiControlMode.BEL)
+                tuple
+            }?.apply { queue.offer(this) }
+
+            if (dealAlready.get()) return@forEach
+            parseRegex(escapeSequence, backspaceModeRex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                tuple.first(EscapeAsciiControlMode.BACKSPACE)
+                tuple
+            }?.apply { queue.offer(this) }
+
+            if (dealAlready.get()) return@forEach
+            parseRegex(escapeSequence, enterModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                tuple.first(EscapeAsciiControlMode.ENTER)
+                tuple
+            }?.apply { queue.offer(this) }
         }
 
         val actionMap = executeTarget.getActionMap()
         val split = text.split(uberEscapeModeRegex).toTypedArray()
         val latch = CountDownLatch(1)
-        Platform.runLater {
-            val startTime = System.currentTimeMillis()
-            split.forEach { sp ->
-                if (StrUtil.isNotEmpty(sp)) {
-                    executeTarget.printOut(sp)
-                }
-                if (!queue.isEmpty()) {
-                    val tuple = queue.poll()
-                    val ansiEscapeAction = actionMap!![tuple._1()!!.javaClass]
-                    ansiEscapeAction ?: return@forEach
-                    ansiEscapeAction.action(executeTarget, tuple._1(), tuple._2())
-                }
+        val multiChange = executeTarget.createMultiChangeBuilder()
+        split.forEach { sp ->
+            if (StrUtil.isNotEmpty(sp)) {
+                executeTarget.collectReplacement(sp, multiChange)
             }
-            println("Spend time: ${(System.currentTimeMillis() - startTime)}ms")
-            queue.clear()
+            if (!queue.isEmpty()) {
+                val tuple = queue.poll()
+                val ansiEscapeAction = actionMap!![tuple._1()!!.javaClass]
+                ansiEscapeAction ?: return@forEach
+                ansiEscapeAction.action(executeTarget, tuple._1(), tuple._2())
+            }
+        }
+        if (multiChange.hasChanges()) {
+            Platform.runLater {
+                val startTime = System.currentTimeMillis()
+                multiChange.commit()
+                println("Spend time: ${(System.currentTimeMillis() - startTime)}ms")
+                queue.clear()
+                latch.countDown()
+            }
+        } else {
             latch.countDown()
-            System.gc()
         }
         latch.await()
     }

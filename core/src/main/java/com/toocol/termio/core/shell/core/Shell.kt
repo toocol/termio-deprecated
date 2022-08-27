@@ -266,6 +266,7 @@ class Shell : AbstractDevice, Loggable {
                 status = Status.NORMAL
                 localLastCmd.delete(0, localLastCmd.length)
             }
+            System.gc()
         }
         if (status == Status.MORE_BEFORE) {
             status = Status.MORE_PROC
