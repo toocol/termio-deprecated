@@ -18,6 +18,7 @@ enum class EscapeColorGraphicsMode(val code: Int) : IEscapeMode {
     STRIKETHROUGH_MODE(9),
     RESET_STRIKETHROUGH(29);
 
+
     companion object {
         fun codeOf(code: Int): EscapeColorGraphicsMode? {
             for (mode in values()) {

@@ -1,5 +1,6 @@
 package com.toocol.termio.platform.text
 
+import com.toocol.termio.platform.console.TerminalConsolePrintStream
 import com.toocol.termio.utilities.escape.*
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.Castable
@@ -7,7 +8,6 @@ import com.toocol.termio.utilities.utils.StrUtil
 import com.toocol.termio.utilities.utils.Tuple2
 import javafx.application.Platform
 import java.util.*
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -86,7 +86,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
      * Then we print out the split text in loop, and getting and invoking AnsiEscapeAction from the head of Queue<Tuple<IEscapeMode,List<Object>>>.
      */
     @Synchronized
-    fun actionOnEscapeMode(text: String, executeTarget: T) {
+    fun actionOnEscapeMode(text: String, executeTarget: T, printStream: TerminalConsolePrintStream) {
         uberEscapeModeRegex.findAll(text).forEach { lineRet ->
             val escapeSequence = lineRet.value
             val dealAlready = AtomicBoolean()
@@ -131,6 +131,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
 
             if (dealAlready.get()) return@forEach
             parseRegex(escapeSequence, colorGraphicsModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
+                val combine = EscapeColorGraphicsCombine.get()
                 numberRegex.findAll(it)
                     .asSequence()
                     .forEach { result ->
@@ -145,11 +146,11 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                             } else {
                                 null
                             }
-                            tuple.first(mode)
+                            mode?: return@run
+                            combine.add(mode)
                         }
                     }
-                tuple._1() ?: return@let null
-                tuple
+                tuple.first(combine)
             }?.apply { queue.offer(this) }
 
             if (dealAlready.get()) return@forEach
@@ -287,31 +288,31 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
 
         val actionMap = executeTarget.getActionMap()
         val split = text.split(uberEscapeModeRegex).toTypedArray()
-        val latch = CountDownLatch(1)
-        val multiChange = executeTarget.createMultiChangeBuilder()
-        split.forEach { sp ->
-            if (StrUtil.isNotEmpty(sp)) {
-                executeTarget.collectReplacement(sp, multiChange)
+        Platform.runLater {
+            val startTime = System.currentTimeMillis()
+            val multiChange = executeTarget.createMultiChangeBuilder()
+            split.forEach { sp ->
+                if (StrUtil.isNotEmpty(sp) && !sp.contains("\u001b")) {
+                    executeTarget.collectReplacement(sp, multiChange)
+                }
+                if (!queue.isEmpty()) {
+                    val tuple = queue.poll()
+                    val ansiEscapeAction = actionMap!![tuple._1()!!.javaClass]
+                    ansiEscapeAction ?: return@forEach
+                    ansiEscapeAction.action(executeTarget, tuple._1(), tuple._2())
+                }
             }
-            if (!queue.isEmpty()) {
-                val tuple = queue.poll()
-                val ansiEscapeAction = actionMap!![tuple._1()!!.javaClass]
-                ansiEscapeAction ?: return@forEach
-                ansiEscapeAction.action(executeTarget, tuple._1(), tuple._2())
-            }
-        }
-        if (multiChange.hasChanges()) {
-            Platform.runLater {
-                val startTime = System.currentTimeMillis()
+            if (multiChange.hasChanges()) {
                 multiChange.commit()
-                println("Spend time: ${(System.currentTimeMillis() - startTime)}ms")
-                queue.clear()
-                latch.countDown()
             }
-        } else {
-            latch.countDown()
+            printStream.signal()
+            if (executeTarget is EscapedTextStyleClassArea && executeTarget.followCaret()) {
+                executeTarget.moveTo(executeTarget.length)
+                executeTarget.requestFollowCaret()
+            }
+            println("Spend time: ${(System.currentTimeMillis() - startTime)}ms")
+            queue.clear()
         }
-        latch.await()
     }
 
     private fun tuple(): Tuple2<IEscapeMode, List<Any>> {

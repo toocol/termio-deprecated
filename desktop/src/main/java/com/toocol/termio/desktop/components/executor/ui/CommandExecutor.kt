@@ -67,7 +67,6 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
             scene.accelerators[ctrlU] = Runnable {
                 commandExecutorInput.clear()
                 commandExecutorResultTextArea.clear()
-                commandExecutorResultTextArea.cursorTest()
             }
 
             val ctrlI: KeyCombination = KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN)
@@ -157,8 +156,7 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                     try {
                         if (commandExecutorPrinterOutputStream.available() > 0) {
                             val text = commandExecutorPrinterOutputStream.read()
-                            commandExecutorResultTextArea.append(text)
-                            commandExecutorPrintStream.signal()
+                            commandExecutorResultTextArea.append(text, commandExecutorPrintStream)
                         }
                         Thread.sleep(1)
                     } catch (e: Exception) {

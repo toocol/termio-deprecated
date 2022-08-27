@@ -9,6 +9,7 @@ module termio.utilities {
     requires jline;
     requires kotlin.stdlib;
     requires annotations;
+    requires jdk.unsupported;
 
     exports com.toocol.termio.utilities.action;
     exports com.toocol.termio.utilities.ansi;

@@ -3,6 +3,7 @@ package com.toocol.termio.platform.text
 import com.google.common.collect.ImmutableMap
 import com.toocol.termio.platform.component.IActionAfterShow
 import com.toocol.termio.platform.component.IComponent
+import com.toocol.termio.platform.console.TerminalConsolePrintStream
 import com.toocol.termio.utilities.escape.*
 import com.toocol.termio.utilities.escape.EscapeAsciiControlMode.*
 import com.toocol.termio.utilities.escape.EscapeColorGraphicsMode.*
@@ -84,18 +85,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     /**
      * This method can't invoke in the Javafx Application Thread
      */
-    fun append(text: String?) {
+    fun append(text: String?, printStream: TerminalConsolePrintStream) {
         text ?: return
-        ansiEscapeSearchEngine.actionOnEscapeMode(text, this)
+        ansiEscapeSearchEngine.actionOnEscapeMode(text, this, printStream)
     }
 
-    fun cursorTest() {
-        Thread {
-            append("${"你".repeat(300)}\n")
-            setCursorTo(1, 10)
-            append("不不不不不")
-        }.start()
-    }
+    abstract fun followCaret(): Boolean
 
     override fun createMultiChangeBuilder(): MultiChangeBuilder<ParagraphStyle, String, TextStyle> {
         return createMultiChange()
@@ -167,6 +162,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         actions.add(EscapeAsciiControlAction())
         actions.add(EscapeCursorControlAction())
         actions.add(EscapeEraseFunctionsAction())
+        actions.add(EscapeColorGraphicsCombineAction())
         actions.add(EscapeColorGraphicsAction())
         actions.add(EscapeColor8To16Action())
         actions.add(EscapeColorISOAction())
@@ -307,6 +303,20 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                 ERASE_CURSOR_TO_LINE_END -> {}
                 ERASE_CURSOR_TO_LINE_START -> {}
                 ERASE_LINE -> {}
+            }
+        }
+    }
+
+    private class EscapeColorGraphicsCombineAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        override fun focusMode(): Class<out IEscapeMode> {
+            return EscapeColorGraphicsCombine::class.java
+        }
+
+        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            if (escapeMode is EscapeColorGraphicsCombine) {
+                escapeMode.list.forEach {
+                    executeTarget.actionMap!![it::class.java]!!.action(executeTarget, it, null)
+                }
             }
         }
     }
@@ -547,6 +557,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             takeIf { paragraphSizeWatch != paragraphs.size }?.run {
                 updateLineIndexParagraphIndexMap(currentParagraph)
                 paragraphSizeWatch = paragraphs.size
+                System.gc()
             }
         }
 

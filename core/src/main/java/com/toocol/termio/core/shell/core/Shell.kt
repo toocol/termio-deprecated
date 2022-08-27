@@ -182,6 +182,8 @@ class Shell : AbstractDevice, Loggable {
     @Volatile
     private var promptNow = false
 
+    private val feedbackCollector = StringBuilder()
+
     constructor(sessionId: Long, vertx: Vertx, eventBus: EventBus, moshSession: MoshSession) {
         this.sessionId = sessionId
         host = moshSession.host
@@ -250,7 +252,8 @@ class Shell : AbstractDevice, Loggable {
         this.console = console
     }
 
-    fun print(msg: String): Boolean {
+    fun print(msgConst: String): Boolean {
+        var msg = msgConst
         val matcher = PROMPT_PATTERN.find(msg.trim { it <= ' ' })
         if (matcher != null) {
             val oldPrompt = prompt.get()
@@ -266,7 +269,12 @@ class Shell : AbstractDevice, Loggable {
                 status = Status.NORMAL
                 localLastCmd.delete(0, localLastCmd.length)
             }
-            System.gc()
+            feedbackCollector.append(msg)
+            msg = String(StringBuilder(feedbackCollector.toString()))
+            feedbackCollector.delete(0, feedbackCollector.length)
+        } else if (status == Status.NORMAL) {
+            feedbackCollector.append(msg)
+            return false
         }
         if (status == Status.MORE_BEFORE) {
             status = Status.MORE_PROC

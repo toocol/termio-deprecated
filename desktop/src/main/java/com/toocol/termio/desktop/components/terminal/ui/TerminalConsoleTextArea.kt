@@ -59,6 +59,10 @@ class TerminalConsoleTextArea(id: Long) : EscapedTextStyleClassArea(id), Castabl
         )
     }
 
+    override fun followCaret(): Boolean {
+        return true
+    }
+
     override fun initialize() {
         styled()
         isWrapText = true
@@ -95,6 +99,7 @@ class TerminalConsoleTextArea(id: Long) : EscapedTextStyleClassArea(id), Castabl
         }
 
         override fun cancelLatestCommittedText() {}
+
         override fun getTextLocation(offset: Int): Point2D {
             return Point2D(0.0, 0.0)
         }
