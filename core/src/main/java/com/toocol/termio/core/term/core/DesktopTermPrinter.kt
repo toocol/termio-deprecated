@@ -34,8 +34,7 @@ class DesktopTermPrinter(private val term: Term) : ITermPrinter {
     }
 
     override fun printDisplayEcho(msg: String) {
-        cleanDisplay()
-        println(msg)
+        println(esc2J + msg)
     }
 
     /* Following methods is useless in Desktop version */

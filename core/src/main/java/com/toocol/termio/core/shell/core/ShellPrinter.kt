@@ -61,15 +61,14 @@ class ShellPrinter(private val shell: Shell) {
             }
             msg = sb.toString()
         }
-        if (lastCmd == "clear" && msg.contains("\u001B")) {
-            msg = StrUtil.EMPTY
-        }
+//        if (lastCmd == "clear" && msg.contains("\u001B")) {
+//            msg = StrUtil.EMPTY
+//        }
         val tmp = msg
         if (tmp.contains(shell.prompt.get())) {
             if (tmp.contains(splitChar)) {
                 val split = tmp.split(splitChar).toTypedArray()
                 for (i in split.indices) {
-//                    val matcher = PROMPT_ECHO_REGEX.matcher(split[i])
                     val matcher = PROMPT_ECHO_REGEX.find(split[i])
                     if (matcher != null && i == split.size - 1) {
                         val promptAndEcho = matcher.value

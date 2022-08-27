@@ -4,13 +4,13 @@ import com.google.common.collect.ImmutableMap
 import com.toocol.termio.platform.component.IActionAfterShow
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.utilities.escape.*
+import com.toocol.termio.utilities.escape.EscapeAsciiControlMode.*
 import com.toocol.termio.utilities.escape.EscapeColorGraphicsMode.*
 import com.toocol.termio.utilities.escape.EscapeCommonPrivateMode.*
 import com.toocol.termio.utilities.escape.EscapeCursorControlMode.*
 import com.toocol.termio.utilities.escape.EscapeEraseFunctionsMode.*
 import com.toocol.termio.utilities.escape.EscapeOSCMode.*
 import com.toocol.termio.utilities.escape.EscapeScreenMode.*
-import com.toocol.termio.utilities.escape.EscapeAsciiControlMode.*
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.beans.value.ObservableValue
