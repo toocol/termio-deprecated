@@ -288,23 +288,28 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
         val actionMap = executeTarget.getActionMap()
         val split = text.split(uberEscapeModeRegex).toTypedArray()
         val latch = CountDownLatch(1)
-        Platform.runLater {
-            val startTime = System.currentTimeMillis()
-            split.forEach { sp ->
-                if (StrUtil.isNotEmpty(sp)) {
-                    executeTarget.printOut(sp)
-                }
-                if (!queue.isEmpty()) {
-                    val tuple = queue.poll()
-                    val ansiEscapeAction = actionMap!![tuple._1()!!.javaClass]
-                    ansiEscapeAction ?: return@forEach
-                    ansiEscapeAction.action(executeTarget, tuple._1(), tuple._2())
-                }
+        val multiChange = executeTarget.createMultiChangeBuilder()
+        split.forEach { sp ->
+            if (StrUtil.isNotEmpty(sp)) {
+                executeTarget.collectReplacement(sp, multiChange)
             }
-            println("Spend time: ${(System.currentTimeMillis() - startTime)}ms")
-            queue.clear()
+            if (!queue.isEmpty()) {
+                val tuple = queue.poll()
+                val ansiEscapeAction = actionMap!![tuple._1()!!.javaClass]
+                ansiEscapeAction ?: return@forEach
+                ansiEscapeAction.action(executeTarget, tuple._1(), tuple._2())
+            }
+        }
+        if (multiChange.hasChanges()) {
+            Platform.runLater {
+                val startTime = System.currentTimeMillis()
+                multiChange.commit()
+                println("Spend time: ${(System.currentTimeMillis() - startTime)}ms")
+                queue.clear()
+                latch.countDown()
+            }
+        } else {
             latch.countDown()
-            System.gc()
         }
         latch.await()
     }
