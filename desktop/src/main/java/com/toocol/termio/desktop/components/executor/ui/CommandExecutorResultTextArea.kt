@@ -33,6 +33,10 @@ class CommandExecutorResultTextArea(private val id: Long) : EscapedTextStyleClas
 
     override fun actionAfterShow() {}
 
+    override fun followCaret(): Boolean {
+        return false
+    }
+
     override fun id(): Long {
         return id
     }

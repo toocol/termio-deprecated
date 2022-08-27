@@ -74,7 +74,6 @@ object TermioCommunityBootstrap : Termio() {
                 if (!ret) {
                     throw RuntimeException("Waiting timeout.")
                 }
-                finish = true
                 loadingLatch = null
                 initialLatch = null
                 verticleClassList = null

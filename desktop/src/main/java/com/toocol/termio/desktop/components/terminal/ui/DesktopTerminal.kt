@@ -153,8 +153,7 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
                     try {
                         if (terminalWriterOutputStream.available() > 0) {
                             val text = terminalWriterOutputStream.read()
-                            terminalConsoleTextArea.append(text)
-                            terminalPrintStream.signal()
+                            terminalConsoleTextArea.append(text, terminalPrintStream)
                         }
                         Thread.sleep(1)
                     } catch (e: Exception) {

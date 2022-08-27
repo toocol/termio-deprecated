@@ -42,9 +42,6 @@ abstract class Termio {
         var vertx: Vertx? = null
         @JvmStatic
         var eventBus: EventBus? = null
-        @JvmStatic
-        @Volatile
-        var finish = false
 
         @JvmField
         @Volatile

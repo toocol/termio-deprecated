@@ -2,7 +2,6 @@ package com.toocol.termio.desktop.components.terminal.ui
 
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
-import javafx.beans.value.ObservableValue
 import javafx.scene.control.ScrollPane
 import javafx.scene.layout.Pane
 import org.fxmisc.flowless.VirtualizedScrollPane
@@ -24,7 +23,6 @@ class TerminalScrollPane(private val id: Long, terminalConsoleTextArea: Terminal
         styled()
         vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
         hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-        totalHeightEstimateProperty().addListener { _: ObservableValue<out Double?>?, _: Double?, _: Double? -> content!!.requestFollowCaret() }
     }
 
     override fun id(): Long {
