@@ -10,6 +10,7 @@ module termio.platform {
     requires com.google.common;
     requires reactfx;
     requires annotations;
+    requires org.jfxtras.styles.jmetro;
 
     exports com.toocol.termio.platform.console;
     exports com.toocol.termio.platform.component;

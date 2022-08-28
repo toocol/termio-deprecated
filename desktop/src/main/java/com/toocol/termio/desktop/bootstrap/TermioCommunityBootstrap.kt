@@ -9,7 +9,7 @@ import com.toocol.termio.core.term.TermAddress
 import com.toocol.termio.core.term.core.DesktopTermPrinter
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.desktop.components.executor.ui.CommandExecutor
-import com.toocol.termio.desktop.components.terminal.ui.DesktopTerminal
+import com.toocol.termio.desktop.components.terminal.ui.TerminalEmulator
 import com.toocol.termio.utilities.ansi.Printer.println
 import com.toocol.termio.utilities.config.IniConfigLoader
 import com.toocol.termio.utilities.console.Console
@@ -36,7 +36,7 @@ object TermioCommunityBootstrap : Termio() {
 
         Term.registerConsole(Console.get())
         Term.initializeReader(CommandExecutor.executorReaderInputStream)
-        Shell.initializeReader(DesktopTerminal.terminalReaderInputStream)
+        Shell.initializeReader(TerminalEmulator.terminalReaderInputStream)
         DesktopTermPrinter.registerPrintStream(CommandExecutor.commandExecutorPrintStream)
 
         vertx = prepareVertxEnvironment(

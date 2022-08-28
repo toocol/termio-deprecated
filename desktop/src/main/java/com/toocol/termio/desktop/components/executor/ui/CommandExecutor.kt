@@ -5,7 +5,7 @@ import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.desktop.api.term.handlers.DynamicEchoHandler
 import com.toocol.termio.desktop.components.panel.ui.MajorPanel
 import com.toocol.termio.desktop.components.panel.ui.WorkspacePanel
-import com.toocol.termio.desktop.components.terminal.ui.DesktopConsole
+import com.toocol.termio.desktop.components.terminal.ui.TerminalConsole
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.console.TerminalConsolePrintStream
@@ -52,7 +52,7 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
     override fun initialize() {
         apply {
             styled()
-            Term.registerConsole(DesktopConsole(commandExecutorResultTextArea))
+            Term.registerConsole(TerminalConsole(commandExecutorResultTextArea))
 
             focusedProperty().addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
                 if (newVal) {

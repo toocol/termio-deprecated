@@ -5,7 +5,6 @@ import com.toocol.termio.utilities.io.ReadableOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -13,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @version: 0.0.1
  */
 public class MetadataPrinterOutputStream extends ReadableOutputStream<String> {
-    private static final int BUFFER_SIZE = 2 << 16;
+    private static final int BUFFER_SIZE = 2 << 18;
     private byte[] buffer = new byte[BUFFER_SIZE];
     {
         Arrays.fill(buffer, (byte) -1);
@@ -21,6 +20,7 @@ public class MetadataPrinterOutputStream extends ReadableOutputStream<String> {
 
     private volatile int readIndicator = 0;
     private volatile int writeIndicator = 0;
+    private volatile boolean flush = false;
 
     @Override
     public void write(int b) throws IOException {
@@ -37,6 +37,7 @@ public class MetadataPrinterOutputStream extends ReadableOutputStream<String> {
         if (buffer == null) {
             throw new IOException("MetadataPrinterOutputStream has been closed.");
         }
+        flush = true;
         synchronized (this) {
             this.notify();
         }
@@ -64,6 +65,9 @@ public class MetadataPrinterOutputStream extends ReadableOutputStream<String> {
         if (buffer == null) {
             throw new IOException("MetadataPrinterOutputStream has been closed.");
         }
+        if (!flush) {
+            return 0;
+        }
         synchronized (this) {
             return writeIndicator < readIndicator ?
                     BUFFER_SIZE - readIndicator + writeIndicator : writeIndicator - readIndicator;
@@ -83,6 +87,7 @@ public class MetadataPrinterOutputStream extends ReadableOutputStream<String> {
             buffer[readIndicator] = -1;
             readIndicator = readIndicator + 1 >= BUFFER_SIZE ? 0 : readIndicator + 1;
         }
+        flush = false;
         return new String(rec, StandardCharsets.UTF_8);
     }
 

@@ -11,102 +11,121 @@ import kotlin.concurrent.withLock
  * @date: 2022/8/27 14:36
  * @version: 0.0.1
  */
-class TerminalConsolePrintStream(out: OutputStream) : PrintStream(out), Loggable {
+class TerminalConsolePrintStream(out: OutputStream) : PrintStream(out, false), Loggable {
     private val lock =  ReentrantLock()
     private val condition = lock.newCondition()
 
     override fun print(s: String?) {
         super.print(s)
+        flush()
         await()
     }
 
     override fun print(b: Boolean) {
         super.print(b)
+        flush()
         await()
     }
 
     override fun print(c: Char) {
         super.print(c)
+        flush()
         await()
     }
 
     override fun print(d: Double) {
         super.print(d)
+        flush()
         await()
     }
 
     override fun print(f: Float) {
         super.print(f)
+        flush()
         await()
     }
 
     override fun print(i: Int) {
         super.print(i)
+        flush()
         await()
     }
 
     override fun print(l: Long) {
         super.print(l)
+        flush()
         await()
     }
 
     override fun print(obj: Any?) {
         super.print(obj)
+        flush()
         await()
     }
 
     override fun print(s: CharArray) {
         super.print(s)
+        flush()
         await()
     }
 
     override fun println(x: Any?) {
         super.println(x)
+        flush()
         await()
     }
 
     override fun println(x: Boolean) {
         super.println(x)
+        flush()
         await()
     }
 
     override fun println(x: Char) {
         super.println(x)
+        flush()
         await()
     }
 
     override fun println(x: CharArray) {
         super.println(x)
+        flush()
         await()
     }
 
     override fun println(x: Double) {
         super.println(x)
+        flush()
         await()
     }
 
     override fun println(x: Float) {
         super.println(x)
+        flush()
         await()
     }
 
     override fun println(x: Int) {
         super.println(x)
+        flush()
         await()
     }
 
     override fun println(x: Long) {
         super.println(x)
+        flush()
         await()
     }
 
     override fun println(x: String?) {
         super.println(x)
+        flush()
         await()
     }
 
     override fun println() {
         super.println()
+        flush()
         await()
     }
 

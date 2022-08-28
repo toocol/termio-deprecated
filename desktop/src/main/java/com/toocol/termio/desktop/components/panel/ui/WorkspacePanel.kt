@@ -2,8 +2,8 @@ package com.toocol.termio.desktop.components.panel.ui
 
 import com.toocol.termio.core.cache.ShellCache
 import com.toocol.termio.desktop.components.homepage.ui.Homepage
-import com.toocol.termio.desktop.components.terminal.ui.DesktopConsole
-import com.toocol.termio.desktop.components.terminal.ui.DesktopTerminalFactory
+import com.toocol.termio.desktop.components.terminal.ui.TerminalConsole
+import com.toocol.termio.desktop.components.terminal.ui.TerminalEmulatorFactory
 import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent
@@ -24,7 +24,7 @@ import java.util.concurrent.CountDownLatch
 class WorkspacePanel(id: Long) : TStackPane(id) {
 
     private val parser: ComponentsParser = ComponentsParser()
-    private val terminalFactory: DesktopTerminalFactory.Instance = DesktopTerminalFactory.Instance
+    private val terminalFactory: TerminalEmulatorFactory.Instance = TerminalEmulatorFactory.Instance
     private val terminalIds: MutableSet<Int> = TreeSet()
     private val shellCache: ShellCache.Instance = ShellCache.Instance
 
@@ -40,7 +40,6 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
     override fun initialize() {
         styled()
 
-        parser.parse(WorkspacePanel::class.java)
         parser.initializeAll()
 
         children.add(parser.getAsNode(Homepage::class.java))
@@ -72,7 +71,7 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             val terminal = terminalFactory.create(assignTerminalId(), sessionId)
             terminal.initialize()
             terminal.sizePropertyBind(findComponent(MajorPanel::class.java, 1), widthRatio, heightRatio * 0.99)
-            shellCache.getShell(sessionId)!!.registerConsole(DesktopConsole(terminal.getConsoleTextAre()))
+            shellCache.getShell(sessionId)!!.registerConsole(TerminalConsole(terminal.getConsoleTextAre()))
             children.add(terminal)
             terminal.activeTerminal()
             terminal.requestFocus()
@@ -97,5 +96,9 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
     private fun hideHomepage() {
         val homepage = parser.getAsComponent(Homepage::class.java)
         homepage?.hide()
+    }
+
+    init {
+        parser.parse(WorkspacePanel::class.java)
     }
 }
