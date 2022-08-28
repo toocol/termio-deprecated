@@ -71,7 +71,7 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             val terminal = terminalFactory.create(assignTerminalId(), sessionId)
             terminal.initialize()
             terminal.sizePropertyBind(findComponent(MajorPanel::class.java, 1), widthRatio, heightRatio * 0.99)
-            shellCache.getShell(sessionId)!!.registerConsole(TerminalConsole(terminal.getConsoleTextAre()))
+            shellCache.getShell(sessionId)!!.registerConsole(TerminalConsole(terminal.getTerminalTextAre()))
             children.add(terminal)
             terminal.activeTerminal()
             terminal.requestFocus()
