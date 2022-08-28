@@ -6,7 +6,7 @@
     -fx-background-color: #FFFFFF;
 }
 .workspace-panel {
-    -fx-background-color: #101010;
+    -fx-background-color: #111111;
     -fx-border-color: #FFFFFF;
     -fx-border-width: 2 0 2 0;
     -fx-border-style: solid;
@@ -19,19 +19,19 @@
 
 /* terminal */
 .desktop-terminal-panel {
-    -fx-background-color: #101010;
+    -fx-background-color: #111111;
 }
 .terminal-scroll-pane {
-    -fx-background-color: #101010;
+    -fx-background-color: #111111;
 }
 .console-text-area {
-    -fx-background-color: #0E0E0E;
+    -fx-background-color: #111111;
     -fx-padding: 15 15 5 15;
 }
 
 /* executor */
 .command-executor-panel {
-    -fx-background-color: #101010;
+    -fx-background-color: #111111;
     -fx-border-color: #FFFFFF;
     -fx-border-width: 1 0 1 0;
     -fx-border-style: solid;
@@ -40,16 +40,16 @@
     -fx-background-color: #FFFFFF;
 }
 .command-executor-result-scroll-pane {
-    -fx-background-color: #1E1E1E;
+    -fx-background-color: #111111;
 }
 .command-executor-result-text-area {
-    -fx-background-color: #101010;
+    -fx-background-color: #111111;
     -fx-fill: #CCCCCC;
     -fx-padding: 5 15 5 15;
 }
 
 /* homepage */
 .homepage-panel {
-    -fx-background-color: #101010;
+    -fx-background-color: #111111;
     -fx-padding: 5 15 5 15;
 }

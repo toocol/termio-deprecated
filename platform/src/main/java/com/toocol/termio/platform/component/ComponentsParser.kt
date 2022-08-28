@@ -1,6 +1,7 @@
 package com.toocol.termio.platform.component
 
 import com.toocol.termio.utilities.log.Loggable
+import com.toocol.termio.utilities.utils.Castable
 import javafx.scene.Node
 import java.lang.ref.WeakReference
 import java.lang.reflect.Constructor
@@ -13,7 +14,7 @@ import kotlin.system.exitProcess
  * @date: 2022/8/12 1:00
  * @version: 0.0.1
  */
-class ComponentsParser : Loggable {
+class ComponentsParser : Loggable, Castable {
     private val components: MutableMap<Class<*>, WeakReference<IComponent>> = ConcurrentHashMap()
 
     fun parse(clazz: Class<*>) {
@@ -39,6 +40,10 @@ class ComponentsParser : Loggable {
 
     fun initializeAll() {
         components.values.forEach(Consumer { obj: WeakReference<IComponent> -> obj.get()?.initialize() })
+    }
+
+    fun <T> get(clazz: Class<T>): T {
+        return cast(components[clazz]!!.get())
     }
 
     fun getAsNode(clazz: Class<*>): Node? {

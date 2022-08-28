@@ -12,23 +12,21 @@ module termio.desktop {
     requires annotations;
 
     requires javafx.controls;
-    requires javafx.fxml;
-    requires javafx.web;
     requires org.fxmisc.richtext;
     requires org.fxmisc.flowless;
-    requires org.controlsfx.controls;
     requires reactfx;
+    requires org.jfxtras.styles.jmetro;
 
     requires termio.utilities;
     requires termio.core;
     requires termio.platform;
 
-    opens com.toocol.termio.desktop.bootstrap to termio.platform, javafx.fxml;
-    opens com.toocol.termio.desktop.components.panel.ui to termio.platform, javafx.fxml;
-    opens com.toocol.termio.desktop.components.sidebar.ui to termio.platform, javafx.fxml;
-    opens com.toocol.termio.desktop.components.terminal.ui to termio.platform, javafx.fxml;
-    opens com.toocol.termio.desktop.components.homepage.ui to javafx.fxml, termio.platform;
-    opens com.toocol.termio.desktop.components.executor.ui to javafx.fxml, termio.platform;
+    opens com.toocol.termio.desktop.bootstrap to termio.platform;
+    opens com.toocol.termio.desktop.components.panel.ui to termio.platform;
+    opens com.toocol.termio.desktop.components.sidebar.ui to termio.platform;
+    opens com.toocol.termio.desktop.components.terminal.ui to termio.platform;
+    opens com.toocol.termio.desktop.components.homepage.ui to termio.platform;
+    opens com.toocol.termio.desktop.components.executor.ui to termio.platform;
     opens com.toocol.termio.desktop.api.term.module to termio.core;
     opens com.toocol.termio.desktop.api.term.handlers to termio.core;
     opens com.toocol.termio.desktop.api.ssh.module to termio.core;

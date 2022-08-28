@@ -3,7 +3,6 @@ package com.toocol.termio.utilities.unsafe;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -11,6 +10,7 @@ import java.nio.charset.StandardCharsets;
  * @date: 2022/8/27 21:14
  * @version: 0.0.1
  */
+@SuppressWarnings("all")
 public class UnsafeString {
     public static final Unsafe UNSAFE;
     public static final long STRING_VALUE_FIELD_OFFSET;
@@ -18,8 +18,8 @@ public class UnsafeString {
     public static final long STRING_COUNT_FIELD_OFFSET;
     public static final boolean ENABLED;
 
-    private static final boolean WRITE_TO_FINAL_FIELDS = Boolean.parseBoolean(System.getProperty("org.boon.write.to.final.string.fields", "true"));
-    private static final boolean DISABLE = Boolean.parseBoolean(System.getProperty("org.boon.faststringutils", "false"));
+    private static final boolean WRITE_TO_FINAL_FIELDS = true;
+    private static final boolean DISABLE = false;
 
     private static Unsafe loadUnsafe() {
         try {
@@ -57,60 +57,60 @@ public class UnsafeString {
     private enum StringImplementation {
         DIRECT_CHARS {
             @Override
-            public char[] toCharArray(String string) {
-                return (char[]) UNSAFE.getObject(string, STRING_VALUE_FIELD_OFFSET);
+            public byte[] toBytes(String string) {
+                return (byte[]) UNSAFE.getObject(string, STRING_VALUE_FIELD_OFFSET);
             }
 
             @Override
-            public String noCopyStringFromChars(char[] chars) {
+            public String noCopyStringFromBytes(byte[] bytes) {
                 if (WRITE_TO_FINAL_FIELDS) {
                     String string = new String();
-                    UNSAFE.putObject(string, STRING_VALUE_FIELD_OFFSET, chars);
+                    UNSAFE.putObject(string, STRING_VALUE_FIELD_OFFSET, bytes);
                     return string;
                 } else {
-                    return new String(chars);
+                    return new String(bytes);
                 }
             }
         },
         OFFSET {
             @Override
-            public char[] toCharArray(String string) {
-                char[] value = (char[]) UNSAFE.getObject(string, STRING_VALUE_FIELD_OFFSET);
+            public byte[] toBytes(String string) {
+                byte[] value = (byte[]) UNSAFE.getObject(string, STRING_VALUE_FIELD_OFFSET);
                 int offset = UNSAFE.getInt(string, STRING_OFFSET_FIELD_OFFSET);
                 int count = UNSAFE.getInt(string, STRING_COUNT_FIELD_OFFSET);
                 if (offset == 0 && count == value.length)
                     // no need to copy
                     return value;
                 else
-                    return string.toCharArray();
+                    return string.getBytes(StandardCharsets.UTF_8);
             }
 
             @Override
-            public String noCopyStringFromChars(char[] chars) {
+            public String noCopyStringFromBytes(byte[] bytes) {
                 if (WRITE_TO_FINAL_FIELDS) {
                     String string = new String();
-                    UNSAFE.putObject(string, STRING_VALUE_FIELD_OFFSET, chars);
-                    UNSAFE.putInt(string, STRING_COUNT_FIELD_OFFSET, chars.length);
+                    UNSAFE.putObject(string, STRING_VALUE_FIELD_OFFSET, bytes);
+                    UNSAFE.putInt(string, STRING_COUNT_FIELD_OFFSET, bytes.length);
                     return string;
                 } else {
-                    return new String(chars);
+                    return new String(bytes, StandardCharsets.UTF_8);
                 }
             }
         },
         UNKNOWN {
             @Override
-            public char[] toCharArray(String string) {
-                return string.toCharArray();
+            public byte[] toBytes(String string) {
+                return string.getBytes(StandardCharsets.UTF_8);
             }
 
             @Override
-            public String noCopyStringFromChars(char[] chars) {
-                return new String(chars);
+            public String noCopyStringFromBytes(byte[] bytes) {
+                return new String(bytes, StandardCharsets.UTF_8);
             }
         };
 
-        public abstract char[] toCharArray(String string);
-        public abstract String noCopyStringFromChars(char[] chars);
+        public abstract byte[] toBytes(String string);
+        public abstract String noCopyStringFromBytes(byte[] bytes);
     }
 
     public static StringImplementation STRING_IMPLEMENTATION = computeStringImplementation();
@@ -124,7 +124,6 @@ public class UnsafeString {
             } else if (STRING_OFFSET_FIELD_OFFSET == -1L && STRING_COUNT_FIELD_OFFSET == -1L) {
                 return StringImplementation.DIRECT_CHARS;
             } else {
-                // WTF
                 return StringImplementation.UNKNOWN;
             }
         } else {
@@ -139,32 +138,28 @@ public class UnsafeString {
     public static final char [] EMPTY_CHARS = new char[0];
     public static final String EMPTY_STRING = "";
 
-    public static char[] toCharArray(final String string) {
-        if (string == null) return EMPTY_CHARS;
-        return STRING_IMPLEMENTATION.toCharArray(string);
+    public static byte[] toBytes(final String string) {
+        if (string == null) return new byte[0];
+        return STRING_IMPLEMENTATION.toBytes(string);
 
     }
 
-    public static char[] toCharArrayNoCheck(final CharSequence charSequence) {
-        return toCharArray(charSequence.toString());
+    public static byte[] toBytesNoCheck(final CharSequence charSequence) {
+        return toBytes(charSequence.toString());
     }
 
-    public static char[] toCharArray(final CharSequence charSequence) {
-        if (charSequence == null) return EMPTY_CHARS;
-        return toCharArray(charSequence.toString());
+    public static byte[] toBytes(final CharSequence charSequence) {
+        if (charSequence == null) return new byte[0];
+        return toBytes(charSequence.toString());
     }
 
-    public static char[] toCharArrayFromBytes(final byte[] bytes, Charset charset) {
-        return toCharArray(new String(bytes, charset != null ? charset : StandardCharsets.UTF_8));
-    }
-
-    public static String noCopyStringFromChars(final char[] chars) {
-        if (chars==null) return EMPTY_STRING;
-        return STRING_IMPLEMENTATION.noCopyStringFromChars(chars);
+    public static String noCopyStringFromBytes(final byte[] bytes) {
+        if (bytes==null) return EMPTY_STRING;
+        return STRING_IMPLEMENTATION.noCopyStringFromBytes(bytes);
     }
 
 
-    public static String noCopyStringFromCharsNoCheck(final char[] chars) {
-        return STRING_IMPLEMENTATION.noCopyStringFromChars(chars);
+    public static String noCopyStringFromBytesNoCheck(final byte[] bytes) {
+        return STRING_IMPLEMENTATION.noCopyStringFromBytes(bytes);
     }
 }

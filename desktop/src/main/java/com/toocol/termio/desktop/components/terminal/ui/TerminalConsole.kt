@@ -8,7 +8,7 @@ import com.toocol.termio.utilities.console.Console
  * @date: 2022/8/2 0:43
  * @version: 0.0.1
  */
-class DesktopConsole<T : EscapedTextStyleClassArea>(private val textArea: T) : Console() {
+class TerminalConsole<T : EscapedTextStyleClassArea>(private val textArea: T) : Console() {
     override fun clear() {
         textArea.clear()
     }

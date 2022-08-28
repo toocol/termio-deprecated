@@ -5,6 +5,7 @@ import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent
 import com.toocol.termio.platform.ui.TBorderPane
 import javafx.scene.layout.Pane
+import jfxtras.styles.jmetro.JMetroStyleClass
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -20,7 +21,8 @@ class MajorPanel(id: Long) : TBorderPane(id) {
 
     override fun styleClasses(): Array<String> {
         return arrayOf(
-            "central-panel"
+            "central-panel",
+            JMetroStyleClass.BACKGROUND
         )
     }
 
@@ -28,7 +30,6 @@ class MajorPanel(id: Long) : TBorderPane(id) {
         styled()
         setPrefSize(1280.0, 800.0)
 
-        parser.parse(MajorPanel::class.java)
         parser.initializeAll()
         sizePropertyBind(this, 1.0, 1.0)
 
@@ -39,6 +40,10 @@ class MajorPanel(id: Long) : TBorderPane(id) {
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
         parser.getAsComponent(CenterPanel::class.java)?.sizePropertyBind(this, widthRatio!! * 0.85, heightRatio!! * 1.0)
         parser.getAsComponent(LeftSidePanel::class.java)?.sizePropertyBind(this, widthRatio!! * 0.15, heightRatio!! * 1.0)
+    }
+
+    init {
+        parser.parse(MajorPanel::class.java)
     }
 
     override fun actionAfterShow() {}

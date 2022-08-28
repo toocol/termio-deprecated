@@ -11,8 +11,8 @@ import org.fxmisc.flowless.VirtualizedScrollPane
  * @date: 2022/8/11 23:15
  * @version: 0.0.1
  */
-class TerminalScrollPane(private val id: Long, terminalConsoleTextArea: TerminalConsoleTextArea?) :
-    VirtualizedScrollPane<TerminalConsoleTextArea?>(terminalConsoleTextArea), IStyleAble, IComponent {
+class TerminalScrollPane(private val id: Long, terminalEmulatorTextArea: TerminalEmulatorTextArea?) :
+    VirtualizedScrollPane<TerminalEmulatorTextArea?>(terminalEmulatorTextArea), IStyleAble, IComponent {
     override fun styleClasses(): Array<String> {
         return arrayOf(
             "terminal-scroll-pane"

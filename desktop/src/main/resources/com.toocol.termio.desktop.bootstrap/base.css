@@ -1,0 +1,47 @@
+/* Scroll bar */
+.scroll-bar {
+    -fx-background-color: #111111;
+    -fx-border-color: #111111;
+    -fx-opacity: .9;
+}
+.scroll-bar .thumb {
+    -fx-background-insets: -9 4 -9 4;
+    -fx-background-color: #444;
+    -fx-opacity: .8;
+}
+.scroll-bar .thumb:hover {
+    -fx-background-insets: -9 4 -9 4;
+    -fx-background-color: #444;
+    -fx-opacity: 1;
+}
+.scroll-bar .track {
+    visibility: hidden;
+    -fx-background-insets: -9 0 -9 0;
+    -fx-background-color: #111111;
+    -fx-border-color: #111111;
+    -fx-opacity: .9;
+}
+.scroll-bar .decrement-button {
+    visibility: hidden;
+    -fx-background-color: #111111;
+    -fx-border-color: #111111;
+    -fx-opacity: .8;
+}
+.scroll-bar .decrement-button .decrement-arrow {
+    visibility: hidden;
+    -fx-background-color: #111111;
+    -fx-border-color: #111111;
+    -fx-opacity: .9;
+}
+.scroll-bar .increment-button {
+    visibility: hidden;
+    -fx-background-color: #111111;
+    -fx-border-color: #111111;
+    -fx-opacity: .9;
+}
+.scroll-bar .increment-button .increment-arrow {
+    visibility: hidden;
+    -fx-background-color: #111111;
+    -fx-border-color: #111111;
+    -fx-opacity: .9;
+}

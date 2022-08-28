@@ -11,8 +11,8 @@ import java.util.function.Consumer
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/3 15:09
  */
-abstract class Configure : Loggable, Castable {
-    private val subConfigureMap: MutableMap<String, SubConfigure> = HashMap()
+abstract class Configure<T : ConfigInstance> : Loggable, Castable {
+    private val subConfigureMap: MutableMap<String, SubConfigure<out ConfigInstance>> = HashMap()
 
     /**
      * the section's names that configure class should process.
@@ -27,7 +27,7 @@ abstract class Configure : Loggable, Castable {
     fun assignAssembleJob(name: String, section: Profile.Section) {
         if (name.contains(".")) {
             Optional.ofNullable(subConfigureMap[name])
-                .ifPresent { subConfigure: SubConfigure -> subConfigure.assemble(section) }
+                .ifPresent { subConfigure: SubConfigure<out ConfigInstance> -> subConfigure.assemble(section) }
         } else {
             assemble(section)
         }
@@ -43,7 +43,7 @@ abstract class Configure : Loggable, Castable {
             try {
                 val constructor = subClazz.getDeclaredConstructor()
                 constructor.isAccessible = true
-                val subConfigure = cast<SubConfigure>(constructor.newInstance())
+                val subConfigure = cast<SubConfigure<out ConfigInstance>>(constructor.newInstance())
                 subConfigureMap[subConfigure.section()] = subConfigure
                 info("Initialize sub configure success, class = {}", subClazz.name)
             } catch (e: Exception) {

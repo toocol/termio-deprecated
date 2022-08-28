@@ -15,7 +15,7 @@ import java.util.jar.JarFile;
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/7 15:34
  */
-public class ClassScanner {
+public class ClassScanner implements Castable{
 
     private final String packageName;
 

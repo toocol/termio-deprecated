@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
  * @date: 2022/8/13 15:10
  * @version:
  */
-class TerminalConsoleTextAreaTest {
+class TerminalEmulatorTextAreaTest {
 
     @Test
     void testStringEfficiency() {

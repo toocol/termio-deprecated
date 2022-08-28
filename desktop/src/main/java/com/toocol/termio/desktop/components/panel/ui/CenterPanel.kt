@@ -22,14 +22,12 @@ class CenterPanel(id: Long) : TVBox(id) {
 
     override fun styleClasses(): Array<String> {
         return arrayOf(
-
         )
     }
 
     override fun initialize() {
         styled()
 
-        parser.parse(CenterPanel::class.java)
         parser.initializeAll()
 
         children.addAll(parser.getAsNode(WorkspacePanel::class.java), parser.getAsNode(CommandExecutor::class.java))
@@ -45,5 +43,9 @@ class CenterPanel(id: Long) : TVBox(id) {
 
     override fun actionAfterShow() {
 
+    }
+
+    init {
+        parser.parse(CenterPanel::class.java)
     }
 }

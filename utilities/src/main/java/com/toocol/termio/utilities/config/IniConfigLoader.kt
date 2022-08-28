@@ -2,6 +2,7 @@ package com.toocol.termio.utilities.config
 
 import com.google.common.collect.ImmutableMap
 import com.toocol.termio.utilities.log.LoggerFactory.getLogger
+import com.toocol.termio.utilities.utils.Castable
 import com.toocol.termio.utilities.utils.ClassScanner
 import com.toocol.termio.utilities.utils.FileUtil
 import org.apache.commons.io.FileUtils
@@ -17,9 +18,9 @@ import java.util.stream.Collectors
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/3 15:07
  */
-object IniConfigLoader {
+object IniConfigLoader : Castable{
     private val logger = getLogger(IniConfigLoader::class.java)
-    private var sectionConfigureMap: Map<String, Configure>? = null
+    private var sectionConfigureMap: Map<String, Configure<out ConfigInstance>?>? = null
     private var configFileRootPath: String? = null
     private var configurePaths: Array<String>? = null
 
@@ -41,19 +42,19 @@ object IniConfigLoader {
             logger.warn("Configure paths is empty, skip config loading.")
             return
         }
-        val configures: MutableSet<Class<*>> = HashSet()
+        val configures: MutableSet<Class<Configure<out ConfigInstance>>> = HashSet()
         for (configurePath in configurePaths!!) {
-            configures.addAll(ClassScanner(configurePath) { clazz: Class<*> ->
+            configures.addAll(cast(ClassScanner(configurePath) { clazz: Class<*> ->
                 Optional.of(clazz.superclass)
                     .map { superClass: Class<*> -> superClass == Configure::class.java }
                     .orElse(false)
-            }.scan())
+            }.scan()))
         }
 
         sectionConfigureMap = ImmutableMap.copyOf(configures.stream()
             .map { clazz: Class<*> ->
                 try {
-                    val configure = clazz.getDeclaredConstructor().newInstance() as Configure
+                    val configure = clazz.getDeclaredConstructor().newInstance() as Configure<out ConfigInstance>
                     configure.initSubConfigure()
                     return@map configure
                 } catch (e: Exception) {
@@ -61,8 +62,8 @@ object IniConfigLoader {
                 }
                 null
             }
-            .filter { obj: Configure? -> Objects.nonNull(obj) }
-            .collect(Collectors.toMap({ obj: Configure? -> obj!!.section() }, { configure: Configure? -> configure })))
+            .filter { obj: Configure<out ConfigInstance>? -> Objects.nonNull(obj) }
+            .collect(Collectors.toMap({ obj: Configure<out ConfigInstance>? -> obj!!.section() }, { configure: Configure<out ConfigInstance>? -> configure })))
 
         logger.info("Initialize configures, size = ${sectionConfigureMap!!.size}")
         logger.info("Reading ini config file, path = $configFileRootPath")
@@ -70,7 +71,7 @@ object IniConfigLoader {
             for (section in ini!!.values) {
                 val key = if (section.name.contains(".")) section.name.split("\\.").toTypedArray()[0] else section.name
                 Optional.ofNullable(sectionConfigureMap!![key])
-                    .ifPresent { configure: Configure ->
+                    .ifPresent { configure: Configure<out ConfigInstance> ->
                         configure.assignAssembleJob(section.name, section)
                         logger.info("Assemble ini config section, section = {}", section.name)
                     }

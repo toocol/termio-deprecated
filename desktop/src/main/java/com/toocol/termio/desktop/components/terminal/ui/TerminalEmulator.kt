@@ -1,6 +1,5 @@
 package com.toocol.termio.desktop.components.terminal.ui
 
-import com.toocol.termio.platform.component.IActiveAble
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.console.TerminalConsolePrintStream
@@ -21,7 +20,7 @@ import java.nio.charset.StandardCharsets
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/4 11:06
  */
-class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble, Loggable {
+class TerminalEmulator(id: Long, sessionId: Long) : TAnchorPane(id), Loggable {
     /**
      * Each DesktopTerminalPanel or CommandExecutorPanel has one onw MetadataPrinterOutputStream and PrintStream correspondent:
      * Feedback data.
@@ -30,16 +29,16 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
     private val terminalPrintStream = TerminalConsolePrintStream(terminalWriterOutputStream)
     private val terminalOutputService = TerminalOutputService()
     private val terminalScrollPane: TerminalScrollPane
-    private val terminalConsoleTextArea: TerminalConsoleTextArea
+    private val terminalEmulatorTextArea: TerminalEmulatorTextArea
 
     init {
-        terminalConsoleTextArea = TerminalConsoleTextArea(id)
-        terminalScrollPane = TerminalScrollPane(id, terminalConsoleTextArea)
+        terminalEmulatorTextArea = TerminalEmulatorTextArea(id)
+        terminalScrollPane = TerminalScrollPane(id, terminalEmulatorTextArea)
     }
 
     override fun styleClasses(): Array<String> {
         return arrayOf(
-            "desktop-terminal-panel"
+            "desktop-terminal-panel",
         )
     }
 
@@ -49,11 +48,11 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
 
             children.add(terminalScrollPane)
 
-            setOnMouseClicked { terminalConsoleTextArea.requestFocus() }
+            setOnMouseClicked { terminalEmulatorTextArea.requestFocus() }
 
             focusedProperty().addListener {_, _, newVal ->
                 if (newVal) {
-                    terminalConsoleTextArea.requestFocus()
+                    terminalEmulatorTextArea.requestFocus()
                 }
             }
         }
@@ -62,7 +61,7 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
 
         terminalScrollPane.apply { initialize() }
 
-        terminalConsoleTextArea.apply {
+        terminalEmulatorTextArea.apply {
             initialize()
 
             /*
@@ -115,7 +114,7 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
                     error("Write to reader failed, msg = ${e.message}")
                 }
             }
-            onMouseClicked = EventHandler { terminalConsoleTextArea.requestFocus() }
+            onMouseClicked = EventHandler { terminalEmulatorTextArea.requestFocus() }
 
             focusedProperty()
                 .addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
@@ -130,20 +129,18 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
         heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
 
-        terminalConsoleTextArea.sizePropertyBind(major, widthRatio, heightRatio)
+        terminalEmulatorTextArea.sizePropertyBind(major, widthRatio, heightRatio)
     }
 
     override fun actionAfterShow() {}
-
-    override fun active() {}
 
     fun activeTerminal() {
         currentActiveId = id()
         setPrinter(terminalPrintStream)
     }
 
-    fun getConsoleTextAre(): TerminalConsoleTextArea {
-        return terminalConsoleTextArea
+    fun getConsoleTextAre(): TerminalEmulatorTextArea {
+        return terminalEmulatorTextArea
     }
 
     private inner class TerminalOutputService : Loggable {
@@ -153,7 +150,7 @@ class DesktopTerminal(id: Long, sessionId: Long) : TAnchorPane(id), IActiveAble,
                     try {
                         if (terminalWriterOutputStream.available() > 0) {
                             val text = terminalWriterOutputStream.read()
-                            terminalConsoleTextArea.append(text, terminalPrintStream)
+                            terminalEmulatorTextArea.append(text, terminalPrintStream)
                         }
                         Thread.sleep(1)
                     } catch (e: Exception) {

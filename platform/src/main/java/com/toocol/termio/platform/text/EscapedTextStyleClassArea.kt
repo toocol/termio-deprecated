@@ -108,9 +108,10 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
                     val start = if (cursor.inlinePosition <= length) cursor.inlinePosition else length
 
-                    val end = if (cursor.inlinePosition == length) cursor.inlinePosition
+                    var end = if (cursor.inlinePosition == length) cursor.inlinePosition
                     else if (cursor.inlinePosition < length) cursor.inlinePosition + content.length
                     else length
+                    end = if (end > length) length else end
 
                     multiChange.replace(start, end, ReadOnlyStyledDocument.fromString(content, paragraphStyle,
                         if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle,
@@ -138,9 +139,10 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
                 val start = if (cursor.inlinePosition <= length) cursor.inlinePosition else length
 
-                val end = if (cursor.inlinePosition == length) cursor.inlinePosition
+                var end = if (cursor.inlinePosition == length) cursor.inlinePosition
                 else if (cursor.inlinePosition < length) cursor.inlinePosition + content.length
                 else length
+                end = if (end > length) length else end
 
                 multiChange.replace(start, end, ReadOnlyStyledDocument.fromString(content, paragraphStyle,
                     if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle,

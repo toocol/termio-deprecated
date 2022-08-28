@@ -11,6 +11,8 @@ import javafx.scene.Parent;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import jfxtras.styles.jmetro.JMetro;
+import jfxtras.styles.jmetro.Style;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,6 +81,7 @@ import java.io.InputStream;
 )
 @RegisterCssFile(
         name = {
+                "base.css",
                 "termio.css"
         }
 )

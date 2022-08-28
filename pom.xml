@@ -47,6 +47,8 @@
         <org.openjfx.web.version>18.0.1</org.openjfx.web.version>
         <org.openjfx.swing.version>18.0.1</org.openjfx.swing.version>
         <org.openjfx.packager.version>18.0.1</org.openjfx.packager.version>
+        <org.openjfx.graphics.version>18.0.1</org.openjfx.graphics.version>
+        <org.openjfx.javafx-base.version>18.0.1</org.openjfx.javafx-base.version>
         <org.controlsfx.version>11.1.1</org.controlsfx.version>
         <com.dlsc.formsfx.version>11.5.0</com.dlsc.formsfx.version>
         <net.synedra.version>0.3.1</net.synedra.version>
@@ -54,6 +56,7 @@
         <org.kordamp.bootstrapfx.version>0.4.0</org.kordamp.bootstrapfx.version>
         <eu.hansolo.version>17.1.9</eu.hansolo.version>
         <org.fxmisc.richtext.version>0.10.9</org.fxmisc.richtext.version>
+        <org.jfxtras.jmetro.version>11.6.14</org.jfxtras.jmetro.version>
 
         <!-- test dependency -->
         <junit.version>5.9.0</junit.version>
@@ -118,6 +121,11 @@
             </dependency>
             <dependency>
                 <groupId>org.openjfx</groupId>
+                <artifactId>javafx-base</artifactId>
+                <version>${org.openjfx.javafx-base.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openjfx</groupId>
                 <artifactId>javafx-controls</artifactId>
                 <version>${org.openjfx.controls.version}</version>
             </dependency>
@@ -147,6 +155,11 @@
                 <version>${org.controlsfx.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-graphics</artifactId>
+                <version>${org.openjfx.graphics.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.dlsc.formsfx</groupId>
                 <artifactId>formsfx-core</artifactId>
                 <version>${com.dlsc.formsfx.version}</version>
@@ -170,6 +183,11 @@
                 <groupId>eu.hansolo</groupId>
                 <artifactId>tilesfx</artifactId>
                 <version>${eu.hansolo.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jfxtras</groupId>
+                <artifactId>jmetro</artifactId>
+                <version>${org.jfxtras.jmetro.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

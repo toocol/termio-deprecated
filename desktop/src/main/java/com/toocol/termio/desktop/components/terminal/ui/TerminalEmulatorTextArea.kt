@@ -51,7 +51,7 @@ import org.fxmisc.richtext.Caret
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/6 14:06
  */
-class TerminalConsoleTextArea(id: Long) : EscapedTextStyleClassArea(id), Castable, IComponent, IStyleAble {
+class TerminalEmulatorTextArea(id: Long) : EscapedTextStyleClassArea(id), Castable, IComponent, IStyleAble {
 
     override fun styleClasses(): Array<String> {
         return arrayOf(

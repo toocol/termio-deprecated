@@ -10,6 +10,8 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.Pane
+import jfxtras.styles.jmetro.JMetro
+import jfxtras.styles.jmetro.Style
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -31,8 +33,10 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
     override fun initialize() {
         styled()
 
-        parser.parse(LeftSidePanel::class.java)
         parser.initializeAll()
+
+        val jmetro = JMetro(Style.LIGHT)
+        jmetro.parent = this
 
         val scene = findComponent(TScene::class.java, 1)
         val alt1: KeyCombination = KeyCodeCombination(KeyCode.DIGIT1, KeyCombination.ALT_DOWN)
@@ -59,5 +63,9 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
     }
 
     override fun actionAfterShow() {
+    }
+
+    init {
+        parser.parse(LeftSidePanel::class.java)
     }
 }
