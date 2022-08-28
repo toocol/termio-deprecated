@@ -64,7 +64,6 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     private var currentChineseTextStyle: TextStyle = TextStyle.EMPTY
     private var currentEnglishTextStyle: TextStyle = TextStyle.EMPTY
 
-    private var actionMap: Map<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>>? = null
     private var paragraphSizeWatch: Int = 0
 
     private val ansiEscapeSearchEngine: AnsiEscapeSearchEngine<EscapedTextStyleClassArea> = AnsiEscapeSearchEngine()
@@ -159,28 +158,6 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         return actionMap
     }
 
-    private fun registerActions() {
-        val actions: MutableList<AnsiEscapeAction<EscapedTextStyleClassArea>> = ArrayList()
-        actions.add(EscapeAsciiControlAction())
-        actions.add(EscapeCursorControlAction())
-        actions.add(EscapeEraseFunctionsAction())
-        actions.add(EscapeColorGraphicsCombineAction())
-        actions.add(EscapeColorGraphicsAction())
-        actions.add(EscapeColor8To16Action())
-        actions.add(EscapeColorISOAction())
-        actions.add(EscapeColor256Action())
-        actions.add(EscapeColorRgbAction())
-        actions.add(EscapeScreenAction())
-        actions.add(EscapeCommonPrivateAction())
-        actions.add(EscapeKeyBoardStringAction())
-        actions.add(EscapeOscBelAction())
-        val map: MutableMap<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>> = HashMap()
-        for (action in actions) {
-            map[action.focusMode()] = action
-        }
-        actionMap = ImmutableMap.copyOf(map)
-    }
-
     private fun calculateCursorInline(line: Int, col: Int): Int {
         return position(line, col).toOffset()
     }
@@ -243,302 +220,334 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
     }
 
-    private class EscapeAsciiControlAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
-        override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeAsciiControlMode::class.java
-        }
-
-        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            when (escapeMode) {
-                BEL -> println("System bel")
-                BACKSPACE -> executeTarget.cursorLeft(1)
-                ENTER -> executeTarget.moveCursorLineHead(0)
+    private class EscapeAsciiControlAction {
+        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+            override fun focusMode(): Class<out IEscapeMode> {
+                return EscapeAsciiControlMode::class.java
             }
-        }
-    }
 
-    private class EscapeCursorControlAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
-        override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeCursorControlMode::class.java
-        }
-
-        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            when (escapeMode) {
-                MOVE_CURSOR_TO_CERTAIN -> {
-                    val line = params!![0].toString().toInt()
-                    val col = params[1].toString().toInt()
-                    executeTarget.setCursorTo(line, col * 2)
-                }
-                MOVE_HOME_POSITION -> executeTarget.setCursorTo(0, 0)
-                MOVE_CURSOR_UP -> executeTarget.cursorUp(params!![0].toString().toInt())
-                MOVE_CURSOR_DOWN -> executeTarget.cursorDown(params!![0].toString().toInt())
-                MOVE_CURSOR_LEFT -> executeTarget.cursorLeft(params!![0].toString().toInt())
-                MOVE_CURSOR_RIGHT -> executeTarget.cursorRight(params!![0].toString().toInt())
-                MOVE_CURSOR_NEXT_LINE_HEAD -> executeTarget.moveCursorLineHead(params!![0].toString().toInt())
-                MOVE_CURSOR_PREVIOUS_LINE_HEAD -> executeTarget.moveCursorLineHead(-params!![0].toString().toInt())
-                MOVE_CURSOR_TO_COLUMN -> executeTarget.setColumnTo(params!![0].toString().toInt())
-                REQUEST_CURSOR_POSITION -> {}
-                MOVE_CURSOR_ONE_LINE_UP -> executeTarget.moveCursorLineUp(1)
-                SAVE_CURSOR_POSITION_DEC -> {}
-                RESTORE_CURSOR_POSITION_DEC -> {}
-                SAVE_CURSOR_POSITION_SCO -> {}
-                RESTORE_CURSOR_POSITION_SCO -> {}
-            }
-        }
-    }
-
-    private class EscapeEraseFunctionsAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
-        override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeEraseFunctionsMode::class.java
-        }
-
-        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            when (escapeMode) {
-                ERASE_IN_DISPLAY -> {}
-                ERASE_CURSOR_LINE_TO_END -> {}
-                ERASE_CURSOR_LINE_TO_BEGINNING -> {}
-                ERASE_SCREEN -> {
-                    executeTarget.clear()
-                }
-                ERASE_SAVED_LINE -> {}
-                ERASE_IN_LINE -> {}
-                ERASE_CURSOR_TO_LINE_END -> {}
-                ERASE_CURSOR_TO_LINE_START -> {}
-                ERASE_LINE -> {}
-            }
-        }
-    }
-
-    private class EscapeColorGraphicsCombineAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
-        override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeColorGraphicsCombine::class.java
-        }
-
-        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            if (escapeMode is EscapeColorGraphicsCombine) {
-                escapeMode.list.forEach {
-                    executeTarget.actionMap!![it::class.java]!!.action(executeTarget, it, null)
+            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+                when (escapeMode) {
+                    BEL -> println("System bel")
+                    BACKSPACE -> executeTarget.cursorLeft(1)
+                    ENTER -> executeTarget.moveCursorLineHead(0)
                 }
             }
         }
     }
 
-    private class EscapeColorGraphicsAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
-        override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeColorGraphicsMode::class.java
-        }
+    private class EscapeCursorControlAction {
+        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+            override fun focusMode(): Class<out IEscapeMode> {
+                return EscapeCursorControlMode::class.java
+            }
 
-        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            when (escapeMode) {
-                RESET_ALL_MODE -> {
-                    executeTarget.currentChineseTextStyle = executeTarget.defaultChineseTextStyle
-                    executeTarget.currentEnglishTextStyle = executeTarget.defaultEnglishTextStyle
+            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+                when (escapeMode) {
+                    MOVE_CURSOR_TO_CERTAIN -> {
+                        val line = params!![0].toString().toInt()
+                        val col = params[1].toString().toInt()
+                        executeTarget.setCursorTo(line, col * 2)
+                    }
+                    MOVE_HOME_POSITION -> executeTarget.setCursorTo(0, 0)
+                    MOVE_CURSOR_UP -> executeTarget.cursorUp(params!![0].toString().toInt())
+                    MOVE_CURSOR_DOWN -> executeTarget.cursorDown(params!![0].toString().toInt())
+                    MOVE_CURSOR_LEFT -> executeTarget.cursorLeft(params!![0].toString().toInt())
+                    MOVE_CURSOR_RIGHT -> executeTarget.cursorRight(params!![0].toString().toInt())
+                    MOVE_CURSOR_NEXT_LINE_HEAD -> executeTarget.moveCursorLineHead(params!![0].toString().toInt())
+                    MOVE_CURSOR_PREVIOUS_LINE_HEAD -> executeTarget.moveCursorLineHead(-params!![0].toString().toInt())
+                    MOVE_CURSOR_TO_COLUMN -> executeTarget.setColumnTo(params!![0].toString().toInt())
+                    REQUEST_CURSOR_POSITION -> {}
+                    MOVE_CURSOR_ONE_LINE_UP -> executeTarget.moveCursorLineUp(1)
+                    SAVE_CURSOR_POSITION_DEC -> {}
+                    RESTORE_CURSOR_POSITION_DEC -> {}
+                    SAVE_CURSOR_POSITION_SCO -> {}
+                    RESTORE_CURSOR_POSITION_SCO -> {}
                 }
-                BOLD_MODE -> {
-                    executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateBold(true)
-                    executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateBold(true)
+            }
+        }
+    }
+
+    private class EscapeEraseFunctionsAction {
+        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+            override fun focusMode(): Class<out IEscapeMode> {
+                return EscapeEraseFunctionsMode::class.java
+            }
+
+            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+                when (escapeMode) {
+                    ERASE_IN_DISPLAY -> {}
+                    ERASE_CURSOR_LINE_TO_END -> {}
+                    ERASE_CURSOR_LINE_TO_BEGINNING -> {}
+                    ERASE_SCREEN -> {
+                        executeTarget.clear()
+                    }
+                    ERASE_SAVED_LINE -> {}
+                    ERASE_IN_LINE -> {}
+                    ERASE_CURSOR_TO_LINE_END -> {}
+                    ERASE_CURSOR_TO_LINE_START -> {}
+                    ERASE_LINE -> {}
                 }
-                DIM_FAINT_MODE -> {}
-                RESET_BOLD_DIM_FAINT -> {
-                    executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateBold(false)
-                    executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateBold(false)
+            }
+        }
+    }
+
+    private class EscapeColorGraphicsCombineAction {
+        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+            override fun focusMode(): Class<out IEscapeMode> {
+                return EscapeColorGraphicsCombine::class.java
+            }
+
+            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+                if (escapeMode is EscapeColorGraphicsCombine) {
+                    escapeMode.list.forEach {
+                        actionMap!![it::class.java]!!.action(executeTarget, it, null)
+                    }
                 }
-                ITALIC_MODE -> {
-                    executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateItalic(true)
-                    executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateItalic(true)
+            }
+        }
+    }
+
+    private class EscapeColorGraphicsAction {
+        companion object Instace : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+            override fun focusMode(): Class<out IEscapeMode> {
+                return EscapeColorGraphicsMode::class.java
+            }
+
+            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+                when (escapeMode) {
+                    RESET_ALL_MODE -> {
+                        executeTarget.currentChineseTextStyle = executeTarget.defaultChineseTextStyle
+                        executeTarget.currentEnglishTextStyle = executeTarget.defaultEnglishTextStyle
+                    }
+                    BOLD_MODE -> {
+                        executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateBold(true)
+                        executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateBold(true)
+                    }
+                    DIM_FAINT_MODE -> {}
+                    RESET_BOLD_DIM_FAINT -> {
+                        executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateBold(false)
+                        executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateBold(false)
+                    }
+                    ITALIC_MODE -> {
+                        executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateItalic(true)
+                        executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateItalic(true)
+                    }
+                    RESET_ITALIC -> {
+                        executeTarget.currentChineseTextStyle =
+                            executeTarget.currentChineseTextStyle.updateItalic(false)
+                        executeTarget.currentEnglishTextStyle =
+                            executeTarget.currentEnglishTextStyle.updateItalic(false)
+                    }
+                    UNDERLINE_MODE -> {
+                        executeTarget.currentChineseTextStyle =
+                            executeTarget.currentChineseTextStyle.updateUnderline(true)
+                        executeTarget.currentEnglishTextStyle =
+                            executeTarget.currentEnglishTextStyle.updateUnderline(true)
+                    }
+                    RESET_UNDERLINE -> {
+                        executeTarget.currentChineseTextStyle =
+                            executeTarget.currentChineseTextStyle.updateUnderline(false)
+                        executeTarget.currentEnglishTextStyle =
+                            executeTarget.currentEnglishTextStyle.updateUnderline(false)
+                    }
+                    BLINKING_MODE -> {}
+                    RESET_BLINKING -> {}
+                    INVERSE_REVERSE_MODE -> {}
+                    RESET_INVERSE_REVERSE -> {}
+                    HIDDEN_VISIBLE_MODE -> {}
+                    RESET_HIDDEN_VISIBLE -> {}
+                    STRIKETHROUGH_MODE -> {
+                        executeTarget.currentChineseTextStyle =
+                            executeTarget.currentChineseTextStyle.updateStrikethrough(true)
+                        executeTarget.currentEnglishTextStyle =
+                            executeTarget.currentEnglishTextStyle.updateStrikethrough(true)
+                    }
+                    RESET_STRIKETHROUGH -> {
+                        executeTarget.currentChineseTextStyle =
+                            executeTarget.currentChineseTextStyle.updateStrikethrough(false)
+                        executeTarget.currentEnglishTextStyle =
+                            executeTarget.currentEnglishTextStyle.updateStrikethrough(false)
+                    }
                 }
-                RESET_ITALIC -> {
-                    executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateItalic(false)
-                    executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateItalic(false)
-                }
-                UNDERLINE_MODE -> {
-                    executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateUnderline(true)
-                    executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateUnderline(true)
-                }
-                RESET_UNDERLINE -> {
-                    executeTarget.currentChineseTextStyle = executeTarget.currentChineseTextStyle.updateUnderline(false)
-                    executeTarget.currentEnglishTextStyle = executeTarget.currentEnglishTextStyle.updateUnderline(false)
-                }
-                BLINKING_MODE -> {}
-                RESET_BLINKING -> {}
-                INVERSE_REVERSE_MODE -> {}
-                RESET_INVERSE_REVERSE -> {}
-                HIDDEN_VISIBLE_MODE -> {}
-                RESET_HIDDEN_VISIBLE -> {}
-                STRIKETHROUGH_MODE -> {
+            }
+        }
+    }
+
+    private class EscapeColor8To16Action {
+        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+            override fun focusMode(): Class<out IEscapeMode> {
+                return EscapeColor8To16Mode::class.java
+            }
+
+            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+                val mode = escapeMode as EscapeColor8To16Mode
+                val colorHex = mode.hexCode
+                if (mode.foreground) {
                     executeTarget.currentChineseTextStyle =
-                        executeTarget.currentChineseTextStyle.updateStrikethrough(true)
+                        executeTarget.currentChineseTextStyle.updateTextColor(Color.valueOf(colorHex))
                     executeTarget.currentEnglishTextStyle =
-                        executeTarget.currentEnglishTextStyle.updateStrikethrough(true)
-                }
-                RESET_STRIKETHROUGH -> {
+                        executeTarget.currentEnglishTextStyle.updateTextColor(Color.valueOf(colorHex))
+                } else {
                     executeTarget.currentChineseTextStyle =
-                        executeTarget.currentChineseTextStyle.updateStrikethrough(false)
+                        executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
                     executeTarget.currentEnglishTextStyle =
-                        executeTarget.currentEnglishTextStyle.updateStrikethrough(false)
+                        executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
                 }
             }
         }
     }
 
-    private class EscapeColor8To16Action : AnsiEscapeAction<EscapedTextStyleClassArea>() {
-        override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeColor8To16Mode::class.java
-        }
+    private class EscapeColorISOAction {
+        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+            override fun focusMode(): Class<out IEscapeMode> {
+                return EscapeColorISOMode::class.java
+            }
 
-        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            val mode = escapeMode as EscapeColor8To16Mode
-            val colorHex = mode.hexCode
-            if (mode.foreground) {
-                executeTarget.currentChineseTextStyle =
-                    executeTarget.currentChineseTextStyle.updateTextColor(Color.valueOf(colorHex))
-                executeTarget.currentEnglishTextStyle =
-                    executeTarget.currentEnglishTextStyle.updateTextColor(Color.valueOf(colorHex))
-            } else {
-                executeTarget.currentChineseTextStyle =
-                    executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
-                executeTarget.currentEnglishTextStyle =
-                    executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
+            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+                val mode = escapeMode as EscapeColorISOMode
+                val colorHex = mode.hexCode
+                if (mode.foreground) {
+                    executeTarget.currentChineseTextStyle =
+                        executeTarget.currentChineseTextStyle.updateTextColor(Color.valueOf(colorHex))
+                    executeTarget.currentEnglishTextStyle =
+                        executeTarget.currentEnglishTextStyle.updateTextColor(Color.valueOf(colorHex))
+                } else {
+                    executeTarget.currentChineseTextStyle =
+                        executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
+                    executeTarget.currentEnglishTextStyle =
+                        executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
+                }
             }
         }
     }
 
-    private class EscapeColorISOAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
-        override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeColorISOMode::class.java
-        }
+    private class EscapeColor256Action {
+        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+            override fun focusMode(): Class<out IEscapeMode> {
+                return EscapeColor256Mode::class.java
+            }
 
-        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            val mode = escapeMode as EscapeColorISOMode
-            val colorHex = mode.hexCode
-            if (mode.foreground) {
-                executeTarget.currentChineseTextStyle =
-                    executeTarget.currentChineseTextStyle.updateTextColor(Color.valueOf(colorHex))
-                executeTarget.currentEnglishTextStyle =
-                    executeTarget.currentEnglishTextStyle.updateTextColor(Color.valueOf(colorHex))
-            } else {
-                executeTarget.currentChineseTextStyle =
-                    executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
-                executeTarget.currentEnglishTextStyle =
-                    executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
+            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+                val foreground = params!![0].toString().toBoolean()
+                val mode = escapeMode as EscapeColor256Mode
+                val colorHex = mode.hexCode
+                if (foreground) {
+                    executeTarget.currentChineseTextStyle =
+                        executeTarget.currentChineseTextStyle.updateTextColor(Color.valueOf(colorHex))
+                    executeTarget.currentEnglishTextStyle =
+                        executeTarget.currentEnglishTextStyle.updateTextColor(Color.valueOf(colorHex))
+                } else {
+                    executeTarget.currentChineseTextStyle =
+                        executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
+                    executeTarget.currentEnglishTextStyle =
+                        executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
+                }
             }
         }
     }
 
-    private class EscapeColor256Action : AnsiEscapeAction<EscapedTextStyleClassArea>() {
-        override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeColor256Mode::class.java
-        }
+    private class EscapeColorRgbAction {
+        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+            override fun focusMode(): Class<out IEscapeMode> {
+                return EscapeColorRgbMode::class.java
+            }
 
-        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            val foreground = params!![0].toString().toBoolean()
-            val mode = escapeMode as EscapeColor256Mode
-            val colorHex = mode.hexCode
-            if (foreground) {
-                executeTarget.currentChineseTextStyle =
-                    executeTarget.currentChineseTextStyle.updateTextColor(Color.valueOf(colorHex))
-                executeTarget.currentEnglishTextStyle =
-                    executeTarget.currentEnglishTextStyle.updateTextColor(Color.valueOf(colorHex))
-            } else {
-                executeTarget.currentChineseTextStyle =
-                    executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
-                executeTarget.currentEnglishTextStyle =
-                    executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.valueOf(colorHex))
+            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+                val foreground = params!![0].toString().toBoolean()
+                val r = params[2].toString().toDouble()
+                val g = params[3].toString().toDouble()
+                val b = params[4].toString().toDouble()
+                if (foreground) {
+                    executeTarget.currentChineseTextStyle =
+                        executeTarget.currentChineseTextStyle.updateTextColor(Color.color(r, g, b))
+                    executeTarget.currentEnglishTextStyle =
+                        executeTarget.currentEnglishTextStyle.updateTextColor(Color.color(r, g, b))
+                } else {
+                    executeTarget.currentChineseTextStyle =
+                        executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.color(r, g, b))
+                    executeTarget.currentEnglishTextStyle =
+                        executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.color(r, g, b))
+                }
             }
         }
     }
 
-    private class EscapeColorRgbAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
-        override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeColorRgbMode::class.java
-        }
+    private class EscapeScreenAction {
+        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+            override fun focusMode(): Class<out IEscapeMode> {
+                return EscapeScreenMode::class.java
+            }
 
-        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            val foreground = params!![0].toString().toBoolean()
-            val r = params[2].toString().toDouble()
-            val g = params[3].toString().toDouble()
-            val b = params[4].toString().toDouble()
-            if (foreground) {
-                executeTarget.currentChineseTextStyle =
-                    executeTarget.currentChineseTextStyle.updateTextColor(Color.color(r, g, b))
-                executeTarget.currentEnglishTextStyle =
-                    executeTarget.currentEnglishTextStyle.updateTextColor(Color.color(r, g, b))
-            } else {
-                executeTarget.currentChineseTextStyle =
-                    executeTarget.currentChineseTextStyle.updateBackgroundColor(Color.color(r, g, b))
-                executeTarget.currentEnglishTextStyle =
-                    executeTarget.currentEnglishTextStyle.updateBackgroundColor(Color.color(r, g, b))
+            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+                when (escapeMode) {
+                    MONOCHROME_40_25 -> {}
+                    COLOR_4_40_25 -> {}
+                    MONOCHROME_80_25 -> {}
+                    COLOR_4_80_25 -> {}
+                    COLOR_4_320_200 -> {}
+                    MONOCHROME_320_200 -> {}
+                    MONOCHROME_640_200 -> {}
+                    ENABLE_LINE_WRAPPING -> {}
+                    COLOR_16_320_200 -> {}
+                    COLOR_16_640_200 -> {}
+                    MONOCHROME_640_350 -> {}
+                    COLOR_16_640_350 -> {}
+                    MONOCHROME_640_480 -> {}
+                    COLOR_640_480 -> {}
+                    COLOR_256_320_200 -> {}
+                }
             }
         }
     }
 
-    private class EscapeScreenAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
-        override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeScreenMode::class.java
-        }
+    private class EscapeCommonPrivateAction {
+        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+            override fun focusMode(): Class<out IEscapeMode> {
+                return EscapeCommonPrivateMode::class.java
+            }
 
-        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            when (escapeMode) {
-                MONOCHROME_40_25 -> {}
-                COLOR_4_40_25 -> {}
-                MONOCHROME_80_25 -> {}
-                COLOR_4_80_25 -> {}
-                COLOR_4_320_200 -> {}
-                MONOCHROME_320_200 -> {}
-                MONOCHROME_640_200 -> {}
-                ENABLE_LINE_WRAPPING -> {}
-                COLOR_16_320_200 -> {}
-                COLOR_16_640_200 -> {}
-                MONOCHROME_640_350 -> {}
-                COLOR_16_640_350 -> {}
-                MONOCHROME_640_480 -> {}
-                COLOR_640_480 -> {}
-                COLOR_256_320_200 -> {}
+            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+                when (escapeMode) {
+                    CURSOR_INVISIBLE -> {}
+                    CURSOR_VISIBLE -> {}
+                    RESTORE_SCREEN -> {}
+                    SAVE_SCREEN -> {}
+                    ENABLE_ALTERNATIVE_BUFFER -> {}
+                    DISABLE_ALTERNATIVE_BUFFER -> {}
+                }
             }
         }
     }
 
-    private class EscapeCommonPrivateAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
-        override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeCommonPrivateMode::class.java
-        }
+    private class EscapeKeyBoardStringAction {
+        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+            override fun focusMode(): Class<out IEscapeMode> {
+                return EscapeKeyBoardStringMode::class.java
+            }
 
-        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            when (escapeMode) {
-                CURSOR_INVISIBLE -> {}
-                CURSOR_VISIBLE -> {}
-                RESTORE_SCREEN -> {}
-                SAVE_SCREEN -> {}
-                ENABLE_ALTERNATIVE_BUFFER -> {}
-                DISABLE_ALTERNATIVE_BUFFER -> {}
+            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+                val code = params!![0]
+                val string = params[1]
             }
         }
     }
 
-    private class EscapeKeyBoardStringAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
-        override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeKeyBoardStringMode::class.java
-        }
+    private class EscapeOscBelAction {
+        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+            override fun focusMode(): Class<out IEscapeMode> {
+                return EscapeOSCMode::class.java
+            }
 
-        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            val code = params!![0]
-            val string = params[1]
-        }
-    }
-
-    private class EscapeOscBelAction : AnsiEscapeAction<EscapedTextStyleClassArea>() {
-        override fun focusMode(): Class<out IEscapeMode> {
-            return EscapeOSCMode::class.java
-        }
-
-        override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
-            val parameter = params!![0]
-            when (escapeMode) {
-                RENAMING_TAB_TITLE_0 -> println("Renaming tab: $parameter")
-                RENAMING_TAB_TITLE_1 -> println("Renaming tab: $parameter")
-                RENAMING_WIDOW_TITLE -> println("Renaming window: $parameter")
-                ECHO_WORKING_DOCUMENT -> {}
-                ECHO_WORKING_DIRECTORY -> {}
+            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+                val parameter = params!![0]
+                when (escapeMode) {
+                    RENAMING_TAB_TITLE_0 -> println("Renaming tab: $parameter")
+                    RENAMING_TAB_TITLE_1 -> println("Renaming tab: $parameter")
+                    RENAMING_WIDOW_TITLE -> println("Renaming window: $parameter")
+                    ECHO_WORKING_DOCUMENT -> {}
+                    ECHO_WORKING_DIRECTORY -> {}
+                }
             }
         }
     }
@@ -549,7 +558,6 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             Codec.styledSegmentCodec(Codec.STRING_CODEC, TextStyle.CODEC)
         )
         this.registerComponent(id)
-        this.registerActions()
 
         cursor = Cursor(id)
 
@@ -590,11 +598,34 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
     companion object {
         private val styledTextOps = SegmentOps.styledTextOps<TextStyle>()
+        private var actionMap: Map<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>>? = null
         private fun createNode(
             seg: StyledSegment<String, TextStyle>,
             applyStyle: BiConsumer<in TextExt, TextStyle>,
         ): Node {
             return StyledTextArea.createStyledTextNode(seg.segment, seg.style, applyStyle)
+        }
+
+        init {
+            val actions: MutableList<AnsiEscapeAction<EscapedTextStyleClassArea>> = ArrayList()
+            actions.add(EscapeAsciiControlAction.Instance)
+            actions.add(EscapeCursorControlAction.Instance)
+            actions.add(EscapeEraseFunctionsAction.Instance)
+            actions.add(EscapeColorGraphicsCombineAction.Instance)
+            actions.add(EscapeColorGraphicsAction.Instace)
+            actions.add(EscapeColor8To16Action.Instance)
+            actions.add(EscapeColorISOAction.Instance)
+            actions.add(EscapeColor256Action.Instance)
+            actions.add(EscapeColorRgbAction.Instance)
+            actions.add(EscapeScreenAction.Instance)
+            actions.add(EscapeCommonPrivateAction.Instance)
+            actions.add(EscapeKeyBoardStringAction.Instance)
+            actions.add(EscapeOscBelAction.Instance)
+            val map: MutableMap<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>> = HashMap()
+            for (action in actions) {
+                map[action.focusMode()] = action
+            }
+            actionMap = ImmutableMap.copyOf(map)
         }
     }
 }

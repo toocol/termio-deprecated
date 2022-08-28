@@ -86,9 +86,6 @@ class TerminalEmulatorTextArea(id: Long) : EscapedTextStyleClassArea(id), Castab
 
     override fun actionAfterShow() {}
 
-    val physicLines: Int
-        get() = paragraphs.size
-
     private class InputMethodRequestsObject : InputMethodRequests {
         override fun getSelectedText(): String {
             return ""

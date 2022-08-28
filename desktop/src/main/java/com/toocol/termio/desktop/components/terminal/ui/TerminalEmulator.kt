@@ -139,7 +139,7 @@ class TerminalEmulator(id: Long, sessionId: Long) : TAnchorPane(id), Loggable {
         setPrinter(terminalPrintStream)
     }
 
-    fun getConsoleTextAre(): TerminalEmulatorTextArea {
+    fun getTerminalTextAre(): TerminalEmulatorTextArea {
         return terminalEmulatorTextArea
     }
 
