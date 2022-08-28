@@ -102,9 +102,9 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
                 lastInput = command.getSpecify();
             } else {
                 AnsiStringBuilder builder = new AnsiStringBuilder().background(backgroundColor)
-                        .append("Didn't find command '")
+                        .append("Command not found: ")
                         .front(commandHighlightColor).append(cmd).deFront()
-                        .append("'\n\n")
+                        .append("\n\n")
                         .append("Press ")
                         .front(commandHighlightColor)
                         .append("Ctrl+U").deFront()
@@ -126,8 +126,8 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
             TermCommand splitCommand = COMMANDS.get(split[0]);
             if (splitCommand == null) {
                 AnsiStringBuilder printMsg = new AnsiStringBuilder().background(backgroundColor)
-                        .append("Didn't find command '")
-                        .front(commandHighlightColor).append(split[0]).deFront().append("'");
+                        .append("Command not found: ")
+                        .front(commandHighlightColor).append(split[0]).deFront();
                 String alikeCommand = TermCommand.findAlike(split[0]);
                 if (alikeCommand != null) {
                     printMsg.append(", do you mean: ").front(commandHighlightColor).append(alikeCommand).deFront();
@@ -169,9 +169,9 @@ public final class DynamicEchoHandler extends NonBlockingMessageHandler {
                 lastInput = titleMsg.toString();
             } else {
                 AnsiStringBuilder builder = new AnsiStringBuilder().background(backgroundColor)
-                        .append("Didn't find command '")
+                        .append("Command not found: ")
                         .front(commandHighlightColor).append(cmd).deFront()
-                        .append("'\n\n")
+                        .append("\n\n")
                         .append("Press ")
                         .front(commandHighlightColor)
                         .append("Ctrl+U").deFront()

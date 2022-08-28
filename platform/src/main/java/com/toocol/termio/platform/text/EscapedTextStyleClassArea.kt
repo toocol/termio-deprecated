@@ -101,10 +101,10 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             val split = text.split("\n")
             split.forEachIndexed { index, str ->
                 StrUtil.splitSequenceByChinese(str).forEach {
-                    val content = if (it.isNotEmpty()) StrUtil.join(it.toCharArray(),
+                    var content = if (it.isNotEmpty()) StrUtil.join(it.toCharArray(),
                         CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR
                     else it
-                    content.replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE)
+                    content = content.replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE)
 
                     val start = if (cursor.inlinePosition <= length) cursor.inlinePosition else length
 
@@ -132,10 +132,10 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             }
         } else {
             StrUtil.splitSequenceByChinese(text).forEach {
-                val content = if (it.isNotEmpty()) StrUtil.join(it.toCharArray(),
+                var content = if (it.isNotEmpty()) StrUtil.join(it.toCharArray(),
                     CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR
                 else it
-                content.replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE)
+                content = content.replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE)
 
                 val start = if (cursor.inlinePosition <= length) cursor.inlinePosition else length
 
