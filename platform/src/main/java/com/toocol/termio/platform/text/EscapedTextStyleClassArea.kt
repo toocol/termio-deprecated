@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap
 import com.toocol.termio.platform.component.IActionAfterShow
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.console.TerminalConsolePrintStream
+import com.toocol.termio.platform.ui.TScene
 import com.toocol.termio.utilities.escape.*
 import com.toocol.termio.utilities.escape.EscapeAsciiControlMode.*
 import com.toocol.termio.utilities.escape.EscapeColorGraphicsMode.*
@@ -16,6 +17,8 @@ import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.beans.value.ObservableValue
 import javafx.scene.Node
+import javafx.scene.input.MouseButton
+import javafx.scene.input.MouseEvent
 import javafx.scene.paint.Color
 import javafx.scene.text.TextFlow
 import org.fxmisc.richtext.GenericStyledArea
@@ -57,8 +60,6 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 ), EscapeCodeSequenceSupporter<EscapedTextStyleClassArea>, IComponent, IActionAfterShow {
 
-    var cursor: Cursor
-
     protected var paragraphStyle: ParagraphStyle = ParagraphStyle.EMPTY
 
     @JvmField
@@ -75,7 +76,10 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     private val ansiEscapeSearchEngine: AnsiEscapeSearchEngine<EscapedTextStyleClassArea> = AnsiEscapeSearchEngine()
     private val lineIndexParagraphIndexMap: MutableMap<Int, Int> = ConcurrentHashMap()
 
+    private var sizeChanged: Boolean = false
     private var lineIndex: Int = 1
+    private var lastParagraph: Int = 0
+    private var cursor: Cursor
 
     fun updateDefaultChineseStyle(style: TextStyle) {
         defaultChineseTextStyle = style
@@ -197,6 +201,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                 line = k
             }
         }
+//        return arrayOf(line + lineIndex(pos.major, pos.minor), pos.minor / 2)
         return arrayOf(line, pos.minor / 2)
     }
 
@@ -585,31 +590,55 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         textProperty().addListener { _: ObservableValue<out String>?, oldVal: String, newVal: String ->
             cursor.update(newVal.length - oldVal.length)
             cursor.inlinePosition = if (cursor.inlinePosition > length) length else cursor.inlinePosition
-            takeIf { paragraphSizeWatch != paragraphs.size }?.run {
-                updateLineIndexParagraphIndexMap(currentParagraph)
+            if (paragraphSizeWatch != paragraphs.size && newVal.replace(oldVal, "") != StrUtil.LF) {
+                updateLineIndexParagraphIndexMap(paragraphs.size - 1)
                 paragraphSizeWatch = paragraphs.size
                 System.gc()
             }
         }
 
-        widthProperty().addListener { _, _, _ -> updateLineIndexParagraphIndexMap(null) }
+        widthProperty().addListener { _, oldVal, newVal ->
+            if (newVal != oldVal) {
+                sizeChanged = true
+            }
+        }
+    }
+
+    override fun initialize() {
+        findComponent(TScene::class.java, 1).addEventHandler(MouseEvent.MOUSE_RELEASED) { event ->
+            if (event.button == MouseButton.PRIMARY && sizeChanged) {
+                sizeChanged = false
+                updateLineIndexParagraphIndexMap(null)
+            }
+        }
     }
 
     private fun updateLineIndexParagraphIndexMap(currentParagraph: Int?) {
         if (currentParagraph == null) {
             lineIndex = 1
+            lastParagraph = 0
             lineIndexParagraphIndexMap.clear()
             paragraphs.forEachIndexed { index, _ ->
                 for (i in 1..getParagraphLinesCount(index)) {
                     lineIndexParagraphIndexMap[lineIndex++] = index
                 }
+                lastParagraph = index
             }
             // in XTerm console, line 0 equals line 1
             lineIndexParagraphIndexMap[0] = 0
-        } else {
-            for (i in 1..getParagraphLinesCount(currentParagraph)) {
-                lineIndexParagraphIndexMap[lineIndex++] = currentParagraph
+        } else if (currentParagraph != 0) {
+            for (i in lastParagraph..currentParagraph) {
+                for (j in 1..getParagraphLinesCount(i)) {
+                    lineIndexParagraphIndexMap[lineIndex++] = i
+                }
             }
+            lastParagraph = currentParagraph + 1
+            lineIndexParagraphIndexMap[0] = 0
+        } else {
+            lineIndex = 1
+            lastParagraph = 0
+            lineIndexParagraphIndexMap.clear()
+            lineIndexParagraphIndexMap[0] = 0
         }
     }
 

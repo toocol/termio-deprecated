@@ -21,6 +21,7 @@ class CommandExecutorResultTextArea(private val id: Long) : EscapedTextStyleClas
     }
 
     override fun initialize() {
+        super.initialize()
         styled()
         isWrapText = true
         isEditable = false
