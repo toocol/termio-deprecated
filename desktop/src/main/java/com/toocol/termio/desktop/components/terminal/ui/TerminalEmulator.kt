@@ -4,14 +4,14 @@ import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.console.TerminalConsolePrintStream
 import com.toocol.termio.platform.ui.TAnchorPane
+import com.toocol.termio.platform.ui.TScene
 import com.toocol.termio.utilities.ansi.Printer.setPrinter
 import com.toocol.termio.utilities.log.Loggable
+import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.beans.value.ObservableValue
 import javafx.event.EventHandler
-import javafx.scene.input.InputMethodEvent
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
+import javafx.scene.input.*
 import javafx.scene.layout.Pane
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -55,6 +55,12 @@ class TerminalEmulator(id: Long, sessionId: Long) : TAnchorPane(id), Loggable {
                     terminalEmulatorTextArea.requestFocus()
                 }
             }
+
+            val scene = findComponent(TScene::class.java, 1)
+            val ctrlU: KeyCombination = KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN)
+            scene.accelerators[ctrlU] = Runnable {
+                println("line: ${terminalEmulatorTextArea.getCursorPos()[0]}")
+            }
         }
 
         terminalOutputService.apply { start() }
@@ -68,25 +74,30 @@ class TerminalEmulator(id: Long, sessionId: Long) : TAnchorPane(id), Loggable {
              * Prevent auto caret movement when user pressed '←', '→', '↑', '↓', 'Home', 'PgUp', 'PgDn', instead of setting the caret manually
              */
             addEventFilter(KeyEvent.ANY) { event: KeyEvent ->
+                var input = ""
                 when (event.code) {
                     KeyCode.LEFT -> {
+                        input = CharUtil.LEFT_ARROW.toString()
                         event.consume()
-                        if (cursor.inlinePosition > currentLineStartInParargraph) {
-                            cursor.moveLeft(1)
-                        }
                     }
                     KeyCode.RIGHT -> {
+                        input = CharUtil.RIGHT_ARROW.toString()
                         event.consume()
-                        val index = paragraphs.size - 1
-                        if (cursor.inlinePosition < getParagraphLength(index)) {
-                            cursor.moveRight(1)
-                        }
                     }
-                    KeyCode.END -> {
-                        cursor.setTo(length)
+                    KeyCode.UP -> {
+                        input = CharUtil.UP_ARROW.toString()
+                        event.consume()
                     }
-                    KeyCode.UP, KeyCode.DOWN, KeyCode.PAGE_DOWN, KeyCode.PAGE_UP, KeyCode.HOME -> event.consume()
+                    KeyCode.DOWN -> {
+                        input = CharUtil.DOWN_ARROW.toString()
+                        event.consume()
+                    }
+                    KeyCode.END, KeyCode.PAGE_DOWN, KeyCode.PAGE_UP, KeyCode.HOME -> event.consume()
                     else -> {}
+                }
+                if (input.isNotEmpty()) {
+                    terminalReaderInputStream.write(input.toByteArray(StandardCharsets.UTF_8))
+                    terminalReaderInputStream.flush()
                 }
             }
 

@@ -23,9 +23,15 @@ import org.fxmisc.richtext.MultiChangeBuilder
 import org.fxmisc.richtext.StyledTextArea
 import org.fxmisc.richtext.TextExt
 import org.fxmisc.richtext.model.*
+import org.reactfx.EventStream
+import org.reactfx.EventStreams
+import org.reactfx.SuspendableYes
+import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.BiConsumer
 import java.util.function.Function
+import kotlin.math.max
+
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -91,6 +97,10 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
 
     abstract fun followCaret(): Boolean
 
+    override fun id(): Long {
+        return id
+    }
+
     override fun createMultiChangeBuilder(): MultiChangeBuilder<ParagraphStyle, String, TextStyle> {
         return createMultiChange()
     }
@@ -100,8 +110,10 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             val split = text.split("\n")
             split.forEachIndexed { index, str ->
                 StrUtil.splitSequenceByChinese(str).forEach {
-                    var content = if (it.isNotEmpty()) StrUtil.join(it.toCharArray(),
-                        CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR
+                    var content = if (it.isNotEmpty()) StrUtil.join(
+                        it.toCharArray(),
+                        CharUtil.INVISIBLE_CHAR
+                    ) + CharUtil.INVISIBLE_CHAR
                     else it
                     content = content.replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE)
 
@@ -112,10 +124,13 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                     else length
                     end = if (end > length) length else end
 
-                    multiChange.replace(start, end, ReadOnlyStyledDocument.fromString(content, paragraphStyle,
-                        if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle,
-                        styledTextOps
-                    ))
+                    multiChange.replace(
+                        start, end, ReadOnlyStyledDocument.fromString(
+                            content, paragraphStyle,
+                            if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle,
+                            styledTextOps
+                        )
+                    )
 
                     if (cursor.inlinePosition != length) {
                         cursor.update(content.length)
@@ -123,16 +138,21 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                 }
 
                 if (index != split.size - 1) {
-                    multiChange.replace(length, length, ReadOnlyStyledDocument.fromString(StrUtil.LF, paragraphStyle,
-                        currentEnglishTextStyle, styledTextOps
-                    ))
+                    multiChange.replace(
+                        length, length, ReadOnlyStyledDocument.fromString(
+                            StrUtil.LF, paragraphStyle,
+                            currentEnglishTextStyle, styledTextOps
+                        )
+                    )
                     cursor.setTo(length)
                 }
             }
         } else {
             StrUtil.splitSequenceByChinese(text).forEach {
-                var content = if (it.isNotEmpty()) StrUtil.join(it.toCharArray(),
-                    CharUtil.INVISIBLE_CHAR) + CharUtil.INVISIBLE_CHAR
+                var content = if (it.isNotEmpty()) StrUtil.join(
+                    it.toCharArray(),
+                    CharUtil.INVISIBLE_CHAR
+                ) + CharUtil.INVISIBLE_CHAR
                 else it
                 content = content.replace(StrUtil.SPACE, StrUtil.NONE_BREAKING_SPACE)
 
@@ -143,10 +163,13 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                 else length
                 end = if (end > length) length else end
 
-                multiChange.replace(start, end, ReadOnlyStyledDocument.fromString(content, paragraphStyle,
-                    if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle,
-                    styledTextOps
-                ))
+                multiChange.replace(
+                    start, end, ReadOnlyStyledDocument.fromString(
+                        content, paragraphStyle,
+                        if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle,
+                        styledTextOps
+                    )
+                )
                 if (cursor.inlinePosition != length) {
                     cursor.update(content.length)
                 }
@@ -279,9 +302,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                     ERASE_IN_DISPLAY -> {}
                     ERASE_CURSOR_LINE_TO_END -> {}
                     ERASE_CURSOR_LINE_TO_BEGINNING -> {}
-                    ERASE_SCREEN -> {
-                        executeTarget.clear()
-                    }
+                    ERASE_SCREEN -> executeTarget.clear()
                     ERASE_SAVED_LINE -> {}
                     ERASE_IN_LINE -> {}
                     ERASE_CURSOR_TO_LINE_END -> {}
@@ -583,7 +604,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                     lineIndexParagraphIndexMap[lineIndex++] = index
                 }
             }
-            // in X-Term console, line 0 equals line 1
+            // in XTerm console, line 0 equals line 1
             lineIndexParagraphIndexMap[0] = 0
         } else {
             for (i in 1..getParagraphLinesCount(currentParagraph)) {
@@ -592,8 +613,67 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         }
     }
 
-    override fun id(): Long {
-        return id
+    private fun renderingVisibleTextOnly() {
+        val allowRichChange = SuspendableYes()
+        val plainTextChange: EventStream<*> = richChanges()
+            .hook { println("rich change occurred, firing event") }
+            .successionEnds(Duration.ofMillis(500))
+            .hook { println("user has not typed anything for the given duration: firing event") }
+            .conditionOn(allowRichChange)
+            .hook { println("this is a valid user-initiated event, not us changing the style; so allow it to pass through") }
+            .filter { ch -> !ch.isIdentity }
+            .hook { println("this is a valid plain text change. firing plaintext change event") }
+        val dirtyViewport: EventStream<*> = EventStreams
+            .merge(
+                this.estimatedScrollXProperty().values(),
+                this.estimatedScrollYProperty().values()
+            )
+            .hook { println("y or x property value changed") }
+            .successionEnds(Duration.ofMillis(200))
+            .hook { println("We've waited long enough, now fire an event") }
+        EventStreams.merge(plainTextChange, dirtyViewport)
+            .hook { println("either the viewport has changed or a plain text change has occurred. fire an event") }
+            .conditionOn(visibleProperty())
+            .subscribe {
+                // rather than clearing the previously-visible text's styles and setting the current
+                // visible text's styles....
+                //
+                //  codeArea.clearStyle(startOfLastVisibleTextStyle, endOfLastVisibleTextStyle);
+                //  codeArea.setStyleSpans(offsetIntoContentBeforeReachingCurrentVisibleStyles, newStyles);
+                //
+                // do this entire action in one move
+                //
+                //  codeArea.setStyleSpans(0, styleSpans)
+                //
+                // where `styleSpans` parameters are...
+                //  | un-styled | previously styled | currently visible text | previously styled | un-styled |
+                //  | empty list                    | computeHighlighting()  | empty list                    |
+
+                // compute the styles for the currently visible text
+                val visibleTextStyles: StyleSpans<TextStyle> = getVisibleTextStyle()
+
+                // calculate how far into the content is the first part of the visible text
+                // before modifying the area's styles
+                val firstVisibleParIdx: Int = try { max(visibleParToAllParIndex(0), 0) } catch (e: Exception) { 0 }
+                val startOfVisibleStyles: Int = max(position(firstVisibleParIdx, 0).toOffset(), 0)
+                val lengthFollowingVisibleStyles: Int = length - startOfVisibleStyles - visibleTextStyles.length()
+                val styleSpans = visibleTextStyles // 1 single empty list before visible styles
+                    .prepend(StyleSpan(TextStyle.EMPTY, startOfVisibleStyles)) // 1 single empty list after visible styles
+                    .append(StyleSpan(TextStyle.EMPTY, lengthFollowingVisibleStyles))
+
+                // no longer allow rich changes as setStyleSpans() will emit a rich change event,
+                // which will lead to an infinite loop that will terminate with a StackOverflowError
+                allowRichChange.suspendWhile { setStyleSpans(0, styleSpans) }
+            }
+    }
+
+    private fun getVisibleTextStyle(): StyleSpans<TextStyle> {
+        var c: StyleSpans<TextStyle> = StyleSpans.singleton(TextStyle.EMPTY, 0)
+        visibleParagraphs.map { obj: Paragraph<ParagraphStyle, String, TextStyle> -> obj.styleSpans }
+            .forEach { a ->
+                a.forEach { span -> c = c.append(span) }
+            }
+        return c
     }
 
     companion object {
