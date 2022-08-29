@@ -33,9 +33,8 @@ module termio.desktop {
     opens com.toocol.termio.desktop.api.ssh.handlers to termio.core;
     opens com.toocol.termio.desktop.components.panel.listeners to termio.utilities;
 
-    opens com.toocol.termio.desktop.configure to termio.utilities;
+    opens com.toocol.termio.desktop.components.terminal.config to termio.utilities;
 
-    exports com.toocol.termio.desktop.configure;
     exports com.toocol.termio.desktop.api.term.handlers;
     exports com.toocol.termio.desktop.api.term.module;
     exports com.toocol.termio.desktop.api.ssh.handlers;

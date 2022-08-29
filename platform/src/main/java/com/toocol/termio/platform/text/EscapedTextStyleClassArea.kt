@@ -309,7 +309,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeColorGraphicsAction {
-        companion object Instace : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeColorGraphicsMode::class.java
             }
@@ -612,7 +612,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             actions.add(EscapeCursorControlAction.Instance)
             actions.add(EscapeEraseFunctionsAction.Instance)
             actions.add(EscapeColorGraphicsCombineAction.Instance)
-            actions.add(EscapeColorGraphicsAction.Instace)
+            actions.add(EscapeColorGraphicsAction.Instance)
             actions.add(EscapeColor8To16Action.Instance)
             actions.add(EscapeColorISOAction.Instance)
             actions.add(EscapeColor256Action.Instance)

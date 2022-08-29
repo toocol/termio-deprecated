@@ -1,11 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>termio</artifactId>
         <groupId>com.toocol.termio</groupId>
+        <artifactId>termio</artifactId>
         <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -14,6 +12,10 @@
 
     <packaging>jar</packaging>
 
+    <properties>
+        <main.class>com.toocol.termio.console.bootstrap.TermioConsoleApplication</main.class>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.toocol.termio</groupId>
@@ -21,4 +23,83 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven-shade-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>true</minimizeJar>
+                            <filters>
+                                <filter>
+                                    <artifact>com.toocol.termio:utilities</artifact>
+                                    <includes>
+                                        <include>com/toocol/termio/**</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>com.toocol.termio:core</artifact>
+                                    <includes>
+                                        <include>com/toocol/termio/**</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>com.jcraft:jsch</artifact>
+                                    <includes>
+                                        <include>com/jcraft/jsch/**</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/DEPENDENCIES</exclude>
+                                        <exclude>META-INF/LICENSE*</exclude>
+                                        <exclude>META-INF/NOTICE*</exclude>
+                                        <exclude>META-INF/MANIFEST*</exclude>
+                                        <exclude>META-INF/*.properties</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <manifestEntries>
+                                        <Main-Class>${main.class}</Main-Class>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                            <outputFile>${project.build.directory}/termio.jar</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*.dll</include>
+                    <include>**/*.so</include>
+                </includes>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+    </build>
 </project>

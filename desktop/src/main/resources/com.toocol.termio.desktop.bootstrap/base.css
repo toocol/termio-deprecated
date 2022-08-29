@@ -15,7 +15,6 @@
     -fx-opacity: 1;
 }
 .scroll-bar .track {
-    visibility: hidden;
     -fx-background-insets: -9 0 -9 0;
     -fx-background-color: #111111;
     -fx-border-color: #111111;
@@ -25,7 +24,7 @@
     visibility: hidden;
     -fx-background-color: #111111;
     -fx-border-color: #111111;
-    -fx-opacity: .8;
+    -fx-opacity: .9;
 }
 .scroll-bar .decrement-button .decrement-arrow {
     visibility: hidden;

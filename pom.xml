@@ -14,7 +14,6 @@
         <module>console</module>
         <module>platform</module>
         <module>desktop</module>
-        <module>starter</module>
     </modules>
 
     <properties>

@@ -30,7 +30,7 @@ public class FileUtil {
         userDir = System.getProperty("user.dir");
         userDir = userDir.replaceAll("\\\\\\\\", "/");
         userDir = userDir.replaceAll("\\\\", "/");
-        userDir = userDir.split("/starter")[0];
+        userDir = userDir.split("/console")[0];
     }
 
     /**
