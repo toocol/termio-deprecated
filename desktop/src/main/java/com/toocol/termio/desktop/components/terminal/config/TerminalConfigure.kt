@@ -1,6 +1,5 @@
-package com.toocol.termio.desktop.configure
+package com.toocol.termio.desktop.components.terminal.config
 
-import com.toocol.termio.desktop.components.terminal.config.TerminalConfig
 import com.toocol.termio.utilities.config.Configure
 import com.toocol.termio.utilities.config.SubConfigure
 import org.ini4j.Profile
@@ -15,6 +14,14 @@ class TerminalConfigure : Configure<TerminalConfig>() {
     }
 
     override fun assemble(section: Profile.Section) {}
+
+    internal class TerminalColorConfigure : SubConfigure<TerminalConfig.Color>() {
+        override fun section(): String {
+            return "terminal.color"
+        }
+
+        override fun assemble(section: Profile.Section) {}
+    }
 
     internal class TerminalFontConfigure : SubConfigure<TerminalConfig.Font>() {
         override fun section(): String {

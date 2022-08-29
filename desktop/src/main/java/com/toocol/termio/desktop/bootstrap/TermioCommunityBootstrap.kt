@@ -31,7 +31,7 @@ object TermioCommunityBootstrap : Termio() {
         runType = RunType.DESKTOP
         System.setProperty("logFile", "termio-desktop.log")
         IniConfigLoader.setConfigFileRootPath("/config")
-        IniConfigLoader.setConfigurePaths(arrayOf("com.toocol.termio.desktop.configure"))
+        IniConfigLoader.setConfigurePaths(arrayOf("com.toocol.termio.desktop"))
         componentInitialise()
 
         Term.registerConsole(Console.get())

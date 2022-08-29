@@ -1,6 +1,4 @@
-package com.toocol.termio.starter;
-
-import com.toocol.termio.console.bootstrap.TermioConsoleBootstrap;
+package com.toocol.termio.console.bootstrap;
 
 /**
  * @author ZhaoZhe

@@ -8,15 +8,25 @@ import com.toocol.termio.utilities.config.ConfigInstance
  * @version: 0.0.1
  */
 class TerminalConfig : ConfigInstance() {
-    class Theme : ConfigInstance(){
-
+    class Color : ConfigInstance(){
+        override fun clazz(): Class<out ConfigInstance> {
+            return Color::class.java
+        }
     }
 
     class Font : ConfigInstance() {
-
+        override fun clazz(): Class<out ConfigInstance> {
+            return Font::class.java
+        }
     }
 
     class Window : ConfigInstance() {
+        override fun clazz(): Class<out ConfigInstance> {
+            return Window::class.java
+        }
+    }
 
+    override fun clazz(): Class<out ConfigInstance> {
+        return TerminalConfig::class.java
     }
 }
