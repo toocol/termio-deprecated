@@ -64,6 +64,7 @@ class TerminalEmulatorTextArea(id: Long) : EscapedTextStyleClassArea(id), Castab
     }
 
     override fun initialize() {
+        super.initialize()
         styled()
         isWrapText = true
         isEditable = false

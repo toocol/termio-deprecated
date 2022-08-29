@@ -16,6 +16,8 @@ class TerminalConsolePrintStream(out: OutputStream) : PrintStream(out, false), L
     private val condition = lock.newCondition()
 
     override fun print(s: String?) {
+        s?: return
+        if (s.isEmpty()) return
         super.print(s)
         flush()
         await()
@@ -58,18 +60,21 @@ class TerminalConsolePrintStream(out: OutputStream) : PrintStream(out, false), L
     }
 
     override fun print(obj: Any?) {
+        obj?: return
         super.print(obj)
         flush()
         await()
     }
 
     override fun print(s: CharArray) {
+        if (s.isEmpty()) return
         super.print(s)
         flush()
         await()
     }
 
     override fun println(x: Any?) {
+        x?: return
         super.println(x)
         flush()
         await()
@@ -88,6 +93,7 @@ class TerminalConsolePrintStream(out: OutputStream) : PrintStream(out, false), L
     }
 
     override fun println(x: CharArray) {
+        if (x.isEmpty()) return
         super.println(x)
         flush()
         await()
@@ -118,6 +124,8 @@ class TerminalConsolePrintStream(out: OutputStream) : PrintStream(out, false), L
     }
 
     override fun println(x: String?) {
+        x?: return
+        if (x.isEmpty()) return
         super.println(x)
         flush()
         await()
