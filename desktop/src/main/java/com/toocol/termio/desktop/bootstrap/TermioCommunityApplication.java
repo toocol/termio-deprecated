@@ -1,5 +1,6 @@
 package com.toocol.termio.desktop.bootstrap;
 
+import com.toocol.termio.desktop.components.panel.ui.LoadingPanel;
 import com.toocol.termio.desktop.components.panel.ui.MajorPanel;
 import com.toocol.termio.platform.component.*;
 import com.toocol.termio.platform.css.CssFileAnnotationParser;
@@ -92,12 +93,12 @@ public class TermioCommunityApplication extends Application implements Loggable 
     }
 
     @Override
-    public void init() throws Exception {
-        TermioCommunityBootstrap.runDesktop(TermioCommunityApplication.class);
-    }
-
-    @Override
     public void start(Stage stage) throws IOException {
+        LoadingPanel loadingPanel = new LoadingPanel();
+        loadingPanel.loading();
+
+        TermioCommunityBootstrap.runDesktop(TermioCommunityApplication.class);
+
         info("Starting termio-community success.");
         stage.initStyle(StageStyle.UNIFIED);
         stage.setTitle(" Termio Community ");
@@ -116,6 +117,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
 
         stage.setScene(scene);
         stage.show();
+        loadingPanel.close();
 
         ComponentsContainer.getComponents()
                 .stream()

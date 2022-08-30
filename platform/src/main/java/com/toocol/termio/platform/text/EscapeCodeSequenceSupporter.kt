@@ -10,9 +10,9 @@ import org.fxmisc.richtext.MultiChangeBuilder
  * @version: 0.0.1
  */
 interface EscapeCodeSequenceSupporter<T> {
-    fun createMultiChangeBuilder(): MultiChangeBuilder<ParagraphStyle, String, TextStyle>
+    fun createMultiChangeBuilder(): MultiChangeBuilder<*, *, *>
 
     fun getActionMap(): Map<Class<out IEscapeMode>, AnsiEscapeAction<T>>?
 
-    fun collectReplacement(text: String, multiChange: MultiChangeBuilder<ParagraphStyle, String, TextStyle>)
+    fun collectReplacement(text: String, multiChangeConst: MultiChangeBuilder<*, *, *>)
 }

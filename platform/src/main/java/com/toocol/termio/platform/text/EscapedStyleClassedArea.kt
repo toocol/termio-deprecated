@@ -16,24 +16,14 @@ import com.toocol.termio.utilities.escape.EscapeScreenMode.*
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.beans.value.ObservableValue
-import javafx.scene.Node
 import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
 import javafx.scene.paint.Color
-import javafx.scene.text.TextFlow
-import org.fxmisc.richtext.GenericStyledArea
 import org.fxmisc.richtext.MultiChangeBuilder
-import org.fxmisc.richtext.StyledTextArea
-import org.fxmisc.richtext.TextExt
-import org.fxmisc.richtext.model.*
-import org.reactfx.EventStream
-import org.reactfx.EventStreams
-import org.reactfx.SuspendableYes
-import java.time.Duration
+import org.fxmisc.richtext.StyleClassedTextArea
+import org.fxmisc.richtext.model.ReadOnlyStyledDocument
+import org.fxmisc.richtext.model.TwoDimensional
 import java.util.concurrent.ConcurrentHashMap
-import java.util.function.BiConsumer
-import java.util.function.Function
-import kotlin.math.max
 
 
 /**
@@ -41,39 +31,22 @@ import kotlin.math.max
  * @date: 2022/8/14 17:43
  * @version: 0.0.1
  */
-abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledArea<ParagraphStyle, String, TextStyle>(
-    // default paragraph style
-    ParagraphStyle.EMPTY,
-    // paragraph style setter
-    BiConsumer { paragraph: TextFlow, style: ParagraphStyle ->
-        paragraph.style = style.toCss()
-    },
-    // default segment style
-    TextStyle.EMPTY,
-    // segment operations
-    styledTextOps,
-    // Node creator and segment style setter
-    Function<StyledSegment<String, TextStyle>, Node> { seg: StyledSegment<String, TextStyle> ->
-        createNode(seg) { text: TextExt, style: TextStyle ->
-            text.style = style.toCss()
-        }
-    }
-), EscapeCodeSequenceSupporter<EscapedTextStyleClassArea>, IComponent, IActionAfterShow {
+abstract class EscapedStyleClassedArea(private val id: Long) : StyleClassedTextArea(), EscapeCodeSequenceSupporter<EscapedStyleClassedArea>, IComponent, IActionAfterShow {
 
-    protected var paragraphStyle: ParagraphStyle = ParagraphStyle.EMPTY
+    protected var paragraphStyle: EscapeStyleCollection = EscapeStyleCollection()
 
     @JvmField
-    protected var defaultChineseTextStyle: TextStyle = TextStyle.EMPTY
+    protected var defaultChineseTextStyle: EscapeStyleCollection = EscapeStyleCollection()
 
     @JvmField
-    protected var defaultEnglishTextStyle: TextStyle = TextStyle.EMPTY
+    protected var defaultEnglishTextStyle: EscapeStyleCollection = EscapeStyleCollection()
 
-    private var currentChineseTextStyle: TextStyle = TextStyle.EMPTY
-    private var currentEnglishTextStyle: TextStyle = TextStyle.EMPTY
+    private var currentChineseTextStyle: EscapeStyleCollection = EscapeStyleCollection()
+    private var currentEnglishTextStyle: EscapeStyleCollection = EscapeStyleCollection()
 
     private var paragraphSizeWatch: Int = 0
 
-    private val ansiEscapeSearchEngine: AnsiEscapeSearchEngine<EscapedTextStyleClassArea> = AnsiEscapeSearchEngine()
+    private val ansiEscapeSearchEngine: AnsiEscapeSearchEngine<EscapedStyleClassedArea> = AnsiEscapeSearchEngine()
     private val lineIndexParagraphIndexMap: MutableMap<Int, Int> = ConcurrentHashMap()
 
     private var sizeChanged: Boolean = false
@@ -81,12 +54,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     private var lastParagraph: Int = 0
     private var cursor: Cursor
 
-    fun updateDefaultChineseStyle(style: TextStyle) {
+    fun updateDefaultChineseStyle(style: EscapeStyleCollection) {
         defaultChineseTextStyle = style
         currentChineseTextStyle = style
     }
 
-    fun updateDefaultEnglishStyle(style: TextStyle) {
+    fun updateDefaultEnglishStyle(style: EscapeStyleCollection) {
         defaultEnglishTextStyle = style
         currentEnglishTextStyle = style
     }
@@ -105,12 +78,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         return id
     }
 
-    override fun createMultiChangeBuilder(): MultiChangeBuilder<ParagraphStyle, String, TextStyle> {
+    override fun createMultiChangeBuilder(): MultiChangeBuilder<Collection<String>, String, Collection<String>> {
         return createMultiChange()
     }
 
     override fun collectReplacement(text: String, multiChangeConst: MultiChangeBuilder<*, *, *>) {
-        val multiChange: MultiChangeBuilder<ParagraphStyle, String, TextStyle> = cast(multiChangeConst)
+        val multiChange: MultiChangeBuilder<Collection<String>, String, Collection<String>> = cast(multiChangeConst)
         if (text.contains("\n")) {
             val split = text.split("\n")
             split.forEachIndexed { index, str ->
@@ -133,7 +106,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                         start, end, ReadOnlyStyledDocument.fromString(
                             content, paragraphStyle,
                             if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle,
-                            styledTextOps
+                            segOps
                         )
                     )
 
@@ -146,7 +119,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                     multiChange.replace(
                         length, length, ReadOnlyStyledDocument.fromString(
                             StrUtil.LF, paragraphStyle,
-                            currentEnglishTextStyle, styledTextOps
+                            currentEnglishTextStyle, segOps
                         )
                     )
                     cursor.setTo(length)
@@ -172,7 +145,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
                     start, end, ReadOnlyStyledDocument.fromString(
                         content, paragraphStyle,
                         if (StrUtil.isChineseSequenceByHead(content)) currentChineseTextStyle else currentEnglishTextStyle,
-                        styledTextOps
+                        segOps
                     )
                 )
                 if (cursor.inlinePosition != length) {
@@ -182,7 +155,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         }
     }
 
-    override fun getActionMap(): Map<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>>? {
+    override fun getActionMap(): Map<Class<out IEscapeMode>, AnsiEscapeAction<EscapedStyleClassedArea>>? {
         return actionMap
     }
 
@@ -250,12 +223,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeAsciiControlAction {
-        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeAsciiControlMode::class.java
             }
 
-            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
                 when (escapeMode) {
                     BEL -> println("System bel")
                     BACKSPACE -> executeTarget.cursorLeft(1)
@@ -266,12 +239,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeCursorControlAction {
-        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeCursorControlMode::class.java
             }
 
-            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
                 when (escapeMode) {
                     MOVE_CURSOR_TO_CERTAIN -> {
                         val line = params!![0].toString().toInt()
@@ -298,12 +271,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeEraseFunctionsAction {
-        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeEraseFunctionsMode::class.java
             }
 
-            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
                 when (escapeMode) {
                     ERASE_IN_DISPLAY -> {}
                     ERASE_CURSOR_LINE_TO_END -> {}
@@ -320,12 +293,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeColorGraphicsCombineAction {
-        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeColorGraphicsCombine::class.java
             }
 
-            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
                 if (escapeMode is EscapeColorGraphicsCombine) {
                     escapeMode.list.forEach {
                         actionMap!![it::class.java]!!.action(executeTarget, it, null)
@@ -336,12 +309,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeColorGraphicsAction {
-        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeColorGraphicsMode::class.java
             }
 
-            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
                 when (escapeMode) {
                     RESET_ALL_MODE -> {
                         executeTarget.currentChineseTextStyle = executeTarget.defaultChineseTextStyle
@@ -402,12 +375,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeColor8To16Action {
-        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeColor8To16Mode::class.java
             }
 
-            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
                 val mode = escapeMode as EscapeColor8To16Mode
                 val colorHex = mode.hexCode
                 if (mode.foreground) {
@@ -426,12 +399,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeColorISOAction {
-        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeColorISOMode::class.java
             }
 
-            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
                 val mode = escapeMode as EscapeColorISOMode
                 val colorHex = mode.hexCode
                 if (mode.foreground) {
@@ -450,12 +423,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeColor256Action {
-        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeColor256Mode::class.java
             }
 
-            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
                 val foreground = params!![0].toString().toBoolean()
                 val mode = escapeMode as EscapeColor256Mode
                 val colorHex = mode.hexCode
@@ -475,12 +448,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeColorRgbAction {
-        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeColorRgbMode::class.java
             }
 
-            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
                 val foreground = params!![0].toString().toBoolean()
                 val r = params[2].toString().toDouble()
                 val g = params[3].toString().toDouble()
@@ -501,12 +474,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeScreenAction {
-        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeScreenMode::class.java
             }
 
-            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
                 when (escapeMode) {
                     MONOCHROME_40_25 -> {}
                     COLOR_4_40_25 -> {}
@@ -529,12 +502,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeCommonPrivateAction {
-        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeCommonPrivateMode::class.java
             }
 
-            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
                 when (escapeMode) {
                     CURSOR_INVISIBLE -> {}
                     CURSOR_VISIBLE -> {}
@@ -548,12 +521,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeKeyBoardStringAction {
-        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeKeyBoardStringMode::class.java
             }
 
-            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
                 val code = params!![0]
                 val string = params[1]
             }
@@ -561,12 +534,12 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     private class EscapeOscBelAction {
-        companion object Instance : AnsiEscapeAction<EscapedTextStyleClassArea>() {
+        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
             override fun focusMode(): Class<out IEscapeMode> {
                 return EscapeOSCMode::class.java
             }
 
-            override fun action(executeTarget: EscapedTextStyleClassArea, escapeMode: IEscapeMode, params: List<Any>?) {
+            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
                 val parameter = params!![0]
                 when (escapeMode) {
                     RENAMING_TAB_TITLE_0 -> println("Renaming tab: $parameter")
@@ -580,10 +553,6 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     init {
-        this.setStyleCodecs(
-            ParagraphStyle.CODEC,
-            Codec.styledSegmentCodec(Codec.STRING_CODEC, TextStyle.CODEC)
-        )
         this.registerComponent(id)
 
         cursor = Cursor(id)
@@ -643,86 +612,11 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
         }
     }
 
-    private fun renderingVisibleTextOnly() {
-        val allowRichChange = SuspendableYes()
-        val plainTextChange: EventStream<*> = richChanges()
-            .hook { println("rich change occurred, firing event") }
-            .successionEnds(Duration.ofMillis(500))
-            .hook { println("user has not typed anything for the given duration: firing event") }
-            .conditionOn(allowRichChange)
-            .hook { println("this is a valid user-initiated event, not us changing the style; so allow it to pass through") }
-            .filter { ch -> !ch.isIdentity }
-            .hook { println("this is a valid plain text change. firing plaintext change event") }
-        val dirtyViewport: EventStream<*> = EventStreams
-            .merge(
-                this.estimatedScrollXProperty().values(),
-                this.estimatedScrollYProperty().values()
-            )
-            .hook { println("y or x property value changed") }
-            .successionEnds(Duration.ofMillis(200))
-            .hook { println("We've waited long enough, now fire an event") }
-        EventStreams.merge(plainTextChange, dirtyViewport)
-            .hook { println("either the viewport has changed or a plain text change has occurred. fire an event") }
-            .conditionOn(visibleProperty())
-            .subscribe {
-                // rather than clearing the previously-visible text's styles and setting the current
-                // visible text's styles....
-                //
-                //  codeArea.clearStyle(startOfLastVisibleTextStyle, endOfLastVisibleTextStyle);
-                //  codeArea.setStyleSpans(offsetIntoContentBeforeReachingCurrentVisibleStyles, newStyles);
-                //
-                // do this entire action in one move
-                //
-                //  codeArea.setStyleSpans(0, styleSpans)
-                //
-                // where `styleSpans` parameters are...
-                //  | un-styled | previously styled | currently visible text | previously styled | un-styled |
-                //  | empty list                    | computeHighlighting()  | empty list                    |
-
-                // compute the styles for the currently visible text
-                val visibleTextStyles: StyleSpans<TextStyle> = getVisibleTextStyle()
-
-                // calculate how far into the content is the first part of the visible text
-                // before modifying the area's styles
-                val firstVisibleParIdx: Int = try {
-                    max(visibleParToAllParIndex(0), 0)
-                } catch (e: Exception) {
-                    0
-                }
-                val startOfVisibleStyles: Int = max(position(firstVisibleParIdx, 0).toOffset(), 0)
-                val lengthFollowingVisibleStyles: Int = length - startOfVisibleStyles - visibleTextStyles.length()
-                val styleSpans = visibleTextStyles // 1 single empty list before visible styles
-                    .prepend(StyleSpan(TextStyle.EMPTY,
-                        startOfVisibleStyles)) // 1 single empty list after visible styles
-                    .append(StyleSpan(TextStyle.EMPTY, lengthFollowingVisibleStyles))
-
-                // no longer allow rich changes as setStyleSpans() will emit a rich change event,
-                // which will lead to an infinite loop that will terminate with a StackOverflowError
-                allowRichChange.suspendWhile { setStyleSpans(0, styleSpans) }
-            }
-    }
-
-    private fun getVisibleTextStyle(): StyleSpans<TextStyle> {
-        var c: StyleSpans<TextStyle> = StyleSpans.singleton(TextStyle.EMPTY, 0)
-        visibleParagraphs.map { obj: Paragraph<ParagraphStyle, String, TextStyle> -> obj.styleSpans }
-            .forEach { a ->
-                a.forEach { span -> c = c.append(span) }
-            }
-        return c
-    }
-
     companion object {
-        private val styledTextOps = SegmentOps.styledTextOps<TextStyle>()
-        private var actionMap: Map<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>>? = null
-        private fun createNode(
-            seg: StyledSegment<String, TextStyle>,
-            applyStyle: BiConsumer<in TextExt, TextStyle>,
-        ): Node {
-            return StyledTextArea.createStyledTextNode(seg.segment, seg.style, applyStyle)
-        }
+        private var actionMap: Map<Class<out IEscapeMode>, AnsiEscapeAction<EscapedStyleClassedArea>>? = null
 
         init {
-            val actions: MutableList<AnsiEscapeAction<EscapedTextStyleClassArea>> = ArrayList()
+            val actions: MutableList<AnsiEscapeAction<EscapedStyleClassedArea>> = ArrayList()
             actions.add(EscapeAsciiControlAction.Instance)
             actions.add(EscapeCursorControlAction.Instance)
             actions.add(EscapeEraseFunctionsAction.Instance)
@@ -736,7 +630,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             actions.add(EscapeCommonPrivateAction.Instance)
             actions.add(EscapeKeyBoardStringAction.Instance)
             actions.add(EscapeOscBelAction.Instance)
-            val map: MutableMap<Class<out IEscapeMode>, AnsiEscapeAction<EscapedTextStyleClassArea>> = HashMap()
+            val map: MutableMap<Class<out IEscapeMode>, AnsiEscapeAction<EscapedStyleClassedArea>> = HashMap()
             for (action in actions) {
                 map[action.focusMode()] = action
             }
