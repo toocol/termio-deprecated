@@ -71,7 +71,7 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
 
             val ctrlI: KeyCombination = KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN)
             scene.accelerators[ctrlI] = Runnable {
-                if (!commandExecutorInput.isFocused && isVisible) {
+                if (!commandExecutorInput.isFocus() && isVisible) {
                     commandExecutorInput.requestFocus()
                 } else {
                     val ratio = if (isVisible) {
@@ -105,7 +105,7 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                 if (StrUtil.isNewLine(event.character)) {
                     try {
                         commandOut = true
-                        val command = commandExecutorInput.text + StrUtil.LF
+                        val command = commandExecutorInput.text() + StrUtil.LF
                         executorReaderInputStream.write(command.toByteArray(StandardCharsets.UTF_8))
                         executorReaderInputStream.flush()
                         commandExecutorInput.clear()
@@ -113,7 +113,7 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                         error("Write to reader failed, msg = ${e.message}")
                     }
                     event.consume()
-                } else if (text.length >= 100) {
+                } else if (text().length >= 100) {
                     event.consume()
                 }
             }
@@ -141,8 +141,8 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
         heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
 
-        commandExecutorInput.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.15)
-        commandExecutorResultTextArea.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.85)
+        commandExecutorInput.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.2)
+        commandExecutorResultTextArea.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.8)
     }
 
     override fun actionAfterShow() {

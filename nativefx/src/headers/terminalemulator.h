@@ -3,12 +3,11 @@
 
 #include <QWidget>
 
-class TerminalEmulator : public QWidget
-{
-    Q_OBJECT
+class TerminalEmulator : public QWidget {
+  Q_OBJECT
 
-public:
-    TerminalEmulator(QWidget *parent = nullptr);
-    ~TerminalEmulator();
+ public:
+  TerminalEmulator(QWidget *parent = nullptr);
+  ~TerminalEmulator();
 };
-#endif // TERMINALEMULATOR_H
+#endif  // TERMINALEMULATOR_H

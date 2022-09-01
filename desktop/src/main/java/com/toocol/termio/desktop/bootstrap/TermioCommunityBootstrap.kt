@@ -8,6 +8,7 @@ import com.toocol.termio.core.shell.core.Shell
 import com.toocol.termio.core.term.TermAddress
 import com.toocol.termio.core.term.core.DesktopTermPrinter
 import com.toocol.termio.core.term.core.Term
+import com.toocol.termio.core.term.core.TermTheme
 import com.toocol.termio.desktop.components.executor.ui.CommandExecutor
 import com.toocol.termio.desktop.components.terminal.ui.TerminalEmulator
 import com.toocol.termio.utilities.ansi.Printer.println
@@ -34,6 +35,7 @@ object TermioCommunityBootstrap : Termio() {
         IniConfigLoader.setConfigurePaths(arrayOf("com.toocol.termio.desktop"))
         componentInitialise()
 
+        Term.theme = TermTheme.LIGHT_THEME
         Term.registerConsole(Console.get())
         Term.initializeReader(CommandExecutor.executorReaderInputStream)
         Shell.initializeReader(TerminalEmulator.terminalReaderInputStream)
