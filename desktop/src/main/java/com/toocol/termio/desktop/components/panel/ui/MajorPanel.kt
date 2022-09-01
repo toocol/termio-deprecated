@@ -1,5 +1,6 @@
 package com.toocol.termio.desktop.components.panel.ui
 
+import com.toocol.termio.desktop.components.sidebar.ui.BottomStatusBar
 import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent
@@ -13,7 +14,8 @@ import jfxtras.styles.jmetro.JMetroStyleClass
  */
 @RegisterComponent(value = [
     Component(clazz = LeftSidePanel::class, id = 1, initialVisible = true),
-    Component(clazz = CenterPanel::class, id = 1, initialVisible = true)
+    Component(clazz = CenterPanel::class, id = 1, initialVisible = true),
+    Component(clazz = BottomStatusBar::class, id = 1, initialVisible = true)
 ])
 class MajorPanel(id: Long) : TBorderPane(id) {
 
@@ -21,7 +23,7 @@ class MajorPanel(id: Long) : TBorderPane(id) {
 
     override fun styleClasses(): Array<String> {
         return arrayOf(
-            "central-panel",
+            "major-panel",
             JMetroStyleClass.BACKGROUND
         )
     }
@@ -35,11 +37,13 @@ class MajorPanel(id: Long) : TBorderPane(id) {
 
         center = parser.getAsNode(CenterPanel::class.java)
         left = parser.getAsNode(LeftSidePanel::class.java)
+        bottom = parser.getAsNode(BottomStatusBar::class.java)
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
         parser.getAsComponent(CenterPanel::class.java)?.sizePropertyBind(this, widthRatio!! * 0.85, heightRatio!! * 1.0)
         parser.getAsComponent(LeftSidePanel::class.java)?.sizePropertyBind(this, widthRatio!! * 0.15, heightRatio!! * 1.0)
+        parser.getAsComponent(BottomStatusBar::class.java)?.sizePropertyBind(this, widthRatio!! * 1, null)
     }
 
     init {

@@ -52,14 +52,14 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             panel.widthRatio = widthRatio
         }
         heightRatio?.run {
-            prefHeightProperty().bind(major.heightProperty().multiply(heightRatio))
+            prefHeightProperty().bind(major.heightProperty().subtract(40 + 17.5).multiply(heightRatio))
             panel.heightRatio = heightRatio
         }
 
-        parser.getAsComponent(Homepage::class.java)?.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.99)
+        parser.getAsComponent(Homepage::class.java)?.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.98)
         terminalFactory.getAllTerminals()
             .asSequence()
-            .forEach { it.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.99) }
+            .forEach { it.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.98) }
     }
 
     override fun actionAfterShow() {}
@@ -70,7 +70,7 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             hideHomepage()
             val terminal = terminalFactory.create(assignTerminalId(), sessionId)
             terminal.initialize()
-            terminal.sizePropertyBind(findComponent(MajorPanel::class.java, 1), widthRatio, heightRatio * 0.99)
+            terminal.sizePropertyBind(findComponent(MajorPanel::class.java, 1), widthRatio, heightRatio * 0.98)
             shellCache.getShell(sessionId)!!.registerConsole(TerminalConsole(terminal.getTerminalTextAre()))
             children.add(terminal)
             terminal.activeTerminal()

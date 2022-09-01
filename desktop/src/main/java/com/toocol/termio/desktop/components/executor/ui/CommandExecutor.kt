@@ -75,10 +75,10 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                     commandExecutorInput.requestFocus()
                 } else {
                     val ratio = if (isVisible) {
-                        hide()
+                        this.hide()
                         1.0
                     } else {
-                        show()
+                        this.show()
                         commandExecutorInput.requestFocus()
                         0.8
                     }

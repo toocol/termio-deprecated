@@ -4,7 +4,6 @@ import javafx.scene.Scene
 import javafx.scene.layout.AnchorPane
 import javafx.stage.Stage
 import javafx.stage.StageStyle
-import java.lang.ref.WeakReference
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -12,19 +11,22 @@ import java.lang.ref.WeakReference
  * @version: 0.0.1
  */
 class LoadingPanel {
-    private var loadingPane: WeakReference<AnchorPane>? = WeakReference(AnchorPane())
-    private var loadingScene: WeakReference<Scene>? = WeakReference(Scene(loadingPane!!.get()))
-    private var loadingStage: WeakReference<Stage>? = WeakReference(Stage())
+    private var loadingPane: AnchorPane? = AnchorPane()
+    private var loadingScene: Scene? = Scene(loadingPane)
+    private var loadingStage: Stage? = Stage()
 
     fun loading() {
-        loadingPane!!.get()!!.setPrefSize(400.0, 250.0)
-        loadingStage!!.get()!!.initStyle(StageStyle.UTILITY)
-        loadingStage!!.get()!!.scene = loadingScene!!.get()
-        loadingStage!!.get()!!.show()
+        loadingPane?.setPrefSize(400.0, 250.0)
+        loadingPane?.style = "-fx-background-color: #FFFFFF;"
+
+        loadingStage?.initStyle(StageStyle.UNDECORATED)
+        loadingStage?.scene = loadingScene
+        loadingStage?.toFront()
+        loadingStage?.show()
     }
 
     fun close() {
-        loadingStage!!.get()!!.close()
+        loadingStage?.close()
         loadingPane = null
         loadingScene = null
         loadingStage = null
