@@ -1,18 +1,32 @@
 /* panel */
-.central-panel {
+.major-panel {
+    -fx-background-color: #151515;
+}
+.center-panel {
     -fx-background-color: #151515;
 }
 .left-side-panel {
 }
 .workspace-panel {
     -fx-background-color: #151515;
-    -fx-border-color: #E1E1E1;
-    -fx-border-width: 1 1 0 1;
     -fx-border-style: solid;
 }
 
 /* sidebar */
 .session-manage-sidebar {
+}
+.bottom-status-bar {
+    -fx-background-color: #CFCFCF;
+}
+.upper-tab-bar {
+    -fx-background-color: #EAEAEA;
+}
+.left-tool-sidebar {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #CFCFCF;
+    -fx-border-width: 0 1 0 0;
+    -fx-border-style: solid;
+    -fx-border-insets: 0 0 0 0;
 }
 
 /* terminal */
@@ -31,7 +45,7 @@
 .command-executor-panel {
     -fx-background-color: #E1E1E1;
     -fx-border-color: #FFFFFF;
-    -fx-border-width: 2 1 2 1;
+    -fx-border-width: 2 1 1 1;
     -fx-border-style: solid;
 }
 .command-executor-input {

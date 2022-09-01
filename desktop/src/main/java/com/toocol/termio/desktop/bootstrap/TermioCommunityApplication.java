@@ -89,18 +89,21 @@ public class TermioCommunityApplication extends Application implements Loggable 
     private static final CssFileAnnotationParser cssParser = new CssFileAnnotationParser();
 
     public static void main(String[] args) {
+        System.setProperty("javafx.preloader", "com.toocol.termio.desktop.bootstrap.TermioPreloader");
         launch();
     }
 
     @Override
-    public void start(Stage stage) throws IOException {
-        LoadingPanel loadingPanel = new LoadingPanel();
-        loadingPanel.loading();
-
+    public void init() throws Exception {
+        System.out.println("init");
         TermioCommunityBootstrap.runDesktop(TermioCommunityApplication.class);
+    }
+
+    @Override
+    public void start(Stage stage) throws IOException {
 
         info("Starting termio-community success.");
-        stage.initStyle(StageStyle.UNIFIED);
+        stage.initStyle(StageStyle.UNDECORATED);
         stage.setTitle(" Termio Community ");
         stage.setMinWidth(500);
         stage.setMinHeight(400);
@@ -117,7 +120,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
 
         stage.setScene(scene);
         stage.show();
-        loadingPanel.close();
+        notifyPreloader(new TermioPreloader.ApplicationStartupNotification());
 
         ComponentsContainer.getComponents()
                 .stream()

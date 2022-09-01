@@ -1,5 +1,6 @@
 package com.toocol.termio.desktop.components.panel.ui
 
+import com.toocol.termio.desktop.components.sidebar.ui.LeftToolSidebar
 import com.toocol.termio.desktop.components.sidebar.ui.SessionManageSidebar
 import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
@@ -20,7 +21,8 @@ import jfxtras.styles.jmetro.Style
  * @version: 0.0.1
  */
 @RegisterComponent(value = [
-    Component(clazz = SessionManageSidebar::class, id = 1, initialVisible = true)
+    Component(clazz = LeftToolSidebar::class, id = 1, initialVisible = true),
+    Component(clazz = SessionManageSidebar::class, id = 1, initialVisible = true),
 ])
 class LeftSidePanel(id: Long) : TBorderPane(id){
     private val parser: ComponentsParser = ComponentsParser()
@@ -54,6 +56,7 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
             findComponent(WorkspacePanel::class.java, 1).sizePropertyBind(majorPanel, ratio, null)
         }
 
+        left = parser.getAsNode(LeftToolSidebar::class.java)
         center = parser.getAsNode(SessionManageSidebar::class.java)
     }
 
@@ -61,6 +64,7 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
         heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
 
+        parser.getAsComponent(LeftToolSidebar::class.java)?.sizePropertyBind(major, widthRatio, heightRatio)
         parser.getAsComponent(SessionManageSidebar::class.java)?.sizePropertyBind(major, widthRatio, heightRatio)
     }
 
