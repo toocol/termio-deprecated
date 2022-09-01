@@ -1,55 +1,80 @@
 /* panel */
 .central-panel {
-    -fx-background-color: #4F4F4F;
+    -fx-background-color: #151515;
 }
 .left-side-panel {
-    -fx-background-color: #FFFFFF;
 }
 .workspace-panel {
-    -fx-background-color: #101010;
-    -fx-border-color: #FFFFFF;
-    -fx-border-width: 2 0 2 0;
+    -fx-background-color: #151515;
+    -fx-border-color: #E1E1E1;
+    -fx-border-width: 1 1 0 1;
     -fx-border-style: solid;
 }
 
 /* sidebar */
 .session-manage-sidebar {
-    -fx-background-color: #FFFFFF;
 }
 
 /* terminal */
 .desktop-terminal-panel {
-    -fx-background-color: #101010;
+    -fx-background-color: #151515;
 }
 .terminal-scroll-pane {
-    -fx-background-color: #101010;
+    -fx-background-color: #151515;
 }
 .console-text-area {
-    -fx-background-color: #101010;
+    -fx-background-color: #151515;
     -fx-padding: 15 15 5 15;
 }
 
 /* executor */
 .command-executor-panel {
-    -fx-background-color: #101010;
+    -fx-background-color: #E1E1E1;
     -fx-border-color: #FFFFFF;
-    -fx-border-width: 1 0 1 0;
+    -fx-border-width: 2 1 2 1;
     -fx-border-style: solid;
 }
 .command-executor-input {
+    -fx-background-color: #E1E1E1;
+}
+.command-executor-input .text-field{
+    -fx-font-family: Consolas;
+    -fx-text-fill: #FFFFFF;
     -fx-background-color: #FFFFFF;
+    -fx-border-color: #FEFEFE;
+    -fx-border-radius: 5 5 5 5;
+    -fx-border-width: 1 1 1 1;
+    -fx-font-size: 10pt;
+    -fx-font-weight: bold;
+}
+.command-executor-input .text-field:focused{
+    -fx-font-family: Consolas;
+    -fx-text-fill: #151515;
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #FFFFFF;
+    -fx-border-radius: 5 5 5 5;
+    -fx-border-width: 1 1 1 1;
+    -fx-font-size: 10pt;
+    -fx-font-weight: bold;
+}
+.command-executor-input-text{
+    -fx-font-family: Consolas;
+    -fx-fill: #151515;
+    -fx-font-size: 11pt;
+    -fx-font-weight: bold;
 }
 .command-executor-result-scroll-pane {
-    -fx-background-color: #101010;
+    -fx-background-color: #E1E1E1;
 }
 .command-executor-result-text-area {
-    -fx-background-color: #101010;
-    -fx-fill: #CCCCCC;
-    -fx-padding: 5 15 5 15;
+    -fx-background-color: #E1E1E1;
+    /*-fx-background-insets: 0 10 0 75;*/
+    -fx-padding: 5 5 5 10;
+    -fx-text-fill: #151515;
 }
 
 /* homepage */
 .homepage-panel {
-    -fx-background-color: #101010;
+    -fx-background-color: #151515;
     -fx-padding: 5 15 5 15;
 }

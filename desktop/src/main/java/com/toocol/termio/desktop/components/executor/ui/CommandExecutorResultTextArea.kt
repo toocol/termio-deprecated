@@ -26,10 +26,10 @@ class CommandExecutorResultTextArea(private val id: Long) : EscapedTextStyleClas
         isWrapText = true
         isEditable = false
 
-        updateDefaultChineseStyle(TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#cccccc"))
+        updateDefaultChineseStyle(TextStyle.EMPTY.updateFontFamily("\"宋体\"").updateTextColor(Color.valueOf("#151515"))
             .updateFontSize(9))
         updateDefaultEnglishStyle(TextStyle.EMPTY.updateFontFamily("\"Consolas\"")
-            .updateTextColor(Color.valueOf("#cccccc")).updateFontSize(10))
+            .updateTextColor(Color.valueOf("#151515")).updateFontSize(10))
     }
 
     override fun actionAfterShow() {}

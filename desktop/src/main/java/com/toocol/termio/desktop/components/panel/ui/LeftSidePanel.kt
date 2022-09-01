@@ -11,6 +11,7 @@ import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.Pane
 import jfxtras.styles.jmetro.JMetro
+import jfxtras.styles.jmetro.JMetroStyleClass
 import jfxtras.styles.jmetro.Style
 
 /**
@@ -37,6 +38,7 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
 
         val jmetro = JMetro(Style.LIGHT)
         jmetro.parent = this
+        styleClass.add(JMetroStyleClass.BACKGROUND)
 
         val scene = findComponent(TScene::class.java, 1)
         val alt1: KeyCombination = KeyCodeCombination(KeyCode.DIGIT1, KeyCombination.ALT_DOWN)
