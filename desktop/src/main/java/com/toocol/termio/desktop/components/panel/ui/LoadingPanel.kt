@@ -19,7 +19,7 @@ class LoadingPanel {
         loadingPane?.setPrefSize(400.0, 250.0)
         loadingPane?.style = "-fx-background-color: #FFFFFF;"
 
-        loadingStage?.initStyle(StageStyle.UNDECORATED)
+        loadingStage?.initStyle(StageStyle.TRANSPARENT)
         loadingStage?.scene = loadingScene
         loadingStage?.toFront()
         loadingStage?.show()

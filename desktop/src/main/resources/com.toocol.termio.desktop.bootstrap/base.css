@@ -44,3 +44,47 @@
     -fx-border-color: transparent;
     -fx-opacity: .9;
 }
+
+/**
+ * Font Awesome Icon
+ */
+.font-awesome-regular-assets > .text {
+    -fx-font-family: "Font Awesome 6 Free Regular";
+}
+.font-awesome-brand-assets > .text {
+    -fx-font-family: "Font Awesome 6 Brands Regular";
+}
+.font-awesome-solid-assets > .text {
+    -fx-font-family: "Font Awesome 6 Free Solid";
+}
+
+.font-awesome-regular-assets {
+    /*-fx-text-fill: text_color;*/
+}
+.font-awesome-brand-assets {
+    /*-fx-text-fill: text_color;*/
+}
+.font-awesome-solid-assets {
+    /*-fx-text-fill: text_color;*/
+}
+
+/**
+ * Segoe MDL2 Icon Font
+ */
+.mdl2-assets > .text {
+    -fx-font-family: "Segoe MDL2 Assets";
+}
+
+.mdl2-assets {
+    /*-fx-text-fill: text_color;*/
+}
+
+/**
+ * Segoe Fluent Icon Font
+ */
+.fluent-assets > .text {
+    -fx-font-family: "Segoe Fluent Icons";
+}
+.fluent-assets {
+    /*-fx-text-fill: text_color;*/
+}

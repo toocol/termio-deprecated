@@ -11,5 +11,5 @@ annotation class RegisterCssFile(
     /**
      * The name of css file, all css file should be located in directory same as package name of class which loading the resource.
      */
-    val name: Array<String>,
+    val name: Array<String>
 )
