@@ -15,14 +15,12 @@ class TermioPreloader : Preloader() {
 
     override fun start(primaryStage: Stage?) {
         loadingPanel?.loading()
-        println("preload")
     }
 
     override fun handleProgressNotification(info: ProgressNotification) {
     }
 
     override fun handleStateChangeNotification(info: StateChangeNotification) {
-        println(info.type)
     }
 
     override fun handleApplicationNotification(info: PreloaderNotification) {
