@@ -82,7 +82,7 @@ class TerminalEmulatorTextArea(id: Long) : EscapedTextStyleClassArea(id), Castab
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
-        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().subtract(40 + 17.5).multiply(heightRatio)) }
+        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().subtract(30 + 17.5).multiply(heightRatio)) }
     }
 
     override fun actionAfterShow() {}

@@ -138,7 +138,7 @@ class TerminalEmulator(id: Long, sessionId: Long) : TAnchorPane(id), Loggable {
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
-        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().subtract(40 + 17.5).multiply(heightRatio)) }
+        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().subtract(30 + 17.5).multiply(heightRatio)) }
 
         terminalEmulatorTextArea.sizePropertyBind(major, widthRatio, heightRatio)
     }

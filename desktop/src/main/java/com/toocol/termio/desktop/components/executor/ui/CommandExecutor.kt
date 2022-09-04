@@ -141,8 +141,8 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
         heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
 
-        commandExecutorInput.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.2)
-        commandExecutorResultTextArea.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.8)
+        commandExecutorInput.sizePropertyBind(major, widthRatio, null)
+        commandExecutorResultTextArea.sizePropertyBind(major, widthRatio, heightRatio)
     }
 
     override fun actionAfterShow() {

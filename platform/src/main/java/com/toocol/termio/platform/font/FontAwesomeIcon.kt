@@ -11,11 +11,11 @@ import javafx.scene.text.Font
  */
 class FontAwesomeIcon(text: String, type: Type) : Label(text) {
 
-    fun setSize(pixelSize: Double) {
+    fun setSize(pixelSize: Double, prefWidth: Double = pixelSize, prefHeight: Double = pixelSize) {
         val font = font
         val newFont = Font(font.name, pixelSize)
         setFont(newFont)
-        setPrefSize(pixelSize, pixelSize)
+        setPrefSize(prefWidth, prefHeight)
     }
 
     init {

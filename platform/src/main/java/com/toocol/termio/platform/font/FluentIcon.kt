@@ -10,11 +10,11 @@ import javafx.scene.text.Font
  * @version: 0.0.1
  */
 class FluentIcon(text: String) : Label(text) {
-    fun setSize(pixelSize: Double) {
+    fun setSize(pixelSize: Double, prefWidth: Double = pixelSize, prefHeight: Double = pixelSize) {
         val font = font
         val newFont = Font(font.name, pixelSize)
         setFont(newFont)
-        setPrefSize(pixelSize * 1.4, pixelSize)
+        setPrefSize(prefWidth, prefHeight)
     }
 
     init {

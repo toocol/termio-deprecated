@@ -10,11 +10,11 @@ import javafx.scene.text.Font
  * @version: 0.0.1
  */
 class MDL2Icon(text: String) : Label(text) {
-    fun setSize(pixelSize: Double) {
+    fun setSize(pixelSize: Double, prefWidth: Double = pixelSize, prefHeight: Double = pixelSize) {
         val font = font
         val newFont = Font(font.name, pixelSize)
         setFont(newFont)
-        setPrefSize(pixelSize * 1.1, pixelSize * 1)
+        setPrefSize(prefWidth, prefHeight)
     }
 
     init {
