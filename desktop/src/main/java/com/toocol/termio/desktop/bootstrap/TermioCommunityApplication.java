@@ -94,9 +94,9 @@ import java.io.InputStream;
         "Segoe-Fluent-Icons.ttf"
 })
 public class TermioCommunityApplication extends Application implements Loggable {
-    private static ComponentsParser componentParser = new ComponentsParser();
-    private static CssFileAnnotationParser cssParser = new CssFileAnnotationParser();
-    private static FontFileAnnotationParser fontParser = new FontFileAnnotationParser();
+    private ComponentsParser componentParser = new ComponentsParser();
+    private CssFileAnnotationParser cssParser = new CssFileAnnotationParser();
+    private FontFileAnnotationParser fontParser = new FontFileAnnotationParser();
 
     public static void main(String[] args) {
         System.setProperty("javafx.preloader", "com.toocol.termio.desktop.bootstrap.TermioPreloader");
@@ -110,6 +110,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
 
     @Override
     public void start(Stage stage) throws IOException {
+        StageHolder.stage = stage;
         stage.initStyle(StageStyle.UNDECORATED);
         stage.setTitle(" Termio Community ");
         stage.setMinWidth(500);

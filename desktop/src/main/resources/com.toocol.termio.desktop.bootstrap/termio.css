@@ -2,11 +2,14 @@
 .major-panel {
     -fx-background-color: #151515;
 }
+
 .center-panel {
     -fx-background-color: #151515;
 }
+
 .left-side-panel {
 }
+
 .workspace-panel {
     -fx-background-color: #151515;
     -fx-border-style: solid;
@@ -15,20 +18,25 @@
 /* sidebar */
 .session-manage-sidebar {
 }
+
 .upper-tab-bar {
     -fx-background-color: #EAEAEA;
     -fx-padding: 0 -1 0 0;
 }
-.upper-tab-bar > .hbox{
+
+.upper-tab-bar > .hbox {
     -fx-background-color: #EAEAEA;
 }
+
 .upper-tab-bar > .hbox > .pane-normal :hover {
     -fx-background-color: #C1C1C1;
 }
+
 .upper-tab-bar > .hbox > .pane-close :hover {
     -fx-background-color: #CD3333;
     -fx-text-fill: #FFFFFF;
 }
+
 .left-tool-sidebar {
     -fx-background-color: #FFFFFF;
     -fx-border-color: #CFCFCF;
@@ -36,9 +44,11 @@
     -fx-border-style: solid;
     -fx-border-insets: 0 0 0 0;
 }
+
 .bottom-status-bar {
     -fx-background-color: #CFCFCF;
 }
+
 .bottom-status-bar-edition-text {
     -fx-font-family: Consolas;
     -fx-font-size: 9pt;
@@ -51,9 +61,11 @@
 .desktop-terminal-panel {
     -fx-background-color: #151515;
 }
+
 .terminal-scroll-pane {
     -fx-background-color: #151515;
 }
+
 .console-text-area {
     -fx-background-color: #151515;
     -fx-padding: 15 15 5 15;
@@ -66,10 +78,12 @@
     -fx-border-width: 2 1 1 1;
     -fx-border-style: solid;
 }
+
 .command-executor-input {
     -fx-background-color: #E1E1E1;
 }
-.command-executor-input .text-field{
+
+.command-executor-input .text-field {
     -fx-font-family: Consolas;
     -fx-text-fill: #151515;
     -fx-background-color: #FFFFFF;
@@ -79,7 +93,8 @@
     -fx-font-size: 10pt;
     -fx-font-weight: bold;
 }
-.command-executor-input .text-field:focused{
+
+.command-executor-input .text-field:focused {
     -fx-font-family: Consolas;
     -fx-text-fill: #151515;
     -fx-background-color: #FFFFFF;
@@ -89,15 +104,24 @@
     -fx-font-size: 10pt;
     -fx-font-weight: bold;
 }
-.command-executor-input-text{
+
+.command-executor-input-text > .text {
     -fx-font-family: Consolas;
     -fx-fill: #151515;
     -fx-font-size: 11pt;
     -fx-font-weight: bold;
 }
+
+.command-executor-input-text:hover {
+    -fx-border-color: #959595;
+    -fx-border-width: 1 1 1 1;
+    -fx-border-insets: -2 -2 -2 -2;
+}
+
 .command-executor-result-scroll-pane {
     -fx-background-color: #E1E1E1;
 }
+
 .command-executor-result-text-area {
     -fx-background-color: #E1E1E1;
     -fx-padding: 5 5 5 10;
