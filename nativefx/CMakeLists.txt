@@ -20,14 +20,20 @@ include_directories("D:/download/boost_1_80_0/")
 link_directories("D:/download/boost_1_80_0/stage/lib")
 
 set(PROJECT_SOURCES
-        src/headers/terminalemulator.h
         src/headers/jnitypeconverter.h
         src/headers/shared_memory.h
         src/headers/jni.h
         src/headers/jni_md.h
+        src/headers/character.h
+        src/headers/charactercolor.h
+        src/headers/wcwidth.h
+        src/headers/terminalemulator.h
+        src/headers/terminalview.h
         src/cpp/main.cpp
-        src/cpp/terminalemulator.cpp
         src/cpp/jnitypeconverter.cpp
+        src/cpp/wcwidth.cpp
+        src/cpp/terminalemulator.cpp
+        src/cpp/terminalview.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
