@@ -1,21 +1,22 @@
 #include "terminalemulator.h"
 
+using namespace TConsole;
+
 TerminalEmulator::TerminalEmulator(QWidget *parent) : QWidget(parent) {
   resize(1280, 800);
-  textDisplay = new QTextEdit(this);
-  textDisplay->setReadOnly(true);
-  textDisplay->resize(1280, 800);
-  textDisplay->setTextColor(QColor(0xba, 0xb1, 0x2d));
-  textDisplay->setText(
-      "kkkkkkkkkk\n"
-      "kkkkkkkkkk\n"
-      "kkkkkkkkkk\n");
-  textDisplay->setTextColor(QColor(0xbb, 0x11, 0xaa));
-  QTextDocument *document = textDisplay->document();
-  QTextBlock block = document->findBlockByLineNumber(2);
-  QTextCursor cursor = textDisplay->textCursor();
-  cursor.setPosition(block.position());
-  cursor.insertText("HelloWorld~");
+  terminalView = new TerminalView(parent);
+  terminalView->resize(1280, 800);
+  terminalView->setBellMode(BellMode::NOTIFY_BELL);
+  terminalView->setTerminalSizeHint(true);
+  terminalView->setTripleClickMode(TripleClickMode::SELECT_WHOLE_LINE);
+  terminalView->setTerminalSizeStartup(true);
+  terminalView->setRandomSeed(3L);
 }
 
-TerminalEmulator::~TerminalEmulator() { delete textDisplay; }
+TerminalEmulator::~TerminalEmulator() { delete terminalView; }
+
+void TerminalEmulator::draw() { terminalView->show(); }
+
+void TerminalEmulator::paintEvent(QPaintEvent *e) {
+  qDebug() << "Emulator trigger";
+}
