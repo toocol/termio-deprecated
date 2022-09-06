@@ -1,53 +1,39 @@
-package com.toocol.termio.desktop.api.term.handlers;
+package com.toocol.termio.desktop.api.term.handlers
 
-import com.toocol.termio.core.cache.StatusCache;
-import com.toocol.termio.core.term.TermAddress;
-import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.utilities.module.BlockingMessageHandler;
-import com.toocol.termio.utilities.module.IAddress;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.Message;
-import org.jetbrains.annotations.NotNull;
-
-import static com.toocol.termio.core.term.TermAddress.ACCEPT_COMMAND;
+import com.toocol.termio.core.cache.STOP_ACCEPT_OUT_COMMAND
+import com.toocol.termio.core.term.TermAddress
+import com.toocol.termio.core.term.core.Term
+import com.toocol.termio.utilities.module.BlockingMessageHandler
+import com.toocol.termio.utilities.module.IAddress
+import io.vertx.core.AsyncResult
+import io.vertx.core.Context
+import io.vertx.core.Promise
+import io.vertx.core.Vertx
+import io.vertx.core.eventbus.Message
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/15 14:25
  */
-public class BlockingDesktopAcceptCommandHandler extends BlockingMessageHandler<Boolean> {
-
-    public BlockingDesktopAcceptCommandHandler(Vertx vertx, Context context, boolean parallel) {
-        super(vertx, context, parallel);
+class BlockingDesktopAcceptCommandHandler(vertx: Vertx?, context: Context?, parallel: Boolean) :
+    BlockingMessageHandler<Boolean?>(
+        vertx!!, context!!, parallel) {
+    override fun consume(): IAddress {
+        return TermAddress.ACCEPT_COMMAND
     }
 
-    @NotNull
-    @Override
-    public IAddress consume() {
-        return ACCEPT_COMMAND;
-    }
-
-    @Override
-    protected <T> void handleBlocking(@NotNull Promise<Boolean> promise, @NotNull Message<T> message) {
-        Term term = Term.instance;
+    override fun <T> handleBlocking(promise: Promise<Boolean?>, message: Message<T>) {
+        val term = Term.instance
         while (true) {
-            String cmd = term.readLine();
-
-            eventBus.send(TermAddress.EXECUTE_OUTSIDE.address(), cmd);
-
-            if (StatusCache.STOP_ACCEPT_OUT_COMMAND) {
-                StatusCache.STOP_ACCEPT_OUT_COMMAND = false;
-                promise.complete(false);
-                break;
+            val cmd = term.readLine()
+            eventBus.send(TermAddress.EXECUTE_OUTSIDE.address(), cmd)
+            if (STOP_ACCEPT_OUT_COMMAND) {
+                STOP_ACCEPT_OUT_COMMAND = false
+                promise.complete(false)
+                break
             }
         }
     }
 
-    @Override
-    protected <T> void resultBlocking(@NotNull AsyncResult<Boolean> asyncResult, @NotNull Message<T> message) {
-
-    }
+    override fun <T> resultBlocking(asyncResult: AsyncResult<Boolean?>, message: Message<T>) {}
 }

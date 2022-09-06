@@ -1,104 +1,89 @@
-package com.toocol.termio.console.term.handlers;
+package com.toocol.termio.console.term.handlers
 
-import com.toocol.termio.core.Termio;
-import com.toocol.termio.core.cache.CredentialCache;
-import com.toocol.termio.core.cache.ShellCache;
-import com.toocol.termio.core.cache.SshSessionCache;
-import com.toocol.termio.core.cache.StatusCache;
-import com.toocol.termio.core.ssh.core.SshSessionFactory;
-import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.core.term.core.TermStatus;
-import com.toocol.termio.utilities.module.IAddress;
-import com.toocol.termio.utilities.console.Console;
-import com.toocol.termio.utilities.module.BlockingMessageHandler;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.Message;
-import org.jetbrains.annotations.NotNull;
-
-import static com.toocol.termio.core.term.TermAddress.MONITOR_TERMINAL;
+import com.toocol.termio.core.Termio
+import com.toocol.termio.core.cache.*
+import com.toocol.termio.core.cache.ShellCache.Instance.getShell
+import com.toocol.termio.core.cache.ShellCache.Instance.initializeQuickSessionSwitchHelper
+import com.toocol.termio.core.cache.SshSessionCache.Instance.containSessionId
+import com.toocol.termio.core.cache.SshSessionCache.Instance.sessionMap
+import com.toocol.termio.core.cache.SshSessionCache.Instance.stop
+import com.toocol.termio.core.ssh.core.SshSession
+import com.toocol.termio.core.ssh.core.SshSessionFactory
+import com.toocol.termio.core.term.TermAddress
+import com.toocol.termio.core.term.core.Term
+import com.toocol.termio.core.term.core.TermStatus
+import com.toocol.termio.utilities.console.Console.Companion.get
+import com.toocol.termio.utilities.module.BlockingMessageHandler
+import com.toocol.termio.utilities.module.IAddress
+import io.vertx.core.AsyncResult
+import io.vertx.core.Context
+import io.vertx.core.Promise
+import io.vertx.core.Vertx
+import io.vertx.core.eventbus.Message
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/13 0:58
  * @version: 0.0.1
  */
-@SuppressWarnings("all")
-public final class BlockingMonitorTerminalHandler extends BlockingMessageHandler<Void> {
-
-    private final Console console = Console.get();
-    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
-    private final ShellCache.Instance shellCache = ShellCache.Instance;
-    private final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
-    private final SshSessionFactory.Instance sshSessionFactory = SshSessionFactory.Instance;
-
-    public BlockingMonitorTerminalHandler(Vertx vertx, Context context, boolean parallel) {
-        super(vertx, context, parallel);
+class BlockingMonitorTerminalHandler(vertx: Vertx?, context: Context?, parallel: Boolean) :
+    BlockingMessageHandler<Void?>(
+        vertx!!, context!!, parallel) {
+    private val console = get()
+    private val credentialCache = CredentialCache
+    private val shellCache = ShellCache
+    private val sshSessionCache = SshSessionCache
+    private val sshSessionFactory = SshSessionFactory
+    override fun consume(): IAddress {
+        return TermAddress.MONITOR_TERMINAL
     }
 
-    @NotNull
-    @Override
-    public IAddress consume() {
-        return MONITOR_TERMINAL;
-    }
-
-    @Override
-    protected <T> void handleBlocking(@NotNull Promise<Void> promise, @NotNull Message<T> message) throws Exception {
-        Termio.windowWidth = console.getWindowWidth();
-        Termio.windowHeight = console.getWindowHeight();
-
+    @Throws(Exception::class)
+    override fun <T> handleBlocking(promise: Promise<Void?>, message: Message<T>) {
+        Termio.windowWidth = console.getWindowWidth()
+        Termio.windowHeight = console.getWindowHeight()
         while (true) {
-            monitorTerminalSize();
-
-            monitorSshSession();
-
-            if (StatusCache.STOP_PROGRAM) {
-                break;
+            monitorTerminalSize()
+            monitorSshSession()
+            if (STOP_PROGRAM) {
+                break
             }
-
-            Thread.sleep(100);
+            Thread.sleep(100)
         }
-
-        promise.complete();
+        promise.complete()
     }
 
-    @Override
-    protected <T> void resultBlocking(@NotNull AsyncResult<Void> asyncResult, @NotNull Message<T> message) throws Exception {
-
+    @Throws(Exception::class)
+    override fun <T> resultBlocking(asyncResult: AsyncResult<Void?>, message: Message<T>) {
     }
 
-    private void monitorTerminalSize() {
-        int terminalWidth = console.getWindowWidth();
-        int terminalHeight = console.getWindowHeight();
+    private fun monitorTerminalSize() {
+        val terminalWidth = console.getWindowWidth()
+        val terminalHeight = console.getWindowHeight()
         if (terminalWidth < 0 || terminalHeight < 0) {
-            return;
+            return
         }
-
         if (Termio.windowWidth != terminalWidth || Termio.windowHeight != terminalHeight) {
-            Termio.windowWidth = terminalWidth;
-            Termio.windowHeight = terminalHeight;
-            if (Term.status.equals(TermStatus.SHELL)) {
-                ShellCache.Instance.getShell(StatusCache.MONITOR_SESSION_ID).resize(terminalWidth, terminalHeight, StatusCache.MONITOR_SESSION_ID);
-            } else if (Term.status.equals(TermStatus.TERMIO)) {
-                Term.instance.printScene(true);
+            Termio.windowWidth = terminalWidth
+            Termio.windowHeight = terminalHeight
+            if (Term.status == TermStatus.SHELL) {
+                getShell(MONITOR_SESSION_ID)!!
+                    .resize(terminalWidth, terminalHeight, MONITOR_SESSION_ID)
+            } else if (Term.status == TermStatus.TERMIO) {
+                Term.instance.printScene(true)
             }
         }
     }
 
-    private void monitorSshSession() {
-        sshSessionCache.getSessionMap().forEach((sessionId, session) -> {
-            if (session == null) {
-                return;
-            }
+    private fun monitorSshSession() {
+        sessionMap.forEach { (sessionId: Long?, session: SshSession?) ->
             if (!session.alive()) {
-                if (!sshSessionCache.containSessionId(sessionId)) {
-                    return;
+                if (!containSessionId(sessionId)) {
+                    return@forEach
                 }
-                sshSessionCache.stop(sessionId);
-                shellCache.initializeQuickSessionSwitchHelper();
+                stop(sessionId)
+                initializeQuickSessionSwitchHelper()
             }
-        });
+        }
     }
 }
