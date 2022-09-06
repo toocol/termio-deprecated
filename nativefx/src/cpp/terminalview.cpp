@@ -928,7 +928,6 @@ ScreenWindow *TerminalView::getScreenWindow() const { return _screenWindow; }
 /*                                                                           */
 /* ------------------------------------------------------------------------- */
 void TerminalView::paintEvent(QPaintEvent *event) {
-  qDebug() << "Trigger";
   QPainter paint(this);
   QRect cr = contentsRect();
 
@@ -996,46 +995,32 @@ void TerminalView::paintEvent(QPaintEvent *event) {
     paint.restore();
   }
 
-  qDebug() << "Step 1";
   if (_testFlag) {
     //    calDrawTextAdditionHeight(paint);
   }
 
   const QRegion regToDraw = event->region() & cr;
-  qDebug() << "Step " << event->region().begin() << ":"
-           << event->region().end();
-  qDebug() << "Step " << cr.width() << ":" << cr.height();
-  qDebug() << "Step " << regToDraw.end();
   for (auto rect = regToDraw.begin(); rect != regToDraw.end(); rect++) {
     drawBackground(paint, *rect, palette().window().color(),
                    true /* use opacity setting */);
-    qDebug() << "Loop1";
     drawContents(paint, *rect);
-    qDebug() << "Loop2";
   }
-  qDebug() << "Step 2";
 
   drawInputMethodPreeditString(paint, preeditRect());
-  qDebug() << "Step 3";
-
   paintFilters(paint);
-  qDebug() << "Finish";
 }
 
 void TerminalView::showEvent(QShowEvent *) {
   emit changedContentSizeSignal(_contentHeight, _contentWidth);
-  qDebug() << "show";
 }
 
 void TerminalView::hideEvent(QHideEvent *) {
   emit changedContentSizeSignal(_contentHeight, _contentWidth);
-  qDebug() << "hide";
 }
 
 void TerminalView::resizeEvent(QResizeEvent *) {
   updateImageSize();
   //  processFilters();
-  qDebug() << "resize";
 }
 
 void TerminalView::fontChange(const QFont &font) {}

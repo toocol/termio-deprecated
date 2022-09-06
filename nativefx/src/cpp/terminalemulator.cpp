@@ -67,6 +67,4 @@ void TerminalEmulator::setBracketedPasteMode(bool on) {
   _bracketedPasteMode = on;
 }
 
-void TerminalEmulator::paintEvent(QPaintEvent *e) {
-  qDebug() << "Emulator trigger";
-}
+void TerminalEmulator::paintEvent(QPaintEvent *e) {}
