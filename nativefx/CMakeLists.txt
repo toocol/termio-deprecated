@@ -17,7 +17,10 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 include_directories("src/headers/")
 include_directories("src/cpp/")
 include_directories("D:/download/boost_1_80_0/")
+include_directories("C:/Windows/System32/include")
+
 link_directories("D:/download/boost_1_80_0/stage/lib")
+link_directories("C:/Windows/System32/lib")
 
 set(PROJECT_SOURCES
         src/headers/jnitypeconverter.h
@@ -27,11 +30,21 @@ set(PROJECT_SOURCES
         src/headers/character.h
         src/headers/charactercolor.h
         src/headers/wcwidth.h
+        src/headers/history.h
+        src/headers/blockarray.h
+        src/headers/screen.h
+        src/headers/screenwindow.h
+        src/headers/terminalcharacterdecoder.h
         src/headers/terminalemulator.h
         src/headers/terminalview.h
         src/cpp/main.cpp
         src/cpp/jnitypeconverter.cpp
         src/cpp/wcwidth.cpp
+        src/cpp/history.cpp
+        src/cpp/blockarray.cpp
+        src/cpp/screen.cpp
+        src/cpp/screenwindow.cpp
+        src/cpp/terminalcharacterdecoder.cpp
         src/cpp/terminalemulator.cpp
         src/cpp/terminalview.cpp
 )
@@ -59,7 +72,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(nativefx PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(nativefx PRIVATE Qt${QT_VERSION_MAJOR}::Widgets -lmman)
 
 set_target_properties(nativefx PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

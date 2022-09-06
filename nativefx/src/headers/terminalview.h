@@ -16,6 +16,7 @@
 #include <QWidget>
 
 #include "character.h"
+#include "screenwindow.h"
 
 class QDrag;
 class QDragEnterEvent;
@@ -109,15 +110,47 @@ class TerminalView : public QWidget {
    */
   void scrollToEnd();
   /** Returns true if the cursor is set to blink or false otherwise. */
-  bool blinkingCursor() { return hasBlinkingCursor; }
+  bool blinkingCursor() { return _hasBlinkingCursor; }
   /** Specifies whether or not the cursor blinks. */
   void setBlinkingCursor(bool blink);
   /** Specifies whether or not text can blink. */
   void setBlinkingTextEnabled(bool blink);
-  void setCtrlDrag(bool enable) { ctrlDrag = enable; }
-  bool isCtrlDrag() { return ctrlDrag; }
+  void setCtrlDrag(bool enable) { _ctrlDrag = enable; }
+  bool isCtrlDrag() { return _ctrlDrag; }
+
+  /**
+   * Returns the number of lines of text which can be displayed in the widget.
+   *
+   * This will depend upon the height of the widget and the current font.
+   * See fontHeight()
+   */
+  int lines() { return _lines; }
+  /**
+   * Returns the number of characters of text which can be displayed on
+   * each line in the widget.
+   *
+   * This will depend upon the width of the widget and the current font.
+   * See fontWidth()
+   */
+  int columns() { return _columns; }
+
+  /**
+   * Returns the height of the characters in the font used to draw the text in
+   * the display.
+   */
+  int fontHeight() { return _fontHeight; }
+  /**
+   * Returns the width of the characters in the display.
+   * This assumes the use of a fixed-width font.
+   */
+  int fontWidth() { return _fontWidth; }
 
   void setSize(int cols, int lins);
+  void setFixedSize(int cols, int lins);
+
+  // reimplemented
+  QSize sizeHint() const override;
+
   /**
    * Sets the type of effect used to alert the user when a 'bell' occurs in the
    * terminal session.
@@ -132,40 +165,67 @@ class TerminalView : public QWidget {
    *
    * See setBellMode()
    */
-  int getBellMode() { return bellMode; }
+  int getBellMode() { return _bellMode; }
   /**
    * Sets whether or not the current height and width of the
    * terminal in lines and columns is displayed whilst the widget
    * is being resized.
    */
-  void setTerminalSizeHint(bool on) { terminalSizeHint = on; }
+  void setTerminalSizeHint(bool on) { _terminalSizeHint = on; }
   /**
    * Returns whether or not the current height and width of
    * the terminal in lines and columns is displayed whilst the widget
    * is being resized.
    */
-  bool isTerminalSizeHint() { return terminalSizeHint; }
+  bool isTerminalSizeHint() { return _terminalSizeHint; }
   /**
    * Sets whether the terminal size display is shown briefly
    * after the widget is first shown.
    *
    * See setTerminalSizeHint() , isTerminalSizeHint()
    */
-  void setTerminalSizeStartup(bool on) { terminalSizeStartup = on; }
+  void setTerminalSizeStartup(bool on) { _terminalSizeStartup = on; }
   /**
    * Sets the status of the BiDi rendering inside the terminal display.
    * Defaults to disabled.
    */
-  void setBidiEnabled(bool set) { bidiEnabled = set; }
+  void setBidiEnabled(bool set) { _bidiEnabled = set; }
   /**
    * Returns the status of the BiDi rendering in this widget.
    */
-  bool isBidiEnabled() { return bidiEnabled; }
+  bool isBidiEnabled() { return _bidiEnabled; }
   /** Sets how the text is selected when the user triple clicks within the
    * display. */
-  void setTripleClickMode(TripleClickMode mode) { tripleClickMode = mode; }
+  void setTripleClickMode(TripleClickMode mode) { _tripleClickMode = mode; }
   /** See setTripleClickSelectionMode() */
-  TripleClickMode getTripleClickMode() { return tripleClickMode; }
+  TripleClickMode getTripleClickMode() { return _tripleClickMode; }
+  /**
+   * Sets the shape of the keyboard cursor.  This is the cursor drawn
+   * at the position in the terminal where keyboard input will appear.
+   *
+   * In addition the terminal display widget also has a cursor for
+   * the mouse pointer, which can be set using the QWidget::setCursor()
+   * method.
+   *
+   * Defaults to BlockCursor
+   */
+  void setCursorShape(CursorShape shape);
+  /**
+   * Returns the shape of the keyboard cursor.  See setKeyboardCursorShape()
+   */
+  CursorShape getCursorShape() const;
+  /**
+   * Sets the terminal screen section which is displayed in this widget.
+   * When updateImage() is called, the display fetches the latest character
+   * image from the the associated terminal screen window.
+   *
+   * In terms of the model-view paradigm, the ScreenWindow is the model which is
+   * rendered by the TerminalView.
+   */
+  void setScreenWindow(ScreenWindow* window);
+  /** Returns the terminal screen section which is displayed in this widget.
+   * See setScreenWindow() */
+  ScreenWindow* getScreenWindow() const;
 
  protected:
   void paintEvent(QPaintEvent*) override;
@@ -204,6 +264,12 @@ class TerminalView : public QWidget {
   void changedContentSizeSignal(int height, int width);
 
  public slots:
+  /**
+   * Causes the terminal display to fetch the latest character image from the
+   * associated terminal screen ( see setScreenWindow() ) and redraw the
+   * display.
+   */
+  void updateImage();
   /**
    * Sets whether the program whoose output is being displayed in the view
    * is interested in mouse events.
@@ -284,6 +350,14 @@ class TerminalView : public QWidget {
   // terminal's current size in columns and lines
   void showResizeNotification();
 
+  // scrolls the image by a number of lines.
+  // 'lines' may be positive ( to scroll the image down )
+  // or negative ( to scroll the image up )
+  // 'region' is the part of the image to scroll - currently only
+  // the top, bottom and height of 'region' are taken into account,
+  // the left and right are ignored.
+  void scrollImage(int lines, const QRect& region);
+
   // returns the position of the cursor in columns and lines
   QPoint cursorPosition() const;
 
@@ -292,121 +366,123 @@ class TerminalView : public QWidget {
   void updateImageSize();
   void makeImage();
 
-  QGridLayout* gridLayout;
-  bool allowBell;
+  QPointer<ScreenWindow> _screenWindow;
+
+  QGridLayout* _gridLayout;
+  bool _allowBell;
   // Whether intense colors should be bold.
-  bool boldIntense;
+  bool _boldIntense;
   // Whether is test mode.
-  bool testFlag;
+  bool _testFlag;
 
   // whether has fixed pitch.
-  bool fixedFont;
-  int fontHeight;
-  int fontWidth;
-  int fontAscend;
-  int drawTextAdditionHeight;
-  int leftMargin;
-  int topMargin;
+  bool _fixedFont;
+  int _fontHeight;
+  int _fontWidth;
+  int _fontAscend;
+  int _drawTextAdditionHeight;
+  int _leftMargin;
+  int _topMargin;
 
-  int leftBaseMargin;
-  int topBaseMargin;
+  int _leftBaseMargin;
+  int _topBaseMargin;
 
   // The total number of lines that can be displayed in the view;
-  int lines;
+  int _lines;
   // The total number of columns that can be displayed in the view;
-  int columns;
+  int _columns;
 
-  int usedLines;
-  int usedColumns;
+  int _usedLines;
+  int _usedColumns;
 
-  int contentHeight;
-  int contentWidth;
+  int _contentHeight;
+  int _contentWidth;
 
-  Character* image;
-  int imageSize;
+  Character* _image;
+  int _imageSize;
 
-  QVector<LineProperty> lineProperties;
+  QVector<LineProperty> _lineProperties;
 
-  ColorEntry colorTable[TABLE_COLORS];
-  uint randomSeed;
+  ColorEntry _colorTable[TABLE_COLORS];
+  uint _randomSeed;
 
-  bool resizing;
-  bool terminalSizeHint;
-  bool terminalSizeStartup;
-  bool bidiEnabled;
-  bool mouseMarks;
-  bool bracketedPasteMode;
-  bool disabledBracketedPasteMode;
+  bool _resizing;
+  bool _terminalSizeHint;
+  bool _terminalSizeStartup;
+  bool _bidiEnabled;
+  bool _mouseMarks;
+  bool _bracketedPasteMode;
+  bool _disabledBracketedPasteMode;
 
   // initial selection point
-  QPoint iPntSel;
+  QPoint _iPntSel;
   // current selection point
-  QPoint pntSel;
+  QPoint _pntSel;
   // help avoid flicker
-  QPoint tripleSelBegin;
+  QPoint _tripleSelBegin;
   // selection state
-  int actSel;
-  bool wordSelectionMode;
-  bool lineSelectionMode;
-  bool preserveLineBreaks;
-  bool columnSelectionMode;
+  int _actSel;
+  bool _wordSelectionMode;
+  bool _lineSelectionMode;
+  bool _preserveLineBreaks;
+  bool _columnSelectionMode;
 
-  QClipboard* clipboard;
-  QScrollBar* scrollBar;
-  ScrollBarPosition scrollbarLocation;
-  QString wordCharacters;
-  int bellMode;
+  QClipboard* _clipboard;
+  QScrollBar* _scrollBar;
+  ScrollBarPosition _scrollbarLocation;
+  QString _wordCharacters;
+  int _bellMode;
 
   // hide text in paint event.
-  bool blinking;
+  bool _blinking;
   // has character to blink.
-  bool hasBlinker;
+  bool _hasBlinker;
   // hide cursor in paint event.
-  bool cursorBlinking;
+  bool _cursorBlinking;
   // has bliking cursor enable.
-  bool hasBlinkingCursor;
+  bool _hasBlinkingCursor;
   // allow text to blink.
-  bool allowBlinkingText;
+  bool _allowBlinkingText;
   // require Ctrl key for drag
-  bool ctrlDrag;
+  bool _ctrlDrag;
   // columns/lines are locked.
-  bool isFixedSize;
+  bool _isFixedSize;
   // set in mouseDoubleClickEvent and delete after
   // QApplication::doubleClickInterval() delay.
-  bool possibleTripleClick;
-  TripleClickMode tripleClickMode;
-  QTimer* blinkTimer;
-  QTimer* blinkCursorTimer;
+  bool _possibleTripleClick;
+  TripleClickMode _tripleClickMode;
+  QTimer* _blinkTimer;
+  QTimer* _blinkCursorTimer;
 
   // true during visual bell
-  bool colorsInverted;
+  bool _colorsInverted;
 
-  QLabel* resizeWidget;
-  QTimer* resizeTimer;
+  QLabel* _resizeWidget;
+  QTimer* _resizeTimer;
 
-  QLabel* outputSuspendedLabel;
+  QLabel* _outputSuspendedLabel;
 
-  uint lineSpacing;
-  qreal opacity;
-  QSize size;
+  uint _lineSpacing;
+  qreal _opacity;
+  QSize _size;
 
-  QPixmap backgroundImage;
-  BackgroundMode backgroundMode;
+  QPixmap _backgroundImage;
+  BackgroundMode _backgroundMode;
 
-  CursorShape cursorShape;
-  QColor cursorColor;
+  CursorShape _cursorShape;
+  QColor _cursorColor;
 
-  MotionAfterPasting motionAfterPasting;
-  bool confirmMultilinePaster;
-  bool trimPastedTrailingNewLines;
+  MotionAfterPasting _motionAfterPasting;
+  bool _confirmMultilinePaster;
+  bool _trimPastedTrailingNewLines;
 
   struct InputMethodData {
     std::wstring preeditString;
     QRect previousPreeditRect;
   };
-  InputMethodData inputMethodData;
+  InputMethodData _inputMethodData;
 
-  bool drawLineChars;
+  bool _drawLineChars;
 };
 
 class AutoScrollHandler : public QObject {

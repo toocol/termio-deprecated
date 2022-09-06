@@ -4,8 +4,8 @@
 
 int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
-  TConsole::TerminalEmulator w;
-  w.show();
-  w.draw();
+  TConsole::TerminalEmulator emulator;
+  emulator.show();
+  emulator.initialize();
   return a.exec();
 }
