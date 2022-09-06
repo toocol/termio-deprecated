@@ -14,6 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
+include_directories("../native/src/")
 include_directories("src/headers/")
 include_directories("src/cpp/")
 include_directories("D:/download/boost_1_80_0/")
@@ -25,8 +26,6 @@ link_directories("C:/Windows/System32/lib")
 set(PROJECT_SOURCES
         src/headers/jnitypeconverter.h
         src/headers/shared_memory.h
-        src/headers/jni.h
-        src/headers/jni_md.h
         src/headers/character.h
         src/headers/charactercolor.h
         src/headers/wcwidth.h
