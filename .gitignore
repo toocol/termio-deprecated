@@ -10,6 +10,7 @@ starter/arthas-output
 *.log
 pom-xml-flattened
 .flattened-pom.xml
+runPom.xml
 
 ### STS ###
 .apt_generated

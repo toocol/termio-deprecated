@@ -31,6 +31,7 @@ public class FileUtil {
         userDir = userDir.replaceAll("\\\\\\\\", "/");
         userDir = userDir.replaceAll("\\\\", "/");
         userDir = userDir.split("/console")[0];
+        userDir = userDir.split("/desktop")[0];
     }
 
     /**

@@ -1,14 +1,11 @@
 package com.toocol.termio.console.term.handlers
 
 import com.toocol.termio.core.Termio
-import com.toocol.termio.core.cache.*
-import com.toocol.termio.core.cache.ShellCache.Instance.getShell
-import com.toocol.termio.core.cache.ShellCache.Instance.initializeQuickSessionSwitchHelper
-import com.toocol.termio.core.cache.SshSessionCache.Instance.containSessionId
-import com.toocol.termio.core.cache.SshSessionCache.Instance.sessionMap
-import com.toocol.termio.core.cache.SshSessionCache.Instance.stop
+import com.toocol.termio.core.cache.MONITOR_SESSION_ID
+import com.toocol.termio.core.cache.STOP_PROGRAM
+import com.toocol.termio.core.cache.ShellCache
+import com.toocol.termio.core.cache.SshSessionCache
 import com.toocol.termio.core.ssh.core.SshSession
-import com.toocol.termio.core.ssh.core.SshSessionFactory
 import com.toocol.termio.core.term.TermAddress
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.core.term.core.TermStatus
@@ -30,10 +27,9 @@ class BlockingMonitorTerminalHandler(vertx: Vertx?, context: Context?, parallel:
     BlockingMessageHandler<Void?>(
         vertx!!, context!!, parallel) {
     private val console = get()
-    private val credentialCache = CredentialCache
-    private val shellCache = ShellCache
-    private val sshSessionCache = SshSessionCache
-    private val sshSessionFactory = SshSessionFactory
+    private val shellCache = ShellCache.Instance
+    private val sshSessionCache = SshSessionCache.Instance
+
     override fun consume(): IAddress {
         return TermAddress.MONITOR_TERMINAL
     }
@@ -67,7 +63,7 @@ class BlockingMonitorTerminalHandler(vertx: Vertx?, context: Context?, parallel:
             Termio.windowWidth = terminalWidth
             Termio.windowHeight = terminalHeight
             if (Term.status == TermStatus.SHELL) {
-                getShell(MONITOR_SESSION_ID)!!
+                shellCache.getShell(MONITOR_SESSION_ID)!!
                     .resize(terminalWidth, terminalHeight, MONITOR_SESSION_ID)
             } else if (Term.status == TermStatus.TERMIO) {
                 Term.instance.printScene(true)
@@ -76,13 +72,13 @@ class BlockingMonitorTerminalHandler(vertx: Vertx?, context: Context?, parallel:
     }
 
     private fun monitorSshSession() {
-        sessionMap.forEach { (sessionId: Long?, session: SshSession?) ->
+        sshSessionCache.sessionMap.forEach { (sessionId: Long?, session: SshSession?) ->
             if (!session.alive()) {
-                if (!containSessionId(sessionId)) {
+                if (!sshSessionCache.containSessionId(sessionId)) {
                     return@forEach
                 }
-                stop(sessionId)
-                initializeQuickSessionSwitchHelper()
+                sshSessionCache.stop(sessionId)
+                shellCache.initializeQuickSessionSwitchHelper()
             }
         }
     }
