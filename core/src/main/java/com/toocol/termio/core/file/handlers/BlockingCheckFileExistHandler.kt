@@ -1,44 +1,37 @@
-package com.toocol.termio.core.file.handlers;
+package com.toocol.termio.core.file.handlers
 
-import com.toocol.termio.utilities.module.IAddress;
-import com.toocol.termio.utilities.module.BlockingMessageHandler;
-import com.toocol.termio.utilities.utils.FileUtil;
-import com.toocol.termio.core.file.FileAddress;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.Message;
-import org.jetbrains.annotations.NotNull;
+import com.toocol.termio.core.file.FileAddress
+import com.toocol.termio.utilities.module.BlockingMessageHandler
+import com.toocol.termio.utilities.module.IAddress
+import com.toocol.termio.utilities.utils.FileUtil
+import io.vertx.core.AsyncResult
+import io.vertx.core.Context
+import io.vertx.core.Promise
+import io.vertx.core.Vertx
+import io.vertx.core.eventbus.Message
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 16:19
  */
-public final class BlockingCheckFileExistHandler extends BlockingMessageHandler<Void> {
-
-    public BlockingCheckFileExistHandler(Vertx vertx, Context context, boolean parallel) {
-        super(vertx, context, parallel);
+class BlockingCheckFileExistHandler(vertx: Vertx?, context: Context?, parallel: Boolean) :
+    BlockingMessageHandler<Void?>(
+        vertx!!, context!!, parallel) {
+    override fun consume(): IAddress {
+        return FileAddress.CHECK_FILE_EXIST
     }
 
-    @NotNull
-    @Override
-    public IAddress consume() {
-        return FileAddress.CHECK_FILE_EXIST;
-    }
-
-    @Override
-    protected <T> void handleBlocking(@NotNull Promise<Void> promise, @NotNull Message<T> message) throws Exception {
-        String filePath = cast(message.body());
-        boolean success = FileUtil.checkAndCreateFile(filePath);
+    @Throws(Exception::class)
+    override fun <T> handleBlocking(promise: Promise<Void?>, message: Message<T>) {
+        val filePath = cast<String>(message.body())
+        val success = FileUtil.checkAndCreateFile(filePath)
         if (!success) {
-            throw new RuntimeException("Create credential file failed.");
+            throw RuntimeException("Create credential file failed.")
         }
-        promise.complete();
+        promise.complete()
     }
 
-    @Override
-    protected <T> void resultBlocking(@NotNull AsyncResult<Void> asyncResult, @NotNull Message<T> message) {
-        message.reply(null);
+    override fun <T> resultBlocking(asyncResult: AsyncResult<Void?>, message: Message<T>) {
+        message.reply(null)
     }
 }

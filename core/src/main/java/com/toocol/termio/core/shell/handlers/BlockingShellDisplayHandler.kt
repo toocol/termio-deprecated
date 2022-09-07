@@ -1,151 +1,126 @@
-package com.toocol.termio.core.shell.handlers;
+package com.toocol.termio.core.shell.handlers
 
-import com.jcraft.jsch.ChannelShell;
-import com.toocol.termio.core.cache.ShellCache;
-import com.toocol.termio.core.cache.SshSessionCache;
-import com.toocol.termio.core.cache.StatusCache;
-import com.toocol.termio.core.shell.ShellAddress;
-import com.toocol.termio.core.shell.core.Shell;
-import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.utilities.ansi.Printer;
-import com.toocol.termio.utilities.log.Loggable;
-import com.toocol.termio.utilities.module.BlockingMessageHandler;
-import com.toocol.termio.utilities.module.IAddress;
-import com.toocol.termio.utilities.sync.SharedCountdownLatch;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.Message;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import com.toocol.termio.core.cache.*
+import com.toocol.termio.core.shell.ShellAddress
+import com.toocol.termio.utilities.ansi.Printer.print
+import com.toocol.termio.utilities.log.Loggable
+import com.toocol.termio.utilities.module.BlockingMessageHandler
+import com.toocol.termio.utilities.module.IAddress
+import com.toocol.termio.utilities.sync.SharedCountdownLatch.countdown
+import io.vertx.core.AsyncResult
+import io.vertx.core.Context
+import io.vertx.core.Promise
+import io.vertx.core.Vertx
+import io.vertx.core.eventbus.Message
+import java.nio.charset.StandardCharsets
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/31 15:44
  */
-@SuppressWarnings("all")
-public final class BlockingShellDisplayHandler extends BlockingMessageHandler<Long> implements Loggable {
+class BlockingShellDisplayHandler(vertx: Vertx?, context: Context?, parallel: Boolean) : BlockingMessageHandler<Long?>(
+    vertx!!, context!!, parallel), Loggable {
 
-    private final SshSessionCache.Instance sshSessionCache = SshSessionCache.Instance;
-    private final ShellCache.Instance shellCache = ShellCache.Instance;
+    private val sshSessionCache = SshSessionCache.Instance
+    private val shellCache = ShellCache.Instance
 
-    private volatile boolean cmdHasFeedbackWhenJustExit = false;
+    @Volatile
+    private var cmdHasFeedbackWhenJustExit = false
 
-    private volatile long firstIn = 0;
-
-    public BlockingShellDisplayHandler(Vertx vertx, Context context, boolean parallel) {
-        super(vertx, context, parallel);
+    @Volatile
+    private var firstIn: Long = 0
+    override fun consume(): IAddress {
+        return ShellAddress.DISPLAY_SHELL
     }
 
-    @NotNull
-    @Override
-    public IAddress consume() {
-        return ShellAddress.DISPLAY_SHELL;
-    }
-
-    @Override
-    protected <T> void handleBlocking(@NotNull Promise<Long> promise, @NotNull Message<T> message) throws Exception {
-        long sessionId = cast(message.body());
-
-        Shell shell = shellCache.getShell(sessionId);
-
-        if (shell.hasWelcome() && StatusCache.SHOW_WELCOME) {
-            shell.printWelcome();
-            StatusCache.SHOW_WELCOME = false;
+    @Throws(Exception::class)
+    override fun <T> handleBlocking(promise: Promise<Long?>, message: Message<T>) {
+        val sessionId = cast<Long>(message.body())
+        val shell = shellCache.getShell(sessionId)
+        if (shell!!.hasWelcome() && SHOW_WELCOME) {
+            shell.printWelcome()
+            SHOW_WELCOME = false
         }
-
-        if (StatusCache.ACCESS_EXHIBIT_SHELL_WITH_PROMPT) {
-            Printer.print(shell.getPrompt());
+        if (ACCESS_EXHIBIT_SHELL_WITH_PROMPT) {
+            print(shell.getPrompt())
         } else {
-            StatusCache.ACCESS_EXHIBIT_SHELL_WITH_PROMPT = true;
+            ACCESS_EXHIBIT_SHELL_WITH_PROMPT = true
         }
 
         /*
          * All the remote feedback data is getting from this InputStream.
          * And don't know why, there should get a new InputStream from channelShell.
          **/
-        InputStream in = shell.getInputStream();
-        byte[] tmp = new byte[1024];
-
+        val inputStream = shell.getInputStream()
+        val tmp = ByteArray(1024)
         while (true) {
-            while (in.available() > 0) {
-                if (StatusCache.EXHIBIT_WAITING_BEFORE_COMMAND_PREPARE) {
-                    continue;
+            while (inputStream!!.available() > 0) {
+                if (EXHIBIT_WAITING_BEFORE_COMMAND_PREPARE) {
+                    continue
                 }
-                int i = in.read(tmp, 0, 1024);
+                val i = inputStream.read(tmp, 0, 1024)
                 if (i < 0) {
-                    break;
+                    break
                 }
-
-                String msg = new String(tmp, 0, i, StandardCharsets.UTF_8);
-                boolean hasPrint = shell.print(msg);
-                if (hasPrint) {
-                    int[] position = Term.instance.getCursorPosition();
+                val msg = String(tmp, 0, i, StandardCharsets.UTF_8)
+                val hasPrint = shell.print(msg)
+                if (hasPrint && JUST_CLOSE_EXHIBIT_SHELL) {
+                    cmdHasFeedbackWhenJustExit = true
                 }
-                if (hasPrint && StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
-                    cmdHasFeedbackWhenJustExit = true;
-                }
-                SharedCountdownLatch.countdown(BlockingShellExecuteHandler.class, this.getClass());
+                countdown(BlockingShellExecuteHandler::class.java, this.javaClass)
             }
-
-            if (StatusCache.HANGED_QUIT) {
-                if (in.available() > 0) {
-                    continue;
+            if (HANGED_QUIT) {
+                if (inputStream.available() > 0) {
+                    continue
                 }
-                break;
+                break
             }
-            if (shell.isClosed()) {
-                if (in.available() > 0) {
-                    continue;
+            if (shell.isClosed) {
+                if (inputStream.available() > 0) {
+                    continue
                 }
-                break;
+                break
             }
-            if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
-                if (firstIn == 0) {
-                    firstIn = System.currentTimeMillis();
+            if (JUST_CLOSE_EXHIBIT_SHELL) {
+                if (firstIn == 0L) {
+                    firstIn = System.currentTimeMillis()
                 } else {
                     if (System.currentTimeMillis() - firstIn >= 2000) {
-                        if (in.available() > 0) {
-                            continue;
+                        if (inputStream.available() > 0) {
+                            continue
                         }
-                        firstIn = 0;
-                        break;
+                        firstIn = 0
+                        break
                     }
                 }
-
                 if (cmdHasFeedbackWhenJustExit) {
-                    if (in.available() > 0) {
-                        continue;
+                    if (inputStream.available() > 0) {
+                        continue
                     }
-                    firstIn = 0;
-                    break;
+                    firstIn = 0
+                    break
                 }
             }
             /*
              * Reduce CPU utilization
-             */
-            Thread.sleep(1);
+             */Thread.sleep(1)
         }
-
-        promise.complete(sessionId);
+        promise.complete(sessionId)
     }
 
-    @Override
-    protected <T> void resultBlocking(@NotNull AsyncResult<Long> asyncResult, @NotNull Message<T> message) throws Exception {
-        if (StatusCache.JUST_CLOSE_EXHIBIT_SHELL) {
-            StatusCache.JUST_CLOSE_EXHIBIT_SHELL = false;
-            cmdHasFeedbackWhenJustExit = false;
-            SharedCountdownLatch.countdown(BlockingExecuteCmdInShellHandler.class, this.getClass());
-            return;
+    @Throws(Exception::class)
+    override fun <T> resultBlocking(asyncResult: AsyncResult<Long?>, message: Message<T>) {
+        if (JUST_CLOSE_EXHIBIT_SHELL) {
+            JUST_CLOSE_EXHIBIT_SHELL = false
+            cmdHasFeedbackWhenJustExit = false
+            countdown(BlockingExecuteCmdInShellHandler::class.java, this.javaClass)
+            return
         }
-        if (StatusCache.ACCEPT_SHELL_CMD_IS_RUNNING) {
-            Long sessionId = asyncResult.result();
-            ChannelShell channelShell = SshSessionCache.Instance.getChannelShell(sessionId);
-            if (channelShell != null && !channelShell.isClosed()) {
-                eventBus.send(ShellAddress.DISPLAY_SHELL.address(), sessionId);
+        if (ACCEPT_SHELL_CMD_IS_RUNNING) {
+            val sessionId = asyncResult.result()
+            val channelShell = sshSessionCache.getChannelShell(sessionId!!)
+            if (channelShell != null && !channelShell.isClosed) {
+                eventBus.send(ShellAddress.DISPLAY_SHELL.address(), sessionId)
             }
         }
     }

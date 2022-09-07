@@ -1,96 +1,76 @@
-package com.toocol.termio.core.shell.handlers;
+package com.toocol.termio.core.shell.handlers
 
-import com.jcraft.jsch.ChannelSftp;
-import com.toocol.termio.core.cache.ShellCache;
-import com.toocol.termio.core.shell.core.SftpChannelProvider;
-import com.toocol.termio.core.shell.core.Shell;
-import com.toocol.termio.utilities.module.IAddress;
-import com.toocol.termio.utilities.ansi.Printer;
-import com.toocol.termio.utilities.module.BlockingMessageHandler;
-import com.toocol.termio.utilities.utils.FileNameUtil;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.Message;
-import io.vertx.core.json.JsonObject;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.FileInputStream;
-import java.util.Objects;
-
-import static com.toocol.termio.core.file.FileAddress.CHOOSE_FILE;
-import static com.toocol.termio.core.shell.ShellAddress.START_UF_COMMAND;
+import com.toocol.termio.core.cache.ShellCache
+import com.toocol.termio.core.file.FileAddress
+import com.toocol.termio.core.shell.ShellAddress
+import com.toocol.termio.core.shell.core.SftpChannelProvider
+import com.toocol.termio.utilities.ansi.Printer.print
+import com.toocol.termio.utilities.module.BlockingMessageHandler
+import com.toocol.termio.utilities.module.IAddress
+import com.toocol.termio.utilities.utils.FileNameUtil
+import io.vertx.core.AsyncResult
+import io.vertx.core.Context
+import io.vertx.core.Promise
+import io.vertx.core.Vertx
+import io.vertx.core.eventbus.Message
+import io.vertx.core.json.JsonObject
+import java.io.FileInputStream
+import java.util.*
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/9 16:38
  * @version: 0.0.1
  */
-public final class BlockingUfHandler extends BlockingMessageHandler<Void> {
+class BlockingUfHandler(vertx: Vertx?, context: Context?, parallel: Boolean) : BlockingMessageHandler<Void?>(
+    vertx!!, context!!, parallel) {
 
-    private final SftpChannelProvider.Instance sftpChannelProvider = SftpChannelProvider.Instance;
-    private final ShellCache.Instance shellCache = ShellCache.Instance;
+    private val sftpChannelProvider = SftpChannelProvider.Instance
+    private val shellCache = ShellCache.Instance
 
-    public BlockingUfHandler(Vertx vertx, Context context, boolean parallel) {
-        super(vertx, context, parallel);
+    override fun consume(): IAddress {
+        return ShellAddress.START_UF_COMMAND
     }
 
-    @NotNull
-    @Override
-    public IAddress consume() {
-        return START_UF_COMMAND;
-    }
-
-    @Override
-    protected <T> void handleBlocking(@NotNull Promise<Void> promise, @NotNull Message<T> message) throws Exception {
-        JsonObject request = cast(message.body());
-        Long sessionId = request.getLong("sessionId");
-        String remotePath = request.getString("remotePath");
-
-        ChannelSftp channelSftp = sftpChannelProvider.getChannelSftp(sessionId);
+    @Throws(Exception::class)
+    override fun <T> handleBlocking(promise: Promise<Void?>, message: Message<T>) {
+        val request = cast<JsonObject>(message.body())
+        val sessionId = request.getLong("sessionId")
+        val remotePath = request.getString("remotePath")
+        val channelSftp = sftpChannelProvider.getChannelSftp(sessionId)
         if (channelSftp == null) {
-            Shell shell = shellCache.getShell(sessionId);
-            if (shell == null) {
-                return;
-            }
-            shell.printErr("Create sftp channel failed.");
-            promise.complete();
-            return;
+            val shell = shellCache.getShell(sessionId) ?: return
+            shell.printErr("Create sftp channel failed.")
+            promise.complete()
+            return
         }
-
-        StringBuilder localPathBuilder = new StringBuilder();
-        eventBus.request(CHOOSE_FILE.address(), null, result -> {
-            localPathBuilder.append(Objects.requireNonNullElse(result.result().body(), "-1"));
-
-            Shell shell = shellCache.getShell(sessionId);
+        val localPathBuilder = StringBuilder()
+        eventBus.request(FileAddress.CHOOSE_FILE.address(), null) { result: AsyncResult<Message<Any?>> ->
+            localPathBuilder.append(Objects.requireNonNullElse(result.result().body(), "-1"))
+            val shell = shellCache.getShell(sessionId)
             if (shell == null) {
-                promise.tryFail("-1");
-                return;
+                promise.tryFail("-1")
+                return@request
             }
-            Printer.print(shell.getPrompt());
-
-            String fileNames = localPathBuilder.toString();
-            if ("-1".equals(fileNames)) {
-                promise.tryFail("-1");
-                return;
+            print(shell.getPrompt())
+            val fileNames = localPathBuilder.toString()
+            if ("-1" == fileNames) {
+                promise.tryFail("-1")
+                return@request
             }
-
             try {
-                channelSftp.cd(remotePath);
-                for (String fileName : fileNames.split(",")) {
-                    channelSftp.put(new FileInputStream(fileName), FileNameUtil.getName(fileName));
+                channelSftp.cd(remotePath)
+                for (fileName in fileNames.split(",").toTypedArray()) {
+                    channelSftp.put(FileInputStream(fileName), FileNameUtil.getName(fileName))
                 }
-            } catch (Exception e) {
+            } catch (e: Exception) {
                 // do nothing
             }
-        });
-
-        promise.tryComplete();
+        }
+        promise.tryComplete()
     }
 
-    @Override
-    protected <T> void resultBlocking(@NotNull AsyncResult<Void> asyncResult, @NotNull Message<T> message) throws Exception {
-
+    @Throws(Exception::class)
+    override fun <T> resultBlocking(asyncResult: AsyncResult<Void?>, message: Message<T>) {
     }
 }

@@ -1,89 +1,88 @@
-package com.toocol.termio.core.term.commands.processors;
+package com.toocol.termio.core.term.commands.processors
 
-import com.toocol.termio.core.auth.core.SshCredential;
-import com.toocol.termio.core.cache.CredentialCache;
-import com.toocol.termio.core.term.commands.TermCommandProcessor;
-import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.utilities.ansi.Printer;
-import com.toocol.termio.utilities.utils.RegexUtils;
-import com.toocol.termio.utilities.utils.Tuple2;
-import com.toocol.termio.core.auth.AuthAddress;
-import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.json.JsonObject;
+import com.toocol.termio.core.auth.AuthAddress
+import com.toocol.termio.core.auth.core.SshCredential
+import com.toocol.termio.core.cache.CredentialCache
+import com.toocol.termio.core.term.commands.TermCommandProcessor
+import com.toocol.termio.core.term.core.Term
+import com.toocol.termio.utilities.ansi.Printer.clear
+import com.toocol.termio.utilities.utils.RegexUtils
+import com.toocol.termio.utilities.utils.Tuple2
+import io.vertx.core.AsyncResult
+import io.vertx.core.eventbus.EventBus
+import io.vertx.core.eventbus.Message
+import io.vertx.core.json.JsonObject
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/1 16:07
  */
-public class AddCmdProcessor extends TermCommandProcessor {
+class AddCmdProcessor : TermCommandProcessor() {
 
-    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
+    private val credentialCache = CredentialCache.Instance
 
-    @Override
-    public Object process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
-        String[] params = cmd.trim().replaceAll(" {2,}", " ").replaceFirst("add ", "").split(" ");
-
-        if (params.length < 2 || params.length > 3) {
-            resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add host@user -c=password [-p=port]'.");
-            return null;
+    override fun process(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
+        val params =
+            cmd.trim { it <= ' ' }.replace(" {2,}".toRegex(), " ").replaceFirst("add ".toRegex(), "").split(" ")
+                .toTypedArray()
+        if (params.size < 2 || params.size > 3) {
+            resultAndMsg.first(false)
+                .second("Wrong 'add' command, the correct pattern is 'add host@user -c=password [-p=port]'.")
+            return null
         }
-
-        String[] hostUser = params[0].split("@");
-        if (hostUser.length != 2) {
-            resultAndMsg.first(false).second("Wrong 'add' command, the correct pattern is 'add host@user -c=password [-p=port]'.");
-            return null;
+        val hostUser = params[0].split("@").toTypedArray()
+        if (hostUser.size != 2) {
+            resultAndMsg.first(false)
+                .second("Wrong 'add' command, the correct pattern is 'add host@user -c=password [-p=port]'.")
+            return null
         }
-        String user = hostUser[0];
-        String host = hostUser[1];
+        val user = hostUser[0]
+        val host = hostUser[1]
         if (!RegexUtils.matchIp(host) && !RegexUtils.matchDomain(host)) {
-            resultAndMsg.first(false).second("Wrong host format, just supporting Ip/Domain address.");
-            return null;
+            resultAndMsg.first(false).second("Wrong host format, just supporting Ip/Domain address.")
+            return null
         }
-
-        String[] passwordParam = params[1].split("=");
-        if (passwordParam.length != 2) {
-            resultAndMsg.first(false).second("Wrong host format, just supporting Ip address.");
-            return null;
+        val passwordParam = params[1].split("=").toTypedArray()
+        if (passwordParam.size != 2) {
+            resultAndMsg.first(false).second("Wrong host format, just supporting Ip address.")
+            return null
         }
-        String password = passwordParam[1];
-        int port;
-        if (params.length == 3) {
+        val password = passwordParam[1]
+        val port: Int = if (params.size == 3) {
             try {
-                String[] portParam = params[2].split("=");
-                if (portParam.length != 2) {
-                    resultAndMsg.first(false).second("Wrong host format, just supporting Ip address.");
-                    return null;
+                val portParam = params[2].split("=").toTypedArray()
+                if (portParam.size != 2) {
+                    resultAndMsg.first(false).second("Wrong host format, just supporting Ip address.")
+                    return null
                 }
-                port = Integer.parseInt(portParam[1]);
-            } catch (Exception e) {
-                resultAndMsg.first(false).second("Port should be numbers.");
-                return null;
+                portParam[1].toInt()
+            } catch (e: Exception) {
+                resultAndMsg.first(false).second("Port should be numbers.")
+                return null
             }
         } else {
-            port = 22;
+            22
         }
-
-        boolean jumpServer = false;
-        for (String param : params) {
-            if ("-j".equals(param)) {
-                jumpServer = true;
-                break;
+        var jumpServer = false
+        for (param in params) {
+            if ("-j" == param) {
+                jumpServer = true
+                break
             }
         }
-
-        SshCredential credential = SshCredential.builder().host(host).user(user).password(password).port(port).jumpServer(jumpServer).build();
+        val credential =
+            SshCredential.builder().host(host).user(user).password(password).port(port).jumpServer(jumpServer).build()
         if (credentialCache.containsCredential(credential)) {
-            resultAndMsg.first(false).second("Connection property already exist.");
-            return null;
+            resultAndMsg.first(false).second("Connection property already exist.")
+            return null
         }
-
-        eventBus.request(AuthAddress.ADD_CREDENTIAL.address(), new JsonObject(credential.toMap()), res -> {
-            Printer.clear();
-            Term.instance.printScene(false);
-            Term.instance.printTermPrompt();
-        });
-        resultAndMsg.first(true);
-        return null;
+        eventBus.request(AuthAddress.ADD_CREDENTIAL.address(),
+            JsonObject(credential.toMap())) { res: AsyncResult<Message<Any?>?>? ->
+            clear()
+            Term.instance.printScene(false)
+            Term.instance.printTermPrompt()
+        }
+        resultAndMsg.first(true)
+        return null
     }
-
 }

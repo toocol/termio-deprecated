@@ -1,56 +1,38 @@
-package com.toocol.termio.core.mosh.handlers;
+package com.toocol.termio.core.mosh.handlers
 
-import com.toocol.termio.core.cache.MoshSessionCache;
-import com.toocol.termio.core.mosh.core.MoshSession;
-import com.toocol.termio.utilities.module.BlockingMessageHandler;
-import com.toocol.termio.utilities.module.IAddress;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.Message;
-import org.jetbrains.annotations.NotNull;
-
-import static com.toocol.termio.core.mosh.MoshAddress.MOSH_TICK;
+import com.toocol.termio.core.cache.MoshSessionCache
+import com.toocol.termio.core.mosh.MoshAddress
+import com.toocol.termio.utilities.module.BlockingMessageHandler
+import com.toocol.termio.utilities.module.IAddress
+import io.vertx.core.AsyncResult
+import io.vertx.core.Context
+import io.vertx.core.Promise
+import io.vertx.core.Vertx
+import io.vertx.core.eventbus.Message
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/5/14 21:17
  * @version: 0.0.1
  */
-@SuppressWarnings("all")
-public final class BlockingTickHandler extends BlockingMessageHandler<Void> {
-
-    private final MoshSessionCache.Instance moshSessionCache = MoshSessionCache.Instance;
-
-    public BlockingTickHandler(Vertx vertx, Context context, boolean parallel) {
-        super(vertx, context, parallel);
+class BlockingTickHandler(vertx: Vertx?, context: Context?, parallel: Boolean) : BlockingMessageHandler<Void?>(
+    vertx!!, context!!, parallel) {
+    override fun consume(): IAddress {
+        return MoshAddress.MOSH_TICK
     }
 
-    @NotNull
-    @Override
-    public IAddress consume() {
-        return MOSH_TICK;
-    }
-
-    @Override
-    protected <T> void handleBlocking(@NotNull Promise<Void> promise, @NotNull Message<T> message) throws Exception {
-        long sessionId = cast(message.body());
-        MoshSession moshSession = moshSessionCache.get(sessionId);
-
-        while (moshSession != null && moshSession.isConnected()) {
-
-            moshSession.tick();
-
-            Thread.sleep(1);
-
+    @Throws(Exception::class)
+    override fun <T> handleBlocking(promise: Promise<Void?>, message: Message<T>) {
+        val sessionId = cast<Long>(message.body())
+        val moshSession = MoshSessionCache[sessionId]
+        while (moshSession != null && moshSession.isConnected) {
+            moshSession.tick()
+            Thread.sleep(1)
         }
-
-        promise.complete();
+        promise.complete()
     }
 
-    @Override
-    protected <T> void resultBlocking(@NotNull AsyncResult<Void> asyncResult, @NotNull Message<T> message) throws Exception {
-
+    @Throws(Exception::class)
+    override fun <T> resultBlocking(asyncResult: AsyncResult<Void?>, message: Message<T>) {
     }
 }

@@ -24,7 +24,7 @@ import io.vertx.core.eventbus.Message
 class BlockingEstablishSshSessionHandler(vertx: Vertx?, context: Context?, parallel: Boolean) :
     AbstractBlockingEstablishSshSessionHandler(vertx, context, parallel) {
     @Throws(Exception::class)
-    override fun <T> resultBlocking(asyncResult: AsyncResult<Long>, message: Message<T>) {
+    override fun <T> resultBlocking(asyncResult: AsyncResult<Long?>, message: Message<T>) {
         val sessionId = asyncResult.result()
         if (sessionId != null) {
             val shell = getShell(sessionId)

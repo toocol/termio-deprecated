@@ -2,9 +2,7 @@ package com.toocol.termio.desktop.api.term.handlers
 
 import com.toocol.termio.core.auth.core.SshCredential
 import com.toocol.termio.core.cache.CredentialCache
-import com.toocol.termio.core.cache.CredentialCache.Instance.getCredential
 import com.toocol.termio.core.cache.SshSessionCache
-import com.toocol.termio.core.cache.SshSessionCache.Instance.isAlive
 import com.toocol.termio.core.term.TermAddress
 import com.toocol.termio.core.term.commands.TermCommand
 import com.toocol.termio.core.term.commands.TermCommand.Companion.findAlike
@@ -27,8 +25,8 @@ import org.apache.commons.lang3.StringUtils
  */
 class DynamicEchoHandler(vertx: Vertx?, context: Context?) : NonBlockingMessageHandler(
     vertx!!, context!!) {
-    private val credentialCache = CredentialCache
-    private val sshSessionCache = SshSessionCache
+    private val credentialCache = CredentialCache.Instance
+    private val sshSessionCache = SshSessionCache.Instance
     private val term = Term.instance
     override fun consume(): IAddress {
         return TermAddress.TERMINAL_ECHO
@@ -54,7 +52,7 @@ class DynamicEchoHandler(vertx: Vertx?, context: Context?) : NonBlockingMessageH
                 var credential: SshCredential? = null
                 try {
                     index = finalCmd.toInt()
-                    credential = getCredential(index)
+                    credential = credentialCache.getCredential(index)
                 } catch (e: Exception) {
                     // exceed Integer range
                 }
@@ -62,7 +60,7 @@ class DynamicEchoHandler(vertx: Vertx?, context: Context?) : NonBlockingMessageH
                     connectionPrompt.append("the index corresponded connection not found.")
                 } else {
                     val status =
-                        if (isAlive(credential.host)) front("alive", Term.theme.sessionAliveColor.color) else "offline"
+                        if (sshSessionCache.isAlive(credential.host)) front("alive", Term.theme.sessionAliveColor.color) else "offline"
                     connectionPrompt
                         .append("Host:").append(" ".repeat(15 - 5)).front(Term.theme.hostHighlightColor.color)
                         .append(credential.host).deFront().append("\n")

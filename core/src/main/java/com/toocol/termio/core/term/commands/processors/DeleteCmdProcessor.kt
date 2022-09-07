@@ -1,50 +1,47 @@
-package com.toocol.termio.core.term.commands.processors;
+package com.toocol.termio.core.term.commands.processors
 
-import com.toocol.termio.core.cache.CredentialCache;
-import com.toocol.termio.core.term.commands.TermCommandProcessor;
-import com.toocol.termio.core.term.core.Term;
-import com.toocol.termio.utilities.ansi.Printer;
-import com.toocol.termio.utilities.utils.Tuple2;
-import io.vertx.core.eventbus.EventBus;
-import org.apache.commons.lang3.StringUtils;
-
-import static com.toocol.termio.core.auth.AuthAddress.DELETE_CREDENTIAL;
+import com.toocol.termio.core.auth.AuthAddress
+import com.toocol.termio.core.cache.CredentialCache
+import com.toocol.termio.core.term.commands.TermCommandProcessor
+import com.toocol.termio.core.term.core.Term
+import com.toocol.termio.core.term.core.Term.Companion.promptLen
+import com.toocol.termio.utilities.ansi.Printer.clear
+import com.toocol.termio.utilities.utils.Tuple2
+import io.vertx.core.AsyncResult
+import io.vertx.core.eventbus.EventBus
+import io.vertx.core.eventbus.Message
+import org.apache.commons.lang3.StringUtils
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/1 18:55
  */
-public class DeleteCmdProcessor extends TermCommandProcessor {
+class DeleteCmdProcessor : TermCommandProcessor() {
+    private val credentialCache = CredentialCache.Instance
 
-    private final CredentialCache.Instance credentialCache = CredentialCache.Instance;
-
-    @Override
-    public Object process(EventBus eventBus, String cmd, Tuple2<Boolean, String> resultAndMsg) {
-        String[] split = cmd.trim().replaceAll(" {2,}", " ").split(" ");
-        if (split.length != 2) {
-            resultAndMsg.first(false).second("Wrong 'delete' command, the correct pattern is 'delete index'.");
-            return null;
+    override fun process(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
+        val split = cmd.trim { it <= ' ' }.replace(" {2,}".toRegex(), " ").split(" ").toTypedArray()
+        if (split.size != 2) {
+            resultAndMsg.first(false).second("Wrong 'delete' command, the correct pattern is 'delete index'.")
+            return null
         }
-        String indexStr = split[1];
+        val indexStr = split[1]
         if (!StringUtils.isNumeric(indexStr)) {
-            resultAndMsg.first(false).second("The index must be number.");
-            return null;
+            resultAndMsg.first(false).second("The index must be number.")
+            return null
         }
-        int index = Integer.parseInt(indexStr);
+        val index = indexStr.toInt()
         if (credentialCache.credentialsSize() < index) {
-            resultAndMsg.first(false).second("The index correspond credential didn't exist.");
-            return null;
+            resultAndMsg.first(false).second("The index correspond credential didn't exist.")
+            return null
         }
-
-        eventBus.request(DELETE_CREDENTIAL.address(), index, res -> {
-            Printer.clear();
-            Term.instance.printScene(false);
-            Term.instance.printTermPrompt();
-            Term.instance.setCursorPosition(Term.getPromptLen(), Term.executeLine);
-        });
-
-        resultAndMsg.first(true);
-        return null;
+        eventBus.request(AuthAddress.DELETE_CREDENTIAL.address(), index) { _: AsyncResult<Message<Any?>?>? ->
+            clear()
+            Term.instance.printScene(false)
+            Term.instance.printTermPrompt()
+            Term.instance.setCursorPosition(promptLen, Term.executeLine)
+        }
+        resultAndMsg.first(true)
+        return null
     }
-
 }

@@ -1,41 +1,31 @@
-package com.toocol.termio.core.config.core;
+package com.toocol.termio.core.config.core
 
-import com.toocol.termio.utilities.config.ConfigInstance;
-import org.jetbrains.annotations.NotNull;
+import com.toocol.termio.utilities.config.ConfigInstance
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/29 11:35
  */
-public class TermThemeConfig extends ConfigInstance {
-
-    @NotNull
-    @Override
-    public Class<? extends ConfigInstance> clazz() {
-        return TermThemeConfig.class;
+class TermThemeConfig : ConfigInstance() {
+    override fun clazz(): Class<out ConfigInstance> {
+        return TermThemeConfig::class.java
     }
 
-    public static class DarkTheme extends ConfigInstance {
-        @NotNull
-        @Override
-        public Class<? extends ConfigInstance> clazz() {
-            return DarkTheme.class;
+    class DarkTheme : ConfigInstance() {
+        override fun clazz(): Class<out ConfigInstance> {
+            return DarkTheme::class.java
         }
     }
 
-    public static class GruvboxTheme extends ConfigInstance {
-        @NotNull
-        @Override
-        public Class<? extends ConfigInstance> clazz() {
-            return GruvboxTheme.class;
+    class GruvboxTheme : ConfigInstance() {
+        override fun clazz(): Class<out ConfigInstance> {
+            return GruvboxTheme::class.java
         }
     }
 
-    public static class LightTheme extends ConfigInstance {
-        @NotNull
-        @Override
-        public Class<? extends ConfigInstance> clazz() {
-            return LightTheme.class;
+    class LightTheme : ConfigInstance() {
+        override fun clazz(): Class<out ConfigInstance> {
+            return LightTheme::class.java
         }
     }
 }
