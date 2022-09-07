@@ -112,7 +112,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
     public void start(Stage stage) throws IOException {
         StageHolder.stage = stage;
         stage.initStyle(StageStyle.UNDECORATED);
-        stage.setTitle(" Termio Community ");
+        stage.setTitle("Termio Community");
         stage.setMinWidth(500);
         stage.setMinHeight(400);
         InputStream image = TermioCommunityApplication.class.getResourceAsStream("/com.toocol.termio.desktop.bootstrap/icon.png");

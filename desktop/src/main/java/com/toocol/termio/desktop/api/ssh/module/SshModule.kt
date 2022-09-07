@@ -12,7 +12,10 @@ import com.toocol.termio.utilities.module.RegisterHandler
  * @version: 0.0.1
  */
 @ModuleDeployment(worker = true, workerPoolSize = 5, workerPoolName = "ssh-worker-pool")
-@RegisterHandler(handlers = [BlockingActiveSshSessionHandler::class, BlockingEstablishSshSessionHandler::class])
+@RegisterHandler(handlers = [
+    BlockingActiveSshSessionHandler::class,
+    BlockingEstablishSshSessionHandler::class
+])
 class SshModule : AbstractModule() {
     @Throws(Exception::class)
     override fun start() {
