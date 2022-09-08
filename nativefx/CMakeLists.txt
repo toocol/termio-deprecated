@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core5Compat)
 
 include_directories("../native/src/")
 include_directories("src/headers/")
@@ -36,6 +37,8 @@ set(PROJECT_SOURCES
         src/headers/terminalcharacterdecoder.h
         src/headers/terminalemulator.h
         src/headers/terminalview.h
+        src/headers/emulation.h
+        src/headers/filter.h
         src/cpp/main.cpp
         src/cpp/jnitypeconverter.cpp
         src/cpp/wcwidth.cpp
@@ -46,6 +49,8 @@ set(PROJECT_SOURCES
         src/cpp/terminalcharacterdecoder.cpp
         src/cpp/terminalemulator.cpp
         src/cpp/terminalview.cpp
+        src/cpp/emulation.cpp
+        src/cpp/filter.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -71,7 +76,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(nativefx PRIVATE Qt${QT_VERSION_MAJOR}::Widgets -lmman)
+target_link_libraries(nativefx PRIVATE Qt${QT_VERSION_MAJOR}::Widgets -lmman Qt${QT_VERSION_MAJOR}::Core5Compat)
 
 set_target_properties(nativefx PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

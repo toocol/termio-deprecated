@@ -16,6 +16,7 @@
 #include <QWidget>
 
 #include "character.h"
+#include "filter.h"
 #include "screenwindow.h"
 
 class QDrag;
@@ -117,7 +118,39 @@ class TerminalView : public QWidget {
   void setBlinkingTextEnabled(bool blink);
   void setCtrlDrag(bool enable) { _ctrlDrag = enable; }
   bool isCtrlDrag() { return _ctrlDrag; }
-
+  /**
+   * Returns the display's filter chain.  When the image for the display is
+   * updated, the text is passed through each filter in the chain.  Each filter
+   * can define hotspots which correspond to certain strings (such as URLs or
+   * particular words). Depending on the type of the hotspots created by the
+   * filter ( returned by Filter::Hotspot::type() ) the view will draw visual
+   * cues such as underlines on mouse-over for links or translucent rectangles
+   * for markers.
+   *
+   * To add a new filter to the view, call:
+   *      viewWidget->filterChain()->addFilter( filterObject );
+   */
+  FilterChain* filterChain() const;
+  /**
+   * Updates the filters in the display's filter chain.  This will cause
+   * the hotspots to be updated to match the current image.
+   *
+   * WARNING:  This function can be expensive depending on the
+   * image size and number of filters in the filterChain()
+   *
+   * TODO - This API does not really allow efficient usage.  Revise it so
+   * that the processing can be done in a better way.
+   *
+   * eg:
+   *      - Area of interest may be known ( eg. mouse cursor hovering
+   *      over an area )
+   */
+  void processFilters();
+  /**
+   * Returns a list of menu actions created by the filters for the content
+   * at the given @p position.
+   */
+  QList<QAction*> filterActions(const QPoint& position);
   /**
    * Returns the number of lines of text which can be displayed in the widget.
    *
@@ -166,6 +199,34 @@ class TerminalView : public QWidget {
    * See setBellMode()
    */
   int getBellMode() { return _bellMode; }
+
+  void setSelection(const QString& t);
+
+  /**
+   * Reimplemented.  Has no effect.  Use setVTFont() to change the font
+   * used to draw characters in the display.
+   */
+  virtual void setFont(const QFont&);
+
+  /** Returns the font used to draw characters in the display */
+  QFont getVTFont() { return font(); }
+
+  /**
+   * Sets the font used to draw the display.  Has no effect if @p font
+   * is larger than the size of the display itself.
+   */
+  void setVTFont(const QFont& font);
+
+  /**
+   * Specified whether anti-aliasing of text in the terminal display
+   * is enabled or not.  Defaults to enabled.
+   */
+  static void setAntialias(bool antialias) { _antialiasText = antialias; }
+  /**
+   * Returns true if anti-aliasing of text in the terminal is enabled.
+   */
+  static bool antialias() { return _antialiasText; }
+
   /**
    * Sets whether or not the current height and width of the
    * terminal in lines and columns is displayed whilst the widget
@@ -199,6 +260,18 @@ class TerminalView : public QWidget {
   void setTripleClickMode(TripleClickMode mode) { _tripleClickMode = mode; }
   /** See setTripleClickSelectionMode() */
   TripleClickMode getTripleClickMode() { return _tripleClickMode; }
+
+  void setLineSpacing(uint);
+  void setMargin(int);
+
+  int margin() const;
+  uint lineSpacing() const;
+
+  void emitSelection(bool useXselection, bool appendReturn);
+
+  /** change and wrap text corresponding to paste mode **/
+  void bracketText(QString& text) const;
+
   /**
    * Sets the shape of the keyboard cursor.  This is the cursor drawn
    * at the position in the terminal where keyboard input will appear.
@@ -226,6 +299,12 @@ class TerminalView : public QWidget {
   /** Returns the terminal screen section which is displayed in this widget.
    * See setScreenWindow() */
   ScreenWindow* getScreenWindow() const;
+  // maps a point on the widget to the position ( ie. line and column )
+  // of the character at that point.
+  void getCharacterPosition(const QPointF& widgetPoint, int& line,
+                            int& column) const;
+
+  static bool HAVE_TRANSPARENCY;
 
  protected:
   void paintEvent(QPaintEvent*) override;
@@ -259,9 +338,22 @@ class TerminalView : public QWidget {
     QDrag* dragObject;
   } dragInfo;
 
+  // classifies the 'ch' into one of three categories
+  // and returns a character to indicate which category it is in
+  //
+  //     - A space (returns ' ')
+  //     - Part of a word (returns 'a')
+  //     - Other characters (returns the input character)
+  QChar charClass(QChar ch) const;
+
  signals:
+  /**
+   * Emitted when the user presses a key whilst the terminal widget has focus.
+   */
+  void keyPressedSignal(QKeyEvent* e, bool fromPaste);
   void useMouseChanged();
   void changedContentSizeSignal(int height, int width);
+  void changedFontMetricSignal(int height, int width);
 
  public slots:
   /**
@@ -270,6 +362,9 @@ class TerminalView : public QWidget {
    * display.
    */
   void updateImage();
+  /** Essentially calls processFilters().
+   */
+  void updateFilters();
   /**
    * Sets whether the program whoose output is being displayed in the view
    * is interested in mouse events.
@@ -289,12 +384,23 @@ class TerminalView : public QWidget {
    * @see setColorTable(), setForegroundColor()
    */
   void setBackgroundColor(const QColor& color);
-
   /**
    * Sets the text of the display to the specified color.
    * @see setColorTable(), setBackgroundColor()
    */
   void setForegroundColor(const QColor& color);
+  /**
+   * Causes the terminal display to fetch the latest line status flags from the
+   * associated terminal screen ( see setScreenWindow() ).
+   */
+  void updateLineProperties();
+  /** Copies the selected text to the clipboard. */
+  void copyClipboard();
+  /**
+   * Pastes the content of the clipboard into the
+   * display.
+   */
+  void pasteClipboard();
 
  protected slots:
   void scrollBarPositionChanged(int value);
@@ -340,7 +446,13 @@ class TerminalView : public QWidget {
   // draws the preedit string for input methods
   void drawInputMethodPreeditString(QPainter& painter, const QRect& rect);
 
+  // shows the multiline prompt
+  bool multilineConfirmation(const QString& text);
+
   void paintFilters(QPainter& painter);
+
+  // maps an area in the character image to an area on the widget
+  QRect imageToWidget(const QRect& imageArea) const;
 
   // the area where the preedit string for input methods will be draw
   QRect preeditRect() const;
@@ -358,8 +470,13 @@ class TerminalView : public QWidget {
   // the left and right are ignored.
   void scrollImage(int lines, const QRect& region);
 
+  // returns a region covering all of the areas of the widget which contain
+  // a hotspot
+  QRegion hotSpotRegion() const;
   // returns the position of the cursor in columns and lines
   QPoint cursorPosition() const;
+
+  void calDrawTextAdditionHeight(QPainter& painter);
 
   void calcGeometry();
   void propagateSize();
@@ -373,7 +490,7 @@ class TerminalView : public QWidget {
   // Whether intense colors should be bold.
   bool _boldIntense;
   // Whether is test mode.
-  bool _testFlag;
+  bool _drawTextTestFlag;
 
   // whether has fixed pitch.
   bool _fixedFont;
@@ -469,12 +586,17 @@ class TerminalView : public QWidget {
   QPixmap _backgroundImage;
   BackgroundMode _backgroundMode;
 
+  // list of filters currently applied to the display.  used for links and
+  // search highlight
+  TerminalImageFilterChain* _filterChain;
+  QRegion _mouseOverHotspotArea;
+
   CursorShape _cursorShape;
   QColor _cursorColor;
 
-  MotionAfterPasting _motionAfterPasting;
-  bool _confirmMultilinePaster;
-  bool _trimPastedTrailingNewLines;
+  MotionAfterPasting mMotionAfterPasting;
+  bool _confirmMultilinePaste;
+  bool _trimPastedTrailingNewlines;
 
   struct InputMethodData {
     std::wstring preeditString;
@@ -483,6 +605,16 @@ class TerminalView : public QWidget {
   InputMethodData _inputMethodData;
 
   bool _drawLineChars;
+
+  static bool _antialiasText;  // do we antialias or not
+
+  // the delay in milliseconds between redrawing blinking text
+  static const int TEXT_BLINK_DELAY = 500;
+
+ public:
+  static void setTransparencyEnabled(bool enable) {
+    HAVE_TRANSPARENCY = enable;
+  }
 };
 
 class AutoScrollHandler : public QObject {
