@@ -11,6 +11,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(TERMINAL_EMULATOR_LIBRARY_NAME nativefx)
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core5Compat)
@@ -39,6 +41,9 @@ set(PROJECT_SOURCES
         src/headers/terminalview.h
         src/headers/emulation.h
         src/headers/filter.h
+        src/headers/keyboardtranslator.h
+        src/headers/tools.h
+        src/headers/vt102emulation.h
         src/cpp/main.cpp
         src/cpp/jnitypeconverter.cpp
         src/cpp/wcwidth.cpp
@@ -51,7 +56,18 @@ set(PROJECT_SOURCES
         src/cpp/terminalview.cpp
         src/cpp/emulation.cpp
         src/cpp/filter.cpp
+        src/cpp/keyboardtranslator.cpp
+        src/cpp/tools.cpp
+        src/cpp/vt102emulation.cpp
 )
+
+# dirs start
+set(KB_LAYOUT_DIR "${CMAKE_INSTALL_FULL_DATADIR}/${TERMINAL_EMULATOR_LIBRARY_NAME}/kb-layouts")
+message(STATUS "Keyboard layouts will be installed in: ${KB_LAYOUT_DIR}")
+
+set(COLORSCHEMES_DIR "${CMAKE_INSTALL_FULL_DATADIR}/${TERMINAL_EMULATOR_LIBRARY_NAME}/color-schemes")
+message(STATUS "Color schemes will be installed in: ${COLORSCHEMES_DIR}" )
+# dirs end
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(nativefx
@@ -84,6 +100,31 @@ set_target_properties(nativefx PROPERTIES
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+)
+
+target_compile_definitions(${TERMINAL_EMULATOR_LIBRARY_NAME}
+    PRIVATE
+        "KB_LAYOUT_DIR=\"${KB_LAYOUT_DIR}\""
+        "COLORSCHEMES_DIR=\"${COLORSCHEMES_DIR}\""
+#        "TRANSLATIONS_DIR=\"${TRANSLATIONS_DIR}\""
+#        "HAVE_POSIX_OPENPT"
+#        "HAVE_SYS_TIME_H"
+)
+
+# keyboard layouts
+install(DIRECTORY
+    lib/kb-layouts/
+    DESTINATION "${KB_LAYOUT_DIR}"
+    COMPONENT Runtime
+    FILES_MATCHING PATTERN "*.keytab"
+)
+
+# color schemes
+install(DIRECTORY
+    lib/color-schemes/
+    DESTINATION "${COLORSCHEMES_DIR}"
+    COMPONENT Runtime
+    FILES_MATCHING PATTERN "*.*schem*"
 )
 
 install(TARGETS nativefx

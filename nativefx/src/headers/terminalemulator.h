@@ -23,6 +23,7 @@ class TerminalEmulator : public QWidget {
 
  private:
   void createTerminalView();
+  void bindViewToEmulation(TerminalView *terminalView);
 
   TerminalView *_terminalView;
 

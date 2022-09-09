@@ -2,9 +2,26 @@
 
 #include <QAbstractButton>
 #include <QApplication>
+#include <QBoxLayout>
+#include <QClipboard>
+#include <QDrag>
+#include <QEvent>
+#include <QFile>
+#include <QGridLayout>
+#include <QKeyEvent>
+#include <QLabel>
+#include <QLayout>
 #include <QMessageBox>
+#include <QMimeData>
 #include <QPainter>
+#include <QPixmap>
+#include <QRegularExpression>
+#include <QScrollBar>
 #include <QStyle>
+#include <QTime>
+#include <QTimer>
+#include <QUrl>
+#include <QtDebug>
 
 #include "wcwidth.h"
 
@@ -932,6 +949,11 @@ QPoint TerminalView::cursorPosition() const {
     return {0, 0};
 }
 
+void TerminalView::updateCursor() {
+  QRect cursorRect = imageToWidget(QRect(cursorPosition(), QSize(1, 1)));
+  update(cursorRect);
+}
+
 void TerminalView::calDrawTextAdditionHeight(QPainter &painter) {}
 
 void TerminalView::calcGeometry() {
@@ -1421,19 +1443,352 @@ void TerminalView::fontChange(const QFont &) {
   update();
 }
 
-void TerminalView::focusInEvent(QFocusEvent *event) {}
+void TerminalView::focusInEvent(QFocusEvent *event) {
+  emit termGetFocus();
+  if (_hasBlinkingCursor) {
+    _blinkCursorTimer->start();
+  }
+  updateCursor();
 
-void TerminalView::focusOutEvent(QFocusEvent *event) {}
+  if (_hasBlinker) _blinkTimer->start();
+}
 
-void TerminalView::keyPressEvent(QKeyEvent *event) {}
+void TerminalView::focusOutEvent(QFocusEvent *event) {
+  emit termLostFocus();
+  // trigger a repaint of the cursor so that it is both visible (in case
+  // it was hidden during blinking)
+  // and drawn in a focused out state
+  _cursorBlinking = false;
+  updateCursor();
 
-void TerminalView::mouseDoubleClickEvent(QMouseEvent *ev) {}
+  _blinkCursorTimer->stop();
+  if (_blinking) blinkEvent();
 
-void TerminalView::mousePressEvent(QMouseEvent *) {}
+  _blinkTimer->stop();
+}
 
-void TerminalView::mouseReleaseEvent(QMouseEvent *) {}
+void TerminalView::keyPressEvent(QKeyEvent *event) {
+  _actSel = 0;  // Key stroke implies a screen update, so TerminalDisplay won't
+                // know where the current selection is.
 
-void TerminalView::mouseMoveEvent(QMouseEvent *) {}
+  if (_hasBlinkingCursor) {
+    _blinkCursorTimer->start(QApplication::cursorFlashTime() / 2);
+    if (_cursorBlinking)
+      blinkCursorEvent();
+    else
+      _cursorBlinking = false;
+  }
+
+  emit keyPressedSignal(event, false);
+
+  event->accept();
+}
+
+void TerminalView::mouseDoubleClickEvent(QMouseEvent *ev) {
+  if (ev->button() != Qt::LeftButton) return;
+  if (!_screenWindow) return;
+
+  int charLine = 0;
+  int charColumn = 0;
+
+  getCharacterPosition(ev->pos(), charLine, charColumn);
+
+  QPoint pos(charColumn, charLine);
+
+  // pass on double click as two clicks.
+  if (!_mouseMarks && !(ev->modifiers() & Qt::ShiftModifier)) {
+    // Send just _ONE_ click event, since the first click of the double click
+    // was already sent by the click handler
+    emit mouseSignal(0, pos.x() + 1,
+                     pos.y() + 1 + _scrollBar->value() - _scrollBar->maximum(),
+                     0);  // left button
+    return;
+  }
+
+  _screenWindow->clearSelection();
+  QPoint bgnSel = pos;
+  QPoint endSel = pos;
+  int i = loc(bgnSel.x(), bgnSel.y());
+  _iPntSel = bgnSel;
+  _iPntSel.ry() += _scrollBar->value();
+
+  _wordSelectionMode = true;
+
+  // find word boundaries...
+  QChar selClass = charClass(_image[i].character);
+  {
+    // find the start of the word
+    int x = bgnSel.x();
+    while (((x > 0) || (bgnSel.y() > 0 &&
+                        (_lineProperties[bgnSel.y() - 1] & LINE_WRAPPED))) &&
+           charClass(_image[i - 1].character) == selClass) {
+      i--;
+      if (x > 0)
+        x--;
+      else {
+        x = _usedColumns - 1;
+        bgnSel.ry()--;
+      }
+    }
+
+    bgnSel.setX(x);
+    _screenWindow->setSelectionStart(bgnSel.x(), bgnSel.y(), false);
+
+    // find the end of the word
+    i = loc(endSel.x(), endSel.y());
+    x = endSel.x();
+    while (((x < _usedColumns - 1) ||
+            (endSel.y() < _usedLines - 1 &&
+             (_lineProperties[endSel.y()] & LINE_WRAPPED))) &&
+           charClass(_image[i + 1].character) == selClass) {
+      i++;
+      if (x < _usedColumns - 1)
+        x++;
+      else {
+        x = 0;
+        endSel.ry()++;
+      }
+    }
+
+    endSel.setX(x);
+
+    // In word selection mode don't select @ (64) if at end of word.
+    if ((QChar(_image[i].character) == QLatin1Char('@')) &&
+        ((endSel.x() - bgnSel.x()) > 0))
+      endSel.setX(x - 1);
+
+    _actSel = 2;  // within selection
+
+    _screenWindow->setSelectionEnd(endSel.x(), endSel.y());
+
+    setSelection(_screenWindow->selectedText(_preserveLineBreaks));
+  }
+
+  _possibleTripleClick = true;
+
+  QTimer::singleShot(QApplication::doubleClickInterval(), this,
+                     SLOT(tripleClickTimeout()));
+}
+
+void TerminalView::mousePressEvent(QMouseEvent *ev) {
+  if (_possibleTripleClick && (ev->button() == Qt::LeftButton)) {
+    mouseTripleClickEvent(ev);
+    return;
+  }
+
+  if (!contentsRect().contains(ev->pos())) return;
+
+  if (!_screenWindow) return;
+
+  int charLine;
+  int charColumn;
+  getCharacterPosition(ev->pos(), charLine, charColumn);
+  QPoint pos = QPoint(charColumn, charLine);
+
+  if (ev->button() == Qt::LeftButton) {
+    _lineSelectionMode = false;
+    _wordSelectionMode = false;
+
+    emit isBusySelecting(true);  // Keep it steady...
+    // Drag only when the Control key is hold
+    bool selected = false;
+
+    // The receiver of the testIsSelected() signal will adjust
+    // 'selected' accordingly.
+    // emit testIsSelected(pos.x(), pos.y(), selected);
+
+    selected = _screenWindow->isSelected(pos.x(), pos.y());
+
+    if ((!_ctrlDrag || ev->modifiers() & Qt::ControlModifier) && selected) {
+      // The user clicked inside selected text
+      dragInfo.state = DI_PENDING;
+      dragInfo.start = ev->pos();
+    } else {
+      // No reason to ever start a drag event
+      dragInfo.state = DI_NONE;
+
+      _preserveLineBreaks = !((ev->modifiers() & Qt::ControlModifier) &&
+                              !(ev->modifiers() & Qt::AltModifier));
+      _columnSelectionMode = (ev->modifiers() & Qt::AltModifier) &&
+                             (ev->modifiers() & Qt::ControlModifier);
+
+      if (_mouseMarks || (ev->modifiers() & Qt::ShiftModifier)) {
+        _screenWindow->clearSelection();
+
+        // emit clearSelectionSignal();
+        pos.ry() += _scrollBar->value();
+        _iPntSel = _pntSel = pos;
+        _actSel = 1;  // left mouse button pressed but nothing selected yet.
+
+      } else {
+        emit mouseSignal(
+            0, charColumn + 1,
+            charLine + 1 + _scrollBar->value() - _scrollBar->maximum(), 0);
+      }
+
+      Filter::HotSpot *spot = _filterChain->hotSpotAt(charLine, charColumn);
+      if (spot && spot->type() == Filter::HotSpot::Link)
+        spot->activate(QLatin1String("click-action"));
+    }
+  } else if (ev->button() == Qt::MiddleButton) {
+    if (_mouseMarks || (ev->modifiers() & Qt::ShiftModifier))
+      emitSelection(true, ev->modifiers() & Qt::ControlModifier);
+    else
+      emit mouseSignal(
+          1, charColumn + 1,
+          charLine + 1 + _scrollBar->value() - _scrollBar->maximum(), 0);
+  } else if (ev->button() == Qt::RightButton) {
+    if (_mouseMarks || (ev->modifiers() & Qt::ShiftModifier))
+      emit configureRequest(ev->pos());
+    else
+      emit mouseSignal(
+          2, charColumn + 1,
+          charLine + 1 + _scrollBar->value() - _scrollBar->maximum(), 0);
+  }
+}
+
+void TerminalView::mouseReleaseEvent(QMouseEvent *ev) {
+  if (!_screenWindow) return;
+
+  int charLine;
+  int charColumn;
+  getCharacterPosition(ev->pos(), charLine, charColumn);
+
+  if (ev->button() == Qt::LeftButton) {
+    emit isBusySelecting(false);
+    if (dragInfo.state == DI_PENDING) {
+      // We had a drag event pending but never confirmed.  Kill selection
+      _screenWindow->clearSelection();
+      // emit clearSelectionSignal();
+    } else {
+      if (_actSel > 1) {
+        setSelection(_screenWindow->selectedText(_preserveLineBreaks));
+      }
+
+      _actSel = 0;
+
+      // FIXME: emits a release event even if the mouse is
+      //       outside the range. The procedure used in `mouseMoveEvent'
+      //       applies here, too.
+
+      if (!_mouseMarks && !(ev->modifiers() & Qt::ShiftModifier))
+        emit mouseSignal(
+            0, charColumn + 1,
+            charLine + 1 + _scrollBar->value() - _scrollBar->maximum(), 2);
+    }
+    dragInfo.state = DI_NONE;
+  }
+
+  if (!_mouseMarks && ((ev->button() == Qt::RightButton &&
+                        !(ev->modifiers() & Qt::ShiftModifier)) ||
+                       ev->button() == Qt::MiddleButton)) {
+    emit mouseSignal(ev->button() == Qt::MiddleButton ? 1 : 2, charColumn + 1,
+                     charLine + 1 + _scrollBar->value() - _scrollBar->maximum(),
+                     2);
+  }
+}
+
+void TerminalView::mouseMoveEvent(QMouseEvent *ev) {
+  int charLine = 0;
+  int charColumn = 0;
+  int leftMargin = _leftBaseMargin +
+                   ((_scrollbarLocation == SCROLL_BAR_LEFT &&
+                     !_scrollBar->style()->styleHint(
+                         QStyle::SH_ScrollBar_Transient, nullptr, _scrollBar))
+                        ? _scrollBar->width()
+                        : 0);
+
+  getCharacterPosition(ev->pos(), charLine, charColumn);
+
+  // handle filters
+  // change link hot-spot appearance on mouse-over
+  Filter::HotSpot *spot = _filterChain->hotSpotAt(charLine, charColumn);
+  if (spot && spot->type() == Filter::HotSpot::Link) {
+    QRegion previousHotspotArea = _mouseOverHotspotArea;
+    _mouseOverHotspotArea = QRegion();
+    QRect r;
+    if (spot->startLine() == spot->endLine()) {
+      r.setCoords(spot->startColumn() * _fontWidth + leftMargin,
+                  spot->startLine() * _fontHeight + _topBaseMargin,
+                  spot->endColumn() * _fontWidth + leftMargin,
+                  (spot->endLine() + 1) * _fontHeight - 1 + _topBaseMargin);
+      _mouseOverHotspotArea |= r;
+    } else {
+      r.setCoords(spot->startColumn() * _fontWidth + leftMargin,
+                  spot->startLine() * _fontHeight + _topBaseMargin,
+                  _columns * _fontWidth - 1 + leftMargin,
+                  (spot->startLine() + 1) * _fontHeight + _topBaseMargin);
+      _mouseOverHotspotArea |= r;
+      for (int line = spot->startLine() + 1; line < spot->endLine(); line++) {
+        r.setCoords(0 * _fontWidth + leftMargin,
+                    line * _fontHeight + _topBaseMargin,
+                    _columns * _fontWidth + leftMargin,
+                    (line + 1) * _fontHeight + _topBaseMargin);
+        _mouseOverHotspotArea |= r;
+      }
+      r.setCoords(0 * _fontWidth + leftMargin,
+                  spot->endLine() * _fontHeight + _topBaseMargin,
+                  spot->endColumn() * _fontWidth + leftMargin,
+                  (spot->endLine() + 1) * _fontHeight + _topBaseMargin);
+      _mouseOverHotspotArea |= r;
+    }
+
+    update(_mouseOverHotspotArea | previousHotspotArea);
+  } else if (!_mouseOverHotspotArea.isEmpty()) {
+    update(_mouseOverHotspotArea);
+    // set hotspot area to an invalid rectangle
+    _mouseOverHotspotArea = QRegion();
+  }
+
+  // for auto-hiding the cursor, we need mouseTracking
+  if (ev->buttons() == Qt::NoButton) return;
+
+  // if the terminal is interested in mouse movements
+  // then emit a mouse movement signal, unless the shift
+  // key is being held down, which overrides this.
+  if (!_mouseMarks && !(ev->modifiers() & Qt::ShiftModifier)) {
+    int button = 3;
+    if (ev->buttons() & Qt::LeftButton) button = 0;
+    if (ev->buttons() & Qt::MiddleButton) button = 1;
+    if (ev->buttons() & Qt::RightButton) button = 2;
+
+    emit mouseSignal(button, charColumn + 1,
+                     charLine + 1 + _scrollBar->value() - _scrollBar->maximum(),
+                     1);
+
+    return;
+  }
+
+  if (dragInfo.state == DI_PENDING) {
+    // we had a mouse down, but haven't confirmed a drag yet
+    // if the mouse has moved sufficiently, we will confirm
+
+    //   int distance = KGlobalSettings::dndEventDelay();
+    int distance = QApplication::startDragDistance();
+    if (ev->x() > dragInfo.start.x() + distance ||
+        ev->x() < dragInfo.start.x() - distance ||
+        ev->y() > dragInfo.start.y() + distance ||
+        ev->y() < dragInfo.start.y() - distance) {
+      // we've left the drag square, we can start a real drag operation now
+      emit isBusySelecting(false);  // Ok.. we can breath again.
+
+      _screenWindow->clearSelection();
+      doDrag();
+    }
+    return;
+  } else if (dragInfo.state == DI_DRAGGING) {
+    // this isn't technically needed because mouseMoveEvent is suppressed during
+    // Qt drag operations, replaced by dragMoveEvent
+    return;
+  }
+
+  if (_actSel == 0) return;
+
+  // don't extend selection while pasting
+  if (ev->buttons() & Qt::MiddleButton) return;
+
+  extendSelection(ev->pos());
+}
 
 void TerminalView::extendSelection(const QPoint &position) {
   QPoint pos = position;
@@ -1654,20 +2009,173 @@ void TerminalView::extendSelection(const QPoint &position) {
   }
 }
 
-void TerminalView::wheelEvent(QWheelEvent *) {}
+void TerminalView::wheelEvent(QWheelEvent *ev) {
+  if (ev->angleDelta().y() == 0) return;
+
+  // if the terminal program is not interested mouse events
+  // then send the event to the scrollbar if the slider has room to move
+  // or otherwise send simulated up / down key presses to the terminal program
+  // for the benefit of programs such as 'less'
+  if (_mouseMarks) {
+    bool canScroll = _scrollBar->maximum() > 0;
+    if (canScroll)
+      _scrollBar->event(ev);
+    else {
+      // assume that each Up / Down key event will cause the terminal
+      // application to scroll by one line.
+      //
+      // to get a reasonable scrolling speed, scroll by one line for every 5
+      // degrees of mouse wheel rotation.  Mouse wheels typically move in steps
+      // of 15 degrees, giving a scroll of 3 lines
+      int key = ev->angleDelta().y() > 0 ? Qt::Key_Up : Qt::Key_Down;
+
+      // QWheelEvent::angleDelta().y() gives rotation in eighths of a degree
+      int wheelDegrees = ev->angleDelta().y() / 8;
+      int linesToScroll = abs(wheelDegrees) / 5;
+
+      QKeyEvent keyScrollEvent(QEvent::KeyPress, key, Qt::NoModifier);
+
+      for (int i = 0; i < linesToScroll; i++)
+        emit keyPressedSignal(&keyScrollEvent, false);
+    }
+  } else {
+    // terminal program wants notification of mouse activity
+
+    int charLine;
+    int charColumn;
+    getCharacterPosition(ev->position(), charLine, charColumn);
+
+    emit mouseSignal(ev->angleDelta().y() > 0 ? 4 : 5, charColumn + 1,
+                     charLine + 1 + _scrollBar->value() - _scrollBar->maximum(),
+                     0);
+  }
+}
 
 bool TerminalView::focusNextPrevChild(bool next) { return false; }
+
+void TerminalView::mouseTripleClickEvent(QMouseEvent *ev) {
+  if (!_screenWindow) return;
+
+  int charLine;
+  int charColumn;
+  getCharacterPosition(ev->pos(), charLine, charColumn);
+  _iPntSel = QPoint(charColumn, charLine);
+
+  _screenWindow->clearSelection();
+
+  _lineSelectionMode = true;
+  _wordSelectionMode = false;
+
+  _actSel = 2;                 // within selection
+  emit isBusySelecting(true);  // Keep it steady...
+
+  while (_iPntSel.y() > 0 && (_lineProperties[_iPntSel.y() - 1] & LINE_WRAPPED))
+    _iPntSel.ry()--;
+
+  if (_tripleClickMode == SELECT_FORWARDS_FROM_CURSOR) {
+    // find word boundary start
+    int i = loc(_iPntSel.x(), _iPntSel.y());
+    QChar selClass = charClass(_image[i].character);
+    int x = _iPntSel.x();
+
+    while (((x > 0) || (_iPntSel.y() > 0 &&
+                        (_lineProperties[_iPntSel.y() - 1] & LINE_WRAPPED))) &&
+           charClass(_image[i - 1].character) == selClass) {
+      i--;
+      if (x > 0)
+        x--;
+      else {
+        x = _columns - 1;
+        _iPntSel.ry()--;
+      }
+    }
+
+    _screenWindow->setSelectionStart(x, _iPntSel.y(), false);
+    _tripleSelBegin = QPoint(x, _iPntSel.y());
+  } else if (_tripleClickMode == SELECT_WHOLE_LINE) {
+    _screenWindow->setSelectionStart(0, _iPntSel.y(), false);
+    _tripleSelBegin = QPoint(0, _iPntSel.y());
+  }
+
+  while (_iPntSel.y() < _lines - 1 &&
+         (_lineProperties[_iPntSel.y()] & LINE_WRAPPED))
+    _iPntSel.ry()++;
+
+  _screenWindow->setSelectionEnd(_columns - 1, _iPntSel.y());
+
+  setSelection(_screenWindow->selectedText(_preserveLineBreaks));
+
+  _iPntSel.ry() += _scrollBar->value();
+}
 
 /* ------------------------------------------------------------------------- */
 /*                                                                           */
 /*                               Grag And Drop                               */
 /*                                                                           */
 /* ------------------------------------------------------------------------- */
-void TerminalView::dragEnterEvent(QDragEnterEvent *event) {}
+void TerminalView::dragEnterEvent(QDragEnterEvent *event) {
+  if (event->mimeData()->hasFormat(QLatin1String("text/plain")))
+    event->acceptProposedAction();
+  if (event->mimeData()->urls().count()) event->acceptProposedAction();
+}
 
-void TerminalView::dropEvent(QDropEvent *event) {}
+void TerminalView::dropEvent(QDropEvent *event) {
+  // KUrl::List urls = KUrl::List::fromMimeData(event->mimeData());
+  QList<QUrl> urls = event->mimeData()->urls();
 
-void TerminalView::doDrag() {}
+  QString dropText;
+  if (!urls.isEmpty()) {
+    // TODO/FIXME: escape or quote pasted things if necessary...
+    qDebug() << "TerminalDisplay: handling urls. It can be broken. Report any "
+                "errors, please";
+    for (int i = 0; i < urls.count(); i++) {
+      // KUrl url = KIO::NetAccess::mostLocalUrl( urls[i] , 0 );
+      QUrl url = urls[i];
+
+      QString urlText;
+
+      if (url.isLocalFile())
+        urlText = url.path();
+      else
+        urlText = url.toString();
+
+      // in future it may be useful to be able to insert file names with
+      // drag-and-drop without quoting them (this only affects paths with spaces
+      // in)
+      // urlText = KShell::quoteArg(urlText);
+
+      QChar q(QLatin1Char('\''));
+      dropText += q + QString(urlText).replace(q, QLatin1String("'\\''")) + q;
+      dropText += QLatin1Char(' ');
+    }
+  } else {
+    dropText = event->mimeData()->text();
+
+    dropText.replace(QLatin1String("\r\n"), QLatin1String("\n"));
+    dropText.replace(QLatin1Char('\n'), QLatin1Char('\r'));
+    if (_trimPastedTrailingNewlines) {
+      dropText.replace(QRegularExpression(QStringLiteral("\\r+$")), QString());
+    }
+    if (_confirmMultilinePaste && dropText.contains(QLatin1Char('\r'))) {
+      if (!multilineConfirmation(dropText)) {
+        return;
+      }
+    }
+  }
+
+  emit sendStringToEmu(dropText.toLocal8Bit().constData());
+}
+
+void TerminalView::doDrag() {
+  dragInfo.state = DI_DRAGGING;
+  dragInfo.dragObject = new QDrag(this);
+  QMimeData *mimeData = new QMimeData;
+  mimeData->setText(QApplication::clipboard()->text(QClipboard::Selection));
+  dragInfo.dragObject->setMimeData(mimeData);
+  dragInfo.dragObject->exec(Qt::CopyAction);
+  // Don't delete the QTextDrag object.  Qt will delete it when it's done with
+  // it.
+}
 
 QChar TerminalView::charClass(QChar qch) const {
   if (qch.isSpace()) return QLatin1Char(' ');
@@ -1865,7 +2373,7 @@ void TerminalView::setUsesMouse(bool on) {
   if (_mouseMarks != on) {
     _mouseMarks = on;
     setCursor(_mouseMarks ? Qt::IBeamCursor : Qt::ArrowCursor);
-    emit useMouseChanged();
+    emit usesMouseChanged();
   }
 }
 
