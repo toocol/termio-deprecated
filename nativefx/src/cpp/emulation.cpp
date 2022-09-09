@@ -5,7 +5,7 @@
 
 using namespace TConsole;
 
-Emulation::Emulation(QWidget *parent) : QObject(parent) {
+Emulation::Emulation() {
   // create screens with a default size
   _screen[0] = new Screen(40, 80);
   _screen[1] = new Screen(40, 80);
@@ -30,6 +30,18 @@ Emulation::Emulation(QWidget *parent) : QObject(parent) {
                 .arg(static_cast<int>(cursorShape))
                 .arg(blinkingCursorEnabled));
       });
+}
+
+Emulation::~Emulation() {
+  QListIterator<ScreenWindow *> windowIter(_windows);
+
+  while (windowIter.hasNext()) {
+    delete windowIter.next();
+  }
+
+  delete _screen[0];
+  delete _screen[1];
+  delete _decoder;
 }
 
 ScreenWindow *Emulation::createWindow() {
@@ -87,3 +99,20 @@ bool Emulation::programUsesMouse() const { return _useMouse; }
 bool Emulation::programBracketedPasteMode() const {
   return _bracketedPasteMode;
 }
+
+void Emulation::setImageSize(int lines, int columns) {}
+
+void Emulation::sendKeyEvent(QKeyEvent *ev, bool fromPaste) {
+  emit stateSet(NOTIFYNORMAL);
+
+  if (!ev->text().isEmpty()) {  // A block of text
+    // Note that the text is proper unicode.
+    // We should do a conversion here
+    emit sendData(ev->text().toUtf8().constData(), ev->text().length());
+  }
+}
+
+void Emulation::sendMouseEvent(int buttons, int column, int line,
+                               int eventType) {}
+
+void Emulation::receiveData(const char *buffer, int len) {}

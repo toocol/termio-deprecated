@@ -325,6 +325,7 @@ class TerminalView : public QWidget {
   void wheelEvent(QWheelEvent*) override;
 
   bool focusNextPrevChild(bool next) override;
+  void mouseTripleClickEvent(QMouseEvent* ev);
 
   // drag and drop
   void dragEnterEvent(QDragEnterEvent* event) override;
@@ -351,9 +352,50 @@ class TerminalView : public QWidget {
    * Emitted when the user presses a key whilst the terminal widget has focus.
    */
   void keyPressedSignal(QKeyEvent* e, bool fromPaste);
-  void useMouseChanged();
-  void changedContentSizeSignal(int height, int width);
+
+  /**
+   * A mouse event occurred.
+   * @param button The mouse button (0 for left button, 1 for middle button, 2
+   * for right button, 3 for release)
+   * @param column The character column where the event occurred
+   * @param line The character row where the event occurred
+   * @param eventType The type of event.  0 for a mouse press / release or 1 for
+   * mouse motion
+   */
+  void mouseSignal(int button, int column, int line, int eventType);
   void changedFontMetricSignal(int height, int width);
+  void changedContentSizeSignal(int height, int width);
+
+  /**
+   * Emitted when the user right clicks on the display, or right-clicks with the
+   * Shift key held down if usesMouse() is true.
+   *
+   * This can be used to display a context menu.
+   */
+  void configureRequest(const QPoint& position);
+
+  /**
+   * When a shortcut which is also a valid terminal key sequence is pressed
+   * while the terminal widget  has focus, this signal is emitted to allow the
+   * host to decide whether the shortcut should be overridden. When the shortcut
+   * is overridden, the key sequence will be sent to the terminal emulation
+   * instead and the action associated with the shortcut will not be triggered.
+   *
+   * @p override is set to false by default and the shortcut will be triggered
+   * as normal.
+   */
+  void overrideShortcutCheck(QKeyEvent* keyEvent, bool& override);
+
+  void isBusySelecting(bool);
+  void sendStringToEmu(const char*);
+
+  // qtermwidget signals
+  void copyAvailable(bool);
+  void termGetFocus();
+  void termLostFocus();
+
+  void notifyBell(const QString&);
+  void usesMouseChanged();
 
  public slots:
   /**
@@ -475,6 +517,9 @@ class TerminalView : public QWidget {
   QRegion hotSpotRegion() const;
   // returns the position of the cursor in columns and lines
   QPoint cursorPosition() const;
+
+  // redraws the cursor
+  void updateCursor();
 
   void calDrawTextAdditionHeight(QPainter& painter);
 
