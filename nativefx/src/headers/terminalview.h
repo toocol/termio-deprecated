@@ -304,9 +304,18 @@ class TerminalView : public QWidget {
   void getCharacterPosition(const QPointF& widgetPoint, int& line,
                             int& column) const;
 
+  void disableBracketedPasteMode(bool disable) {
+    _disabledBracketedPasteMode = disable;
+  }
+  bool bracketedPasteModeIsDisabled() const {
+    return _disabledBracketedPasteMode;
+  }
+
   static bool HAVE_TRANSPARENCY;
 
  protected:
+  bool event(QEvent*) override;
+
   void paintEvent(QPaintEvent*) override;
 
   void showEvent(QShowEvent*) override;
@@ -331,6 +340,8 @@ class TerminalView : public QWidget {
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
   void doDrag();
+
+  void clearImage();
 
   enum DragState { DI_NONE, DI_PENDING, DI_DRAGGING };
   struct _dragInfo {
@@ -404,38 +415,17 @@ class TerminalView : public QWidget {
    * display.
    */
   void updateImage();
+
   /** Essentially calls processFilters().
    */
   void updateFilters();
-  /**
-   * Sets whether the program whoose output is being displayed in the view
-   * is interested in mouse events.
-   *
-   * @brief setUsesMouse
-   * @param on whether the use mouse is on
-   */
-  void setUsesMouse(bool on);
-  /**
-   *
-   * @brief setBracketedPasteMode
-   * @param on
-   */
-  void setBracketedPasteMode(bool on);
-  /**
-   * Sets the background of the display to the specified color.
-   * @see setColorTable(), setForegroundColor()
-   */
-  void setBackgroundColor(const QColor& color);
-  /**
-   * Sets the text of the display to the specified color.
-   * @see setColorTable(), setBackgroundColor()
-   */
-  void setForegroundColor(const QColor& color);
+
   /**
    * Causes the terminal display to fetch the latest line status flags from the
    * associated terminal screen ( see setScreenWindow() ).
    */
   void updateLineProperties();
+
   /** Copies the selected text to the clipboard. */
   void copyClipboard();
   /**
@@ -443,6 +433,64 @@ class TerminalView : public QWidget {
    * display.
    */
   void pasteClipboard();
+  /**
+   * Pastes the content of the selection into the
+   * display.
+   */
+  void pasteSelection();
+
+  /**
+   * Causes the widget to display or hide a message informing the user that
+   * terminal output has been suspended (by using the flow control key
+   * combination Ctrl+S)
+   *
+   * @param suspended True if terminal output has been suspended and the warning
+   * message should be shown or false to indicate that terminal output has been
+   * resumed and that the warning message should disappear.
+   */
+  void outputSuspended(bool suspended);
+
+  /**
+   * Sets whether the program whose output is being displayed in the view
+   * is interested in mouse events.
+   *
+   * If this is set to true, mouse signals will be emitted by the view when the
+   * user clicks, drags or otherwise moves the mouse inside the view. The user
+   * interaction needed to create selections will also change, and the user will
+   * be required to hold down the shift key to create a selection or perform
+   * other mouse activities inside the view area - since the program running in
+   * the terminal is being allowed to handle normal mouse events itself.
+   *
+   * @param usesMouse Set to true if the program running in the terminal is
+   * interested in mouse events or false otherwise.
+   */
+  void setUsesMouse(bool usesMouse);
+
+  /** See setUsesMouse() */
+  bool usesMouse() const;
+
+  void setBracketedPasteMode(bool bracketedPasteMode);
+  bool bracketedPasteMode() const;
+
+  /**
+   * Shows a notification that a bell event has occurred in the terminal.
+   * TODO: More documentation here
+   */
+  void bell(const QString& message);
+
+  /**
+   * Sets the background of the display to the specified color.
+   * @see setColorTable(), setForegroundColor()
+   */
+  void setBackgroundColor(const QColor& color);
+
+  /**
+   * Sets the text of the display to the specified color.
+   * @see setColorTable(), setBackgroundColor()
+   */
+  void setForegroundColor(const QColor& color);
+
+  void selectionChanged();
 
  protected slots:
   void scrollBarPositionChanged(int value);
@@ -453,7 +501,9 @@ class TerminalView : public QWidget {
   // short period of time after emitting the first in a sequence of bell events.
   void enableBell();
 
-  void clearImage();
+ private slots:
+  void swapColorTable();
+  void tripleClickTimeout();  // resets possibleTripleClick
 
  private:
   // determine the width of this text.
@@ -520,6 +570,8 @@ class TerminalView : public QWidget {
 
   // redraws the cursor
   void updateCursor();
+
+  bool handleShortcutOverrideEvent(QKeyEvent* event);
 
   void calDrawTextAdditionHeight(QPainter& painter);
 
