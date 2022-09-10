@@ -1874,9 +1874,9 @@ void Vt102Emulation::reportDecodingError() {
   if (tokenBufferPos == 0 ||
       (tokenBufferPos == 1 && (tokenBuffer[0] & 0xff) >= 32))
     return;
-  qCDebug(qtermwidgetLogger)
-      << "Undecodable sequence:"
-      << QString::fromWCharArray(tokenBuffer, tokenBufferPos);
+  //  qCDebug(qtermwidgetLogger)
+  //      << "Undecodable sequence:"
+  //      << QString::fromWCharArray(tokenBuffer, tokenBufferPos);
 }
 
 //#include "Vt102Emulation.moc"

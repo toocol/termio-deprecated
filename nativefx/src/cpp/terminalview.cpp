@@ -70,6 +70,13 @@ const ColorEntry TConsole::base_color_table[TABLE_COLORS] =
         ColorEntry(QColor(0x54, 0xFF, 0xFF), false),
         ColorEntry(QColor(0xFF, 0xFF, 0xFF), false)};
 
+unsigned short TConsole::vt100_graphics[32] =
+    {  // 0/8     1/9    2/10    3/11    4/12    5/13    6/14    7/15
+        0x0020, 0x25C6, 0x2592, 0x2409, 0x240c, 0x240d, 0x240a, 0x00b0,
+        0x00b1, 0x2424, 0x240b, 0x2518, 0x2510, 0x250c, 0x2514, 0x253c,
+        0xF800, 0xF801, 0x2500, 0xF803, 0xF804, 0x251c, 0x2524, 0x2534,
+        0x252c, 0x2502, 0x2264, 0x2265, 0x03C0, 0x2260, 0x00A3, 0x00b7};
+
 const QChar LTR_OVERRIDE_CHAR(0x202D);
 
 /* ------------------------------------------------------------------------- */
@@ -272,11 +279,33 @@ void TerminalView::scrollBarPositionChanged(int value) {
   updateImage();
 }
 
-void TerminalView::blinkEvent() {}
+void TerminalView::blinkEvent() {
+  if (!_allowBlinkingText) return;
 
-void TerminalView::blinkCursorEvent() {}
+  _blinking = !_blinking;
 
-void TerminalView::enableBell() {}
+  // TODO:  Optimize to only repaint the areas of the widget
+  // where there is blinking text
+  // rather than repainting the whole widget.
+  update();
+}
+
+void TerminalView::blinkCursorEvent() {
+  _cursorBlinking = !_cursorBlinking;
+  updateCursor();
+}
+
+void TerminalView::enableBell() { _allowBell = true; }
+
+void TerminalView::swapColorTable() {
+  ColorEntry color = _colorTable[1];
+  _colorTable[1] = _colorTable[0];
+  _colorTable[0] = color;
+  _colorsInverted = !_colorsInverted;
+  update();
+}
+
+void TerminalView::tripleClickTimeout() { _possibleTripleClick = false; }
 
 void TerminalView::clearImage() {
   // We initialize _image[_imageSize] too. See makeImage()
@@ -954,7 +983,64 @@ void TerminalView::updateCursor() {
   update(cursorRect);
 }
 
-void TerminalView::calDrawTextAdditionHeight(QPainter &painter) {}
+bool TerminalView::handleShortcutOverrideEvent(QKeyEvent *keyEvent) {
+  int modifiers = keyEvent->modifiers();
+
+  //  When a possible shortcut combination is pressed,
+  //  emit the overrideShortcutCheck() signal to allow the host
+  //  to decide whether the terminal should override it or not.
+  if (modifiers != Qt::NoModifier) {
+    int modifierCount = 0;
+    unsigned int currentModifier = Qt::ShiftModifier;
+
+    while (currentModifier <= Qt::KeypadModifier) {
+      if (modifiers & currentModifier) modifierCount++;
+      currentModifier <<= 1;
+    }
+    if (modifierCount < 2) {
+      bool override = false;
+      emit overrideShortcutCheck(keyEvent, override);
+      if (override) {
+        keyEvent->accept();
+        return true;
+      }
+    }
+  }
+
+  // Override any of the following shortcuts because
+  // they are needed by the terminal
+  int keyCode = keyEvent->key() | modifiers;
+  switch (keyCode) {
+    // list is taken from the QLineEdit::event() code
+    case Qt::Key_Tab:
+    case Qt::Key_Delete:
+    case Qt::Key_Home:
+    case Qt::Key_End:
+    case Qt::Key_Backspace:
+    case Qt::Key_Left:
+    case Qt::Key_Right:
+    case Qt::Key_Escape:
+      keyEvent->accept();
+      return true;
+  }
+  return false;
+}
+
+void TerminalView::calDrawTextAdditionHeight(QPainter &painter) {
+  QRect test_rect, feedback_rect;
+  test_rect.setRect(1, 1, _fontWidth * 4, _fontHeight);
+  painter.drawText(test_rect, Qt::AlignBottom,
+                   LTR_OVERRIDE_CHAR + QLatin1String("Mq"), &feedback_rect);
+
+  // qDebug() << "test_rect:" << test_rect << "feeback_rect:" << feedback_rect;
+
+  _drawTextAdditionHeight = (feedback_rect.height() - _fontHeight) / 2;
+  if (_drawTextAdditionHeight < 0) {
+    _drawTextAdditionHeight = 0;
+  }
+
+  _drawTextTestFlag = false;
+}
 
 void TerminalView::calcGeometry() {
   _scrollBar->resize(_scrollBar->sizeHint().width(), contentsRect().height());
@@ -1074,11 +1160,42 @@ void TerminalView::setScroll(int cursor, int lines) {
           SLOT(scrollBarPositionChanged(int)));
 }
 
-void TerminalView::scrollToEnd() {}
+void TerminalView::scrollToEnd() {
+  disconnect(_scrollBar, SIGNAL(valueChanged(int)), this,
+             SLOT(scrollBarPositionChanged(int)));
+  _scrollBar->setValue(_scrollBar->maximum());
+  connect(_scrollBar, SIGNAL(valueChanged(int)), this,
+          SLOT(scrollBarPositionChanged(int)));
 
-void TerminalView::setBlinkingCursor(bool blink) {}
+  _screenWindow->scrollTo(_scrollBar->value() + 1);
+  _screenWindow->setTrackOutput(_screenWindow->atEndOfOutput());
+}
 
-void TerminalView::setBlinkingTextEnabled(bool blink) {}
+void TerminalView::setBlinkingCursor(bool blink) {
+  _hasBlinkingCursor = blink;
+
+  if (blink && !_blinkCursorTimer->isActive())
+    _blinkCursorTimer->start(QApplication::cursorFlashTime() / 2);
+
+  if (!blink && _blinkCursorTimer->isActive()) {
+    _blinkCursorTimer->stop();
+    if (_cursorBlinking)
+      blinkCursorEvent();
+    else
+      _cursorBlinking = false;
+  }
+}
+
+void TerminalView::setBlinkingTextEnabled(bool blink) {
+  _allowBlinkingText = blink;
+
+  if (blink && !_blinkTimer->isActive()) _blinkTimer->start(TEXT_BLINK_DELAY);
+
+  if (!blink && _blinkTimer->isActive()) {
+    _blinkTimer->stop();
+    _blinking = false;
+  }
+}
 
 FilterChain *TerminalView::filterChain() const { return _filterChain; }
 
@@ -1249,7 +1366,12 @@ void TerminalView::emitSelection(bool useXselection, bool appendReturn) {
   }
 }
 
-void TerminalView::bracketText(QString &text) const {}
+void TerminalView::bracketText(QString &text) const {
+  if (bracketedPasteMode() && !_disabledBracketedPasteMode) {
+    text.prepend(QLatin1String("\033[200~"));
+    text.append(QLatin1String("\033[201~"));
+  }
+}
 
 void TerminalView::setCursorShape(CursorShape shape) { _cursorShape = shape; }
 
@@ -1312,6 +1434,22 @@ void TerminalView::getCharacterPosition(const QPointF &widgetPoint, int &line,
 /*                               Events handle                               */
 /*                                                                           */
 /* ------------------------------------------------------------------------- */
+bool TerminalView::event(QEvent *event) {
+  bool eventHandled = false;
+  switch (event->type()) {
+    case QEvent::ShortcutOverride:
+      eventHandled = handleShortcutOverrideEvent((QKeyEvent *)event);
+      break;
+    case QEvent::PaletteChange:
+    case QEvent::ApplicationPaletteChange:
+      _scrollBar->setPalette(QApplication::palette());
+      break;
+    default:
+      break;
+  }
+  return eventHandled ? true : QWidget::event(event);
+}
+
 void TerminalView::paintEvent(QPaintEvent *event) {
   QPainter paint(this);
   QRect cr = contentsRect();
@@ -1765,10 +1903,10 @@ void TerminalView::mouseMoveEvent(QMouseEvent *ev) {
 
     //   int distance = KGlobalSettings::dndEventDelay();
     int distance = QApplication::startDragDistance();
-    if (ev->x() > dragInfo.start.x() + distance ||
-        ev->x() < dragInfo.start.x() - distance ||
-        ev->y() > dragInfo.start.y() + distance ||
-        ev->y() < dragInfo.start.y() - distance) {
+    if (ev->position().x() > dragInfo.start.x() + distance ||
+        ev->position().x() < dragInfo.start.x() - distance ||
+        ev->position().y() > dragInfo.start.y() + distance ||
+        ev->position().y() < dragInfo.start.y() - distance) {
       // we've left the drag square, we can start a real drag operation now
       emit isBusySelecting(false);  // Ok.. we can breath again.
 
@@ -2377,7 +2515,32 @@ void TerminalView::setUsesMouse(bool on) {
   }
 }
 
+bool TerminalView::usesMouse() const { return _mouseMarks; }
+
 void TerminalView::setBracketedPasteMode(bool on) { _bracketedPasteMode = on; }
+
+bool TerminalView::bracketedPasteMode() const { return _bracketedPasteMode; }
+
+void TerminalView::bell(const QString &message) {
+  if (_bellMode == NO_BELL) return;
+
+  // limit the rate at which bells can occur
+  //...mainly for sound effects where rapid bells in sequence
+  // produce a horrible noise
+  if (_allowBell) {
+    _allowBell = false;
+    QTimer::singleShot(500, this, SLOT(enableBell()));
+
+    if (_bellMode == SYSTEM_BEEP_BELL) {
+      QApplication::beep();
+    } else if (_bellMode == NOTIFY_BELL) {
+      emit notifyBell(message);
+    } else if (_bellMode == VISUAL_BELL) {
+      swapColorTable();
+      QTimer::singleShot(200, this, SLOT(swapColorTable()));
+    }
+  }
+}
 
 void TerminalView::setBackgroundColor(const QColor &color) {
   _colorTable[DEFAULT_BACK_COLOR].color = color;
@@ -2397,6 +2560,10 @@ void TerminalView::setForegroundColor(const QColor &color) {
   update();
 }
 
+void TerminalView::selectionChanged() {
+  emit copyAvailable(_screenWindow->selectedText(false).isEmpty() == false);
+}
+
 void TerminalView::updateLineProperties() {
   if (!_screenWindow) return;
 
@@ -2412,8 +2579,49 @@ void TerminalView::copyClipboard() {
 
 void TerminalView::pasteClipboard() { emitSelection(false, false); }
 
+void TerminalView::pasteSelection() { emitSelection(true, false); }
+
+void TerminalView::outputSuspended(bool suspended) {
+  // create the label when this function is first called
+  if (!_outputSuspendedLabel) {
+    // This label includes a link to an English language website
+    // describing the 'flow control' (Xon/Xoff) feature found in almost
+    // all terminal emulators.
+    // If there isn't a suitable article available in the target language the
+    // link can simply be removed.
+    _outputSuspendedLabel = new QLabel(
+        tr("<qt>Output has been "
+           "<a href=\"http://en.wikipedia.org/wiki/Flow_control\">suspended</a>"
+           " by pressing Ctrl+S."
+           "  Press <b>Ctrl+Q</b> to resume.</qt>"),
+        this);
+
+    QPalette palette(_outputSuspendedLabel->palette());
+    // KColorScheme::adjustBackground(palette,KColorScheme::NeutralBackground);
+    _outputSuspendedLabel->setPalette(palette);
+    _outputSuspendedLabel->setAutoFillBackground(true);
+    _outputSuspendedLabel->setBackgroundRole(QPalette::Base);
+    _outputSuspendedLabel->setFont(QApplication::font());
+    _outputSuspendedLabel->setContentsMargins(5, 5, 5, 5);
+
+    // enable activation of "Xon/Xoff" link in label
+    _outputSuspendedLabel->setTextInteractionFlags(
+        Qt::LinksAccessibleByMouse | Qt::LinksAccessibleByKeyboard);
+    _outputSuspendedLabel->setOpenExternalLinks(true);
+    _outputSuspendedLabel->setVisible(false);
+
+    _gridLayout->addWidget(_outputSuspendedLabel);
+    _gridLayout->addItem(
+        new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding),
+        1, 0);
+  }
+
+  _outputSuspendedLabel->setVisible(suspended);
+}
+
 TerminalView::TerminalView(QWidget *parent)
     : QWidget(parent),
+      _screenWindow(nullptr),
       _gridLayout(nullptr),
       _allowBell(true),
       _boldIntense(true),
