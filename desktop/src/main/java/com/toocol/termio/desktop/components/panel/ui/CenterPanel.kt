@@ -1,7 +1,7 @@
 package com.toocol.termio.desktop.components.panel.ui
 
 import com.toocol.termio.desktop.components.executor.ui.CommandExecutor
-import com.toocol.termio.desktop.components.sidebar.ui.UpperTabBar
+import com.toocol.termio.desktop.components.sidebar.ui.TopSessionTabBar
 import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent
@@ -14,7 +14,7 @@ import javafx.scene.layout.Pane
  * @version: 0.0.1
  */
 @RegisterComponent(value = [
-    Component(clazz = UpperTabBar::class, id = 1, initialVisible = true),
+    Component(clazz = TopSessionTabBar::class, id = 1, initialVisible = true),
     Component(clazz = WorkspacePanel::class, id = 1, initialVisible = true),
     Component(clazz = CommandExecutor::class, id = 1, initialVisible = true),
 ])
@@ -34,7 +34,7 @@ class CenterPanel(id: Long) : TVBox(id) {
         parser.initializeAll()
 
         children.addAll(
-            parser.getAsNode(UpperTabBar::class.java),
+            parser.getAsNode(TopSessionTabBar::class.java),
             parser.getAsNode(WorkspacePanel::class.java),
             parser.getAsNode(CommandExecutor::class.java)
         )
@@ -44,7 +44,7 @@ class CenterPanel(id: Long) : TVBox(id) {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
         heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
 
-        parser.getAsComponent(UpperTabBar::class.java)?.sizePropertyBind(major, widthRatio, null)
+        parser.getAsComponent(TopSessionTabBar::class.java)?.sizePropertyBind(major, widthRatio, null)
         parser.getAsComponent(WorkspacePanel::class.java)?.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.8)
         parser.getAsComponent(CommandExecutor::class.java)?.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.2)
     }

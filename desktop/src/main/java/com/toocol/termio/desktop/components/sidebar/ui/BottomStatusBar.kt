@@ -30,7 +30,7 @@ class BottomStatusBar(id: Long) : TGridPane(id) {
             styleClass.add("bottom-status-bar-edition-text")
 
             val icon = MDL2Icon("\uE7F8")
-            icon.setSize(17.5)
+            icon.setSize(fixedHeight)
 
             val text = Text("Community Edition")
             text.x = 22.0
@@ -42,14 +42,19 @@ class BottomStatusBar(id: Long) : TGridPane(id) {
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty()) }
-        prefHeight = 17.5
-        maxHeight = 17.5
-        minHeight = 17.5
+        prefHeight = fixedHeight
+        maxHeight = fixedHeight
+        minHeight = fixedHeight
 
-        edition.prefHeight = 17.5
-        edition.maxHeight = 17.5
-        edition.minHeight = 17.5
+        edition.prefHeight = fixedHeight
+        edition.maxHeight = fixedHeight
+        edition.minHeight = fixedHeight
     }
 
     override fun actionAfterShow() {}
+
+    companion object {
+        @JvmStatic
+        val fixedHeight = 17.5
+    }
 }
