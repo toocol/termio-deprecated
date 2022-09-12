@@ -15,26 +15,33 @@
     -fx-border-style: solid;
 }
 
-/* sidebar */
-.session-manage-sidebar {
-}
-
-.upper-tab-bar {
-    -fx-background-color: #EAEAEA;
+.top-menu-panel {
+    -fx-background-color: #FAFAFA;
     -fx-padding: 0 -1 0 0;
 }
 
-.upper-tab-bar > .hbox {
-    -fx-background-color: #EAEAEA;
+.top-menu-panel > .hbox {
+    -fx-background-color: #FAFAFA;
 }
 
-.upper-tab-bar > .hbox > .pane-normal :hover {
+.top-menu-panel > .hbox > .pane-normal :hover {
     -fx-background-color: #C1C1C1;
 }
 
-.upper-tab-bar > .hbox > .pane-close :hover {
+.top-menu-panel > .hbox > .pane-close :hover {
     -fx-background-color: #CD3333;
     -fx-text-fill: #FFFFFF;
+}
+
+/* sidebar */
+.top-session-tab-bar {
+    -fx-background-color: #EAEAEA;
+    -fx-border-width: 1 0 0 0;
+    -fx-border-color: #FFFFFF;
+    -fx-border-style: solid;
+}
+
+.session-manage-sidebar {
 }
 
 .left-tool-sidebar {

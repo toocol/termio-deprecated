@@ -1,4 +1,4 @@
-#ifndef TERMINALVIEW_H
+﻿#ifndef TERMINALVIEW_H
 #define TERMINALVIEW_H
 
 #include <QClipboard>
@@ -49,7 +49,7 @@ enum MotionAfterPasting {
   MOVE_END_SCREEN_WINDOW = 2
 };
 
-enum CursorShape {
+enum KeyboardCursorShape {
   // A rectangualr block
   BLOCK_CURSOR = 0,
   // A single flat line at the bottom of the cursor character
@@ -86,7 +86,7 @@ class TerminalView : public QWidget {
    * Returns the seed used to generate random colors for the display
    * (in color schemes that support them).
    */
-  uint getRandomSeed() const;
+  uint randomSeed() const;
   /** Sets the opacity of the terminal display. */
   void setOpacity(qreal opacity);
   /** Sets the background image of the terminal display. */
@@ -110,14 +110,7 @@ class TerminalView : public QWidget {
    * Scroll to the bottom of the terminal (reset scrolling).
    */
   void scrollToEnd();
-  /** Returns true if the cursor is set to blink or false otherwise. */
-  bool blinkingCursor() { return _hasBlinkingCursor; }
-  /** Specifies whether or not the cursor blinks. */
-  void setBlinkingCursor(bool blink);
-  /** Specifies whether or not text can blink. */
-  void setBlinkingTextEnabled(bool blink);
-  void setCtrlDrag(bool enable) { _ctrlDrag = enable; }
-  bool isCtrlDrag() { return _ctrlDrag; }
+
   /**
    * Returns the display's filter chain.  When the image for the display is
    * updated, the text is passed through each filter in the chain.  Each filter
@@ -151,6 +144,69 @@ class TerminalView : public QWidget {
    * at the given @p position.
    */
   QList<QAction*> filterActions(const QPoint& position);
+
+  /** Returns true if the cursor is set to blink or false otherwise. */
+  bool blinkingCursor() { return _hasBlinkingCursor; }
+  /** Specifies whether or not the cursor blinks. */
+  void setBlinkingCursor(bool blink);
+  /** Specifies whether or not text can blink. */
+  void setBlinkingTextEnabled(bool blink);
+  void setCtrlDrag(bool enable) { _ctrlDrag = enable; }
+  bool ctrlDrag() { return _ctrlDrag; }
+
+  /** Sets how the text is selected when the user triple clicks within the
+   * display. */
+  void setTripleClickMode(TripleClickMode mode) { _tripleClickMode = mode; }
+  /** See setTripleClickSelectionMode() */
+  TripleClickMode getTripleClickMode() { return _tripleClickMode; }
+
+  void setLineSpacing(uint);
+  void setMargin(int);
+
+  int margin() const;
+  uint lineSpacing() const;
+
+  void emitSelection(bool useXselection, bool appendReturn);
+
+  /** change and wrap text corresponding to paste mode **/
+  void bracketText(QString& text) const;
+
+  /**
+   * Sets the shape of the keyboard cursor.  This is the cursor drawn
+   * at the position in the terminal where keyboard input will appear.
+   *
+   * In addition the terminal display widget also has a cursor for
+   * the mouse pointer, which can be set using the QWidget::setCursor()
+   * method.
+   *
+   * Defaults to BlockCursor
+   */
+  void setKeyboardCursorShape(KeyboardCursorShape shape);
+  /**
+   * Returns the shape of the keyboard cursor.  See setKeyboardCursorShape()
+   */
+  KeyboardCursorShape keyboardCursorShape() const;
+  /**
+   * Sets the color used to draw the keyboard cursor.
+   *
+   * The keyboard cursor defaults to using the foreground color of the character
+   * underneath it.
+   *
+   * @param useForegroundColor If true, the cursor color will change to match
+   * the foreground color of the character underneath it as it is moved, in this
+   * case, the @p color parameter is ignored and the color of the character
+   * under the cursor is inverted to ensure that it is still readable.
+   * @param color The color to use to draw the cursor.  This is only taken into
+   * account if @p useForegroundColor is false.
+   */
+  void setKeyboardCursorColor(bool useForegroundColor, const QColor& color);
+  /**
+   * Returns the color of the keyboard cursor, or an invalid color if the
+   * keyboard cursor color is set to change according to the foreground color of
+   * the character underneath it.
+   */
+  QColor keyboardCursorColor() const;
+
   /**
    * Returns the number of lines of text which can be displayed in the widget.
    *
@@ -185,6 +241,26 @@ class TerminalView : public QWidget {
   QSize sizeHint() const override;
 
   /**
+   * Sets which characters, in addition to letters and numbers,
+   * are regarded as being part of a word for the purposes
+   * of selecting words in the display by double clicking on them.
+   *
+   * The word boundaries occur at the first and last characters which
+   * are either a letter, number, or a character in @p wc
+   *
+   * @param wc An array of characters which are to be considered parts
+   * of a word ( in addition to letters and numbers ).
+   */
+  void setWordCharacters(const QString& wc);
+  /**
+   * Returns the characters which are considered part of a word for the
+   * purpose of selecting words in the display with the mouse.
+   *
+   * @see setWordCharacters()
+   */
+  QString wordCharacters() { return _wordCharacters; }
+
+  /**
    * Sets the type of effect used to alert the user when a 'bell' occurs in the
    * terminal session.
    *
@@ -198,7 +274,7 @@ class TerminalView : public QWidget {
    *
    * See setBellMode()
    */
-  int getBellMode() { return _bellMode; }
+  int bellMode() { return _bellMode; }
 
   void setSelection(const QString& t);
 
@@ -228,6 +304,22 @@ class TerminalView : public QWidget {
   static bool antialias() { return _antialiasText; }
 
   /**
+   * Specify whether line chars should be drawn by ourselves or left to
+   * underlying font rendering libraries.
+   */
+  void setDrawLineChars(bool drawLineChars) { _drawLineChars = drawLineChars; }
+
+  /**
+   * Specifies whether characters with intense colors should be rendered
+   * as bold. Defaults to true.
+   */
+  void setBoldIntense(bool value) { _boldIntense = value; }
+  /**
+   * Returns true if characters with intense colors are rendered in bold.
+   */
+  bool getBoldIntense() { return _boldIntense; }
+
+  /**
    * Sets whether or not the current height and width of the
    * terminal in lines and columns is displayed whilst the widget
    * is being resized.
@@ -238,7 +330,7 @@ class TerminalView : public QWidget {
    * the terminal in lines and columns is displayed whilst the widget
    * is being resized.
    */
-  bool isTerminalSizeHint() { return _terminalSizeHint; }
+  bool terminalSizeHint() { return _terminalSizeHint; }
   /**
    * Sets whether the terminal size display is shown briefly
    * after the widget is first shown.
@@ -255,38 +347,7 @@ class TerminalView : public QWidget {
    * Returns the status of the BiDi rendering in this widget.
    */
   bool isBidiEnabled() { return _bidiEnabled; }
-  /** Sets how the text is selected when the user triple clicks within the
-   * display. */
-  void setTripleClickMode(TripleClickMode mode) { _tripleClickMode = mode; }
-  /** See setTripleClickSelectionMode() */
-  TripleClickMode getTripleClickMode() { return _tripleClickMode; }
 
-  void setLineSpacing(uint);
-  void setMargin(int);
-
-  int margin() const;
-  uint lineSpacing() const;
-
-  void emitSelection(bool useXselection, bool appendReturn);
-
-  /** change and wrap text corresponding to paste mode **/
-  void bracketText(QString& text) const;
-
-  /**
-   * Sets the shape of the keyboard cursor.  This is the cursor drawn
-   * at the position in the terminal where keyboard input will appear.
-   *
-   * In addition the terminal display widget also has a cursor for
-   * the mouse pointer, which can be set using the QWidget::setCursor()
-   * method.
-   *
-   * Defaults to BlockCursor
-   */
-  void setCursorShape(CursorShape shape);
-  /**
-   * Returns the shape of the keyboard cursor.  See setKeyboardCursorShape()
-   */
-  CursorShape getCursorShape() const;
   /**
    * Sets the terminal screen section which is displayed in this widget.
    * When updateImage() is called, the display fetches the latest character
@@ -299,6 +360,14 @@ class TerminalView : public QWidget {
   /** Returns the terminal screen section which is displayed in this widget.
    * See setScreenWindow() */
   ScreenWindow* getScreenWindow() const;
+
+  static bool HAVE_TRANSPARENCY;
+
+  void setMotionAfterPasting(MotionAfterPasting action);
+  int motionAfterPasting();
+  void setConfirmMultilinePaste(bool confirmMultilinePaste);
+  void setTrimPastedTrailingNewlines(bool trimPastedTrailingNewlines);
+
   // maps a point on the widget to the position ( ie. line and column )
   // of the character at that point.
   void getCharacterPosition(const QPointF& widgetPoint, int& line,
@@ -310,8 +379,6 @@ class TerminalView : public QWidget {
   bool bracketedPasteModeIsDisabled() const {
     return _disabledBracketedPasteMode;
   }
-
-  static bool HAVE_TRANSPARENCY;
 
  protected:
   bool event(QEvent*) override;
@@ -334,16 +401,13 @@ class TerminalView : public QWidget {
   void wheelEvent(QWheelEvent*) override;
 
   bool focusNextPrevChild(bool next) override;
-  void mouseTripleClickEvent(QMouseEvent* ev);
 
   // drag and drop
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
   void doDrag();
-
-  void clearImage();
-
   enum DragState { DI_NONE, DI_PENDING, DI_DRAGGING };
+
   struct _dragInfo {
     DragState state;
     QPoint start;
@@ -357,6 +421,10 @@ class TerminalView : public QWidget {
   //     - Part of a word (returns 'a')
   //     - Other characters (returns the input character)
   QChar charClass(QChar ch) const;
+
+  void clearImage();
+
+  void mouseTripleClickEvent(QMouseEvent* ev);
 
  signals:
   /**
@@ -400,7 +468,7 @@ class TerminalView : public QWidget {
   void isBusySelecting(bool);
   void sendStringToEmu(const char*);
 
-  // qtermwidget signals
+  // terminalemulator signals
   void copyAvailable(bool);
   void termGetFocus();
   void termLostFocus();
@@ -506,15 +574,20 @@ class TerminalView : public QWidget {
   void tripleClickTimeout();  // resets possibleTripleClick
 
  private:
-  // determine the width of this text.
+  // -- Drawing helpers --
+
+  // determine the width of this text
   int textWidth(int startColumn, int length, int line) const;
-  // determine the area that encloses this series of characters.
+  // determine the area that encloses this series of characters
   QRect calculateTextArea(int topLeftX, int topLeftY, int startColumn, int line,
                           int length);
-  // split display contents by rect into fragment according to their colors and
-  // styles and call drawTextFragment() to draw.
-  void drawContents(QPainter& painter, const QRect& rect);
-  // draw content's fragments.
+
+  // divides the part of the display specified by 'rect' into
+  // fragments according to their colors and styles and calls
+  // drawTextFragment() to draw the fragments
+  void drawContents(QPainter& paint, const QRect& rect);
+  // draws a section of text, all the text in this section
+  // has a common color and style
   void drawTextFragment(QPainter& painter, const QRect& rect,
                         const std::wstring& text, const Character* style);
   // draws the background for a text fragment
@@ -535,21 +608,18 @@ class TerminalView : public QWidget {
   void drawLineCharString(QPainter& painter, int x, int y,
                           const std::wstring& str,
                           const Character* attributes) const;
+
   // draws the preedit string for input methods
   void drawInputMethodPreeditString(QPainter& painter, const QRect& rect);
 
-  // shows the multiline prompt
-  bool multilineConfirmation(const QString& text);
-
-  void paintFilters(QPainter& painter);
+  // --
 
   // maps an area in the character image to an area on the widget
   QRect imageToWidget(const QRect& imageArea) const;
 
   // the area where the preedit string for input methods will be draw
   QRect preeditRect() const;
-  bool isLineChar(wchar_t c) const;
-  bool isLineCharString(const std::wstring& string) const;
+
   // shows a notification window in the middle of the widget indicating the
   // terminal's current size in columns and lines
   void showResizeNotification();
@@ -562,9 +632,22 @@ class TerminalView : public QWidget {
   // the left and right are ignored.
   void scrollImage(int lines, const QRect& region);
 
+  // shows the multiline prompt
+  bool multilineConfirmation(const QString& text);
+
+  void calcGeometry();
+  void propagateSize();
+  void updateImageSize();
+  void makeImage();
+
+  void paintFilters(QPainter& painter);
+
+  void calDrawTextAdditionHeight(QPainter& painter);
+
   // returns a region covering all of the areas of the widget which contain
   // a hotspot
   QRegion hotSpotRegion() const;
+
   // returns the position of the cursor in columns and lines
   QPoint cursorPosition() const;
 
@@ -573,12 +656,8 @@ class TerminalView : public QWidget {
 
   bool handleShortcutOverrideEvent(QKeyEvent* event);
 
-  void calDrawTextAdditionHeight(QPainter& painter);
-
-  void calcGeometry();
-  void propagateSize();
-  void updateImageSize();
-  void makeImage();
+  bool isLineChar(wchar_t c) const;
+  bool isLineCharString(const std::wstring& string) const;
 
   QPointer<ScreenWindow> _screenWindow;
 
@@ -688,7 +767,7 @@ class TerminalView : public QWidget {
   TerminalImageFilterChain* _filterChain;
   QRegion _mouseOverHotspotArea;
 
-  CursorShape _cursorShape;
+  KeyboardCursorShape _cursorShape;
   QColor _cursorColor;
 
   MotionAfterPasting mMotionAfterPasting;

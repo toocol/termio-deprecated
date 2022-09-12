@@ -29,7 +29,7 @@ Emulation::Emulation()
 
   connect(
       this, &Emulation::cursorChanged, this,
-      [this](CursorShape cursorShape, bool blinkingCursorEnabled) {
+      [this](KeyboardCursorShape cursorShape, bool blinkingCursorEnabled) {
         emit titleChanged(
             50,
             QString(QLatin1String("CursorShape=%1;BlinkingCursorEnabled=%2"))
@@ -59,10 +59,10 @@ ScreenWindow *Emulation::createWindow() {
 
   connect(this, SIGNAL(outputChanged()), window, SLOT(notifyOutputChanged()));
 
-  //    connect(this, &Emulation::handleCommandFromKeyboard,
-  //            window, &ScreenWindow::handleCommandFromKeyboard);
-  //    connect(this, &Emulation::outputFromKeypressEvent,
-  //            window, &ScreenWindow::scrollToEnd);
+  connect(this, &Emulation::handleCommandFromKeyboard, window,
+          &ScreenWindow::handleCommandFromKeyboard);
+  connect(this, &Emulation::outputFromKeypressEvent, window,
+          &ScreenWindow::scrollToEnd);
 
   return window;
 }

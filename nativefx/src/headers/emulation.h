@@ -337,7 +337,8 @@ class Emulation : public QObject {
    * @param cursorShape One of 3 possible values in KeyboardCursorShape enum
    * @param blinkingCursorEnabled Whether to enable blinking or not
    */
-  void cursorChanged(CursorShape cursorShape, bool blinkingCursorEnabled);
+  void cursorChanged(TConsole::KeyboardCursorShape cursorShape,
+                     bool blinkingCursorEnabled);
 
   void handleCommandFromKeyboard(KeyboardTranslator::Command command);
   void outputFromKeypressEvent(void);

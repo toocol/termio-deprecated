@@ -23,8 +23,6 @@
 // Own
 #include "vt102emulation.h"
 
-#include "tools.h"
-
 // XKB
 //#include <config-konsole.h>
 
@@ -65,7 +63,7 @@ Vt102Emulation::Vt102Emulation()
                    SLOT(updateTitle()));
 
   initTokenizer();
-  reset();
+  Vt102Emulation::reset();
 }
 
 Vt102Emulation::~Vt102Emulation() {}
@@ -936,22 +934,22 @@ void Vt102Emulation::processToken(int token, wchar_t p, int q) {
 
     case TY_CSI_PS_SP('q', 0): /* fall through */
     case TY_CSI_PS_SP('q', 1):
-      emit cursorChanged(CursorShape::BLOCK_CURSOR, true);
+      emit cursorChanged(KeyboardCursorShape::BLOCK_CURSOR, true);
       break;
     case TY_CSI_PS_SP('q', 2):
-      emit cursorChanged(CursorShape::BLOCK_CURSOR, false);
+      emit cursorChanged(KeyboardCursorShape::BLOCK_CURSOR, false);
       break;
     case TY_CSI_PS_SP('q', 3):
-      emit cursorChanged(CursorShape::UNDERLINE_CURSOR, true);
+      emit cursorChanged(KeyboardCursorShape::UNDERLINE_CURSOR, true);
       break;
     case TY_CSI_PS_SP('q', 4):
-      emit cursorChanged(CursorShape::UNDERLINE_CURSOR, false);
+      emit cursorChanged(KeyboardCursorShape::UNDERLINE_CURSOR, false);
       break;
     case TY_CSI_PS_SP('q', 5):
-      emit cursorChanged(CursorShape::IBEAM_CURSOR, true);
+      emit cursorChanged(KeyboardCursorShape::IBEAM_CURSOR, true);
       break;
     case TY_CSI_PS_SP('q', 6):
-      emit cursorChanged(CursorShape::IBEAM_CURSOR, false);
+      emit cursorChanged(KeyboardCursorShape::IBEAM_CURSOR, false);
       break;
 
     case TY_CSI_PN('@'):
@@ -1626,7 +1624,14 @@ void Vt102Emulation::sendKeyEvent(QKeyEvent* event, bool fromPaste) {
     if (!fromPaste && textToSend.length()) {
       Q_EMIT outputFromKeypressEvent();
     }
-    Q_EMIT sendData(textToSend.constData(), textToSend.length());
+
+#ifdef WIN32
+    if (textToSend == "\r") textToSend = "\r\n";
+#endif
+
+    // There is no pty in this project, just receive data;
+    //    Q_EMIT sendData(textToSend.constData(), textToSend.length());
+    receiveData(textToSend.constData(), textToSend.length());
   } else {
     // print an error message to the terminal if no key translator has been
     // set
@@ -1760,33 +1765,33 @@ void Vt102Emulation::resetModes() {
   // MODE_Allow132Columns is not reset here
   // to match Xterm's behaviour (see Xterm's VTReset() function)
 
-  resetMode(MODE_132Columns);
+  Vt102Emulation::resetMode(MODE_132Columns);
   saveMode(MODE_132Columns);
-  resetMode(MODE_Mouse1000);
+  Vt102Emulation::resetMode(MODE_Mouse1000);
   saveMode(MODE_Mouse1000);
-  resetMode(MODE_Mouse1001);
+  Vt102Emulation::resetMode(MODE_Mouse1001);
   saveMode(MODE_Mouse1001);
-  resetMode(MODE_Mouse1002);
+  Vt102Emulation::resetMode(MODE_Mouse1002);
   saveMode(MODE_Mouse1002);
-  resetMode(MODE_Mouse1003);
+  Vt102Emulation::resetMode(MODE_Mouse1003);
   saveMode(MODE_Mouse1003);
-  resetMode(MODE_Mouse1005);
+  Vt102Emulation::resetMode(MODE_Mouse1005);
   saveMode(MODE_Mouse1005);
-  resetMode(MODE_Mouse1006);
+  Vt102Emulation::resetMode(MODE_Mouse1006);
   saveMode(MODE_Mouse1006);
-  resetMode(MODE_Mouse1015);
+  Vt102Emulation::resetMode(MODE_Mouse1015);
   saveMode(MODE_Mouse1015);
-  resetMode(MODE_BracketedPaste);
+  Vt102Emulation::resetMode(MODE_BracketedPaste);
   saveMode(MODE_BracketedPaste);
 
-  resetMode(MODE_AppScreen);
+  Vt102Emulation::resetMode(MODE_AppScreen);
   saveMode(MODE_AppScreen);
-  resetMode(MODE_AppCuKeys);
+  Vt102Emulation::resetMode(MODE_AppCuKeys);
   saveMode(MODE_AppCuKeys);
-  resetMode(MODE_AppKeyPad);
+  Vt102Emulation::resetMode(MODE_AppKeyPad);
   saveMode(MODE_AppKeyPad);
-  resetMode(MODE_NewLine);
-  setMode(MODE_Ansi);
+  Vt102Emulation::resetMode(MODE_NewLine);
+  Vt102Emulation::setMode(MODE_Ansi);
 }
 
 void Vt102Emulation::setMode(int m) {

@@ -33,11 +33,13 @@ class TerminalEmulator : public QWidget {
    * Sets the shape of the keyboard cursor.  This is the cursor drawn
    * at the position in the terminal where keyboard input will appear.
    */
-  void setCursorShape(CursorShape shape);
+  void setCursorShape(KeyboardCursorShape shape);
 
   void setBlinkingCursor(bool blink);
 
   void setTerminalFont(const QFont &font);
+
+  void sendText(QString text);
 
  private:
   void createEmulation();
@@ -71,7 +73,8 @@ class TerminalEmulator : public QWidget {
  private slots:
   void onViewSizeChange(int height, int width);
   void onEmulationSizeChange(QSize);
-  void onCursorChanged(CursorShape cursorShape, bool blinkingCursorEnabled);
+  void onCursorChanged(KeyboardCursorShape cursorShape,
+                       bool blinkingCursorEnabled);
   void viewDestroyed(QObject *view);
 };
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 8.0.1, 2022-09-10T16:47:18. -->
+<!-- Written by QtCreator 8.0.1, 2022-09-12T22:03:15. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -348,6 +348,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">nativefx</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.nativefx</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">nativefx</value>
+    <value type="QString" key="RunConfiguration.Arguments">--with-text=100</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>

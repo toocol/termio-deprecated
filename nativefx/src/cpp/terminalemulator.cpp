@@ -57,23 +57,25 @@ void TerminalEmulator::initialize() {
   setTerminalFont(font);
 
   _terminalView->setScrollBarPosition(ScrollBarPosition::NO_SCROLL_BAR);
-  _terminalView->setCursorShape(CursorShape::BLOCK_CURSOR);
+  _terminalView->setKeyboardCursorShape(KeyboardCursorShape::BLOCK_CURSOR);
   bindViewToEmulation(_terminalView);
+
+  setBlinkingCursor(true);
 }
 
 void TerminalEmulator::createEmulation() {
   _emulation = new Vt102Emulation();
   _emulation->setParent(this);
   _emulation->setCodec(QTextCodec::codecForName("UTF-8"));
-  _emulation->setHistory(HistoryTypeBuffer(1000));
+  _emulation->setHistory(HistoryTypeBuffer(10000));
   _emulation->setKeyBindings(QString());
 
   connect(_emulation, SIGNAL(imageResizeRequest(QSize)), this,
           SLOT(onEmulationSizeChange(QSize)));
   connect(_emulation, SIGNAL(imageSizeChanged(int, int)), this,
           SLOT(onViewSizeChange(int, int)));
-  connect(_emulation, SIGNAL(cursorChanged(CursorShape, bool)), this,
-          SLOT(onCursorChanged(CursorShape, bool)));
+  connect(_emulation, &Vt102Emulation::cursorChanged, this,
+          &TerminalEmulator::onCursorChanged);
 }
 
 void TerminalEmulator::createTerminalView() {
@@ -134,8 +136,8 @@ void TerminalEmulator::setSize(const QSize &size) {
   _terminalView->setSize(size.width(), size.height());
 }
 
-void TerminalEmulator::setCursorShape(CursorShape shape) {
-  _terminalView->setCursorShape(shape);
+void TerminalEmulator::setCursorShape(KeyboardCursorShape shape) {
+  _terminalView->setKeyboardCursorShape(shape);
 }
 
 void TerminalEmulator::setBlinkingCursor(bool blink) {
@@ -145,6 +147,8 @@ void TerminalEmulator::setBlinkingCursor(bool blink) {
 void TerminalEmulator::setTerminalFont(const QFont &font) {
   _terminalView->setVTFont(font);
 }
+
+void TerminalEmulator::sendText(QString text) { _emulation->sendText(text); }
 
 void TerminalEmulator::updateTerminalSize() {
   int minLines = -1;
@@ -183,7 +187,7 @@ void TerminalEmulator::onViewSizeChange(int height, int width) {
 
 void TerminalEmulator::onEmulationSizeChange(QSize size) { setSize(size); }
 
-void TerminalEmulator::onCursorChanged(CursorShape cursorShape,
+void TerminalEmulator::onCursorChanged(KeyboardCursorShape cursorShape,
                                        bool blinkingCursorEnabled) {
   // TODO: A switch to enable/disable DECSCUSR?
   setCursorShape(cursorShape);

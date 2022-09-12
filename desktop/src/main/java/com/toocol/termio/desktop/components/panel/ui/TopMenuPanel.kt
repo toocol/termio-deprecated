@@ -1,7 +1,6 @@
-package com.toocol.termio.desktop.components.sidebar.ui
+package com.toocol.termio.desktop.components.panel.ui
 
 import com.toocol.termio.desktop.bootstrap.StageHolder
-import com.toocol.termio.desktop.components.panel.ui.MajorPanel
 import com.toocol.termio.platform.font.FluentIcon
 import com.toocol.termio.platform.ui.TAnchorPane
 import javafx.scene.Cursor
@@ -16,8 +15,7 @@ import javafx.stage.Screen
  * @date: 2022/9/1 22:30
  * @version: 0.0.1
  */
-class UpperTabBar(id: Long) : TAnchorPane(id){
-
+class TopMenuPanel(id: Long) : TAnchorPane(id){
     private val tabHBox: HBox = HBox()
     private val controlHBox: HBox = HBox()
 
@@ -31,7 +29,7 @@ class UpperTabBar(id: Long) : TAnchorPane(id){
     private var restoreWidth = 0.0
     private var restoreHeight = 0.0
 
-    private val RESIZE_WIDTH = 5.00
+    private val resizeWidth = 5.00
     private val MIN_WIDTH = 400.00
     private val MIN_HEIGHT = 300.00
     private var xOffset = 0.0
@@ -45,7 +43,7 @@ class UpperTabBar(id: Long) : TAnchorPane(id){
 
     override fun styleClasses(): Array<String> {
         return arrayOf(
-            "upper-tab-bar"
+            "top-menu-panel"
         )
     }
 
@@ -69,7 +67,7 @@ class UpperTabBar(id: Long) : TAnchorPane(id){
         minimize.run {
             styleClass.add("pane-normal")
             val minimizeIcon = FluentIcon("\uE921")
-            minimizeIcon.setSize(30.0 * 0.7, 30.0 * 1.1, 30 * 0.7)
+            minimizeIcon.setSize(fixedHeight, fixedHeight * 1.4, fixedHeight)
             children.add(minimizeIcon)
 
             setOnMouseClicked { event ->
@@ -82,17 +80,15 @@ class UpperTabBar(id: Long) : TAnchorPane(id){
         maximizeOrRestore.run {
             styleClass.add("pane-normal")
             val maximizeIcon = FluentIcon("\uE922")
-            maximizeIcon.setSize(30.0 * 0.7, 30.0 * 1.1, 30 * 0.7)
+            maximizeIcon.setSize(fixedHeight, fixedHeight * 1.4, fixedHeight)
 
             val restoreIcon = FluentIcon("\uE923")
-            restoreIcon.setSize(30.0 * 0.7, 30.0 * 1.1, 30 * 0.7)
+            restoreIcon.setSize(fixedHeight, fixedHeight * 1.4, fixedHeight)
             restoreIcon.visibleProperty().set(false)
 
             children.addAll(maximizeIcon, restoreIcon)
             setOnMouseClicked { event ->
                 if (event.clickCount == 1 && event.button == MouseButton.PRIMARY) {
-                    val stage = StageHolder.stage
-                    stage?: return@setOnMouseClicked
                     isMaximize = !isMaximize
                     if (isMaximize) {
                         val rectangle2d = Screen.getPrimary().visualBounds
@@ -121,7 +117,7 @@ class UpperTabBar(id: Long) : TAnchorPane(id){
         close.run {
             styleClass.add("pane-close")
             val closeIcon = FluentIcon("\uE8BB")
-            closeIcon.setSize(30.0 * 0.7, 30.0 * 1.1, 30 * 0.7)
+            closeIcon.setSize(fixedHeight, fixedHeight * 1.4, fixedHeight)
             children.add(closeIcon)
             setOnMouseClicked { event ->
                 if (event.clickCount == 1 && event.button == MouseButton.PRIMARY) {
@@ -143,14 +139,14 @@ class UpperTabBar(id: Long) : TAnchorPane(id){
 
             // 先将所有调整窗口状态重置
             isRight = false.also {
-                isBottom = it
-                isBottomRight = it
+                isBottom = false
+                isBottomRight = false
             }
-            if (y >= height - RESIZE_WIDTH) {
+            if (y >= height - resizeWidth) {
                 // 左下角调整窗口状态
-                if (x <= RESIZE_WIDTH) {
+                if (x <= resizeWidth) {
                     // no process
-                } else if (x >= width - RESIZE_WIDTH) {
+                } else if (x >= width - resizeWidth) {
                     // 右下角调整窗口状态
                     isBottomRight = true
                     cursorType = Cursor.SE_RESIZE
@@ -159,7 +155,7 @@ class UpperTabBar(id: Long) : TAnchorPane(id){
                     isBottom = true
                     cursorType = Cursor.S_RESIZE
                 }
-            } else if (x >= width - RESIZE_WIDTH) {
+            } else if (x >= width - resizeWidth) {
                 // 右边界调整窗口状态
                 isRight = true
                 cursorType = Cursor.E_RESIZE
@@ -224,11 +220,16 @@ class UpperTabBar(id: Long) : TAnchorPane(id){
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
-        prefHeight = 30.0
-        maxHeight = 30.0
-        minHeight = 30.0
+        prefHeight = fixedHeight
+        maxHeight = fixedHeight
+        minHeight = fixedHeight
     }
 
 
     override fun actionAfterShow() {}
+
+    companion object {
+        @JvmStatic
+        val fixedHeight = 25.0
+    }
 }

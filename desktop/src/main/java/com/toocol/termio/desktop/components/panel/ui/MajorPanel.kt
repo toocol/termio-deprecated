@@ -13,6 +13,7 @@ import jfxtras.styles.jmetro.JMetroStyleClass
  * @date 2022/8/11 11:13
  */
 @RegisterComponent(value = [
+    Component(clazz = TopMenuPanel::class, id = 1, initialVisible = true),
     Component(clazz = LeftSidePanel::class, id = 1, initialVisible = true),
     Component(clazz = CenterPanel::class, id = 1, initialVisible = true),
     Component(clazz = BottomStatusBar::class, id = 1, initialVisible = true)
@@ -35,12 +36,14 @@ class MajorPanel(id: Long) : TBorderPane(id) {
         parser.initializeAll()
         sizePropertyBind(this, 1.0, 1.0)
 
+        top = parser.getAsNode(TopMenuPanel::class.java)
         center = parser.getAsNode(CenterPanel::class.java)
         left = parser.getAsNode(LeftSidePanel::class.java)
         bottom = parser.getAsNode(BottomStatusBar::class.java)
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
+        parser.getAsComponent(TopMenuPanel::class.java)?.sizePropertyBind(major, widthRatio, null)
         parser.getAsComponent(CenterPanel::class.java)?.sizePropertyBind(this, widthRatio!! * 0.85, heightRatio!! * 1.0)
         parser.getAsComponent(LeftSidePanel::class.java)?.sizePropertyBind(this, widthRatio!! * 0.15, heightRatio!! * 1.0)
         parser.getAsComponent(BottomStatusBar::class.java)?.sizePropertyBind(this, widthRatio!! * 1, null)

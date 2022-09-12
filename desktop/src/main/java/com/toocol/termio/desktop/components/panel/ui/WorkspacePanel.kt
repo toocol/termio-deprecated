@@ -2,6 +2,8 @@ package com.toocol.termio.desktop.components.panel.ui
 
 import com.toocol.termio.core.cache.ShellCache
 import com.toocol.termio.desktop.components.homepage.ui.Homepage
+import com.toocol.termio.desktop.components.sidebar.ui.BottomStatusBar
+import com.toocol.termio.desktop.components.sidebar.ui.TopSessionTabBar
 import com.toocol.termio.desktop.components.terminal.ui.TerminalConsole
 import com.toocol.termio.desktop.components.terminal.ui.TerminalEmulatorFactory
 import com.toocol.termio.platform.component.Component
@@ -52,7 +54,7 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             panel.widthRatio = widthRatio
         }
         heightRatio?.run {
-            prefHeightProperty().bind(major.heightProperty().subtract(30 + 17.5).multiply(heightRatio))
+            prefHeightProperty().bind(major.heightProperty().subtract(TopMenuPanel.fixedHeight + TopSessionTabBar.fixedHeight + BottomStatusBar.fixedHeight).multiply(heightRatio))
             panel.heightRatio = heightRatio
         }
 
