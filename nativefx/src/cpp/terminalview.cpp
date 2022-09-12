@@ -515,7 +515,7 @@ void TerminalView::drawCursor(QPainter &painter, const QRect &rect,
     else
       painter.setPen(foregroundColor);
 
-    if (_cursorShape == CursorShape::BLOCK_CURSOR) {
+    if (_cursorShape == KeyboardCursorShape::BLOCK_CURSOR) {
       // draw the cursor outline, adjusting the area so that
       // it is draw entirely inside 'rect'
       float penWidth = qMax(1, painter.pen().width());
@@ -532,10 +532,10 @@ void TerminalView::drawCursor(QPainter &painter, const QRect &rect,
           invertCharacterColor = true;
         }
       }
-    } else if (_cursorShape == CursorShape::UNDERLINE_CURSOR)
+    } else if (_cursorShape == KeyboardCursorShape::UNDERLINE_CURSOR)
       painter.drawLine(cursorRect.left(), cursorRect.bottom(),
                        cursorRect.right(), cursorRect.bottom());
-    else if (_cursorShape == CursorShape::IBEAM_CURSOR)
+    else if (_cursorShape == KeyboardCursorShape::IBEAM_CURSOR)
       painter.drawLine(cursorRect.left(), cursorRect.top(), cursorRect.left(),
                        cursorRect.bottom());
   }
@@ -1258,6 +1258,10 @@ void TerminalView::setFixedSize(int cols, int lins) {
 
 QSize TerminalView::sizeHint() const { return _size; }
 
+void TerminalView::setWordCharacters(const QString &wc) {
+  _wordCharacters = wc;
+}
+
 void TerminalView::setBellMode(int mode) { _bellMode = mode; }
 
 void TerminalView::setSelection(const QString &t) {
@@ -1373,9 +1377,27 @@ void TerminalView::bracketText(QString &text) const {
   }
 }
 
-void TerminalView::setCursorShape(CursorShape shape) { _cursorShape = shape; }
+void TerminalView::setKeyboardCursorShape(KeyboardCursorShape shape) {
+  _cursorShape = shape;
+}
 
-CursorShape TerminalView::getCursorShape() const { return _cursorShape; }
+KeyboardCursorShape TerminalView::keyboardCursorShape() const {
+  return _cursorShape;
+}
+
+void TerminalView::setKeyboardCursorColor(bool useForegroundColor,
+                                          const QColor &color) {
+  if (useForegroundColor)
+    _cursorColor = QColor();  // an invalid color means that
+                              // the foreground color of the
+                              // current character should
+                              // be used
+
+  else
+    _cursorColor = color;
+}
+
+QColor TerminalView::keyboardCursorColor() const { return _cursorColor; }
 
 void TerminalView::setScreenWindow(ScreenWindow *window) {
   // disconnect existing screen window if any
@@ -1402,6 +1424,21 @@ void TerminalView::setScreenWindow(ScreenWindow *window) {
 }
 
 ScreenWindow *TerminalView::getScreenWindow() const { return _screenWindow; }
+
+void TerminalView::setMotionAfterPasting(MotionAfterPasting action) {
+  mMotionAfterPasting = action;
+}
+
+int TerminalView::motionAfterPasting() { return mMotionAfterPasting; }
+
+void TerminalView::setConfirmMultilinePaste(bool confirmMultilinePaste) {
+  _confirmMultilinePaste = confirmMultilinePaste;
+}
+
+void TerminalView::setTrimPastedTrailingNewlines(
+    bool trimPastedTrailingNewlines) {
+  _trimPastedTrailingNewlines = trimPastedTrailingNewlines;
+}
 
 void TerminalView::getCharacterPosition(const QPointF &widgetPoint, int &line,
                                         int &column) const {
@@ -2668,7 +2705,7 @@ TerminalView::TerminalView(QWidget *parent)
       _opacity(static_cast<qreal>(1)),
       _backgroundMode(BackgroundMode::NONE),
       _filterChain(new TerminalImageFilterChain()),
-      _cursorShape(CursorShape::BLOCK_CURSOR),
+      _cursorShape(KeyboardCursorShape::BLOCK_CURSOR),
       mMotionAfterPasting(MotionAfterPasting::NO_MOVE_SCREEN_WINDOW),
       _leftBaseMargin(1),
       _topBaseMargin(1),
@@ -2747,7 +2784,7 @@ void TerminalView::setColorTable(const ColorEntry table[]) {
 
 void TerminalView::setRandomSeed(uint seed) { _randomSeed = seed; }
 
-uint TerminalView::getRandomSeed() const { return _randomSeed; }
+uint TerminalView::randomSeed() const { return _randomSeed; }
 
 void TerminalView::setOpacity(qreal opacity) {
   this->_opacity =

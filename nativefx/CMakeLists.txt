@@ -25,6 +25,8 @@ include_directories("C:/Windows/System32/include")
 
 link_directories("D:/download/boost_1_80_0/stage/lib")
 link_directories("C:/Windows/System32/lib")
+link_directories("C:/Windows/System32/lib/sys")
+link_directories("C:/Windows/System32/bin")
 
 set(PROJECT_SOURCES
         src/headers/jnitypeconverter.h
@@ -94,7 +96,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(nativefx PRIVATE Qt${QT_VERSION_MAJOR}::Widgets -lmman Qt${QT_VERSION_MAJOR}::Core5Compat)
+target_link_libraries(nativefx PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Core5Compat utf8proc_static utf8proc mman )
 
 set_target_properties(nativefx PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
@@ -108,10 +110,13 @@ target_compile_definitions(${TERMINAL_EMULATOR_LIBRARY_NAME}
     PRIVATE
         "KB_LAYOUT_DIR=\"${KB_LAYOUT_DIR}\""
         "COLORSCHEMES_DIR=\"${COLORSCHEMES_DIR}\""
+        "HAVE_UTF8PROC"
 #        "TRANSLATIONS_DIR=\"${TRANSLATIONS_DIR}\""
 #        "HAVE_POSIX_OPENPT"
 #        "HAVE_SYS_TIME_H"
 )
+
+string(APPEND PKG_CONFIG_REQ ", libutf8proc")
 
 # keyboard layouts
 install(DIRECTORY

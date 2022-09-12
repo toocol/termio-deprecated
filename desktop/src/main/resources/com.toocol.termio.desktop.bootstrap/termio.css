@@ -16,12 +16,12 @@
 }
 
 .top-menu-panel {
-    -fx-background-color: #EAEAEA;
+    -fx-background-color: #FAFAFA;
     -fx-padding: 0 -1 0 0;
 }
 
 .top-menu-panel > .hbox {
-    -fx-background-color: #EAEAEA;
+    -fx-background-color: #FAFAFA;
 }
 
 .top-menu-panel > .hbox > .pane-normal :hover {

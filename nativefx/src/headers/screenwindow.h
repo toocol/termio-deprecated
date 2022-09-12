@@ -25,9 +25,9 @@
 #include <QPoint>
 #include <QRect>
 
-// Konsole
-//#include "KeyboardTranslator.h"
+// TConsole
 #include "character.h"
+#include "keyboardtranslator.h"
 
 namespace TConsole {
 
@@ -228,7 +228,7 @@ class ScreenWindow : public QObject {
    */
   void notifyOutputChanged();
 
-  //  void handleCommandFromKeyboard(KeyboardTranslator::Command command);
+  void handleCommandFromKeyboard(KeyboardTranslator::Command command);
 
  signals:
   /**
