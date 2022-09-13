@@ -56,7 +56,7 @@ void TerminalEmulator::initialize() {
   font.setStyleHint(QFont::TypeWriter);
   setTerminalFont(font);
 
-  _terminalView->setScrollBarPosition(ScrollBarPosition::NO_SCROLL_BAR);
+  _terminalView->setScrollBarPosition(ScrollBarPosition::SCROLL_BAR_RIGHT);
   _terminalView->setKeyboardCursorShape(KeyboardCursorShape::BLOCK_CURSOR);
   bindViewToEmulation(_terminalView);
 
@@ -149,6 +149,14 @@ void TerminalEmulator::setTerminalFont(const QFont &font) {
 }
 
 void TerminalEmulator::sendText(QString text) { _emulation->sendText(text); }
+
+void TerminalEmulator::setBackgroundColor(const QColor &color) {
+  _terminalView->setBackgroundColor(color);
+}
+
+void TerminalEmulator::setForegroundColor(const QColor &color) {
+  _terminalView->setForegroundColor(color);
+}
 
 void TerminalEmulator::updateTerminalSize() {
   int minLines = -1;

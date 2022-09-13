@@ -40,6 +40,8 @@ using namespace TConsole;
 bool TerminalView::_antialiasText = true;
 bool TerminalView::HAVE_TRANSPARENCY = true;
 
+const QRegularExpression rRegularExpression(QStringLiteral("\\r+$"));
+
 const ColorEntry TConsole::base_color_table[TABLE_COLORS] =
     // The following are almost IBM standard color codes, with some slight
     // gamma correction for the dim colors to compensate for bright X screens.
@@ -1327,7 +1329,7 @@ void TerminalView::emitSelection(bool useXselection, bool appendReturn) {
     text.replace(QLatin1Char('\n'), QLatin1Char('\r'));
 
     if (_trimPastedTrailingNewlines) {
-      text.replace(QRegularExpression(QStringLiteral("\\r+$")), QString());
+      text.replace(rRegularExpression, QString());
     }
 
     if (_confirmMultilinePaste && text.contains(QLatin1Char('\r'))) {
@@ -1556,7 +1558,7 @@ void TerminalView::paintEvent(QPaintEvent *event) {
   }
 
   if (_drawTextTestFlag) {
-    //    calDrawTextAdditionHeight(paint);
+    calDrawTextAdditionHeight(paint);
   }
 
   const QRegion regToDraw = event->region() & cr;
@@ -1580,7 +1582,7 @@ void TerminalView::hideEvent(QHideEvent *) {
 
 void TerminalView::resizeEvent(QResizeEvent *) {
   updateImageSize();
-  //  processFilters();
+  processFilters();
 }
 
 void TerminalView::fontChange(const QFont &) {
@@ -2694,6 +2696,7 @@ TerminalView::TerminalView(QWidget *parent)
       _cursorBlinking(false),
       _hasBlinkingCursor(false),
       _allowBlinkingText(true),
+      _ctrlDrag(false),
       _tripleClickMode(TripleClickMode::SELECT_WHOLE_LINE),
       _isFixedSize(false),
       _possibleTripleClick(false),

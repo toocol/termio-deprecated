@@ -39,6 +39,10 @@ class TerminalEmulator : public QWidget {
 
   void setTerminalFont(const QFont &font);
 
+  void setBackgroundColor(const QColor &color);
+
+  void setForegroundColor(const QColor &color);
+
   void sendText(QString text);
 
  private:

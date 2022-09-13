@@ -5,8 +5,10 @@
 int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
   TConsole::TerminalEmulator emulator;
-  emulator.show();
   emulator.initialize();
+  emulator.setBackgroundColor(QColor(0x15, 0x15, 0x15));
+  emulator.setForegroundColor(QColor(0xE1, 0xE1, 0xE1));
+  emulator.show();
 
   if (argv[1]) {
     QString param = QString(argv[1]);
