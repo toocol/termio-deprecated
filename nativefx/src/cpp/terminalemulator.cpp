@@ -67,7 +67,7 @@ void TerminalEmulator::createEmulation() {
   _emulation = new Vt102Emulation();
   _emulation->setParent(this);
   _emulation->setCodec(QTextCodec::codecForName("UTF-8"));
-  _emulation->setHistory(HistoryTypeBuffer(10000));
+  _emulation->setHistory(HistoryTypeBuffer(50000));
   _emulation->setKeyBindings(QString());
 
   connect(_emulation, SIGNAL(imageResizeRequest(QSize)), this,

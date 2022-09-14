@@ -23,6 +23,7 @@
 #include <QUrl>
 #include <QtDebug>
 
+#include "screen.h"
 #include "wcwidth.h"
 
 using namespace TConsole;
@@ -40,7 +41,7 @@ using namespace TConsole;
 bool TerminalView::_antialiasText = true;
 bool TerminalView::HAVE_TRANSPARENCY = true;
 
-const QRegularExpression rRegularExpression(QStringLiteral("\\r+$"));
+QRegularExpression rRegularExpression(QStringLiteral("\\r+$"));
 
 const ColorEntry TConsole::base_color_table[TABLE_COLORS] =
     // The following are almost IBM standard color codes, with some slight
@@ -2050,7 +2051,7 @@ void TerminalView::extendSelection(const QPoint &position) {
       }
     }
 
-    // Find left (left_not_right ? from start : from here)
+    // Find right (left_not_right ? from start : from here)
     QPoint right = left_not_right ? _iPntSelCorr : here;
     i = loc(right.x(), right.y());
     if (i >= 0 && i <= _imageSize) {
@@ -2188,6 +2189,7 @@ void TerminalView::extendSelection(const QPoint &position) {
 
 void TerminalView::wheelEvent(QWheelEvent *ev) {
   if (ev->angleDelta().y() == 0) return;
+  if (_screenWindow->screen()->getHistLines() == 0) return;
 
   // if the terminal program is not interested mouse events
   // then send the event to the scrollbar if the slider has room to move
