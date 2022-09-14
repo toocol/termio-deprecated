@@ -23,6 +23,7 @@
 #include <QUrl>
 #include <QtDebug>
 
+#include "screen.h"
 #include "wcwidth.h"
 
 using namespace TConsole;
@@ -39,6 +40,8 @@ using namespace TConsole;
 // static
 bool TerminalView::_antialiasText = true;
 bool TerminalView::HAVE_TRANSPARENCY = true;
+
+QRegularExpression rRegularExpression(QStringLiteral("\\r+$"));
 
 const ColorEntry TConsole::base_color_table[TABLE_COLORS] =
     // The following are almost IBM standard color codes, with some slight
@@ -476,12 +479,13 @@ void TerminalView::drawTextFragment(QPainter &painter, const QRect &rect,
     drawBackground(painter, rect, backgroundColor, false);
 
   bool invertCharacterColor = false;
-  if (style->rendition & RE_CURSOR)
-    drawCursor(painter, rect, foregroundColor, backgroundColor,
-               invertCharacterColor);
 
   // draw text
   drawCharacters(painter, rect, text, style, invertCharacterColor);
+
+  if (style->rendition & RE_CURSOR)
+    drawCursor(painter, rect, foregroundColor, backgroundColor,
+               invertCharacterColor);
 
   painter.restore();
 }
@@ -600,6 +604,7 @@ void TerminalView::drawCharacters(QPainter &painter, const QRect &rect,
       {
         QRect drawRect(rect.topLeft(), rect.size());
         drawRect.setHeight(rect.height() + _drawTextAdditionHeight);
+        painter.fillRect(drawRect, style->backgroundColor.color(_colorTable));
         painter.drawText(drawRect, Qt::AlignBottom,
                          LTR_OVERRIDE_CHAR + QString::fromStdWString(text));
       }
@@ -1327,7 +1332,7 @@ void TerminalView::emitSelection(bool useXselection, bool appendReturn) {
     text.replace(QLatin1Char('\n'), QLatin1Char('\r'));
 
     if (_trimPastedTrailingNewlines) {
-      text.replace(QRegularExpression(QStringLiteral("\\r+$")), QString());
+      text.replace(rRegularExpression, QString());
     }
 
     if (_confirmMultilinePaste && text.contains(QLatin1Char('\r'))) {
@@ -1556,7 +1561,7 @@ void TerminalView::paintEvent(QPaintEvent *event) {
   }
 
   if (_drawTextTestFlag) {
-    //    calDrawTextAdditionHeight(paint);
+    calDrawTextAdditionHeight(paint);
   }
 
   const QRegion regToDraw = event->region() & cr;
@@ -1580,7 +1585,7 @@ void TerminalView::hideEvent(QHideEvent *) {
 
 void TerminalView::resizeEvent(QResizeEvent *) {
   updateImageSize();
-  //  processFilters();
+  processFilters();
 }
 
 void TerminalView::fontChange(const QFont &) {
@@ -1653,6 +1658,8 @@ void TerminalView::keyPressEvent(QKeyEvent *event) {
     else
       _cursorBlinking = false;
   }
+
+  _screenWindow->clearSelection();
 
   emit keyPressedSignal(event, false);
 
@@ -2048,7 +2055,7 @@ void TerminalView::extendSelection(const QPoint &position) {
       }
     }
 
-    // Find left (left_not_right ? from start : from here)
+    // Find right (left_not_right ? from start : from here)
     QPoint right = left_not_right ? _iPntSelCorr : here;
     i = loc(right.x(), right.y());
     if (i >= 0 && i <= _imageSize) {
@@ -2186,6 +2193,7 @@ void TerminalView::extendSelection(const QPoint &position) {
 
 void TerminalView::wheelEvent(QWheelEvent *ev) {
   if (ev->angleDelta().y() == 0) return;
+  if (_screenWindow->screen()->getHistLines() == 0) return;
 
   // if the terminal program is not interested mouse events
   // then send the event to the scrollbar if the slider has room to move
@@ -2412,7 +2420,7 @@ void TerminalView::updateImage() {
 
   for (y = 0; y < linesToUpdate; ++y) {
     const Character *currentLine = &_image[y * this->_columns];
-    const Character *const newLine = &newimg[y * columns];
+    Character *const newLine = &newimg[y * columns];
 
     bool updateLine = false;
 
@@ -2694,6 +2702,7 @@ TerminalView::TerminalView(QWidget *parent)
       _cursorBlinking(false),
       _hasBlinkingCursor(false),
       _allowBlinkingText(true),
+      _ctrlDrag(false),
       _tripleClickMode(TripleClickMode::SELECT_WHOLE_LINE),
       _isFixedSize(false),
       _possibleTripleClick(false),

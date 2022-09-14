@@ -189,6 +189,10 @@ class CharacterColor {
    */
   void setIntensive();
 
+  void changeColor(quint8 colorSpace, int co);
+
+  void changeColor(CharacterColor color);
+
   /**
    * Returns the color within the specified color @p palette
    *
@@ -267,6 +271,37 @@ inline void CharacterColor::setIntensive() {
   if (_colorSpace == COLOR_SPACE_SYSTEM || _colorSpace == COLOR_SPACE_DEFAULT) {
     _v = 1;
   }
+}
+
+inline void CharacterColor::changeColor(quint8 colorSpace, int co) {
+  _colorSpace = colorSpace;
+  _u = _v = _w = 0;
+  switch (colorSpace) {
+    case COLOR_SPACE_DEFAULT:
+      _u = co & 1;
+      break;
+    case COLOR_SPACE_SYSTEM:
+      _u = co & 7;
+      _v = (co >> 3) & 1;
+      break;
+    case COLOR_SPACE_256:
+      _u = co & 255;
+      break;
+    case COLOR_SPACE_RGB:
+      _u = co >> 16;
+      _v = co >> 8;
+      _w = co;
+      break;
+    default:
+      _colorSpace = COLOR_SPACE_UNDEFINED;
+  }
+}
+
+inline void CharacterColor::changeColor(CharacterColor color) {
+  this->_colorSpace = color._colorSpace;
+  this->_u = color._u;
+  this->_v = color._v;
+  this->_w = color._w;
 }
 
 }  // namespace TConsole
