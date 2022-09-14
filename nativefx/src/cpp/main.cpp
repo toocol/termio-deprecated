@@ -8,6 +8,7 @@ int main(int argc, char *argv[]) {
   emulator.initialize();
   emulator.setBackgroundColor(QColor(0x15, 0x15, 0x15));
   emulator.setForegroundColor(QColor(0xE1, 0xE1, 0xE1));
+  emulator.setBlinkingCursor(true);
   emulator.show();
 
   if (argv[1]) {

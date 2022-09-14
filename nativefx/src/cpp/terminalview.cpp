@@ -479,12 +479,13 @@ void TerminalView::drawTextFragment(QPainter &painter, const QRect &rect,
     drawBackground(painter, rect, backgroundColor, false);
 
   bool invertCharacterColor = false;
-  if (style->rendition & RE_CURSOR)
-    drawCursor(painter, rect, foregroundColor, backgroundColor,
-               invertCharacterColor);
 
   // draw text
   drawCharacters(painter, rect, text, style, invertCharacterColor);
+
+  if (style->rendition & RE_CURSOR)
+    drawCursor(painter, rect, foregroundColor, backgroundColor,
+               invertCharacterColor);
 
   painter.restore();
 }
@@ -603,6 +604,7 @@ void TerminalView::drawCharacters(QPainter &painter, const QRect &rect,
       {
         QRect drawRect(rect.topLeft(), rect.size());
         drawRect.setHeight(rect.height() + _drawTextAdditionHeight);
+        painter.fillRect(drawRect, style->backgroundColor.color(_colorTable));
         painter.drawText(drawRect, Qt::AlignBottom,
                          LTR_OVERRIDE_CHAR + QString::fromStdWString(text));
       }
@@ -1657,6 +1659,8 @@ void TerminalView::keyPressEvent(QKeyEvent *event) {
       _cursorBlinking = false;
   }
 
+  _screenWindow->clearSelection();
+
   emit keyPressedSignal(event, false);
 
   event->accept();
@@ -2416,7 +2420,7 @@ void TerminalView::updateImage() {
 
   for (y = 0; y < linesToUpdate; ++y) {
     const Character *currentLine = &_image[y * this->_columns];
-    const Character *const newLine = &newimg[y * columns];
+    Character *const newLine = &newimg[y * columns];
 
     bool updateLine = false;
 

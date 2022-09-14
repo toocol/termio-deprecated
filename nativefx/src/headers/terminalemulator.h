@@ -45,6 +45,8 @@ class TerminalEmulator : public QWidget {
 
   void sendText(QString text);
 
+  void clear();
+
  private:
   void createEmulation();
   void createTerminalView();
