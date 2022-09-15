@@ -3,7 +3,7 @@
 #include "terminalemulator.h"
 
 int main(int argc, char *argv[]) {
-  QApplication a(argc, argv);
+  QApplication app(argc, argv, false);
   TConsole::TerminalEmulator emulator;
   emulator.initialize();
   emulator.setBackgroundColor(QColor(0x15, 0x15, 0x15));
@@ -18,7 +18,6 @@ int main(int argc, char *argv[]) {
       QString content = "";
       for (int i = 0; i < li[1].toInt(); i++) {
         content.append(
-            QString::number(i) +
             "]0;root@joezane:~[root@joezane ~]#\r\n"
             "[0m[01;36mbin[0m   [01;34mdata[0m  [01;34metc[0m   "
             "[01;36mlib[0m      "
@@ -31,5 +30,5 @@ int main(int argc, char *argv[]) {
       emulator.sendText(content);
     }
   }
-  return a.exec();
+  return app.exec();
 }
