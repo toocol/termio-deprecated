@@ -30,7 +30,9 @@ link_directories("C:/Windows/System32/bin")
 
 set(PROJECT_SOURCES
         src/headers/jnitypeconverter.h
-        src/headers/shared_memory.h
+        src/headers/sharedmemory.h
+        src/headers/nativefxserver.hpp
+        src/headers/args.hxx
         src/headers/character.h
         src/headers/charactercolor.h
         src/headers/wcwidth.h
@@ -96,7 +98,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(nativefx PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Core5Compat utf8proc_static utf8proc mman )
+target_link_libraries(nativefx PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Core5Compat utf8proc_static utf8proc mman)
 
 set_target_properties(nativefx PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
