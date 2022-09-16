@@ -1,14 +1,66 @@
 #include <QApplication>
 
+#include "nativefxserver.hpp"
 #include "terminalemulator.h"
 
-int main(int argc, char *argv[]) {
-  QApplication app(argc, argv, false);
+namespace nfx = nativefx;
+
+const char* APP_NAME = "terminal emulator";
+
+int main(int argc, char* argv[]) {
+  int qArgc = 3;
+  //  char* qArgv[] = {
+  //      APP_NAME,  // app name
+  //      //      "--ignore-gpu-blacklist",  // ignore blacklist
+  //  };
+
+  QApplication app(qArgc, argv, false);
+  QImage* image = NULL;
+  QWidget* prevEvtTarget = NULL;
+  QPoint prevP;
+
   TConsole::TerminalEmulator emulator;
+
+  auto qtRedraw = [&image, &emulator](std::string const& name,
+                                      uchar* bufferData, int w, int h) {
+    if (image == NULL) {
+      qDebug() << "Redraw width: " << w << ", height: " << h;
+      image = new QImage(bufferData, w, h, w * 8,
+                         QImage::Format_ARGB32_Premultiplied);
+      emulator.resize(w, h);
+      emulator.requestRedrawImage(image);
+    }
+  };
+
+  auto qtResized = [&image, &emulator](std::string const& name,
+                                       uchar* bufferData, int w, int h) {
+    if (image == NULL || emulator.width() != w || emulator.height() != h) {
+      qDebug() << "Resize width: " << w << ", height: " << h;
+      delete image;
+      image = new QImage(bufferData, w, h, w * 8,
+                         QImage::Format_ARGB32_Premultiplied);
+      emulator.resize(w, h);
+      emulator.requestRedrawImage(image);
+    }
+  };
+
+  auto evt = [&emulator, &prevEvtTarget, &prevP](std::string const& name,
+                                                 nfx::event* evt) {};
+
+  nfx::SharedCanvas* canvas = nfx::SharedCanvas::create("_emulator_mem");
+
+  auto nativeRedrawCallback = [&canvas, &qtRedraw, &qtResized, &evt]() {
+    canvas->processEvents(evt);
+    canvas->draw(qtRedraw, qtResized);
+  };
+  emulator.setNativeRedrawCallback(nativeRedrawCallback);
+
+  emulator.resize(1280, 800);
   emulator.initialize();
   emulator.setBackgroundColor(QColor(0x15, 0x15, 0x15));
   emulator.setForegroundColor(QColor(0xE1, 0xE1, 0xE1));
   emulator.setBlinkingCursor(true);
+  emulator.installEventFilter(&emulator);
   emulator.show();
 
   if (argv[1]) {

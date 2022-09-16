@@ -16,9 +16,7 @@
 
 using namespace TConsole;
 
-TerminalEmulator::TerminalEmulator(QWidget *parent) : QWidget(parent) {
-  resize(1280, 800);
-}
+TerminalEmulator::TerminalEmulator(QWidget *parent) : QWidget(parent) {}
 
 TerminalEmulator::~TerminalEmulator() {}
 
@@ -153,6 +151,25 @@ void TerminalEmulator::clear() {
   _emulation->clearHistory();
 }
 
+void TerminalEmulator::requestRedrawImage(QImage *image) {
+  this->image = image;
+}
+
+bool TerminalEmulator::eventFilter(QObject *obj, QEvent *ev) {
+  if (ev->type() == QEvent::Paint) {
+    _terminalView->update();
+  }
+  if (ev->type() == QEvent::UpdateRequest) {
+    if (image != nullptr) {
+      QPainter painter(image);
+      this->render(&painter);
+      painter.end();
+    }
+    nativeRedrawCallback();
+  }
+  return QWidget::eventFilter(obj, ev);
+}
+
 void TerminalEmulator::setBackgroundColor(const QColor &color) {
   _terminalView->setBackgroundColor(color);
 }
@@ -186,6 +203,11 @@ void TerminalEmulator::updateTerminalSize() {
   if (minLines > 0 && minColumns > 0) {
     _emulation->setImageSize(minLines, minColumns);
   }
+}
+
+void TerminalEmulator::setNativeRedrawCallback(
+    const std::function<void()> &newNativeRedrawCallback) {
+  nativeRedrawCallback = newNativeRedrawCallback;
 }
 
 void TerminalEmulator::selectionChanged(bool textSelected) {
