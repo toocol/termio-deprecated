@@ -49,9 +49,10 @@ class TerminalEmulator : public QWidget {
 
   void requestRedrawImage(QImage *);
 
-  void setNativeRedrawCallback(const std::function<void ()> &newNativeRedrawCallback);
+  void setNativeRedrawCallback(
+      const std::function<void()> &newNativeRedrawCallback);
 
-  protected:
+ protected:
   bool eventFilter(QObject *obj, QEvent *ev) override;
 
  private:

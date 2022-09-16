@@ -5,16 +5,14 @@
 
 namespace nfx = nativefx;
 
-const char* APP_NAME = "terminal emulator";
-
 int main(int argc, char* argv[]) {
   int qArgc = 3;
-  //  char* qArgv[] = {
-  //      APP_NAME,  // app name
-  //      //      "--ignore-gpu-blacklist",  // ignore blacklist
-  //  };
+  char* qArgv[] = {
+      (char*)"terminal emulator",       // app name
+      (char*)"--ignore-gpu-blacklist",  // ignore blacklist
+  };
 
-  QApplication app(qArgc, argv, false);
+  QApplication app(qArgc, qArgv, false);
   QImage* image = NULL;
   QWidget* prevEvtTarget = NULL;
   QPoint prevP;
@@ -25,7 +23,7 @@ int main(int argc, char* argv[]) {
                                       uchar* bufferData, int w, int h) {
     if (image == NULL) {
       qDebug() << "Redraw width: " << w << ", height: " << h;
-      image = new QImage(bufferData, w, h, w * 8,
+      image = new QImage(bufferData, w, h, w * 4,
                          QImage::Format_ARGB32_Premultiplied);
       emulator.resize(w, h);
       emulator.requestRedrawImage(image);
@@ -37,7 +35,7 @@ int main(int argc, char* argv[]) {
     if (image == NULL || emulator.width() != w || emulator.height() != h) {
       qDebug() << "Resize width: " << w << ", height: " << h;
       delete image;
-      image = new QImage(bufferData, w, h, w * 8,
+      image = new QImage(bufferData, w, h, w * 4,
                          QImage::Format_ARGB32_Premultiplied);
       emulator.resize(w, h);
       emulator.requestRedrawImage(image);
@@ -54,6 +52,16 @@ int main(int argc, char* argv[]) {
     canvas->draw(qtRedraw, qtResized);
   };
   emulator.setNativeRedrawCallback(nativeRedrawCallback);
+
+  emulator.setAttribute(Qt::WA_OpaquePaintEvent, true);
+  emulator.setAttribute(Qt::WA_DontCreateNativeAncestors, true);
+  emulator.setAttribute(Qt::WA_NativeWindow, true);
+  emulator.setAttribute(Qt::WA_NoSystemBackground, true);
+  emulator.setAutoFillBackground(false);
+
+  // don't show the native window
+  // we could reuse this to offer optional fullscreen mode
+  emulator.setAttribute(Qt::WA_DontShowOnScreen, true);
 
   emulator.resize(1280, 800);
   emulator.initialize();

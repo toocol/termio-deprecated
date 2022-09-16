@@ -16,7 +16,8 @@
 
 using namespace TConsole;
 
-TerminalEmulator::TerminalEmulator(QWidget *parent) : QWidget(parent) {}
+TerminalEmulator::TerminalEmulator(QWidget *parent)
+    : QWidget(parent), image(nullptr) {}
 
 TerminalEmulator::~TerminalEmulator() {}
 
@@ -161,8 +162,9 @@ bool TerminalEmulator::eventFilter(QObject *obj, QEvent *ev) {
   }
   if (ev->type() == QEvent::UpdateRequest) {
     if (image != nullptr) {
+      qDebug() << "Render native image.";
       QPainter painter(image);
-      this->render(&painter);
+      _terminalView->render(&painter);
       painter.end();
     }
     nativeRedrawCallback();
