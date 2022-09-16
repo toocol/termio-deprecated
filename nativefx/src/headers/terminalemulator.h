@@ -47,11 +47,22 @@ class TerminalEmulator : public QWidget {
 
   void clear();
 
+  void requestRedrawImage(QImage *);
+
+  void setNativeRedrawCallback(
+      const std::function<void()> &newNativeRedrawCallback);
+
+ protected:
+  bool eventFilter(QObject *obj, QEvent *ev) override;
+
  private:
   void createEmulation();
   void createTerminalView();
   void bindViewToEmulation(TerminalView *terminalView);
   void updateTerminalSize();
+
+  QImage *image;
+  std::function<void()> nativeRedrawCallback;
 
   TerminalView *_terminalView;
 

@@ -67,7 +67,7 @@
 #endif  // M_PI
 
 #include "args.hxx"
-#include "shared_memory.h"
+#include "sharedmemory.h"
 
 // ---------------------------------------- NATIVEFX CODE
 // ----------------------------------------
@@ -82,7 +82,7 @@ ipc::message_queue* evt_mq;
 ipc::message_queue* evt_mq_native;
 
 // deprecated
-uchar* create_shared_buffer(std::string buffer_name, int w, int h) {
+uchar* createSharedBuffer(std::string buffer_name, int w, int h) {
   // create the shared memory buffer object.
   shm_buffer = ipc::shared_memory_object(ipc::create_only, buffer_name.c_str(),
                                          ipc::read_write);
@@ -111,8 +111,8 @@ typedef std::function<void(std::string const& name, event* evt)> event_callback;
 /**
  * Test function to verify buffer data functionality.
  */
-void set_rgba(uchar* buffer_data, int buffer_w, int buffer_h, int x, int y,
-              uchar r, uchar g, uchar b, uchar a) {
+void setRgba(uchar* buffer_data, int buffer_w, int buffer_h, int x, int y,
+             uchar r, uchar g, uchar b, uchar a) {
   buffer_data[y * buffer_w * 4 + x * 4 + 0] = b;  // B
   buffer_data[y * buffer_w * 4 + x * 4 + 1] = g;  // G
   buffer_data[y * buffer_w * 4 + x * 4 + 2] = r;  // R
@@ -125,7 +125,7 @@ void set_rgba(uchar* buffer_data, int buffer_w, int buffer_h, int x, int y,
  * @param name name of the shared memory object to delete
  * @return status of this operation
  */
-int delete_shared_mem(std::string const& name) {
+int deleteSharedMem(std::string const& name) {
   std::string info_name = name + IPC_INFO_NAME;
   std::string buffer_name = name + IPC_BUFF_NAME;
   std::string evt_mq_name = name + IPC_EVT_MQ_NAME;
@@ -142,7 +142,7 @@ int delete_shared_mem(std::string const& name) {
   return NFX_SUCCESS;
 }
 
-class shared_canvas final {
+class SharedCanvas final {
  private:
   std::string name;
 
@@ -163,11 +163,11 @@ class shared_canvas final {
 
   std::size_t MAX_SIZE;
 
-  shared_canvas(std::string const& name, uchar* buffer_data,
-                ipc::shared_memory_object* shm_info,
-                shared_memory_info* info_data, ipc::message_queue* evt_mq,
-                void* evt_mq_msg_buff, ipc::message_queue* evt_mq_native, int w,
-                int h, STATUS status) {
+  SharedCanvas(std::string const& name, uchar* buffer_data,
+               ipc::shared_memory_object* shm_info,
+               shared_memory_info* info_data, ipc::message_queue* evt_mq,
+               void* evt_mq_msg_buff, ipc::message_queue* evt_mq_native, int w,
+               int h, STATUS status) {
     this->name = name;
     this->buffer_data = buffer_data;
     this->shm_info = shm_info;
@@ -190,7 +190,7 @@ class shared_canvas final {
   }
 
  public:
-  static shared_canvas* create(std::string const& name) {
+  static SharedCanvas* create(std::string const& name) {
     std::string info_name = name + IPC_INFO_NAME;
     std::string buffer_name = name + IPC_BUFF_NAME;
     std::string evt_mq_name = name + IPC_EVT_MQ_NAME;
@@ -253,20 +253,20 @@ class shared_canvas final {
     int W = info_data->w;
     int H = info_data->h;
 
-    uchar* buffer_data = create_shared_buffer(buffer_name, W, H);
+    uchar* buffer_data = createSharedBuffer(buffer_name, W, H);
 
     double full = W * H;
 
     std::size_t MAX_SIZE = max_event_message_size();
     void* evt_mq_msg_buff = malloc(MAX_SIZE);
 
-    return new shared_canvas(name, buffer_data, shm_info, info_data, evt_mq,
-                             evt_mq_msg_buff, evt_mq_native, W, H, NFX_SUCCESS);
+    return new SharedCanvas(name, buffer_data, shm_info, info_data, evt_mq,
+                            evt_mq_msg_buff, evt_mq_native, W, H, NFX_SUCCESS);
   }
 
-  int terminate() { return delete_shared_mem(name); }
+  int terminate() { return deleteSharedMem(name); }
 
-  bool is_buffer_ready() {
+  bool isBufferReady() {
     // timed locking of resources
     boost::system_time const timeout =
         boost::get_system_time() +
@@ -328,7 +328,7 @@ class shared_canvas final {
                   << "> resize to W: " << W << ", H: " << H << std::endl;
 
         ipc::shared_memory_object::remove(buffer_name.c_str());
-        buffer_data = create_shared_buffer(buffer_name, W, H);
+        buffer_data = createSharedBuffer(buffer_name, W, H);
         info_data->buffer_ready = true;
 
         resized(name, buffer_data, W, H);
@@ -340,7 +340,7 @@ class shared_canvas final {
     return NFX_SUCCESS;
   }
 
-  void send_native_event(std::string type, std::string evt) {
+  void sendNativeEvent(std::string type, std::string evt) {
     // process events
     ipc::message_queue::size_type recvd_size;
     unsigned int priority = 0;
@@ -366,7 +366,7 @@ class shared_canvas final {
     }
   }
 
-  void process_events(event_callback events) {
+  void processEvents(event_callback events) {
     // process events
     ipc::message_queue::size_type recvd_size;
     unsigned int priority;
@@ -416,8 +416,8 @@ class shared_canvas final {
  * whenever events are to be processed)
  * @return status of this operation
  */
-int start_server(std::string const& name, redraw_callback redraw,
-                 event_callback events) {
+int startServer(std::string const& name, redraw_callback redraw,
+                event_callback events) {
   std::string info_name = name + IPC_INFO_NAME;
   std::string buffer_name = name + IPC_BUFF_NAME;
   std::string evt_mq_name = name + IPC_EVT_MQ_NAME;
@@ -476,7 +476,7 @@ int start_server(std::string const& name, redraw_callback redraw,
   int W = info_data->w;
   int H = info_data->h;
 
-  uchar* buffer_data = create_shared_buffer(buffer_name, W, H);
+  uchar* buffer_data = createSharedBuffer(buffer_name, W, H);
 
   double full = W * H;
 
@@ -525,7 +525,7 @@ int start_server(std::string const& name, redraw_callback redraw,
                   << "> resize to W: " << W << ", H: " << H << std::endl;
 
         ipc::shared_memory_object::remove(buffer_name.c_str());
-        buffer_data = create_shared_buffer(buffer_name, W, H);
+        buffer_data = createSharedBuffer(buffer_name, W, H);
         info_data->buffer_ready = true;
       }
 
@@ -557,7 +557,7 @@ int start_server(std::string const& name, redraw_callback redraw,
       // terminate if termination event was sent
       if (evt->type & NFX_TERMINATION_EVENT) {
         std::cerr << "[" + name + "] termination requested." << std::endl;
-        delete_shared_mem(name);
+        deleteSharedMem(name);
         std::cerr << "[" + name + "] done." << std::endl;
         std::exit(0);
       }
@@ -591,8 +591,8 @@ int start_server(std::string const& name, redraw_callback redraw,
  * whenever events are to be processed)
  * @return status of this operation
  */
-int start_server(int argc, char* argv[], redraw_callback redraw,
-                 event_callback events) {
+int startServer(int argc, char* argv[], redraw_callback redraw,
+                event_callback events) {
   args::ArgumentParser parser("This is a NativeFX server program.", "---");
   args::HelpFlag helpArg(parser, "help", "Display this help menu",
                          {'h', "help"});
@@ -600,10 +600,11 @@ int start_server(int argc, char* argv[], redraw_callback redraw,
                                        "Defines the name of the shared memory "
                                        "objects to be created by this program",
                                        {'n', "name"});
-  args::Flag deleteSharedMem(parser, "delete",
-                             "Indicates that existing shared memory with the "
-                             "specified name should be deleted",
-                             {'d', "delete"});
+  args::Flag deleteSharedMemFlag(
+      parser, "delete",
+      "Indicates that existing shared memory with the "
+      "specified name should be deleted",
+      {'d', "delete"});
 
   try {
     parser.ParseCLI(argc, argv);
@@ -632,12 +633,12 @@ int start_server(int argc, char* argv[], redraw_callback redraw,
     return NFX_ERROR | NFX_ARGS_ERROR;
   }
 
-  if (deleteSharedMem) {
+  if (deleteSharedMemFlag) {
     // remove shared memory objects
-    return delete_shared_mem(name);
+    return deleteSharedMem(name);
   }
 
-  return start_server(name, redraw, events);
+  return startServer(name, redraw, events);
 }
 
 }  // end namespace nativefx

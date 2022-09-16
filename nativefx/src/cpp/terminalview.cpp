@@ -1493,6 +1493,8 @@ bool TerminalView::event(QEvent *event) {
 }
 
 void TerminalView::paintEvent(QPaintEvent *event) {
+  //  QPainter paint =
+  //      nativeImage == nullptr ? QPainter(this) : QPainter(nativeImage);
   QPainter paint(this);
   QRect cr = contentsRect();
 

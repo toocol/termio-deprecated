@@ -197,8 +197,8 @@ void store_key_codes(std::string str, char* str_to_store_to) {
 struct shared_memory_info {
   shared_memory_info()
       : img_buffer_size(0),
-        w(1024),
-        h(768),
+        w(1280),
+        h(800),
         dirty(false),
         buffer_ready(true),
         client_to_server_msg_semaphore(0),
