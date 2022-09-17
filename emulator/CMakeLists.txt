@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(nativefx VERSION 0.1 LANGUAGES CXX)
+project(emulator VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -11,13 +11,14 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(TERMINAL_EMULATOR_LIBRARY_NAME nativefx)
+set(TERMINAL_EMULATOR_LIBRARY_NAME emulator)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core5Compat)
 
 include_directories("../native/src/")
+include_directories("../native/node/src/")
 include_directories("src/headers/")
 include_directories("src/cpp/")
 include_directories("D:/download/boost_1_80_0/")
@@ -29,8 +30,6 @@ link_directories("C:/Windows/System32/lib/sys")
 link_directories("C:/Windows/System32/bin")
 
 set(PROJECT_SOURCES
-        src/headers/jnitypeconverter.h
-        src/headers/sharedmemory.h
         src/headers/nativefxserver.hpp
         src/headers/args.hxx
         src/headers/character.h
@@ -49,7 +48,6 @@ set(PROJECT_SOURCES
         src/headers/tools.h
         src/headers/vt102emulation.h
         src/cpp/main.cpp
-        src/cpp/jnitypeconverter.cpp
         src/cpp/wcwidth.cpp
         src/cpp/history.cpp
         src/cpp/blockarray.cpp
@@ -76,31 +74,31 @@ message(STATUS "Color schemes will be installed in: ${COLORSCHEMES_DIR}" )
 # dirs end
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(nativefx
+    qt_add_executable(emulator
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
     )
 # Define target properties for Android with Qt 6 as:
-#    set_property(TARGET nativefx APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+#    set_property(TARGET emulator APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
 #                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
 # For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
     if(ANDROID)
-        add_library(nativefx SHARED
+        add_library(emulator SHARED
             ${PROJECT_SOURCES}
         )
 # Define properties for Android with Qt 5 after find_package() calls as:
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
-        add_executable(nativefx
+        add_executable(emulator
             ${PROJECT_SOURCES}
         )
     endif()
 endif()
 
-target_link_libraries(nativefx PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Core5Compat utf8proc_static utf8proc mman)
+target_link_libraries(emulator PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Core5Compat utf8proc_static utf8proc mman)
 
-set_target_properties(nativefx PROPERTIES
+set_target_properties(emulator PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
@@ -136,10 +134,10 @@ install(DIRECTORY
     FILES_MATCHING PATTERN "*.*schem*"
 )
 
-install(TARGETS nativefx
+install(TARGETS emulator
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(nativefx)
+    qt_finalize_executable(emulator)
 endif()

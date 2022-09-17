@@ -47,3 +47,7 @@ dependency-reduced-pom.xml
 
 ### cmake build directory ###
 build-nativefx-Desktop_Qt_6_3_1_MinGW_64_bit-Debug/
+build-emulator-Desktop_Qt_6_3_1_MinGW_64_bit-Debug/
+
+CMakeLists.txt.user
+.vs/
