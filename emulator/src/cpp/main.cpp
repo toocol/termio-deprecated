@@ -6,13 +6,11 @@
 namespace nfx = nativefx;
 
 int main(int argc, char* argv[]) {
-  int qArgc = 3;
-  char* qArgv[] = {
-      (char*)"terminal emulator",       // app name
-      (char*)"--ignore-gpu-blacklist",  // ignore blacklist
-  };
+  if (!argv[1] || QString(argv[1]) != "--initialize-flag") {
+    return -1;
+  }
 
-  QApplication app(qArgc, qArgv, false);
+  QApplication app(argc, argv, false);
   QImage* image = NULL;
   QWidget* prevEvtTarget = NULL;
   QPoint prevP;
@@ -71,8 +69,8 @@ int main(int argc, char* argv[]) {
   emulator.installEventFilter(&emulator);
   emulator.show();
 
-  if (argv[1]) {
-    QString param = QString(argv[1]);
+  if (argv[2]) {
+    QString param = QString(argv[2]);
     QStringList li = param.split("=");
     if (li.size() == 2 && li[0] == "--with-text") {
       QString content = "";
