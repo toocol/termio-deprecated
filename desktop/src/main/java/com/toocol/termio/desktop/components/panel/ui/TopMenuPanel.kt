@@ -230,6 +230,6 @@ class TopMenuPanel(id: Long) : TAnchorPane(id){
 
     companion object {
         @JvmStatic
-        val fixedHeight = 25.0
+        val fixedHeight = 20.0
     }
 }

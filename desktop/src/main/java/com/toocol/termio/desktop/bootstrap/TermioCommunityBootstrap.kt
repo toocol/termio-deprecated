@@ -11,6 +11,7 @@ import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.core.term.core.TermTheme
 import com.toocol.termio.desktop.components.executor.ui.CommandExecutor
 import com.toocol.termio.desktop.components.terminal.ui.TerminalEmulator
+import com.toocol.termio.platform.nativefx.NativeBinding
 import com.toocol.termio.utilities.ansi.Printer.println
 import com.toocol.termio.utilities.config.IniConfigLoader
 import com.toocol.termio.utilities.console.Console
@@ -53,6 +54,7 @@ object TermioCommunityBootstrap : Termio() {
                 .orElse(null)
         )
         eventBus = vertx!!.eventBus()
+        NativeBinding.init()
 
         watchStart()
     }

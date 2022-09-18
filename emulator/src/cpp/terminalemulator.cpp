@@ -162,7 +162,6 @@ bool TerminalEmulator::eventFilter(QObject *obj, QEvent *ev) {
   }
   if (ev->type() == QEvent::UpdateRequest) {
     if (image != nullptr) {
-      qDebug() << "Render native image.";
       QPainter painter(image);
       _terminalView->render(&painter);
       painter.end();
@@ -211,6 +210,8 @@ void TerminalEmulator::setNativeRedrawCallback(
     const std::function<void()> &newNativeRedrawCallback) {
   nativeRedrawCallback = newNativeRedrawCallback;
 }
+
+void TerminalEmulator::requestFocus() { _terminalView->setFocus(); }
 
 void TerminalEmulator::selectionChanged(bool textSelected) {
   emit copyAvailable(textSelected);

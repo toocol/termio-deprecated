@@ -1,16 +1,16 @@
 package com.toocol.termio.platform.nativefx;
 
+import com.toocol.termio.utilities.jni.JNILoader;
+import com.toocol.termio.utilities.utils.OsUtil;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import org.apache.commons.io.IOUtils;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,14 +24,14 @@ public final class NativeBinding {
         throw new AssertionError("Don't instantiate me!");
     }
 
-    static String libEnding() {
+    private static String libEnding() {
         if (isOS("windows")) return ".dll";
         if (isOS("linux")) return ".so";
         if (isOS("macos")) return ".dylib";
         return ".so";
     }
 
-    static String archName() {
+    private static String archName() {
         String osArch = System.getProperty("os.arch");
 
         if (osArch.toLowerCase().contains("x64")
@@ -47,7 +47,7 @@ public final class NativeBinding {
         return osArch;
     }
 
-    static String osName() {
+    private static String osName() {
         String osName = System.getProperty("os.name");
 
         if (osName.toLowerCase().contains("windows")) {
@@ -62,79 +62,41 @@ public final class NativeBinding {
         return osName;
     }
 
-    static boolean isOS(String os) {
+    private static boolean isOS(String os) {
         return os.equals(osName());
     }
 
-    static void init() {
-
+    public static void init() {
         if (initialized) {
-            // throw new RuntimeException("Already initialized.");
-
             return;
         }
 
         initialized = true;
 
-        String path = "/eu/mihosoft/nativefx/nativelibs/";
-        String vcredistPath1 = path;
-        String vcredistPath2 = path;
-        String libName = "nativefx" + libEnding();
-
-        if (isOS("windows")) {
-            path += "windows/" + archName() + "/" + libName;
-            vcredistPath1 += "windows/" + archName() + "/vcruntime140.dll";
-            vcredistPath2 += "windows/" + archName() + "/msvcp140.dll";
-        } else if (isOS("linux")) {
-            libName = "lib" + libName;
-            path += "linux/" + archName() + "/" + libName;
-        } else if (isOS("macos")) {
-            libName = "lib" + libName;
-            path += "macos/" + archName() + "/" + libName;
-        }
+        String name = "nativenode" + OsUtil.libSuffix();
+        InputStream inputStream;
+        OutputStream outputStream;
 
         try {
-            Path libPath = Files.createTempDirectory("nativefx-libs");
+            inputStream = JNILoader.class.getResourceAsStream("/" + name);
+            assert inputStream != null;
 
-            if (isOS("windows")) {
-                resourceToFile(vcredistPath1, Paths.get(libPath.toFile().getAbsolutePath(), "vcruntime140.dll"), false);
-                resourceToFile(vcredistPath2, Paths.get(libPath.toFile().getAbsolutePath(), "msvcp140.dll"), false);
+            String libraryPath = System.getenv("JAVA_HOME") + OsUtil.fileSeparator() + "bin" + OsUtil.fileSeparator();
+            File fileOut = new File(libraryPath + name);
+            outputStream = new FileOutputStream(fileOut);
+            IOUtils.copy(inputStream, outputStream);
 
-                if (Paths.get(libPath.toFile().getAbsolutePath() + "/vcruntime140.dll").toFile().isFile()) {
-                    System.out.println("> loading " + libPath.toFile().getAbsolutePath() + "/vcruntime140.dll");
-                    System.load(libPath.toFile().getAbsolutePath() + "/vcruntime140.dll");
-                }
-            }
+            String extractPath = fileOut.toString();
 
-            resourceToFile(path, Paths.get(libPath.toFile().getAbsolutePath(), libName));
+            inputStream.close();
+            outputStream.close();
 
-            System.out.println("> loading " + libPath.toFile().getAbsolutePath() + "/" + libName);
-
-            System.load(libPath.toFile().getAbsolutePath() + "/" + libName);
-        } catch (IOException e) {
-            e.printStackTrace(System.err);
+            System.load(extractPath);//loading goes here
+        } catch (Exception e) {
+            System.out.println("Load library failed. message = " + e);
+            System.exit(-1);
         }
-    }
 
-    private static void resourceToFile(String resource, Path destination) throws IOException {
-        resourceToFile(resource, destination, true);
-    }
-
-    private static void resourceToFile(String resource, Path destination, boolean failOnError) throws IOException {
-        try (InputStream is = NativeBinding.class.getResourceAsStream(resource)) {
-
-            System.out.println("> unpacking resource '" + resource + "' to file '" + destination + "'");
-
-            Files.copy(is, destination,
-                    StandardCopyOption.REPLACE_EXISTING);
-        } catch (NullPointerException e) {
-            if (failOnError) {
-                throw new FileNotFoundException("Resource '" + resource + "' was not found.");
-            } else {
-                System.err.println("WARNING: Resource '" + resource + "' was not found.");
-            }
-
-        }
     }
 
     interface IntEnum {
@@ -186,11 +148,8 @@ public final class NativeBinding {
         }
 
         static int fromEvent(ScrollEvent ev) {
-            int result = MouseBtn.NO_BTN;
-
             // TODO implement me 8.07.2019
-
-            return result;
+            return MouseBtn.NO_BTN;
         }
     }
 
@@ -249,7 +208,7 @@ public final class NativeBinding {
 
     private static final Map<Integer, List<NativeEventListener>> listeners = new HashMap<>();
 
-    static void addEventListener(int key, NativeEventListener l) {
+    public static void addEventListener(int key, NativeEventListener l) {
         // create list if not present
         if (!listeners.containsKey(key)) {
             List<NativeEventListener> list = new ArrayList<>();
@@ -259,7 +218,7 @@ public final class NativeBinding {
         listeners.get(key).add(l);
     }
 
-    static void removeEventListener(int key, NativeEventListener l) {
+    public static void removeEventListener(int key, NativeEventListener l) {
         // create list if not present
         if (!listeners.containsKey(key)) {
             List<NativeEventListener> list = new ArrayList<>();
@@ -269,7 +228,7 @@ public final class NativeBinding {
         listeners.get(key).remove(l);
     }
 
-    static void removeEventListeners(int key) {
+    public static void removeEventListeners(int key) {
         // create list if not present
         if (!listeners.containsKey(key)) {
             List<NativeEventListener> list = new ArrayList<>();
@@ -280,7 +239,7 @@ public final class NativeBinding {
     }
 
     /*CALLED FROM NATIVE*/
-    static void fireNativeEvent(int key, String type, String evt) {
+    public static void fireNativeEvent(int key, String type, String evt) {
         // return early if not present
         if (!listeners.containsKey(key)) {
             return;
@@ -293,67 +252,67 @@ public final class NativeBinding {
         }
     }
 
-    static native int nextKey();
+    public static native int nextKey();
 
-    static native int connectTo(String name);
+    public static native int connectTo(String name);
 
-    static native boolean terminate(int key);
+    public static native boolean terminate(int key);
 
-    static native boolean isConnected(int key);
+    public static native boolean isConnected(int key);
 
-    static native String sendMsg(int key, String msg);
+    public static native String sendMsg(int key, String msg);
 
-    static native void processNativeEvents(int key);
+    public static native void processNativeEvents(int key);
 
-    static native void resize(int key, int w, int h);
+    public static native void resize(int key, int w, int h);
 
-    static native boolean isDirty(int key);
+    public static native boolean isDirty(int key);
 
-    static native void redraw(int key, int x, int y, int w, int h);
+    public static native void redraw(int key, int x, int y, int w, int h);
 
-    static native void setDirty(int key, boolean value);
+    public static native void setDirty(int key, boolean value);
 
-    static native void setBufferReady(int key, boolean value);
+    public static native void setBufferReady(int key, boolean value);
 
-    static native boolean isBufferReady(int key);
+    public static native boolean isBufferReady(int key);
 
-    static native int getW(int key);
+    public static native int getW(int key);
 
-    static native int getH(int key);
+    public static native int getH(int key);
 
-    static native boolean fireMousePressedEvent(int key, double x, double y, int buttons, int modifiers, long timestamp);
+    public static native boolean fireMousePressedEvent(int key, double x, double y, int buttons, int modifiers, long timestamp);
 
-    static native boolean fireMouseReleasedEvent(int key, double x, double y, int buttons, int modifiers, long timestamp);
+    public static native boolean fireMouseReleasedEvent(int key, double x, double y, int buttons, int modifiers, long timestamp);
 
-    static native boolean fireMouseClickedEvent(int key, double x, double y, int buttons, int modifiers, int clickCount, long timestamp);
+    public static native boolean fireMouseClickedEvent(int key, double x, double y, int buttons, int modifiers, int clickCount, long timestamp);
 
-    static native boolean fireMouseEnteredEvent(int key, double x, double y, int buttons, int modifiers, long timestamp);
+    public static native boolean fireMouseEnteredEvent(int key, double x, double y, int buttons, int modifiers, long timestamp);
 
-    static native boolean fireMouseExitedEvent(int key, double x, double y, int buttons, int modifiers, long timestamp);
+    public static native boolean fireMouseExitedEvent(int key, double x, double y, int buttons, int modifiers, long timestamp);
 
-    static native boolean fireMouseMoveEvent(int key, double x, double y, int buttons, int modifiers, long timestamp);
+    public static native boolean fireMouseMoveEvent(int key, double x, double y, int buttons, int modifiers, long timestamp);
 
-    static native boolean fireMouseWheelEvent(int key, double x, double y, double amount, int buttons, int modifiers, long timestamp);
+    public static native boolean fireMouseWheelEvent(int key, double x, double y, double amount, int buttons, int modifiers, long timestamp);
 
-    static native boolean fireKeyPressedEvent(int key, String characters, int keyCode, int modifiers, long timestamp);
+    public static native boolean fireKeyPressedEvent(int key, String characters, int keyCode, int modifiers, long timestamp);
 
-    static native boolean fireKeyReleasedEvent(int key, String characters, int keyCode, int modifiers, long timestamp);
+    public static native boolean fireKeyReleasedEvent(int key, String characters, int keyCode, int modifiers, long timestamp);
 
-    static native boolean fireKeyTypedEvent(int key, String characters, int keyCode, int modifiers, long timestamp);
+    public static native boolean fireKeyTypedEvent(int key, String characters, int keyCode, int modifiers, long timestamp);
 
-    static native ByteBuffer getBuffer(int key);
+    public static native ByteBuffer getBuffer(int key);
 
-    static native boolean lock(int key);
+    public static native boolean lock(int key);
 
-    static native boolean lock(int key, long timeout);
+    public static native boolean lock(int key, long timeout);
 
-    static native void unlock(int key);
+    public static native void unlock(int key);
 
-    static native void waitForBufferChanges(int key);
+    public static native void waitForBufferChanges(int key);
 
-    static native boolean hasBufferChanges(int key);
+    public static native boolean hasBufferChanges(int key);
 
-    static native void lockBuffer(int key);
+    public static native void lockBuffer(int key);
 
-    static native void unlockBuffer(int key);
+    public static native void unlockBuffer(int key);
 }

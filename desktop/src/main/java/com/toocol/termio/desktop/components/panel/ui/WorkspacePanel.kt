@@ -4,7 +4,6 @@ import com.toocol.termio.core.cache.ShellCache
 import com.toocol.termio.desktop.components.homepage.ui.Homepage
 import com.toocol.termio.desktop.components.sidebar.ui.BottomStatusBar
 import com.toocol.termio.desktop.components.sidebar.ui.TopSessionTabBar
-import com.toocol.termio.desktop.components.terminal.ui.TerminalConsole
 import com.toocol.termio.desktop.components.terminal.ui.TerminalEmulatorFactory
 import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
@@ -73,7 +72,7 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             val terminal = terminalFactory.create(assignTerminalId(), sessionId)
             terminal.initialize()
             terminal.sizePropertyBind(findComponent(MajorPanel::class.java, 1), widthRatio, heightRatio * 0.985)
-            shellCache.getShell(sessionId)!!.registerConsole(TerminalConsole(terminal.getTerminalTextAre()))
+//            shellCache.getShell(sessionId)!!.registerConsole(TerminalConsole(terminal.getTerminalTextAre()))
             children.add(terminal)
             terminal.activeTerminal()
             terminal.requestFocus()

@@ -52,6 +52,8 @@ class TerminalEmulator : public QWidget {
   void setNativeRedrawCallback(
       const std::function<void()> &newNativeRedrawCallback);
 
+  void requestFocus();
+
  protected:
   bool eventFilter(QObject *obj, QEvent *ev) override;
 
