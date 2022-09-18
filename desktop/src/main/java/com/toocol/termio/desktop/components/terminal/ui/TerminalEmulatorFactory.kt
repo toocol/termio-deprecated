@@ -10,28 +10,28 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class TerminalEmulatorFactory {
     companion object Instance {
-        private val instances: MutableMap<Long, WeakReference<TerminalEmulator>> = ConcurrentHashMap()
+        private val instances: MutableMap<Long, WeakReference<NativeTerminalEmulator>> = ConcurrentHashMap()
         private val idMap: MutableMap<Long, Long> = ConcurrentHashMap()
 
-        fun create(id: Long, sessionId: Long): TerminalEmulator {
-            val instance = instances.getOrDefault(id, WeakReference(TerminalEmulator(id, sessionId)))
+        fun create(id: Long, sessionId: Long): NativeTerminalEmulator {
+            val instance = instances.getOrDefault(id, WeakReference(NativeTerminalEmulator(id, sessionId)))
             instances[id] = instance
             idMap[sessionId] = id
             return instance.get()!!
         }
 
-        fun getAllTerminals(): MutableList<TerminalEmulator> {
-            val list: MutableList<TerminalEmulator> = mutableListOf()
+        fun getAllTerminals(): MutableList<NativeTerminalEmulator> {
+            val list: MutableList<NativeTerminalEmulator> = mutableListOf()
             instances.values.asSequence()
                 .forEach { list.add(it.get()!!) }
             return list
         }
 
-        fun getBySessionId(sessionId: Long): TerminalEmulator? {
+        fun getBySessionId(sessionId: Long): NativeTerminalEmulator? {
             return instances[idMap[sessionId]]?.get()
         }
 
-        fun getById(id: Long): TerminalEmulator? {
+        fun getById(id: Long): NativeTerminalEmulator? {
             return instances[id]?.get()
         }
 

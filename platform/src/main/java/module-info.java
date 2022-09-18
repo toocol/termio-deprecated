@@ -11,6 +11,7 @@ module termio.platform {
     requires reactfx;
     requires annotations;
     requires org.jfxtras.styles.jmetro;
+    requires org.apache.commons.io;
 
     exports com.toocol.termio.platform.console;
     exports com.toocol.termio.platform.component;
@@ -18,4 +19,5 @@ module termio.platform {
     exports com.toocol.termio.platform.text;
     exports com.toocol.termio.platform.font;
     exports com.toocol.termio.platform.css;
+    exports com.toocol.termio.platform.nativefx;
 }

@@ -412,31 +412,38 @@ class Shell : AbstractDevice, Loggable {
     }
 
     fun getCursorPosition(): IntArray {
+        console?: return intArrayOf(0, 0)
         val coord = console!!.getCursorPosition().split(",").toTypedArray()
         return intArrayOf(coord[0].toInt(), coord[1].toInt())
     }
 
     fun clear() {
+        console?: return
         console!!.clear()
     }
 
     fun setCursorPosition(x: Int, y: Int) {
+        console?: return
         console!!.setCursorPosition(x, y)
     }
 
     fun showCursor() {
+        console?: return
         console!!.showCursor()
     }
 
     fun hideCursor() {
+        console?: return
         console!!.hideCursor()
     }
 
     fun cursorLeft() {
+        console?: return
         console!!.cursorLeft()
     }
 
     fun cursorRight() {
+        console?: return
         console!!.cursorRight()
     }
 

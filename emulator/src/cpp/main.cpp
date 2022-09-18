@@ -16,6 +16,11 @@ int main(int argc, char* argv[]) {
   QPoint prevP;
 
   TConsole::TerminalEmulator emulator;
+  emulator.resize(1280, 800);
+  emulator.initialize();
+  emulator.setBackgroundColor(QColor(0x15, 0x15, 0x15));
+  emulator.setForegroundColor(QColor(0xE1, 0xE1, 0xE1));
+  emulator.setBlinkingCursor(true);
 
   auto qtRedraw = [&image, &emulator](std::string const& name,
                                       uchar* bufferData, int w, int h) {
@@ -61,11 +66,6 @@ int main(int argc, char* argv[]) {
   // we could reuse this to offer optional fullscreen mode
   emulator.setAttribute(Qt::WA_DontShowOnScreen, true);
 
-  emulator.resize(1280, 800);
-  emulator.initialize();
-  emulator.setBackgroundColor(QColor(0x15, 0x15, 0x15));
-  emulator.setForegroundColor(QColor(0xE1, 0xE1, 0xE1));
-  emulator.setBlinkingCursor(true);
   emulator.installEventFilter(&emulator);
   emulator.show();
 
@@ -88,5 +88,6 @@ int main(int argc, char* argv[]) {
       emulator.sendText(content);
     }
   }
+
   return app.exec();
 }

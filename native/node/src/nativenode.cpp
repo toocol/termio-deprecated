@@ -628,8 +628,10 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseExitedEvent(
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseMoveEvent(
     JNIEnv *env, jclass cls, jint key, jdouble x, jdouble y, jint buttons,
-    jint modifiers, jint click_count, jlong timestamp) {
-  return false;
+    jint modifiers, jlong timestamp) {
+  bool result = fire_mouse_event(key, NFX_MOUSE_MOVED, x, y, 0.0, buttons,
+                                 modifiers, 0, timestamp);
+  return boolC2J(result);
 }
 
 /*
@@ -639,7 +641,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseMoveEvent(
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseWheelEvent(
-    JNIEnv *env, jclass cls, jint key, jdouble x, jdouble y, jint amount,
+    JNIEnv *env, jclass cls, jint key, jdouble x, jdouble y, jdouble amount,
     jint buttons, jint modifiers, jlong timestamp) {
   bool result = fire_mouse_event(key, NFX_MOUSE_WHEEL, x, y, amount, buttons,
                                  modifiers, 0, timestamp);

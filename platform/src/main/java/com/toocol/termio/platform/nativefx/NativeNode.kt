@@ -1,5 +1,8 @@
 package com.toocol.termio.platform.nativefx
 
+import com.toocol.termio.platform.component.IActionAfterShow
+import com.toocol.termio.platform.component.IComponent
+import com.toocol.termio.platform.component.IStyleAble
 import com.toocol.termio.platform.nativefx.NativeBinding.Modifier
 import com.toocol.termio.platform.nativefx.NativeBinding.MouseBtn
 import javafx.animation.AnimationTimer
@@ -22,10 +25,11 @@ import java.nio.IntBuffer
  * shared memory object, the transfer of input events and resize requests as
  * well as native events.
  */
-class NativeNode @JvmOverloads constructor(
-    private var hidpiAware: Boolean = false,
+abstract class NativeNode @JvmOverloads constructor(
+    private val id: Long,
+    private val hidpiAware: Boolean = false,
     private val pixelBufferEnabled: Boolean = false,
-) : Region() {
+) : Region(), IComponent, IStyleAble, IActionAfterShow {
     private var serverName: String? = null
     private val formatInt = PixelFormat.getIntArgbPreInstance()
     private val formatByte = PixelFormat.getByteBgraPreInstance()
@@ -36,15 +40,15 @@ class NativeNode @JvmOverloads constructor(
     private var pixelBuffer: PixelBuffer<ByteBuffer?>? = null
     private var dimensions: Rectangle2D? = null
     private var timer: AnimationTimer? = null
-    private var key = -1
     private var buttonState = 0
     private var lockingError = false
     private val numValues = 10
     private val fpsValues = DoubleArray(numValues)
     private var frameTimestamp: Long = 0
     private var fpsCounter = 0
-
     private var isVerbose = false
+
+    protected var key = -1
 
     /**
      * Constructor. Creates a new instance of this class without hidpi-awareness.
@@ -149,7 +153,6 @@ class NativeNode @JvmOverloads constructor(
                 timestamp
             )
         }
-        showNotConnectedText()
     }
 
     /**
@@ -160,7 +163,6 @@ class NativeNode @JvmOverloads constructor(
      */
     fun connect(name: String) {
         serverName = name
-        NativeBinding.init()
         disconnect()
         if (key < 0 || NativeBinding.isConnected(key)) {
             key = NativeBinding.connectTo(name)
@@ -171,8 +173,6 @@ class NativeNode @JvmOverloads constructor(
         }
         view = ImageView()
         view!!.isPreserveRatio = false
-        view!!.fitWidthProperty().bind(widthProperty())
-        view!!.fitHeightProperty().bind(heightProperty())
         val r = Runnable {
             val currentTimeStamp = System.nanoTime()
 
@@ -351,5 +351,13 @@ class NativeNode @JvmOverloads constructor(
     override fun computePrefHeight(width: Double): Double {
         // TODO: consider insets ect...
         return 0.0
+    }
+
+    init {
+        this.registerComponent(id)
+    }
+
+    override fun id(): Long {
+        return id
     }
 }
