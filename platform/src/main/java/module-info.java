@@ -13,6 +13,8 @@ module termio.platform {
     requires org.jfxtras.styles.jmetro;
     requires org.apache.commons.io;
 
+    opens com.toocol.termio.platform.nativefx.listeners to termio.utilities;
+
     exports com.toocol.termio.platform.console;
     exports com.toocol.termio.platform.component;
     exports com.toocol.termio.platform.ui;
@@ -20,4 +22,5 @@ module termio.platform {
     exports com.toocol.termio.platform.font;
     exports com.toocol.termio.platform.css;
     exports com.toocol.termio.platform.nativefx;
+    exports com.toocol.termio.platform.watcher;
 }

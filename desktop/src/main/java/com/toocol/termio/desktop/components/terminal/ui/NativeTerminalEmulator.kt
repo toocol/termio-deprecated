@@ -13,7 +13,7 @@ import javafx.scene.layout.Pane
  * @date: 2022/9/18 18:35
  * @version: 0.0.1
  */
-class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, true, true) {
+class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, pixelBufferEnabled = true) {
     private val memName = "_emulator_mem"
 
     override fun initialize() {

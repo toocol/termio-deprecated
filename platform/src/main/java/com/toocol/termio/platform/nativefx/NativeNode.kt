@@ -5,6 +5,7 @@ import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
 import com.toocol.termio.platform.nativefx.NativeBinding.Modifier
 import com.toocol.termio.platform.nativefx.NativeBinding.MouseBtn
+import com.toocol.termio.platform.watcher.WindowSizeWatcher
 import javafx.animation.AnimationTimer
 import javafx.geometry.Rectangle2D
 import javafx.scene.control.Label
@@ -164,6 +165,7 @@ abstract class NativeNode @JvmOverloads constructor(
     fun connect(name: String) {
         serverName = name
         disconnect()
+
         if (key < 0 || NativeBinding.isConnected(key)) {
             key = NativeBinding.connectTo(name)
         }
@@ -171,9 +173,16 @@ abstract class NativeNode @JvmOverloads constructor(
             showErrorText()
             throw RuntimeException("[$key]> cannot connect to shared memory ''$name''.")
         }
+        NativeNodeContainer.addNode(key, this)
+
         view = ImageView()
         view!!.isPreserveRatio = false
+
         val r = Runnable {
+            if (WindowSizeWatcher.onMoved) {
+                return@Runnable
+            }
+
             val currentTimeStamp = System.nanoTime()
 
             // try to lock the shared resource
@@ -299,6 +308,7 @@ abstract class NativeNode @JvmOverloads constructor(
 
         // NativeBinding.terminate(key);
         NativeBinding.removeEventListeners(key)
+        NativeNodeContainer.deleteNode(key)
         children.clear()
         img = null
         view = null
