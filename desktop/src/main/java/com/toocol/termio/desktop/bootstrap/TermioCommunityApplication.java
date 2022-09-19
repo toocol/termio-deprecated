@@ -7,8 +7,10 @@ import com.toocol.termio.platform.css.RegisterCssFile;
 import com.toocol.termio.platform.font.FontFileAnnotationParser;
 import com.toocol.termio.platform.font.RegisterFontFile;
 import com.toocol.termio.platform.ui.TScene;
+import com.toocol.termio.platform.watcher.WindowSizeWatcher;
 import com.toocol.termio.utilities.log.Loggable;
 import javafx.application.Application;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
@@ -121,7 +123,11 @@ public class TermioCommunityApplication extends Application implements Loggable 
         }
 
         componentParser.parse(this.getClass());
-        TScene scene = new TScene(1, (Parent) componentParser.getAsNode(MajorPanel.class));
+        Node root = componentParser.getAsNode(MajorPanel.class);
+        assert root != null;
+
+        TScene scene = new TScene(1, (Parent) root);
+        WindowSizeWatcher.Instance.init(stage, root);
 
         fontParser.parse(this.getClass());
         cssParser.parse(this.getClass(), scene);
