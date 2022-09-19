@@ -1,6 +1,5 @@
 package com.toocol.termio.platform.nativefx;
 
-import com.toocol.termio.utilities.jni.JNILoader;
 import com.toocol.termio.utilities.utils.OsUtil;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -78,7 +77,7 @@ public final class NativeBinding {
         OutputStream outputStream;
 
         try {
-            inputStream = JNILoader.class.getResourceAsStream("/" + name);
+            inputStream = NativeBinding.class.getResourceAsStream("/" + name);
             assert inputStream != null;
 
             String libraryPath = System.getenv("JAVA_HOME") + OsUtil.fileSeparator() + "bin" + OsUtil.fileSeparator();
@@ -91,9 +90,9 @@ public final class NativeBinding {
             inputStream.close();
             outputStream.close();
 
-            System.load(extractPath);//loading goes here
+            System.load(extractPath);
         } catch (Exception e) {
-            System.out.println("Load library failed. message = " + e);
+            System.out.println("Load nativenode.dll failed. message = " + e);
             System.exit(-1);
         }
 
