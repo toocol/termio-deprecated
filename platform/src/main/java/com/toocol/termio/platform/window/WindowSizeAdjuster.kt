@@ -1,4 +1,4 @@
-package com.toocol.termio.platform.watcher
+package com.toocol.termio.platform.window
 
 import com.toocol.termio.platform.component.IComponent
 import javafx.scene.Cursor
@@ -12,7 +12,7 @@ import javafx.stage.Stage
  * @date: 2022/9/19 22:16
  * @version: 0.0.1
  */
-class WindowSizeWatcher {
+class WindowSizeAdjuster {
     companion object Instance : IComponent {
         private var isMaximize = false
         private var restoreX = 0.0
@@ -24,14 +24,17 @@ class WindowSizeWatcher {
         private const val minWidth = 400.00
         private const val minHeight = 300.00
 
-        //自定义dialog移动横纵坐标
+        // User defined dialog moves horizontal and vertical coordinates.
         private var xOffset = 0.0
         private var yOffset = 0.0
-        // 是否处于右边界调整窗口状态
+
+        // Whether it is in the right border adjustment window state.
         private var isRight = false
-        // 是否处于右下角调整窗口状态
+
+        // Whether it is in the lower right corner adjustment window state.
         private var isBottomRight = false
-        // 是否处于下边界调整窗口状态
+
+        // Whether it is in the lower boundary adjustment window state.
         private var isBottom = false
 
         private var stage: Stage? = null
@@ -52,37 +55,41 @@ class WindowSizeWatcher {
                 val y = event.sceneY
                 val width: Double = stage!!.width
                 val height: Double = stage!!.height
-                var cursorType: Cursor = Cursor.DEFAULT // 鼠标光标初始为默认类型，若未进入调整窗口状态，保持默认类型
+                /*
+                 * The mouse cursor is initially the default type.
+                 * If it does not enter the adjustment window state, the default type is maintained
+                 */
+                var cursorType: Cursor = Cursor.DEFAULT
 
-                // 先将所有调整窗口状态重置
+                // Reset the status of all adjustment windows first
                 isRight = false.also {
                     isBottom = false
                     isBottomRight = false
                 }
                 if (y >= height - resizeWidth) {
-                    // 左下角调整窗口状态
+                    // Adjust the window status in the lower left corner.
                     if (x <= resizeWidth) {
                         // no process
                     } else if (x >= width - resizeWidth) {
-                        // 右下角调整窗口状态
+                        // Adjust the window status in the lower right corner.
                         isBottomRight = true
                         cursorType = Cursor.SE_RESIZE
                     } else {
-                        // 下边界调整窗口状态
+                        // Lower boundary adjustment window status
                         isBottom = true
                         cursorType = Cursor.S_RESIZE
                     }
                 } else if (x >= width - resizeWidth) {
-                    // 右边界调整窗口状态
+                    // Right border adjustment window status
                     isRight = true
                     cursorType = Cursor.E_RESIZE
                 }
-                // 最后改变鼠标光标
+                // Change the mouse cursor
                 root!!.cursor = cursorType
             }
 
             root!!.setOnMouseDragged { event ->
-                //根据鼠标的横纵坐标移动dialog位置
+                // Move the dialog position according to the horizontal and vertical coordinates of the mouse.
                 event.consume()
                 if (yOffset != 0.0) {
                     stage!!.x = event.screenX - xOffset
@@ -95,28 +102,32 @@ class WindowSizeWatcher {
 
                 val x = event.sceneX
                 val y = event.sceneY
-                // 保存窗口改变后的x、y坐标和宽度、高度，用于预判是否会小于最小宽度、最小高度
+
+                /*
+                 * Save the changed x and y coordinates,
+                 * width and height of the window to predict whether it will be smaller than the minimum width and height
+                 */
                 val nextX: Double = stage!!.x
                 val nextY: Double = stage!!.y
                 var nextWidth: Double = stage!!.width
                 var nextHeight: Double = stage!!.height
-                // 所有右边调整窗口状态
+                // All right adjustment window states
                 if (isRight || isBottomRight) {
                     nextWidth = x
                 }
-                // 所有下边调整窗口状态
+                // Adjust window status of all lower edges
                 if (isBottomRight || isBottom) {
                     nextHeight = y
                 }
-                // 如果窗口改变后的宽度小于最小宽度，则宽度调整到最小宽度
+                // If the changed width of the window is less than the minimum width, the width is adjusted to the minimum width
                 if (nextWidth <= minWidth) {
                     nextWidth = minWidth
                 }
-                // 如果窗口改变后的高度小于最小高度，则高度调整到最小高度
+                // If the changed height of the window is less than the minimum height, the height is adjusted to the minimum height
                 if (nextHeight <= minHeight) {
                     nextHeight = minHeight
                 }
-                // 最后统一改变窗口的x、y坐标和宽度、高度，可以防止刷新频繁出现的屏闪情况
+                // Finally, uniformly change the x and y coordinates, width and height of the window to prevent frequent screen flashes
                 stage!!.x = nextX
                 stage!!.y = nextY
                 stage!!.width = nextWidth

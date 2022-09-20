@@ -1,6 +1,8 @@
 /* panel */
 .major-panel {
     -fx-background-color: #151515;
+    -fx-border-radius: 5 5 5 5;
+    -fx-background-radius: 5 5 5 5;
 }
 
 .center-panel {
@@ -34,6 +36,18 @@
 }
 
 /* sidebar */
+.bottom-status-bar {
+    -fx-background-color: #CFCFCF;
+}
+
+.bottom-status-bar-edition-text {
+    -fx-font-family: Consolas;
+    -fx-font-size: 9pt;
+    -fx-text-fill: #151515;
+    -fx-background-color: #DFDFDF;
+    -fx-background-insets: 0 -3 0 0;
+}
+
 .top-session-tab-bar {
     -fx-background-color: #EAEAEA;
     -fx-border-width: 1 0 0 0;
@@ -52,18 +66,6 @@
     -fx-border-insets: 0 0 0 0;
 }
 
-.bottom-status-bar {
-    -fx-background-color: #CFCFCF;
-}
-
-.bottom-status-bar-edition-text {
-    -fx-font-family: Consolas;
-    -fx-font-size: 9pt;
-    -fx-text-fill: #151515;
-    -fx-background-color: #DFDFDF;
-    -fx-background-insets: 0 -3 0 0;
-}
-
 /* terminal */
 .desktop-terminal-panel {
     -fx-background-color: #151515;
@@ -80,14 +82,14 @@
 
 /* executor */
 .command-executor-panel {
-    -fx-background-color: #E1E1E1;
+    -fx-background-color: #EFEFEF;
     -fx-border-color: #FFFFFF;
     -fx-border-width: 2 1 1 1;
     -fx-border-style: solid;
 }
 
 .command-executor-input {
-    -fx-background-color: #E1E1E1;
+    -fx-background-color: #EFEFEF;
 }
 
 .command-executor-input .text-field {
@@ -126,13 +128,18 @@
 }
 
 .command-executor-result-scroll-pane {
-    -fx-background-color: #E1E1E1;
+    -fx-background-color: #FFFFFF;
+    -fx-background-insets: 10 10 5 10;
+    -fx-border-color: #E1E1E1;
+    -fx-border-style: solid;
+    -fx-border-width: 1px;
+    -fx-border-insets: 9 9 3 9;
 }
 
 .command-executor-result-text-area {
-    -fx-background-color: #E1E1E1;
-    -fx-padding: 5 5 5 10;
-    -fx-text-fill: #151515;
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 15 15 10 20;
+    -fx-background-insets: 10 10 5 10;
 }
 
 /* homepage */

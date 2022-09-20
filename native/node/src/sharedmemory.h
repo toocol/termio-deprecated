@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SHAREDMEMORY_H
+#define SHAREDMEMORY_H
 
 /*
  * Copyright 2019-2019 Michael Hoffer <info@michaelhoffer.de>. All rights
@@ -104,7 +105,9 @@ enum EVENT_TYPE {
   NFX_KEY_TYPED = 4096,
 
   NFX_REDRAW_EVENT = 8192,
-  NFX_TERMINATION_EVENT = 16384
+  NFX_TERMINATION_EVENT = 16384,
+
+  NFX_FOCUS_EVENT = 32768
 };
 
 struct event {
@@ -149,6 +152,13 @@ struct termination_event {
   long timestamp = 0;
 };
 
+struct focus_event {
+  int type = NFX_FOCUS_EVENT;
+  long timestamp = 0;
+
+  bool focus = false;
+};
+
 /**
  * Event that is used to communicate events from native servers back to the
  * client Java API. It's intended to be used in a boost message queue. That's
@@ -161,7 +171,8 @@ struct native_event {
                1];  // not initialized since it is not allowed
 };
 
-void store_shared_string(std::string str, char* str_to_store_to, size_t size) {
+inline void store_shared_string(std::string str, char* str_to_store_to,
+                                size_t size) {
   // copy client_to_server_msg
   for (size_t idx = 0; idx < str.size(); ++idx) {
     str_to_store_to[idx] = str[idx];
@@ -172,7 +183,7 @@ void store_shared_string(std::string str, char* str_to_store_to, size_t size) {
   }
 }
 
-void store_shared_string(std::string str, char* str_to_store_to) {
+inline void store_shared_string(std::string str, char* str_to_store_to) {
   // copy client_to_server_msg
   for (size_t idx = 0; idx < str.size(); ++idx) {
     str_to_store_to[idx] = str[idx];
@@ -183,7 +194,7 @@ void store_shared_string(std::string str, char* str_to_store_to) {
   }
 }
 
-void store_key_codes(std::string str, char* str_to_store_to) {
+inline void store_key_codes(std::string str, char* str_to_store_to) {
   // copy client_to_server_msg
   for (size_t idx = 0; idx < str.size(); ++idx) {
     str_to_store_to[idx] = str[idx];
@@ -199,6 +210,7 @@ struct shared_memory_info {
       : img_buffer_size(0),
         w(1280),
         h(800),
+        focus(false),
         dirty(false),
         buffer_ready(true),
         client_to_server_msg_semaphore(0),
@@ -223,6 +235,7 @@ struct shared_memory_info {
   int h;
   bool dirty;
   bool buffer_ready;
+  bool focus;
 
   char client_to_server_msg[IPC_MSG_SIZE +
                             1];  // not initialized since it is not allowed
@@ -243,23 +256,23 @@ struct shared_memory_info {
 
 struct shared_memory_buffer {};
 
-std::string get_info_name(int key, std::string name) {
+inline std::string get_info_name(int key, std::string name) {
   return name + IPC_INFO_NAME;
 }
 
-std::string get_evt_msg_queue_name(int key, std::string name) {
+inline std::string get_evt_msg_queue_name(int key, std::string name) {
   return name + IPC_EVT_MQ_NAME;
 }
 
-std::string get_evt_msg_queue_native_name(int key, std::string name) {
+inline std::string get_evt_msg_queue_native_name(int key, std::string name) {
   return name + IPC_EVT_MQ_NATIVE_NAME;
 }
 
-std::string get_buffer_name(int key, std::string name) {
+inline std::string get_buffer_name(int key, std::string name) {
   return name + IPC_BUFF_NAME;
 }
 
-boost::interprocess::message_queue* open_evt_mq(
+inline boost::interprocess::message_queue* open_evt_mq(
     std::string evt_msg_queue_name) {
   boost::interprocess::message_queue* evt_msg_queue =
       new boost::interprocess::message_queue(
@@ -270,12 +283,12 @@ boost::interprocess::message_queue* open_evt_mq(
   return evt_msg_queue;
 }
 
-std::size_t max_event_message_size() {
+inline std::size_t max_event_message_size() {
   return std::max({sizeof(event), sizeof(mouse_event), sizeof(key_event),
                    sizeof(redraw_event)});
 }
 
-boost::interprocess::message_queue* create_evt_mq(
+inline boost::interprocess::message_queue* create_evt_mq(
     std::string evt_msg_queue_name) {
   // find the maximum event message size
   std::size_t max_evt_struct_size =
@@ -293,7 +306,7 @@ boost::interprocess::message_queue* create_evt_mq(
   return evt_msg_queue;
 }
 
-boost::interprocess::message_queue* create_evt_mq_native(
+inline boost::interprocess::message_queue* create_evt_mq_native(
     std::string evt_msg_queue_name) {
   // find the maximum event message size
   std::size_t max_evt_struct_size = sizeof(native_event);
@@ -310,3 +323,4 @@ boost::interprocess::message_queue* create_evt_mq_native(
 }
 
 }  // end namespace nativefx
+#endif

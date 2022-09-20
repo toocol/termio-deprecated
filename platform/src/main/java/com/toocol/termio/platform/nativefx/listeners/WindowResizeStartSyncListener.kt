@@ -1,6 +1,6 @@
 package com.toocol.termio.platform.nativefx.listeners
 
-import com.toocol.termio.platform.watcher.WindowResizeStartSync
+import com.toocol.termio.platform.window.WindowResizeStartSync
 import com.toocol.termio.utilities.event.core.EventListener
 import kotlin.reflect.KClass
 

@@ -5,7 +5,7 @@ import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
 import com.toocol.termio.platform.nativefx.NativeBinding.Modifier
 import com.toocol.termio.platform.nativefx.NativeBinding.MouseBtn
-import com.toocol.termio.platform.watcher.WindowSizeWatcher
+import com.toocol.termio.platform.window.WindowSizeAdjuster
 import javafx.animation.AnimationTimer
 import javafx.geometry.Rectangle2D
 import javafx.scene.control.Label
@@ -31,7 +31,6 @@ abstract class NativeNode @JvmOverloads constructor(
     private val hidpiAware: Boolean = false,
     private val pixelBufferEnabled: Boolean = false,
 ) : Region(), IComponent, IStyleAble, IActionAfterShow {
-    private var serverName: String? = null
     private val formatInt = PixelFormat.getIntArgbPreInstance()
     private val formatByte = PixelFormat.getByteBgraPreInstance()
     private var img: WritableImage? = null
@@ -129,7 +128,7 @@ abstract class NativeNode @JvmOverloads constructor(
         }
 
         // ---- keys
-        this.isFocusTraversable = true // TODO make this optional?
+        this.isFocusTraversable = true
         addEventHandler(KeyEvent.KEY_PRESSED) { ev: KeyEvent ->
             // System.out.println("KEY: pressed " + ev.getText() + " : " + ev.getCode());
             val timestamp = System.nanoTime()
@@ -154,6 +153,9 @@ abstract class NativeNode @JvmOverloads constructor(
                 timestamp
             )
         }
+        focusedProperty().addListener { _, _, nv ->
+            NativeBinding.requestFocus(key, nv, System.nanoTime())
+        }
     }
 
     /**
@@ -163,7 +165,6 @@ abstract class NativeNode @JvmOverloads constructor(
      * @throws RuntimeException if the connection cannot be established
      */
     fun connect(name: String) {
-        serverName = name
         disconnect()
 
         if (key < 0 || NativeBinding.isConnected(key)) {
@@ -171,7 +172,7 @@ abstract class NativeNode @JvmOverloads constructor(
         }
         if (key < 0) {
             showErrorText()
-            throw RuntimeException("[$key]> cannot connect to shared memory ''$name''.")
+            throw RuntimeException("[$key]> cannot connect to shared memory '$name'.")
         }
         NativeNodeContainer.addNode(key, this)
 
@@ -179,7 +180,7 @@ abstract class NativeNode @JvmOverloads constructor(
         view!!.isPreserveRatio = false
 
         val r = Runnable {
-            if (WindowSizeWatcher.onMoved) {
+            if (WindowSizeAdjuster.onMoved) {
                 return@Runnable
             }
 
@@ -276,6 +277,7 @@ abstract class NativeNode @JvmOverloads constructor(
                 r.run()
             }
         }
+
         timer!!.start()
         children.add(view)
     }
@@ -337,7 +339,7 @@ abstract class NativeNode @JvmOverloads constructor(
 
     private fun showNotConnectedText() {
         children.clear()
-        val label = Label("INFO, not connected to a server.")
+        val label = Label("INFO, not connected to server.")
         label.style = "-fx-text-fill: green; -fx-background-color: white; -fx-border-color: green;-fx-font-size:16"
         children.add(label)
         label.layoutXProperty().bind(widthProperty().divide(2).subtract(label.widthProperty().divide(2)))
@@ -346,7 +348,7 @@ abstract class NativeNode @JvmOverloads constructor(
 
     private fun showErrorText() {
         children.clear()
-        val label = Label("ERROR, cannot connect to server '$serverName'.")
+        val label = Label("ERROR, cannot connect to server.")
         label.style = "-fx-text-fill: red; -fx-background-color: white; -fx-border-color: red;-fx-font-size:16"
         children.add(label)
         label.layoutXProperty().bind(widthProperty().divide(2).subtract(label.widthProperty().divide(2)))

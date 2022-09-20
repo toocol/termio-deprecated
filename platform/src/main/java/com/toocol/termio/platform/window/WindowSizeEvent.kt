@@ -1,4 +1,4 @@
-package com.toocol.termio.platform.watcher
+package com.toocol.termio.platform.window
 
 import com.toocol.termio.utilities.event.core.SyncEvent
 

@@ -1,6 +1,5 @@
 #include <QApplication>
 
-#include "nativefxserver.hpp"
 #include "terminalemulator.h"
 
 namespace nfx = nativefx;
@@ -50,12 +49,13 @@ int main(int argc, char* argv[]) {
 
   nfx::SharedCanvas* canvas = nfx::SharedCanvas::create("_emulator_mem");
 
-  auto nativeRedrawCallback = [&canvas, &qtRedraw, &qtResized, &evt]() {
+  auto nativeRedrawCallback = [&canvas, &qtRedraw, &qtResized, &evt, &emulator]() {
     canvas->processEvents(evt);
     canvas->draw(qtRedraw, qtResized);
   };
   emulator.setNativeRedrawCallback(nativeRedrawCallback);
 
+  emulator.setNativeCanvas(canvas);
   emulator.setAttribute(Qt::WA_OpaquePaintEvent, true);
   emulator.setAttribute(Qt::WA_DontCreateNativeAncestors, true);
   emulator.setAttribute(Qt::WA_NativeWindow, true);

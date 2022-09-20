@@ -208,10 +208,12 @@ void TerminalEmulator::updateTerminalSize() {
 
 void TerminalEmulator::setNativeRedrawCallback(
     const std::function<void()> &newNativeRedrawCallback) {
-  nativeRedrawCallback = newNativeRedrawCallback;
+    nativeRedrawCallback = newNativeRedrawCallback;
 }
 
-void TerminalEmulator::requestFocus() { _terminalView->setFocus(); }
+void TerminalEmulator::setNativeCanvas(nativefx::SharedCanvas *nativeData) {
+    _terminalView->setNativeCanvas(nativeData);
+}
 
 void TerminalEmulator::selectionChanged(bool textSelected) {
   emit copyAvailable(textSelected);

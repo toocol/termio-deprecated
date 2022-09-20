@@ -1,7 +1,7 @@
 package com.toocol.termio.desktop.components.panel.ui
 
 import com.toocol.termio.desktop.bootstrap.StageHolder
-import com.toocol.termio.platform.watcher.WindowSizeWatcher
+import com.toocol.termio.platform.window.WindowSizeAdjuster
 import com.toocol.termio.platform.font.FluentIcon
 import com.toocol.termio.platform.ui.TAnchorPane
 import javafx.scene.input.MouseButton
@@ -22,7 +22,7 @@ class TopMenuPanel(id: Long) : TAnchorPane(id){
     private val maximizeOrRestore = Pane()
     private val close = Pane()
 
-    private val windowSizeWatcher = WindowSizeWatcher.Instance
+    private val windowSizeAdjuster = WindowSizeAdjuster.Instance
 
     override fun styleClasses(): Array<String> {
         return arrayOf(
@@ -72,7 +72,7 @@ class TopMenuPanel(id: Long) : TAnchorPane(id){
             children.addAll(maximizeIcon, restoreIcon)
             setOnMouseClicked { event ->
                 if (event.clickCount == 1 && event.button == MouseButton.PRIMARY) {
-                    if (windowSizeWatcher.maximize()) {
+                    if (windowSizeAdjuster.maximize()) {
                         restoreIcon.visibleProperty().set(true)
                         maximizeIcon.visibleProperty().set(false)
                     } else {

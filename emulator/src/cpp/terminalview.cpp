@@ -526,7 +526,7 @@ void TerminalView::drawCursor(QPainter &painter, const QRect &rect,
 
       painter.drawRect(cursorRect.adjusted(penWidth / 2, penWidth / 2,
                                            -penWidth / 2, -penWidth / 2));
-      if (hasFocus()) {
+      if (hasFocus() || (_nativeCanvas != nullptr && _nativeCanvas->hasFocus())) {
         painter.fillRect(cursorRect, _cursorColor.isValid() ? _cursorColor
                                                             : foregroundColor);
 
@@ -2668,6 +2668,7 @@ void TerminalView::outputSuspended(bool suspended) {
 
 TerminalView::TerminalView(QWidget *parent)
     : QWidget(parent),
+      _nativeCanvas(nullptr),
       _screenWindow(nullptr),
       _gridLayout(nullptr),
       _allowBell(true),
@@ -2783,6 +2784,10 @@ TerminalView::~TerminalView() {
   delete _gridLayout;
   delete _outputSuspendedLabel;
   delete _filterChain;
+}
+
+void TerminalView::setNativeCanvas(nativefx::SharedCanvas *nativeData) {
+  _nativeCanvas = nativeData;
 }
 
 const ColorEntry *TerminalView::getColorTable() const { return _colorTable; }

@@ -201,6 +201,14 @@ JNIEXPORT jboolean JNICALL Java_com_toocol_termio_platform_nativefx_NativeBindin
 
 /*
  * Class:     com_toocol_termio_platform_nativefx_NativeBinding
+ * Method:    requestFocus
+ * Signature: (IZJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_toocol_termio_platform_nativefx_NativeBinding_requestFocus
+  (JNIEnv *, jclass, jint, jboolean, jlong);
+
+/*
+ * Class:     com_toocol_termio_platform_nativefx_NativeBinding
  * Method:    getBuffer
  * Signature: (I)Ljava/nio/ByteBuffer;
  */

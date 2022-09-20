@@ -52,7 +52,7 @@ class TerminalEmulator : public QWidget {
   void setNativeRedrawCallback(
       const std::function<void()> &newNativeRedrawCallback);
 
-  void requestFocus();
+  void setNativeCanvas(nativefx::SharedCanvas *nativeData);
 
  protected:
   bool eventFilter(QObject *obj, QEvent *ev) override;
