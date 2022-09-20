@@ -96,7 +96,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(emulator PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Core5Compat utf8proc_static utf8proc mman)
+target_link_libraries(emulator PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Core5Compat utf8proc mman)
 
 set_target_properties(emulator PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

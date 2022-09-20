@@ -7,7 +7,7 @@ import com.toocol.termio.platform.css.RegisterCssFile;
 import com.toocol.termio.platform.font.FontFileAnnotationParser;
 import com.toocol.termio.platform.font.RegisterFontFile;
 import com.toocol.termio.platform.ui.TScene;
-import com.toocol.termio.platform.watcher.WindowSizeWatcher;
+import com.toocol.termio.platform.window.WindowSizeAdjuster;
 import com.toocol.termio.utilities.log.Loggable;
 import javafx.application.Application;
 import javafx.scene.Node;
@@ -113,7 +113,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
     @Override
     public void start(Stage stage) throws IOException {
         StageHolder.stage = stage;
-        stage.initStyle(StageStyle.UNDECORATED);
+        stage.initStyle(StageStyle.TRANSPARENT);
         stage.setTitle("Termio Community");
         stage.setMinWidth(500);
         stage.setMinHeight(400);
@@ -127,7 +127,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
         assert root != null;
 
         TScene scene = new TScene(1, (Parent) root);
-        WindowSizeWatcher.Instance.init(stage, root);
+        WindowSizeAdjuster.Instance.init(stage, root);
 
         fontParser.parse(this.getClass());
         cssParser.parse(this.getClass(), scene);

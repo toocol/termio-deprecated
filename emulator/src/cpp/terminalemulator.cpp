@@ -167,6 +167,8 @@ bool TerminalEmulator::eventFilter(QObject *obj, QEvent *ev) {
       painter.end();
     }
     nativeRedrawCallback();
+    _terminalView->nativeCanvas()->sendNativeEvent("Paint",
+                                                   "Terminal View Paint");
   }
   return QWidget::eventFilter(obj, ev);
 }
@@ -211,7 +213,9 @@ void TerminalEmulator::setNativeRedrawCallback(
   nativeRedrawCallback = newNativeRedrawCallback;
 }
 
-void TerminalEmulator::requestFocus() { _terminalView->setFocus(); }
+void TerminalEmulator::setNativeCanvas(nativefx::SharedCanvas *nativeCanvas) {
+  _terminalView->setNativeCanvas(nativeCanvas);
+}
 
 void TerminalEmulator::selectionChanged(bool textSelected) {
   emit copyAvailable(textSelected);

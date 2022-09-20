@@ -1,6 +1,8 @@
 package com.toocol.termio.platform.nativefx.listeners
 
-import com.toocol.termio.platform.watcher.WindowResizeEndSync
+import com.toocol.termio.platform.nativefx.NativeBinding
+import com.toocol.termio.platform.nativefx.NativeNodeContainer
+import com.toocol.termio.platform.window.WindowResizeEndSync
 import com.toocol.termio.utilities.event.core.EventListener
 import kotlin.reflect.KClass
 
@@ -15,5 +17,9 @@ class WindowResizeEndSyncListener : EventListener<WindowResizeEndSync>() {
     }
 
     override fun actOn(event: WindowResizeEndSync) {
+        NativeNodeContainer.nodes().forEach {
+            NativeBinding.requestFocus(it.key, true, System.nanoTime())
+            it.updateOnce = true
+        }
     }
 }

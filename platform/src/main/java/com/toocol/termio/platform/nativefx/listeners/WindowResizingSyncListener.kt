@@ -1,6 +1,8 @@
 package com.toocol.termio.platform.nativefx.listeners
 
-import com.toocol.termio.platform.watcher.WindowResizingSync
+import com.toocol.termio.platform.nativefx.NativeBinding
+import com.toocol.termio.platform.nativefx.NativeNodeContainer
+import com.toocol.termio.platform.window.WindowResizingSync
 import com.toocol.termio.utilities.event.core.EventListener
 import kotlin.reflect.KClass
 
@@ -15,5 +17,6 @@ class WindowResizingSyncListener : EventListener<WindowResizingSync>() {
     }
 
     override fun actOn(event: WindowResizingSync) {
+        NativeNodeContainer.nodes().forEach { NativeBinding.processNativeEvents(it.key) }
     }
 }

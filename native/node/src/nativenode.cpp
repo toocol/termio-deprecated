@@ -259,7 +259,8 @@ void fire_native_event(int key, std::string type, std::string evt) {
     return;
   }
 
-  jclass cls = jni_env->FindClass("eu/mihosoft/nativefx/NativeBinding");
+  jclass cls =
+      jni_env->FindClass("com/toocol/termio/platform/nativefx/NativeBinding");
 
   jmethodID fireNativeEventMethod = jni_env->GetStaticMethodID(
       cls, "fireNativeEvent", "(ILjava/lang/String;Ljava/lang/String;)V");
@@ -693,6 +694,40 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_fireKeyTypedEvent(
 
   bool result =
       fire_key_event(key, NFX_KEY_TYPED, chars, keyCode, modifiers, timestamp);
+  return boolC2J(result);
+}
+
+/*
+ * Class:     com_toocol_termio_platform_nativefx_NativeBinding
+ * Method:    requestFocus
+ * Signature: (IZ)Z
+ */
+JNIEXPORT jboolean JNICALL
+Java_com_toocol_termio_platform_nativefx_NativeBinding_requestFocus(
+    JNIEnv *env, jclass cls, jint key, jboolean focus, jlong timestamp) {
+  if (key >= connections.size() || connections[key] == NULL) {
+    std::cerr << "ERROR: key not available: " << key << std::endl;
+    return boolC2J(false);
+  }
+
+  connections[key]->focus = focus;
+
+  focus_event event;
+  event.type |= NFX_FOCUS_EVENT;
+  event.focus = focus;
+  event.timestamp = timestamp;
+
+  // timed locking of resources
+  boost::system_time const timeout =
+      boost::get_system_time() + boost::posix_time::milliseconds(LOCK_TIMEOUT);
+
+  bool result = evt_msg_queues[key]->timed_send(
+      &event,         // data to send
+      sizeof(event),  // size of the data (check it fits into max_size)
+      0,              // msg priority
+      timeout         // timeout
+  );
+
   return boolC2J(result);
 }
 

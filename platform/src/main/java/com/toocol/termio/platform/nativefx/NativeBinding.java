@@ -95,7 +95,6 @@ public final class NativeBinding {
             System.out.println("Load nativenode.dll failed. message = " + e);
             System.exit(-1);
         }
-
     }
 
     interface IntEnum {
@@ -202,7 +201,6 @@ public final class NativeBinding {
 
             return result;
         }
-
     }
 
     private static final Map<Integer, List<NativeEventListener>> listeners = new HashMap<>();
@@ -298,6 +296,8 @@ public final class NativeBinding {
     public static native boolean fireKeyReleasedEvent(int key, String characters, int keyCode, int modifiers, long timestamp);
 
     public static native boolean fireKeyTypedEvent(int key, String characters, int keyCode, int modifiers, long timestamp);
+
+    public static native boolean requestFocus(int key, boolean focus, long timestamp);
 
     public static native ByteBuffer getBuffer(int key);
 

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef NATIVEFXSERVER_HPP
+#define NATIVEFXSERVER_HPP
 
 /*
  * Copyright 2019-2019 Michael Hoffer <info@michaelhoffer.de>. All rights
@@ -76,13 +77,13 @@ namespace nativefx {
 
 namespace ipc = boost::interprocess;
 
-ipc::shared_memory_object shm_buffer;
-ipc::mapped_region buffer_region;
-ipc::message_queue* evt_mq;
-ipc::message_queue* evt_mq_native;
+inline ipc::shared_memory_object shm_buffer;
+inline ipc::mapped_region buffer_region;
+inline ipc::message_queue* evt_mq;
+inline ipc::message_queue* evt_mq_native;
 
 // deprecated
-uchar* createSharedBuffer(std::string buffer_name, int w, int h) {
+inline uchar* createSharedBuffer(std::string buffer_name, int w, int h) {
   // create the shared memory buffer object.
   shm_buffer = ipc::shared_memory_object(ipc::create_only, buffer_name.c_str(),
                                          ipc::read_write);
@@ -111,8 +112,8 @@ typedef std::function<void(std::string const& name, event* evt)> event_callback;
 /**
  * Test function to verify buffer data functionality.
  */
-void setRgba(uchar* buffer_data, int buffer_w, int buffer_h, int x, int y,
-             uchar r, uchar g, uchar b, uchar a) {
+inline void setRgba(uchar* buffer_data, int buffer_w, int buffer_h, int x,
+                    int y, uchar r, uchar g, uchar b, uchar a) {
   buffer_data[y * buffer_w * 4 + x * 4 + 0] = b;  // B
   buffer_data[y * buffer_w * 4 + x * 4 + 1] = g;  // G
   buffer_data[y * buffer_w * 4 + x * 4 + 2] = r;  // R
@@ -125,7 +126,7 @@ void setRgba(uchar* buffer_data, int buffer_w, int buffer_h, int x, int y,
  * @param name name of the shared memory object to delete
  * @return status of this operation
  */
-int deleteSharedMem(std::string const& name) {
+inline int deleteSharedMem(std::string const& name) {
   std::string info_name = name + IPC_INFO_NAME;
   std::string buffer_name = name + IPC_BUFF_NAME;
   std::string evt_mq_name = name + IPC_EVT_MQ_NAME;
@@ -266,6 +267,8 @@ class SharedCanvas final {
 
   int terminate() { return deleteSharedMem(name); }
 
+  bool hasFocus() { return info_data->focus; }
+
   bool isBufferReady() {
     // timed locking of resources
     boost::system_time const timeout =
@@ -359,10 +362,9 @@ class SharedCanvas final {
                                             priority, timeout);
 
     if (!result) {
-      std::cerr
-          << "[" + name +
-                 "] ERROR: can't send messages, message queue not accessible."
-          << std::endl;
+      std::cerr << "[" + name +
+                       "] can't send messages, message queue not accessible."
+                << std::endl;
     }
   }
 
@@ -416,8 +418,8 @@ class SharedCanvas final {
  * whenever events are to be processed)
  * @return status of this operation
  */
-int startServer(std::string const& name, redraw_callback redraw,
-                event_callback events) {
+inline int startServer(std::string const& name, redraw_callback redraw,
+                       event_callback events) {
   std::string info_name = name + IPC_INFO_NAME;
   std::string buffer_name = name + IPC_BUFF_NAME;
   std::string evt_mq_name = name + IPC_EVT_MQ_NAME;
@@ -591,8 +593,8 @@ int startServer(std::string const& name, redraw_callback redraw,
  * whenever events are to be processed)
  * @return status of this operation
  */
-int startServer(int argc, char* argv[], redraw_callback redraw,
-                event_callback events) {
+inline int startServer(int argc, char* argv[], redraw_callback redraw,
+                       event_callback events) {
   args::ArgumentParser parser("This is a NativeFX server program.", "---");
   args::HelpFlag helpArg(parser, "help", "Display this help menu",
                          {'h', "help"});
@@ -642,3 +644,4 @@ int startServer(int argc, char* argv[], redraw_callback redraw,
 }
 
 }  // end namespace nativefx
+#endif

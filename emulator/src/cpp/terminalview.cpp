@@ -526,7 +526,8 @@ void TerminalView::drawCursor(QPainter &painter, const QRect &rect,
 
       painter.drawRect(cursorRect.adjusted(penWidth / 2, penWidth / 2,
                                            -penWidth / 2, -penWidth / 2));
-      if (hasFocus()) {
+      if (hasFocus() ||
+          (_nativeCanvas != nullptr && _nativeCanvas->hasFocus())) {
         painter.fillRect(cursorRect, _cursorColor.isValid() ? _cursorColor
                                                             : foregroundColor);
 
@@ -816,6 +817,10 @@ bool TerminalView::isLineChar(wchar_t c) const {
 
 bool TerminalView::isLineCharString(const std::wstring &string) const {
   return (string.length() > 0) && (isLineChar(string[0]));
+}
+
+nativefx::SharedCanvas *TerminalView::nativeCanvas() const {
+  return _nativeCanvas;
 }
 
 void TerminalView::showResizeNotification() {
@@ -1493,8 +1498,6 @@ bool TerminalView::event(QEvent *event) {
 }
 
 void TerminalView::paintEvent(QPaintEvent *event) {
-  //  QPainter paint =
-  //      nativeImage == nullptr ? QPainter(this) : QPainter(nativeImage);
   QPainter paint(this);
   QRect cr = contentsRect();
 
@@ -2668,6 +2671,7 @@ void TerminalView::outputSuspended(bool suspended) {
 
 TerminalView::TerminalView(QWidget *parent)
     : QWidget(parent),
+      _nativeCanvas(nullptr),
       _screenWindow(nullptr),
       _gridLayout(nullptr),
       _allowBell(true),
@@ -2783,6 +2787,10 @@ TerminalView::~TerminalView() {
   delete _gridLayout;
   delete _outputSuspendedLabel;
   delete _filterChain;
+}
+
+void TerminalView::setNativeCanvas(nativefx::SharedCanvas *nativeData) {
+  _nativeCanvas = nativeData;
 }
 
 const ColorEntry *TerminalView::getColorTable() const { return _colorTable; }

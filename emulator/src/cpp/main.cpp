@@ -1,6 +1,5 @@
 #include <QApplication>
 
-#include "nativefxserver.hpp"
 #include "terminalemulator.h"
 
 namespace nfx = nativefx;
@@ -46,7 +45,12 @@ int main(int argc, char* argv[]) {
   };
 
   auto evt = [&emulator, &prevEvtTarget, &prevP](std::string const& name,
-                                                 nfx::event* evt) {};
+                                                 nfx::event* evt) {
+    if (evt->type & nfx::NFX_FOCUS_EVENT) {
+      nfx::focus_event* focusEvt = static_cast<nfx::focus_event*>((void*)evt);
+      qDebug() << "Receive focus event, val=" << focusEvt->focus;
+    }
+  };
 
   nfx::SharedCanvas* canvas = nfx::SharedCanvas::create("_emulator_mem");
 
@@ -56,6 +60,7 @@ int main(int argc, char* argv[]) {
   };
   emulator.setNativeRedrawCallback(nativeRedrawCallback);
 
+  emulator.setNativeCanvas(canvas);
   emulator.setAttribute(Qt::WA_OpaquePaintEvent, true);
   emulator.setAttribute(Qt::WA_DontCreateNativeAncestors, true);
   emulator.setAttribute(Qt::WA_NativeWindow, true);
