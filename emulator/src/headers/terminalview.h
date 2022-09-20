@@ -796,6 +796,7 @@ class TerminalView : public QWidget {
   static void setTransparencyEnabled(bool enable) {
     HAVE_TRANSPARENCY = enable;
   }
+  nativefx::SharedCanvas *nativeCanvas() const;
 };
 
 class AutoScrollHandler : public QObject {

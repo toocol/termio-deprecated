@@ -259,7 +259,8 @@ void fire_native_event(int key, std::string type, std::string evt) {
     return;
   }
 
-  jclass cls = jni_env->FindClass("eu/mihosoft/nativefx/NativeBinding");
+  jclass cls =
+      jni_env->FindClass("com/toocol/termio/platform/nativefx/NativeBinding");
 
   jmethodID fireNativeEventMethod = jni_env->GetStaticMethodID(
       cls, "fireNativeEvent", "(ILjava/lang/String;Ljava/lang/String;)V");

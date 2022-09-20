@@ -48,7 +48,9 @@ abstract class NativeNode @JvmOverloads constructor(
     private var fpsCounter = 0
     private var isVerbose = false
 
-    protected var key = -1
+    var updateOnce = true
+
+    var key = -1
 
     /**
      * Constructor. Creates a new instance of this class without hidpi-awareness.
@@ -183,103 +185,105 @@ abstract class NativeNode @JvmOverloads constructor(
             if (WindowSizeAdjuster.onMoved) {
                 return@Runnable
             }
-
-            val currentTimeStamp = System.nanoTime()
-
-            // try to lock the shared resource
-            lockingError = !NativeBinding.lock(key)
-            if (lockingError) {
-                showErrorText()
-                timer!!.stop()
-                return@Runnable
-            }
-            val dirty = NativeBinding.isDirty(key)
-            val isReady = NativeBinding.isBufferReady(key)
-
-            // if(!isReady) {
-            //     System.out.println("["+key+"]> WARNING: buffer ready: " + isReady);
-            // }
-            NativeBinding.processNativeEvents(key)
-
-            // if not dirty yet and/or not ready there's nothing
-            // to do. we return early.
-            if (!dirty || !isReady) {
-                NativeBinding.unlock(key)
-                return@Runnable
-            }
-            val currentW = NativeBinding.getW(key)
-            val currentH = NativeBinding.getH(key)
-
-            // create new image instance if the image doesn't exist or
-            // if the dimensions do not match
-            if (img == null
-                || currentW.toDouble().compareTo(img!!.width) != 0
-                || currentH.toDouble().compareTo(img!!.height) != 0) {
-                if (isVerbose) {
-                    println("[$key]> -> new img instance, resize W: $currentW, H: $currentH")
-                }
-                buffer = NativeBinding.getBuffer(key)
-                if (pixelBufferEnabled) {
-                    pixelBuffer = PixelBuffer(currentW, currentH, buffer, formatByte)
-                    img = WritableImage(pixelBuffer)
-                } else {
-                    intBuf = buffer!!.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer()
-                    img = WritableImage(currentW, currentH)
-                }
-                dimensions = Rectangle2D(0.0, 0.0, currentW.toDouble(), currentH.toDouble())
-                view!!.image = img
-            }
-            if (pixelBufferEnabled) {
-                pixelBuffer!!.updateBuffer { dimensions }
-            } else {
-                img!!.pixelWriter.setPixels(0,
-                    0,
-                    img!!.width.toInt(),
-                    img!!.height.toInt(),
-                    formatInt,
-                    intBuf,
-                    img!!.width.toInt())
-            }
-
-            // we updated the image, not dirty anymore
-            // NativeBinding.lock(key);
-            NativeBinding.setDirty(key, false)
-            val w = width.toInt()
-            val h = height.toInt()
-            val sx = if (hidpiAware) scene.window.renderScaleX else 1.0
-            val sy = if (hidpiAware) scene.window.renderScaleX else 1.0
-            if ((w.toDouble() != NativeBinding.getW(key) / sx || h.toDouble() != NativeBinding.getH(key) / sy) && w > 0 && h > 0) {
-                if (isVerbose) {
-                    println("[$key]> requesting buffer resize W: $w, H: $h")
-                }
-                NativeBinding.resize(key, (w * sx).toInt(), (h * sy).toInt())
-            }
-            NativeBinding.unlock(key)
-            if (isVerbose) {
-                val duration = currentTimeStamp - frameTimestamp
-                val fps = 1e9 / duration
-                fpsValues[fpsCounter] = fps
-                if (fpsCounter == numValues - 1) {
-                    var fpsAverage = 0.0
-                    for (fpsVal in fpsValues) {
-                        fpsAverage += fpsVal
-                    }
-                    fpsAverage /= numValues.toDouble()
-                    println("[$key]> fps: $fpsAverage")
-                    fpsCounter = 0
-                }
-                fpsCounter++
-                frameTimestamp = currentTimeStamp
-            } // end if verbose
+            updateNativeImage()
         }
         timer = object : AnimationTimer() {
             override fun handle(now: Long) {
                 r.run()
             }
         }
-
         timer!!.start()
         children.add(view)
+    }
+
+    fun updateNativeImage() {
+        val currentTimeStamp = System.nanoTime()
+
+        // try to lock the shared resource
+        lockingError = !NativeBinding.lock(key)
+        if (lockingError) {
+            showErrorText()
+            timer!!.stop()
+            return
+        }
+        val dirty = NativeBinding.isDirty(key)
+        val isReady = NativeBinding.isBufferReady(key)
+
+        // if(!isReady) {
+        //     System.out.println("["+key+"]> WARNING: buffer ready: " + isReady);
+        // }
+        NativeBinding.processNativeEvents(key)
+
+        // if not dirty yet and/or not ready there's nothing
+        // to do. we return early.
+        if (!dirty || !isReady) {
+            NativeBinding.unlock(key)
+            return
+        }
+        val currentW = NativeBinding.getW(key)
+        val currentH = NativeBinding.getH(key)
+
+        // create new image instance if the image doesn't exist or
+        // if the dimensions do not match
+        if (img == null
+            || currentW.toDouble().compareTo(img!!.width) != 0
+            || currentH.toDouble().compareTo(img!!.height) != 0) {
+            if (isVerbose) {
+                println("[$key]> -> new img instance, resize W: $currentW, H: $currentH")
+            }
+            buffer = NativeBinding.getBuffer(key)
+            if (pixelBufferEnabled) {
+                pixelBuffer = PixelBuffer(currentW, currentH, buffer, formatByte)
+                img = WritableImage(pixelBuffer)
+            } else {
+                intBuf = buffer!!.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer()
+                img = WritableImage(currentW, currentH)
+            }
+            dimensions = Rectangle2D(0.0, 0.0, currentW.toDouble(), currentH.toDouble())
+            view!!.image = img
+        }
+        if (pixelBufferEnabled) {
+            pixelBuffer!!.updateBuffer { dimensions }
+        } else {
+            img!!.pixelWriter.setPixels(0,
+                0,
+                img!!.width.toInt(),
+                img!!.height.toInt(),
+                formatInt,
+                intBuf,
+                img!!.width.toInt())
+        }
+
+        // we updated the image, not dirty anymore
+        // NativeBinding.lock(key);
+        NativeBinding.setDirty(key, false)
+        val w = width.toInt()
+        val h = height.toInt()
+        val sx = if (hidpiAware) scene.window.renderScaleX else 1.0
+        val sy = if (hidpiAware) scene.window.renderScaleX else 1.0
+        if ((w.toDouble() != NativeBinding.getW(key) / sx || h.toDouble() != NativeBinding.getH(key) / sy) && w > 0 && h > 0) {
+            if (isVerbose) {
+                println("[$key]> requesting buffer resize W: $w, H: $h")
+            }
+            NativeBinding.resize(key, (w * sx).toInt(), (h * sy).toInt())
+        }
+        NativeBinding.unlock(key)
+        if (isVerbose) {
+            val duration = currentTimeStamp - frameTimestamp
+            val fps = 1e9 / duration
+            fpsValues[fpsCounter] = fps
+            if (fpsCounter == numValues - 1) {
+                var fpsAverage = 0.0
+                for (fpsVal in fpsValues) {
+                    fpsAverage += fpsVal
+                }
+                fpsAverage /= numValues.toDouble()
+                println("[$key]> fps: $fpsAverage")
+                fpsCounter = 0
+            }
+            fpsCounter++
+            frameTimestamp = currentTimeStamp
+        } // end if verbose
     }
 
     /**
@@ -321,7 +325,7 @@ abstract class NativeNode @JvmOverloads constructor(
 
     /**
      * Disconnects this node and terminates the connected server. All shared
-     * memory resources are released. Native listeners thar have been added
+     * memory resources are released. Native listeners' thar have been added
      * by this node will be removed as well.
      */
     fun terminate() {

@@ -5,6 +5,7 @@ import com.toocol.termio.desktop.components.sidebar.ui.BottomStatusBar
 import com.toocol.termio.desktop.components.sidebar.ui.TopSessionTabBar
 import com.toocol.termio.platform.nativefx.NativeBinding
 import com.toocol.termio.platform.nativefx.NativeNode
+import com.toocol.termio.platform.window.WindowSizeAdjuster
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Pane
 
@@ -14,11 +15,10 @@ import javafx.scene.layout.Pane
  * @version: 0.0.1
  */
 class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, pixelBufferEnabled = true) {
-    private val memName = "_emulator_mem"
 
     override fun initialize() {
         apply {
-            connect(memName)
+            connect("_emulator_mem")
 
             addEventHandler(KeyEvent.KEY_PRESSED) { ev: KeyEvent ->
                 // System.out.println("KEY: pressed " + ev.getText() + " : " + ev.getCode());
@@ -44,12 +44,23 @@ class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, pixelBu
                     timestamp
                 )
             }
+            addNativeEventListener {key, type, evt ->
+                if (WindowSizeAdjuster.onMoved && updateOnce) {
+                    println("> key: $key, type: $type, evt_msg: $evt")
+                    updateNativeImage()
+                    updateOnce = false
+                }
+            }
         }
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
-        widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
-        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().subtract(TopMenuPanel.fixedHeight + TopSessionTabBar.fixedHeight + BottomStatusBar.fixedHeight).multiply(heightRatio)) }
+        widthRatio?.run {
+            prefWidthProperty().bind(major.widthProperty().multiply(widthRatio))
+        }
+        heightRatio?.run {
+            prefHeightProperty().bind(major.heightProperty().subtract(TopMenuPanel.fixedHeight + TopSessionTabBar.fixedHeight + BottomStatusBar.fixedHeight).multiply(heightRatio))
+        }
     }
 
     override fun styleClasses(): Array<String> {

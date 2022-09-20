@@ -57,10 +57,10 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             panel.heightRatio = heightRatio
         }
 
-        parser.getAsComponent(Homepage::class.java)?.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.985)
+        parser.getAsComponent(Homepage::class.java)?.sizePropertyBind(major, widthRatio, heightRatio)
         terminalFactory.getAllTerminals()
             .asSequence()
-            .forEach { it.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.985) }
+            .forEach { it.sizePropertyBind(major, widthRatio, heightRatio) }
     }
 
     override fun actionAfterShow() {}

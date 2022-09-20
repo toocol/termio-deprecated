@@ -112,8 +112,8 @@ typedef std::function<void(std::string const& name, event* evt)> event_callback;
 /**
  * Test function to verify buffer data functionality.
  */
-inline void setRgba(uchar* buffer_data, int buffer_w, int buffer_h, int x, int y,
-             uchar r, uchar g, uchar b, uchar a) {
+inline void setRgba(uchar* buffer_data, int buffer_w, int buffer_h, int x,
+                    int y, uchar r, uchar g, uchar b, uchar a) {
   buffer_data[y * buffer_w * 4 + x * 4 + 0] = b;  // B
   buffer_data[y * buffer_w * 4 + x * 4 + 1] = g;  // G
   buffer_data[y * buffer_w * 4 + x * 4 + 2] = r;  // R
@@ -267,9 +267,7 @@ class SharedCanvas final {
 
   int terminate() { return deleteSharedMem(name); }
 
-  bool hasFocus() {
-      return info_data->focus;
-  }
+  bool hasFocus() { return info_data->focus; }
 
   bool isBufferReady() {
     // timed locking of resources
@@ -364,10 +362,9 @@ class SharedCanvas final {
                                             priority, timeout);
 
     if (!result) {
-      std::cerr
-          << "[" + name +
-                 "] ERROR: can't send messages, message queue not accessible."
-          << std::endl;
+      std::cerr << "[" + name +
+                       "] can't send messages, message queue not accessible."
+                << std::endl;
     }
   }
 
@@ -422,7 +419,7 @@ class SharedCanvas final {
  * @return status of this operation
  */
 inline int startServer(std::string const& name, redraw_callback redraw,
-                event_callback events) {
+                       event_callback events) {
   std::string info_name = name + IPC_INFO_NAME;
   std::string buffer_name = name + IPC_BUFF_NAME;
   std::string evt_mq_name = name + IPC_EVT_MQ_NAME;
@@ -597,7 +594,7 @@ inline int startServer(std::string const& name, redraw_callback redraw,
  * @return status of this operation
  */
 inline int startServer(int argc, char* argv[], redraw_callback redraw,
-                event_callback events) {
+                       event_callback events) {
   args::ArgumentParser parser("This is a NativeFX server program.", "---");
   args::HelpFlag helpArg(parser, "help", "Display this help menu",
                          {'h', "help"});
