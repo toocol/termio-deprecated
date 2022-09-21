@@ -51,7 +51,7 @@ class ShellPrinter(private val shell: Shell) {
                 if (str == lastCmd && StringUtils.isNotEmpty(lastCmd) || str.contains(AsciiControl.BEL)) {
                     continue
                 }
-                sb.append(shell.fillPrompt(str)).append("\n")
+                sb.append(shell.fillPrompt(str)).append(StrUtil.LF)
             }
             if (sb.isNotEmpty() && sb.toString().contains(shell.getPrompt())) {
                 sb.deleteCharAt(sb.length - 1)

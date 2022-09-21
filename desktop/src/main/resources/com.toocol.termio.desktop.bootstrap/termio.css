@@ -40,9 +40,14 @@
     -fx-background-color: #CFCFCF;
 }
 
+.bottom-status-bar > .hbox {
+    -fx-spacing: 5;
+}
+
 .bottom-status-bar-edition-text {
     -fx-font-family: Consolas;
     -fx-font-size: 9pt;
+    -fx-font-weight: 600;
     -fx-text-fill: #151515;
     -fx-background-color: #DFDFDF;
     -fx-background-insets: 0 -3 0 0;
@@ -128,18 +133,12 @@
 }
 
 .command-executor-result-scroll-pane {
-    -fx-background-color: #FFFFFF;
-    -fx-background-insets: 10 10 5 10;
-    -fx-border-color: #E1E1E1;
-    -fx-border-style: solid;
-    -fx-border-width: 1px;
-    -fx-border-insets: 9 9 3 9;
+    -fx-background-color: #EFEFEF;
 }
 
 .command-executor-result-text-area {
-    -fx-background-color: #FFFFFF;
-    -fx-padding: 15 15 10 20;
-    -fx-background-insets: 10 10 5 10;
+    -fx-background-color: #EFEFEF;
+    -fx-padding: 10 10 5 15;
 }
 
 /* homepage */

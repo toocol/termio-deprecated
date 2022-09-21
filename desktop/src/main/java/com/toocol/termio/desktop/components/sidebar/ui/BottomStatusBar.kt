@@ -1,7 +1,9 @@
 package com.toocol.termio.desktop.components.sidebar.ui
 
+import com.toocol.termio.platform.font.FontAwesomeIcon
 import com.toocol.termio.platform.font.MDL2Icon
-import com.toocol.termio.platform.ui.TGridPane
+import com.toocol.termio.platform.ui.TAnchorPane
+import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.text.Text
 
@@ -10,9 +12,10 @@ import javafx.scene.text.Text
  * @date: 2022/9/1 21:41
  * @version: 0.0.1
  */
-class BottomStatusBar(id: Long) : TGridPane(id) {
+class BottomStatusBar(id: Long) : TAnchorPane(id) {
 
     private val edition = Pane()
+    private val functionHBox = HBox()
 
     override fun styleClasses(): Array<String> {
         return arrayOf(
@@ -23,7 +26,9 @@ class BottomStatusBar(id: Long) : TGridPane(id) {
     override fun initialize() {
         run {
             styled()
-            addColumn(10, edition)
+            children.addAll(edition, functionHBox)
+
+            setRightAnchor(functionHBox, 5.0)
         }
 
         edition.run {
@@ -37,6 +42,17 @@ class BottomStatusBar(id: Long) : TGridPane(id) {
             text.y = 13.25
 
             children.addAll(icon, text)
+        }
+
+        functionHBox.run {
+            styleClass.add("hbox")
+            val terminal = FontAwesomeIcon("\uf120", FontAwesomeIcon.Type.SOLID)
+            terminal.setSize(fixedHeight, fixedHeight, fixedHeight)
+
+            val progress = FontAwesomeIcon("\uf828", FontAwesomeIcon.Type.SOLID)
+            progress.setSize(fixedHeight, fixedHeight, fixedHeight)
+
+            children.addAll(terminal, progress)
         }
     }
 

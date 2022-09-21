@@ -4,6 +4,8 @@
 
 namespace nfx = nativefx;
 
+static const QRegularExpression lfRegularExp("\n");
+
 int main(int argc, char* argv[]) {
   if (!argv[1] || QString(argv[1]) != "--initialize-flag") {
     return -1;
@@ -46,19 +48,29 @@ int main(int argc, char* argv[]) {
 
   auto evt = [&emulator, &prevEvtTarget, &prevP](std::string const& name,
                                                  nfx::event* evt) {
-    if (evt->type & nfx::NFX_FOCUS_EVENT) {
+    if (evt->type == nfx::NFX_FOCUS_EVENT) {
       nfx::focus_event* focusEvt = static_cast<nfx::focus_event*>((void*)evt);
-      qDebug() << "Receive focus event, val=" << focusEvt->focus;
+      emulator.requestFocus(focusEvt->focus);
     }
   };
 
   nfx::SharedCanvas* canvas = nfx::SharedCanvas::create("_emulator_mem");
 
-  auto nativeRedrawCallback = [&canvas, &qtRedraw, &qtResized, &evt]() {
-    canvas->processEvents(evt);
+  auto nativeRedrawCallback = [&canvas, &qtRedraw, &qtResized]() {
     canvas->draw(qtRedraw, qtResized);
   };
   emulator.setNativeRedrawCallback(nativeRedrawCallback);
+
+  auto nativeEvtCallback = [&canvas, &emulator, &evt]() {
+    canvas->processEvents(evt);
+    QString text = QString::fromUtf8(canvas->getSharedString().c_str());
+    if (text != "") {
+      qDebug() << text;
+      emulator.sendText(text.replace(lfRegularExp, "\r\n"));
+    }
+    canvas->responseSharedString("");
+  };
+  emulator.setNativeEvtCallback(nativeEvtCallback);
 
   emulator.setNativeCanvas(canvas);
   emulator.setAttribute(Qt::WA_OpaquePaintEvent, true);

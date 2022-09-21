@@ -45,15 +45,13 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
         val scene = findComponent(TScene::class.java, 1)
         val alt1: KeyCombination = KeyCodeCombination(KeyCode.DIGIT1, KeyCombination.ALT_DOWN)
         scene.accelerators[alt1] = Runnable {
-            val ratio = if (isVisible) {
+            if (isVisible) {
                 hide()
-                1.0
             } else {
                 show()
-                0.85
             }
             val majorPanel = findComponent(MajorPanel::class.java, 1)
-            findComponent(WorkspacePanel::class.java, 1).sizePropertyBind(majorPanel, ratio, null)
+            findComponent(WorkspacePanel::class.java, 1).sizePropertyBind(majorPanel, 1.0, null)
         }
 
         left = parser.getAsNode(LeftToolSidebar::class.java)
@@ -64,8 +62,8 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
         heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
 
-        parser.getAsComponent(LeftToolSidebar::class.java)?.sizePropertyBind(major, widthRatio, heightRatio)
-        parser.getAsComponent(SessionManageSidebar::class.java)?.sizePropertyBind(major, widthRatio, heightRatio)
+        parser.getAsComponent(LeftToolSidebar::class.java)?.sizePropertyBind(major, null, heightRatio)
+        parser.getAsComponent(SessionManageSidebar::class.java)?.sizePropertyBind(major, null, heightRatio)
     }
 
     override fun actionAfterShow() {

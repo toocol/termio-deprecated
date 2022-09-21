@@ -10,7 +10,7 @@ import com.toocol.termio.core.term.core.DesktopTermPrinter
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.core.term.core.TermTheme
 import com.toocol.termio.desktop.components.executor.ui.CommandExecutor
-import com.toocol.termio.desktop.components.terminal.ui.TerminalEmulator
+import com.toocol.termio.desktop.components.terminal.ui.NativeTerminalEmulator
 import com.toocol.termio.platform.nativefx.NativeBinding
 import com.toocol.termio.utilities.ansi.Printer.println
 import com.toocol.termio.utilities.config.IniConfigLoader
@@ -39,7 +39,7 @@ object TermioCommunityBootstrap : Termio() {
         Term.theme = TermTheme.LIGHT_THEME
         Term.registerConsole(Console.get())
         Term.initializeReader(CommandExecutor.executorReaderInputStream)
-        Shell.initializeReader(TerminalEmulator.terminalReaderInputStream)
+        Shell.initializeReader(NativeTerminalEmulator.terminalReaderInputStream)
         DesktopTermPrinter.registerPrintStream(CommandExecutor.commandExecutorPrintStream)
 
         vertx = prepareVertxEnvironment(

@@ -14,10 +14,15 @@
 
 #define STEP_ZOOM 1
 
+static const int nativeEvtInterval = 1;
+
 using namespace TConsole;
 
 TerminalEmulator::TerminalEmulator(QWidget *parent)
-    : QWidget(parent), image(nullptr) {}
+    : QWidget(parent), _nativeImage(nullptr) {
+  _nativeEvtTimer = new QTimer(this);
+  connect(_nativeEvtTimer, &QTimer::timeout, [=]() { nativeEvtCallback(); });
+}
 
 TerminalEmulator::~TerminalEmulator() {}
 
@@ -153,7 +158,7 @@ void TerminalEmulator::clear() {
 }
 
 void TerminalEmulator::requestRedrawImage(QImage *image) {
-  this->image = image;
+  this->_nativeImage = image;
 }
 
 bool TerminalEmulator::eventFilter(QObject *obj, QEvent *ev) {
@@ -161,8 +166,8 @@ bool TerminalEmulator::eventFilter(QObject *obj, QEvent *ev) {
     _terminalView->update();
   }
   if (ev->type() == QEvent::UpdateRequest) {
-    if (image != nullptr) {
-      QPainter painter(image);
+    if (_nativeImage != nullptr) {
+      QPainter painter(_nativeImage);
       _terminalView->render(&painter);
       painter.end();
     }
@@ -205,6 +210,21 @@ void TerminalEmulator::updateTerminalSize() {
   // size
   if (minLines > 0 && minColumns > 0) {
     _emulation->setImageSize(minLines, minColumns);
+  }
+}
+
+void TerminalEmulator::setNativeEvtCallback(
+    const std::function<void()> &newNativeEvtCallback) {
+  nativeEvtCallback = newNativeEvtCallback;
+  _nativeEvtTimer->start(nativeEvtInterval);
+}
+
+void TerminalEmulator::requestFocus(bool focus) {
+  qDebug() << "request focus";
+  if (focus) {
+    _terminalView->focusIn();
+  } else {
+    _terminalView->focusOut();
   }
 }
 
