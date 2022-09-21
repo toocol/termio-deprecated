@@ -15,7 +15,7 @@ import javafx.scene.layout.Pane
  * @version: 0.0.1
  */
 class TopMenuPanel(id: Long) : TAnchorPane(id){
-    private val tabHBox: HBox = HBox()
+    private val menuHBox: HBox = HBox()
     private val controlHBox: HBox = HBox()
 
     private val minimize = Pane()
@@ -33,10 +33,10 @@ class TopMenuPanel(id: Long) : TAnchorPane(id){
     override fun initialize() {
         run {
             styled()
-            children.addAll(tabHBox, controlHBox)
+            children.addAll(menuHBox, controlHBox)
         }
 
-        tabHBox.run {
+        menuHBox.run {
             styleClass.add("hbox")
         }
 
@@ -96,7 +96,7 @@ class TopMenuPanel(id: Long) : TAnchorPane(id){
         }
 
         setRightAnchor(controlHBox, 0.0)
-        setLeftAnchor(tabHBox, 0.0)
+        setLeftAnchor(menuHBox, 0.0)
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {

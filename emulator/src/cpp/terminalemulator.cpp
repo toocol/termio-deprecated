@@ -19,12 +19,9 @@ static const int nativeEvtInterval = 1;
 using namespace TConsole;
 
 TerminalEmulator::TerminalEmulator(QWidget *parent)
-    : QWidget(parent),
-      _nativeImage(nullptr) {
-    _nativeEvtTimer = new QTimer(this);
-    connect(_nativeEvtTimer, &QTimer::timeout, [=](){
-       nativeEvtCallback();
-    });
+    : QWidget(parent), _nativeImage(nullptr) {
+  _nativeEvtTimer = new QTimer(this);
+  connect(_nativeEvtTimer, &QTimer::timeout, [=]() { nativeEvtCallback(); });
 }
 
 TerminalEmulator::~TerminalEmulator() {}
@@ -216,9 +213,19 @@ void TerminalEmulator::updateTerminalSize() {
   }
 }
 
-void TerminalEmulator::setNativeEvtCallback(const std::function<void ()> &newNativeEvtCallback) {
+void TerminalEmulator::setNativeEvtCallback(
+    const std::function<void()> &newNativeEvtCallback) {
   nativeEvtCallback = newNativeEvtCallback;
   _nativeEvtTimer->start(nativeEvtInterval);
+}
+
+void TerminalEmulator::requestFocus(bool focus) {
+  qDebug() << "request focus";
+  if (focus) {
+    _terminalView->focusIn();
+  } else {
+    _terminalView->focusOut();
+  }
 }
 
 void TerminalEmulator::setNativeRedrawCallback(

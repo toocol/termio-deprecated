@@ -526,7 +526,8 @@ void TerminalView::drawCursor(QPainter &painter, const QRect &rect,
 
       painter.drawRect(cursorRect.adjusted(penWidth / 2, penWidth / 2,
                                            -penWidth / 2, -penWidth / 2));
-      if (hasFocus() || (_nativeCanvas != nullptr && _nativeCanvas->hasFocus())) {
+      if (hasFocus() ||
+          (_nativeCanvas != nullptr && _nativeCanvas->hasFocus())) {
         painter.fillRect(cursorRect, _cursorColor.isValid() ? _cursorColor
                                                             : foregroundColor);
 
@@ -989,7 +990,7 @@ QPoint TerminalView::cursorPosition() const {
 
 void TerminalView::updateCursor() {
   QRect cursorRect = imageToWidget(QRect(cursorPosition(), QSize(1, 1)));
-  update(cursorRect);
+  repaint(cursorRect);
 }
 
 bool TerminalView::handleShortcutOverrideEvent(QKeyEvent *keyEvent) {
@@ -1475,6 +1476,30 @@ void TerminalView::getCharacterPosition(const QPointF &widgetPoint, int &line,
   if (column > _usedColumns) column = _usedColumns;
 }
 
+void TerminalView::focusIn() {
+  emit termGetFocus();
+  if (_hasBlinkingCursor) {
+    _blinkCursorTimer->start();
+  }
+  updateCursor();
+
+  if (_hasBlinker) _blinkTimer->start();
+}
+
+void TerminalView::focusOut() {
+  emit termLostFocus();
+  // trigger a repaint of the cursor so that it is both visible (in case
+  // it was hidden during blinking)
+  // and drawn in a focused out state
+  _cursorBlinking = false;
+  updateCursor();
+
+  _blinkCursorTimer->stop();
+  if (_blinking) blinkEvent();
+
+  _blinkTimer->stop();
+}
+
 /* ------------------------------------------------------------------------- */
 /*                                                                           */
 /*                               Events handle                               */
@@ -1627,29 +1652,9 @@ void TerminalView::fontChange(const QFont &) {
   update();
 }
 
-void TerminalView::focusInEvent(QFocusEvent *event) {
-  emit termGetFocus();
-  if (_hasBlinkingCursor) {
-    _blinkCursorTimer->start();
-  }
-  updateCursor();
+void TerminalView::focusInEvent(QFocusEvent *event) { focusIn(); }
 
-  if (_hasBlinker) _blinkTimer->start();
-}
-
-void TerminalView::focusOutEvent(QFocusEvent *event) {
-  emit termLostFocus();
-  // trigger a repaint of the cursor so that it is both visible (in case
-  // it was hidden during blinking)
-  // and drawn in a focused out state
-  _cursorBlinking = false;
-  updateCursor();
-
-  _blinkCursorTimer->stop();
-  if (_blinking) blinkEvent();
-
-  _blinkTimer->stop();
-}
+void TerminalView::focusOutEvent(QFocusEvent *event) { focusOut(); }
 
 void TerminalView::keyPressEvent(QKeyEvent *event) {
   _actSel = 0;  // Key stroke implies a screen update, so TerminalDisplay won't

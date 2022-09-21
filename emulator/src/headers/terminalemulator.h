@@ -54,9 +54,11 @@ class TerminalEmulator : public QWidget {
 
   void setNativeCanvas(nativefx::SharedCanvas *nativeData);
 
-  void setNativeEvtCallback(const std::function<void ()> &newNativeEvtCallback);
+  void setNativeEvtCallback(const std::function<void()> &newNativeEvtCallback);
 
-protected:
+  void requestFocus(bool focus);
+
+ protected:
   bool eventFilter(QObject *obj, QEvent *ev) override;
 
  private:

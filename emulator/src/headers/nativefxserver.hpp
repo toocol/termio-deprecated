@@ -273,7 +273,8 @@ class SharedCanvas final {
    * Must invoke responseSharedString() after getSharedString()
    */
   std::string getSharedString() {
-    std::string sharedString = get_shared_string(info_data->client_to_server_msg);
+    std::string sharedString =
+        get_shared_string(info_data->client_to_server_msg);
     return sharedString;
   }
 
@@ -405,7 +406,7 @@ class SharedCanvas final {
       event* evt = static_cast<event*>(evt_mq_msg_buff);
 
       // terminate if termination event was sent
-      if (evt->type & NFX_TERMINATION_EVENT) {
+      if (evt->type == NFX_TERMINATION_EVENT) {
         std::cerr << "[" + name + "] termination requested." << std::endl;
         this->terminate();
         std::cerr << "[" + name + "] done." << std::endl;
@@ -570,7 +571,7 @@ inline int startServer(std::string const& name, redraw_callback redraw,
       event* evt = static_cast<event*>(evt_mq_msg_buff);
 
       // terminate if termination event was sent
-      if (evt->type & NFX_TERMINATION_EVENT) {
+      if (evt->type == NFX_TERMINATION_EVENT) {
         std::cerr << "[" + name + "] termination requested." << std::endl;
         deleteSharedMem(name);
         std::cerr << "[" + name + "] done." << std::endl;

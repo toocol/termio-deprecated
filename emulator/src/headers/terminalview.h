@@ -17,8 +17,8 @@
 
 #include "character.h"
 #include "filter.h"
-#include "screenwindow.h"
 #include "nativefxserver.hpp"
+#include "screenwindow.h"
 
 class QDrag;
 class QDragEnterEvent;
@@ -74,7 +74,7 @@ class TerminalView : public QWidget {
   explicit TerminalView(QWidget* parent = nullptr);
   ~TerminalView();
 
-  void setNativeCanvas(nativefx::SharedCanvas *nativeCanvas);
+  void setNativeCanvas(nativefx::SharedCanvas* nativeCanvas);
 
   /** Returns the terminal color palette used by the display. */
   const ColorEntry* getColorTable() const;
@@ -382,6 +382,9 @@ class TerminalView : public QWidget {
   bool bracketedPasteModeIsDisabled() const {
     return _disabledBracketedPasteMode;
   }
+
+  void focusIn();
+  void focusOut();
 
  protected:
   bool event(QEvent*) override;
@@ -796,7 +799,7 @@ class TerminalView : public QWidget {
   static void setTransparencyEnabled(bool enable) {
     HAVE_TRANSPARENCY = enable;
   }
-  nativefx::SharedCanvas *nativeCanvas() const;
+  nativefx::SharedCanvas* nativeCanvas() const;
 };
 
 class AutoScrollHandler : public QObject {

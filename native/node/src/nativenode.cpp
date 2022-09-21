@@ -37,7 +37,7 @@ bool fire_mouse_event(jint key, int evt_type, double x, double y, double amount,
   }
 
   mouse_event evt;
-  evt.type |= evt_type;
+  evt.type = evt_type;
   evt.timestamp = timestamp;
   evt.click_count = click_count;
   evt.x = x;
@@ -68,7 +68,7 @@ bool fire_key_event(int key, int evt_type, std::string const &chars,
   }
 
   key_event evt;
-  evt.type |= evt_type;
+  evt.type = evt_type;
   evt.timestamp = timestamp;
   store_key_codes(chars, evt.chars);
   evt.key_code = key_code;
@@ -295,7 +295,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_terminate(JNIEnv *env,
   }
 
   termination_event evt;
-  evt.type |= NFX_TERMINATION_EVENT;
+  evt.type = NFX_TERMINATION_EVENT;
   evt.timestamp = 0;
 
   // timed locking of resources
@@ -712,7 +712,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_requestFocus(
   connections[key]->focus = focus;
 
   focus_event evt;
-  evt.type |= NFX_FOCUS_EVENT;
+  evt.type = NFX_FOCUS_EVENT;
   evt.focus = focus;
   evt.timestamp = timestamp;
 
@@ -723,8 +723,8 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_requestFocus(
   bool result = evt_msg_queues[key]->timed_send(
       &evt,         // data to send
       sizeof(evt),  // size of the data (check it fits into max_size)
-      0,              // msg priority
-      timeout         // timeout
+      0,            // msg priority
+      timeout       // timeout
   );
 
   return boolC2J(result);

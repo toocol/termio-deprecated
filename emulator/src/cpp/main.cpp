@@ -48,9 +48,9 @@ int main(int argc, char* argv[]) {
 
   auto evt = [&emulator, &prevEvtTarget, &prevP](std::string const& name,
                                                  nfx::event* evt) {
-    if (evt->type & nfx::NFX_FOCUS_EVENT) {
+    if (evt->type == nfx::NFX_FOCUS_EVENT) {
       nfx::focus_event* focusEvt = static_cast<nfx::focus_event*>((void*)evt);
-      qDebug() << "Receive focus event, val=" << focusEvt->focus;
+      emulator.requestFocus(focusEvt->focus);
     }
   };
 

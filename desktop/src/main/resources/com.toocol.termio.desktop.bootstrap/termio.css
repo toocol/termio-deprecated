@@ -40,9 +40,14 @@
     -fx-background-color: #CFCFCF;
 }
 
+.bottom-status-bar > .hbox {
+    -fx-spacing: 5;
+}
+
 .bottom-status-bar-edition-text {
     -fx-font-family: Consolas;
     -fx-font-size: 9pt;
+    -fx-font-weight: 600;
     -fx-text-fill: #151515;
     -fx-background-color: #DFDFDF;
     -fx-background-insets: 0 -3 0 0;
