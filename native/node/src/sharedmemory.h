@@ -107,7 +107,8 @@ enum EVENT_TYPE {
   NFX_REDRAW_EVENT = 8192,
   NFX_TERMINATION_EVENT = 16384,
 
-  NFX_FOCUS_EVENT = 32768
+  NFX_FOCUS_EVENT = 32768,
+  NFX_INPUT_TEXT_EVENT = 65536
 };
 
 struct event {
@@ -159,6 +160,13 @@ struct focus_event {
   bool focus = false;
 };
 
+struct input_text_event {
+  int type = NFX_INPUT_TEXT_EVENT;
+  long timestamp = 0;
+
+  std::string input;
+};
+
 /**
  * Event that is used to communicate events from native servers back to the
  * client Java API. It's intended to be used in a boost message queue. That's
@@ -203,6 +211,18 @@ inline void store_key_codes(std::string str, char* str_to_store_to) {
   for (size_t idx = str.size(); idx < IPC_KEY_EVT_NUM_CHARS + 1; ++idx) {
     str_to_store_to[idx] = '\0';
   }
+}
+
+inline std::string get_shared_string(char* str_to_store_to) {
+  std::string shared_string = "";
+  for (size_t idx = 0; idx < IPC_MSG_SIZE + 1; ++idx) {
+    if (str_to_store_to[idx] == '\0') {
+      break;
+    }
+    shared_string += str_to_store_to[idx];
+    str_to_store_to[idx] = '\0';
+  }
+  return shared_string;
 }
 
 struct shared_memory_info {

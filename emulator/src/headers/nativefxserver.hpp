@@ -269,6 +269,19 @@ class SharedCanvas final {
 
   bool hasFocus() { return info_data->focus; }
 
+  /**
+   * Must invoke responseSharedString() after getSharedString()
+   */
+  std::string getSharedString() {
+    std::string sharedString = get_shared_string(info_data->client_to_server_msg);
+    return sharedString;
+  }
+
+  void responseSharedString(std::string resp) {
+    store_shared_string(resp, info_data->client_to_server_res);
+    info_data->client_to_server_res_semaphore.post();
+  }
+
   bool isBufferReady() {
     // timed locking of resources
     boost::system_time const timeout =

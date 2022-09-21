@@ -155,9 +155,6 @@ abstract class NativeNode @JvmOverloads constructor(
                 timestamp
             )
         }
-        focusedProperty().addListener { _, _, nv ->
-            NativeBinding.requestFocus(key, nv, System.nanoTime())
-        }
     }
 
     /**

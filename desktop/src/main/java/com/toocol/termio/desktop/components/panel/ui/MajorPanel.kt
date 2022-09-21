@@ -44,8 +44,8 @@ class MajorPanel(id: Long) : TBorderPane(id) {
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
         parser.getAsComponent(TopMenuPanel::class.java)?.sizePropertyBind(major, widthRatio, null)
-        parser.getAsComponent(CenterPanel::class.java)?.sizePropertyBind(this, widthRatio!! * 0.85, heightRatio!! * 1.0)
-        parser.getAsComponent(LeftSidePanel::class.java)?.sizePropertyBind(this, widthRatio!! * 0.15, heightRatio!! * 1.0)
+        parser.getAsComponent(CenterPanel::class.java)?.sizePropertyBind(this, widthRatio, heightRatio!! * 1.0)
+        parser.getAsComponent(LeftSidePanel::class.java)?.sizePropertyBind(this, null, heightRatio!! * 1.0)
         parser.getAsComponent(BottomStatusBar::class.java)?.sizePropertyBind(this, widthRatio!! * 1, null)
     }
 

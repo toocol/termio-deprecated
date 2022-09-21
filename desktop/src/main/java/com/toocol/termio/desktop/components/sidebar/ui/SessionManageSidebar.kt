@@ -19,9 +19,14 @@ class SessionManageSidebar(id: Long) : TAnchorPane(id) {
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
-        widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
         heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
+
+        prefWidth = fixedWidth
     }
 
     override fun actionAfterShow() {}
+
+    companion object {
+        var fixedWidth = 180.0
+    }
 }

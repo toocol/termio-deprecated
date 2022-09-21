@@ -1626,7 +1626,7 @@ void Vt102Emulation::sendKeyEvent(QKeyEvent* event, bool fromPaste) {
     }
 
 #ifdef WIN32
-    if (textToSend == "\r") textToSend = "\r\n";
+//    if (textToSend == "\r") textToSend = "\r\n";
 #endif
 
     // There is no pty in this project, just receive data;

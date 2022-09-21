@@ -373,7 +373,6 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_sendMsg(JNIEnv *env,
   // send a message to server
   store_shared_string(msg, info_data->client_to_server_msg);
   info_data->client_to_server_msg_semaphore.post();
-
   // return result from server
   info_data->client_to_server_res_semaphore.wait();
   return stringC2J(env, info_data->client_to_server_res);
@@ -712,18 +711,18 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_requestFocus(
 
   connections[key]->focus = focus;
 
-  focus_event event;
-  event.type |= NFX_FOCUS_EVENT;
-  event.focus = focus;
-  event.timestamp = timestamp;
+  focus_event evt;
+  evt.type |= NFX_FOCUS_EVENT;
+  evt.focus = focus;
+  evt.timestamp = timestamp;
 
   // timed locking of resources
   boost::system_time const timeout =
       boost::get_system_time() + boost::posix_time::milliseconds(LOCK_TIMEOUT);
 
   bool result = evt_msg_queues[key]->timed_send(
-      &event,         // data to send
-      sizeof(event),  // size of the data (check it fits into max_size)
+      &evt,         // data to send
+      sizeof(evt),  // size of the data (check it fits into max_size)
       0,              // msg priority
       timeout         // timeout
   );

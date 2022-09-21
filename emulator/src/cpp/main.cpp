@@ -4,6 +4,8 @@
 
 namespace nfx = nativefx;
 
+static const QRegularExpression lfRegularExp("\n");
+
 int main(int argc, char* argv[]) {
   if (!argv[1] || QString(argv[1]) != "--initialize-flag") {
     return -1;
@@ -54,11 +56,21 @@ int main(int argc, char* argv[]) {
 
   nfx::SharedCanvas* canvas = nfx::SharedCanvas::create("_emulator_mem");
 
-  auto nativeRedrawCallback = [&canvas, &qtRedraw, &qtResized, &evt]() {
-    canvas->processEvents(evt);
+  auto nativeRedrawCallback = [&canvas, &qtRedraw, &qtResized]() {
     canvas->draw(qtRedraw, qtResized);
   };
   emulator.setNativeRedrawCallback(nativeRedrawCallback);
+
+  auto nativeEvtCallback = [&canvas, &emulator, &evt]() {
+    canvas->processEvents(evt);
+    QString text = QString::fromUtf8(canvas->getSharedString().c_str());
+    if (text != "") {
+      qDebug() << text;
+      emulator.sendText(text.replace(lfRegularExp, "\r\n"));
+    }
+    canvas->responseSharedString("");
+  };
+  emulator.setNativeEvtCallback(nativeEvtCallback);
 
   emulator.setNativeCanvas(canvas);
   emulator.setAttribute(Qt::WA_OpaquePaintEvent, true);
