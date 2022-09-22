@@ -67,9 +67,9 @@ int main(int argc, char* argv[]) {
     std::string resp = "";
     QString text = QString::fromUtf8(canvas->getSharedString().c_str());
     int sharedType = canvas->sharedStringType();
-    if (sharedType & nativefx::NFX_SEND_TEXT && text != "") {
+    if (sharedType == nativefx::NFX_SEND_TEXT && text != "") {
       emulator.sendText(text.replace(lfRegularExp, "\r\n"));
-    } else if (sharedType & nativefx::NFX_REQUEST_SIZE) {
+    } else if (sharedType == nativefx::NFX_REQUEST_SIZE) {
       resp = "125x80";
     }
     canvas->responseSharedString(resp);
