@@ -18,10 +18,6 @@ class TopMenuPanel(id: Long) : TAnchorPane(id){
     private val menuHBox: HBox = HBox()
     private val controlHBox: HBox = HBox()
 
-    private val minimize = Pane()
-    private val maximizeOrRestore = Pane()
-    private val close = Pane()
-
     private val windowSizeAdjuster = WindowSizeAdjuster.Instance
 
     override fun styleClasses(): Array<String> {
@@ -40,57 +36,60 @@ class TopMenuPanel(id: Long) : TAnchorPane(id){
             styleClass.add("hbox")
         }
 
-        controlHBox.run {
-            styleClass.add("hbox")
-
-            children.addAll(minimize, maximizeOrRestore, close)
-        }
-
         val stage = StageHolder.stage!!
-        minimize.run {
-            styleClass.add("pane-normal")
-            val minimizeIcon = FluentIcon("\uE921")
-            minimizeIcon.setSize(fixedHeight, fixedHeight * 1.4, fixedHeight)
-            children.add(minimizeIcon)
+        controlHBox.run {
+            val minimize = Pane()
+            val maximizeOrRestore = Pane()
+            val close = Pane()
 
-            setOnMouseClicked { event ->
-                if (event.clickCount == 1 && event.button == MouseButton.PRIMARY) {
-                    stage.isIconified = true
-                }
-            }
-        }
+            styleClass.add("hbox")
+            children.addAll(minimize, maximizeOrRestore, close)
 
-        maximizeOrRestore.run {
-            styleClass.add("pane-normal")
-            val maximizeIcon = FluentIcon("\uE922")
-            maximizeIcon.setSize(fixedHeight, fixedHeight * 1.4, fixedHeight)
+            minimize.run {
+                styleClass.add("pane-normal")
+                val minimizeIcon = FluentIcon("\uE921")
+                minimizeIcon.setSize(fixedHeight, fixedHeight * 1.4, fixedHeight)
+                children.add(minimizeIcon)
 
-            val restoreIcon = FluentIcon("\uE923")
-            restoreIcon.setSize(fixedHeight, fixedHeight * 1.4, fixedHeight)
-            restoreIcon.visibleProperty().set(false)
-
-            children.addAll(maximizeIcon, restoreIcon)
-            setOnMouseClicked { event ->
-                if (event.clickCount == 1 && event.button == MouseButton.PRIMARY) {
-                    if (windowSizeAdjuster.maximize()) {
-                        restoreIcon.visibleProperty().set(true)
-                        maximizeIcon.visibleProperty().set(false)
-                    } else {
-                        restoreIcon.visibleProperty().set(false)
-                        maximizeIcon.visibleProperty().set(true)
+                setOnMouseClicked { event ->
+                    if (event.clickCount == 1 && event.button == MouseButton.PRIMARY) {
+                        stage.isIconified = true
                     }
                 }
             }
-        }
 
-        close.run {
-            styleClass.add("pane-close")
-            val closeIcon = FluentIcon("\uE8BB")
-            closeIcon.setSize(fixedHeight, fixedHeight * 1.4, fixedHeight)
-            children.add(closeIcon)
-            setOnMouseClicked { event ->
-                if (event.clickCount == 1 && event.button == MouseButton.PRIMARY) {
-                    stage.close()
+            maximizeOrRestore.run {
+                styleClass.add("pane-normal")
+                val maximizeIcon = FluentIcon("\uE922")
+                maximizeIcon.setSize(fixedHeight, fixedHeight * 1.4, fixedHeight)
+
+                val restoreIcon = FluentIcon("\uE923")
+                restoreIcon.setSize(fixedHeight, fixedHeight * 1.4, fixedHeight)
+                restoreIcon.visibleProperty().set(false)
+
+                children.addAll(maximizeIcon, restoreIcon)
+                setOnMouseClicked { event ->
+                    if (event.clickCount == 1 && event.button == MouseButton.PRIMARY) {
+                        if (windowSizeAdjuster.maximize()) {
+                            restoreIcon.visibleProperty().set(true)
+                            maximizeIcon.visibleProperty().set(false)
+                        } else {
+                            restoreIcon.visibleProperty().set(false)
+                            maximizeIcon.visibleProperty().set(true)
+                        }
+                    }
+                }
+            }
+
+            close.run {
+                styleClass.add("pane-close")
+                val closeIcon = FluentIcon("\uE8BB")
+                closeIcon.setSize(fixedHeight, fixedHeight * 1.4, fixedHeight)
+                children.add(closeIcon)
+                setOnMouseClicked { event ->
+                    if (event.clickCount == 1 && event.button == MouseButton.PRIMARY) {
+                        stage.close()
+                    }
                 }
             }
         }

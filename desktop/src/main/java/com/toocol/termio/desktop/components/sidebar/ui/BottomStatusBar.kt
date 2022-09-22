@@ -46,11 +46,18 @@ class BottomStatusBar(id: Long) : TAnchorPane(id) {
 
         functionHBox.run {
             styleClass.add("hbox")
-            val terminal = FontAwesomeIcon("\uf120", FontAwesomeIcon.Type.SOLID)
-            terminal.setSize(fixedHeight, fixedHeight, fixedHeight)
 
-            val progress = FontAwesomeIcon("\uf828", FontAwesomeIcon.Type.SOLID)
-            progress.setSize(fixedHeight, fixedHeight, fixedHeight)
+            val terminal = Pane()
+            val terminalIcon = FontAwesomeIcon("\uf120", FontAwesomeIcon.Type.SOLID)
+            terminalIcon.setSize(fixedHeight, fixedHeight * 1.3, fixedHeight)
+            terminal.children.add(terminalIcon)
+            terminal.styleClass.add("pane")
+
+            val progress = Pane()
+            val progressIcon = FontAwesomeIcon("\uf828", FontAwesomeIcon.Type.SOLID)
+            progressIcon.setSize(fixedHeight, fixedHeight * 1.3, fixedHeight)
+            progress.children.add(progressIcon)
+            progress.styleClass.add("pane")
 
             children.addAll(terminal, progress)
         }
