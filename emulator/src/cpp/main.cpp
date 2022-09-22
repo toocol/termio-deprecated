@@ -63,12 +63,16 @@ int main(int argc, char* argv[]) {
 
   auto nativeEvtCallback = [&canvas, &emulator, &evt]() {
     canvas->processEvents(evt);
+
+    std::string resp = "";
     QString text = QString::fromUtf8(canvas->getSharedString().c_str());
-    if (text != "") {
-      qDebug() << text;
+    int sharedType = canvas->sharedStringType();
+    if (sharedType & nativefx::NFX_SEND_TEXT && text != "") {
       emulator.sendText(text.replace(lfRegularExp, "\r\n"));
+    } else if (sharedType & nativefx::NFX_REQUEST_SIZE) {
+      resp = "125x80";
     }
-    canvas->responseSharedString("");
+    canvas->responseSharedString(resp);
   };
   emulator.setNativeEvtCallback(nativeEvtCallback);
 

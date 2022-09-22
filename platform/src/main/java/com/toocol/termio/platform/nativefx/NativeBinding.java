@@ -97,6 +97,18 @@ public final class NativeBinding {
         }
     }
 
+    public enum SharedStringType {
+        NFX_SHARED_DEFAULT(0),
+        NFX_SEND_TEXT(1),
+        NFX_REQUEST_SIZE(2)
+        ;
+        public final int type;
+
+        SharedStringType(int type) {
+            this.type = type;
+        }
+    }
+
     interface IntEnum {
         int asInt();
 
@@ -257,7 +269,7 @@ public final class NativeBinding {
 
     public static native boolean isConnected(int key);
 
-    public static native String sendMsg(int key, String msg);
+    public static native String sendMsg(int key, String msg, int sharedStringType);
 
     public static native void processNativeEvents(int key);
 

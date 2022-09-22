@@ -220,7 +220,6 @@ void TerminalEmulator::setNativeEvtCallback(
 }
 
 void TerminalEmulator::requestFocus(bool focus) {
-  qDebug() << "request focus";
   if (focus) {
     _terminalView->focusIn();
   } else {

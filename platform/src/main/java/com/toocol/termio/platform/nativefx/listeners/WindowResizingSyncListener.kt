@@ -17,6 +17,13 @@ class WindowResizingSyncListener : EventListener<WindowResizingSync>() {
     }
 
     override fun actOn(event: WindowResizingSync) {
-        NativeNodeContainer.nodes().forEach { NativeBinding.processNativeEvents(it.key) }
+        NativeNodeContainer.nodes().forEach {
+            NativeBinding.processNativeEvents(it.key)
+            val resp = NativeBinding.sendMsg(
+                it.key,
+                "${NativeBinding.getW(it.key)},${NativeBinding.getH(it.key)}",
+                NativeBinding.SharedStringType.NFX_REQUEST_SIZE.type
+            )
+        }
     }
 }

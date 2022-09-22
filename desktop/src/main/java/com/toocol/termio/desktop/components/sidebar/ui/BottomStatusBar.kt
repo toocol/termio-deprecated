@@ -16,6 +16,7 @@ class BottomStatusBar(id: Long) : TAnchorPane(id) {
 
     private val edition = Pane()
     private val functionHBox = HBox()
+    private val sizeText = Text()
 
     override fun styleClasses(): Array<String> {
         return arrayOf(
@@ -47,6 +48,14 @@ class BottomStatusBar(id: Long) : TAnchorPane(id) {
         functionHBox.run {
             styleClass.add("hbox")
 
+            val size = HBox()
+            val sizeIcon = FontAwesomeIcon("\uf4d9", FontAwesomeIcon.Type.SOLID)
+            sizeIcon.setSize(fixedHeight, fixedHeight * 1.3, fixedHeight)
+            sizeText.text = "120x40"
+            sizeText.styleClass.add("text")
+            size.children.addAll(sizeIcon, sizeText)
+            size.styleClass.add("bottom-status-bar-size")
+
             val terminal = Pane()
             val terminalIcon = FontAwesomeIcon("\uf120", FontAwesomeIcon.Type.SOLID)
             terminalIcon.setSize(fixedHeight, fixedHeight * 1.3, fixedHeight)
@@ -59,7 +68,7 @@ class BottomStatusBar(id: Long) : TAnchorPane(id) {
             progress.children.add(progressIcon)
             progress.styleClass.add("pane")
 
-            children.addAll(terminal, progress)
+            children.addAll(size, terminal, progress)
         }
     }
 

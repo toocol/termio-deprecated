@@ -353,13 +353,14 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_isConnected(JNIEnv *env,
 /*
  * Class:     com_toocol_termio_platform_nativefx_NativeBinding
  * Method:    sendMsg
- * Signature: (ILjava/lang/String;)Ljava/lang/String;
+ * Signature: (ILjava/lang/String;I)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_sendMsg(JNIEnv *env,
                                                                jclass cls,
                                                                jint key,
-                                                               jstring jmsg) {
+                                                               jstring jmsg,
+                                                               jint sharedStringType) {
   shared_memory_info *info_data = NULL;
 
   if (key >= connections.size()) {
@@ -367,6 +368,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_sendMsg(JNIEnv *env,
   }
 
   info_data = connections[key];
+  info_data->shared_string_type |= sharedStringType;
 
   std::string msg = stringJ2C(env, jmsg);
 

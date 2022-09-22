@@ -39,6 +39,15 @@
 .bottom-status-bar {
     -fx-background-color: #CFCFCF;
 }
+.bottom-status-bar-size {
+    -fx-alignment: center;
+    -fx-padding: 0 25 0 0;
+    -fx-font-weight: 100;
+}
+.bottom-status-bar-size > .text{
+    -fx-font-size: 10pt;
+    -fx-font-family: Consolas;
+}
 
 .bottom-status-bar > .hbox > .pane :hover {
     -fx-background-color: #AFAFAF;
