@@ -40,8 +40,8 @@
     -fx-background-color: #CFCFCF;
 }
 
-.bottom-status-bar > .hbox {
-    -fx-spacing: 5;
+.bottom-status-bar > .hbox > .pane :hover {
+    -fx-background-color: #AFAFAF;
 }
 
 .bottom-status-bar-edition-text {

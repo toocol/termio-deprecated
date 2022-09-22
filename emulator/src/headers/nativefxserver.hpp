@@ -248,8 +248,6 @@ class SharedCanvas final {
     // init c-strings of info_data struct
     strcpy(info_data->client_to_server_msg, "");
     strcpy(info_data->client_to_server_res, "");
-    strcpy(info_data->server_to_client_msg, "");
-    strcpy(info_data->server_to_client_res, "");
 
     int W = info_data->w;
     int H = info_data->h;
@@ -486,8 +484,6 @@ inline int startServer(std::string const& name, redraw_callback redraw,
   // init c-strings of info_data struct
   strcpy(info_data->client_to_server_msg, "");
   strcpy(info_data->client_to_server_res, "");
-  strcpy(info_data->server_to_client_msg, "");
-  strcpy(info_data->server_to_client_res, "");
 
   int W = info_data->w;
   int H = info_data->h;

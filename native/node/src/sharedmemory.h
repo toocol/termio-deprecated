@@ -239,10 +239,6 @@ struct shared_memory_info {
 
   // mutex to protect access
   boost::interprocess::interprocess_mutex mutex;
-  // boost::interprocess::interprocess_mutex client_to_server_msg_mutex;
-  // boost::interprocess::interprocess_mutex client_to_server_res_mutex;
-  // boost::interprocess::interprocess_mutex evt_mutex;
-  // boost::interprocess::interprocess_mutex buffer_mutex;
 
   boost::interprocess::interprocess_semaphore buffer_semaphore;
 
@@ -261,17 +257,6 @@ struct shared_memory_info {
                             1];  // not initialized since it is not allowed
   char client_to_server_res[IPC_MSG_SIZE +
                             1];  // not initialized since it is not allowed
-
-  char server_to_client_msg[IPC_MSG_SIZE +
-                            1];  // not initialized since it is not allowed
-  char server_to_client_res[IPC_MSG_SIZE +
-                            1];  // not initialized since it is not allowed
-
-  // shared_string msg;
-
-  redraw_event r_event;
-  mouse_event m_event;
-  key_event k_event;
 };
 
 struct shared_memory_buffer {};
