@@ -267,6 +267,8 @@ class SharedCanvas final {
 
   bool hasFocus() { return info_data->focus; }
 
+  int sharedStringType() { return info_data->shared_string_type; }
+
   /**
    * Must invoke responseSharedString() after getSharedString()
    */

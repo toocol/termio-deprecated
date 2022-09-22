@@ -54,3 +54,4 @@ CMakeLists.txt.user.*
 .vs/
 emulator/x64
 emulator/out
+samples/conpty/out

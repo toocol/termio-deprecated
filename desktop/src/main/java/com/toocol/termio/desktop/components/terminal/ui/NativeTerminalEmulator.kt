@@ -7,6 +7,7 @@ import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.console.TerminalConsolePrintStream
 import com.toocol.termio.platform.nativefx.NativeBinding
+import com.toocol.termio.platform.nativefx.NativeBinding.SharedStringType
 import com.toocol.termio.platform.nativefx.NativeNode
 import com.toocol.termio.platform.window.WindowSizeAdjuster
 import com.toocol.termio.utilities.ansi.Printer
@@ -132,7 +133,7 @@ class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, pixelBu
                     try {
                         if (terminalWriterOutputStream.available() > 0) {
                             val text = terminalWriterOutputStream.read()
-                            NativeBinding.sendMsg(key, text)
+                            NativeBinding.sendMsg(key, text, SharedStringType.NFX_SEND_TEXT.type)
                             terminalPrintStream.signal()
                         }
                         Thread.sleep(1)

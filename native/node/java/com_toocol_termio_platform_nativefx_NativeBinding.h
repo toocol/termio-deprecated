@@ -42,10 +42,10 @@ JNIEXPORT jboolean JNICALL Java_com_toocol_termio_platform_nativefx_NativeBindin
 /*
  * Class:     com_toocol_termio_platform_nativefx_NativeBinding
  * Method:    sendMsg
- * Signature: (ILjava/lang/String;)Ljava/lang/String;
+ * Signature: (ILjava/lang/String;I)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_toocol_termio_platform_nativefx_NativeBinding_sendMsg
-  (JNIEnv *, jclass, jint, jstring);
+  (JNIEnv *, jclass, jint, jstring, jint);
 
 /*
  * Class:     com_toocol_termio_platform_nativefx_NativeBinding

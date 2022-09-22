@@ -13,7 +13,7 @@ public final class NativeBinding {
 
     public static native boolean isConnected(int key);
 
-    public static native String sendMsg(int key, String msg);
+    public static native String sendMsg(int key, String msg, int sharedStringType);
 
     public static native void processNativeEvents(int key);
 

@@ -111,6 +111,12 @@ enum EVENT_TYPE {
   NFX_INPUT_TEXT_EVENT = 17
 };
 
+enum SHARED_STRING_TYPE {
+  NFX_SHARED_DEFAULT = 0,
+  NFX_SEND_TEXT = 1,
+  NFX_REQUEST_SIZE = 2
+};
+
 struct event {
   int type = 0;
   long timestamp = 0;
@@ -228,6 +234,7 @@ inline std::string get_shared_string(char* str_to_store_to) {
 struct shared_memory_info {
   shared_memory_info()
       : img_buffer_size(0),
+        shared_string_type(NFX_SHARED_DEFAULT),
         w(1280),
         h(800),
         focus(false),
@@ -246,6 +253,7 @@ struct shared_memory_info {
   boost::interprocess::interprocess_semaphore client_to_server_res_semaphore;
 
   int img_buffer_size;
+  int shared_string_type;
 
   int w;
   int h;
