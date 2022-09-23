@@ -7,6 +7,7 @@ import com.toocol.termio.platform.css.RegisterCssFile;
 import com.toocol.termio.platform.font.FontFileAnnotationParser;
 import com.toocol.termio.platform.font.RegisterFontFile;
 import com.toocol.termio.platform.ui.TScene;
+import com.toocol.termio.platform.window.StageHolder;
 import com.toocol.termio.platform.window.WindowSizeAdjuster;
 import com.toocol.termio.utilities.log.Loggable;
 import javafx.application.Application;

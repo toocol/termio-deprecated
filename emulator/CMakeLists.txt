@@ -29,7 +29,7 @@ link_directories("C:/Windows/System32/lib")
 link_directories("C:/Windows/System32/lib/sys")
 link_directories("C:/Windows/System32/bin")
 
-set(PROJECT_SOURCES
+set(HEADERS
         src/headers/nativefxserver.hpp
         src/headers/args.hxx
         src/headers/character.h
@@ -47,6 +47,8 @@ set(PROJECT_SOURCES
         src/headers/keyboardtranslator.h
         src/headers/tools.h
         src/headers/vt102emulation.h
+)
+set(SOURCES
         src/cpp/main.cpp
         src/cpp/wcwidth.cpp
         src/cpp/history.cpp
@@ -76,7 +78,8 @@ message(STATUS "Color schemes will be installed in: ${COLORSCHEMES_DIR}" )
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(emulator
         MANUAL_FINALIZATION
-        ${PROJECT_SOURCES}
+        ${HEADERS}
+        ${SOURCES}
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET emulator APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -85,13 +88,15 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 else()
     if(ANDROID)
         add_library(emulator SHARED
-            ${PROJECT_SOURCES}
+            ${HEADERS}
+            ${SOURCES}
         )
 # Define properties for Android with Qt 5 after find_package() calls as:
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(emulator
-            ${PROJECT_SOURCES}
+            ${HEADERS}
+            ${SOURCES}
         )
     endif()
 endif()

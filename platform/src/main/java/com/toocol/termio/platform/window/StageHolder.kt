@@ -1,4 +1,4 @@
-package com.toocol.termio.desktop.bootstrap
+package com.toocol.termio.platform.window
 
 import javafx.stage.Stage
 
