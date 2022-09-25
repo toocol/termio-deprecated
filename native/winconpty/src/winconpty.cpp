@@ -1,4 +1,4 @@
-﻿#include "winpty.h"
+﻿#include "winconpty.h"
 
 int openConPty() {
   CONPTY conpty{};
