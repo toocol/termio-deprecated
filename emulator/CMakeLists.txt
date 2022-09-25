@@ -47,6 +47,14 @@ set(HEADERS
         src/headers/keyboardtranslator.h
         src/headers/tools.h
         src/headers/vt102emulation.h
+        src/headers/kpty.h
+        src/headers/kpty_p.h
+        src/headers/kprocess.h
+        src/headers/kptydevice.h
+        src/headers/kptyprocess.h
+        src/headers/pty.h
+        src/headers/virtualpty.h
+        src/headers/conpty.h
 )
 set(SOURCES
         src/cpp/main.cpp
@@ -63,6 +71,12 @@ set(SOURCES
         src/cpp/keyboardtranslator.cpp
         src/cpp/tools.cpp
         src/cpp/vt102emulation.cpp
+        src/cpp/kpty.cpp
+        src/cpp/kprocess.cpp
+        src/cpp/kptydevice.cpp
+        src/cpp/kptyprocess.cpp
+        src/cpp/pty.cpp
+        src/cpp/conpty.cpp
 )
 
 # dirs start
