@@ -1,21 +1,21 @@
 ﻿cmake_minimum_required (VERSION 3.8)
 
-project ("winpty")
+project ("winconpty")
 
 set(HEADERS 
-	src/winpty.h
+	src/winconpty.h
 )
 set(SOURCES
-	src/winpty.cpp
+	src/winconpty.cpp
 )
 
-add_library(winpty SHARED
+add_library(winconpty SHARED
 	${HEADERS}
 	${SOURCES}
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET winpty PROPERTY CXX_STANDARD 20)
+  set_property(TARGET winconpty PROPERTY CXX_STANDARD 20)
 endif()
 
 INSTALL(FILES 
@@ -24,4 +24,4 @@ INSTALL(FILES
 	include
 )
 
-INSTALL(TARGETS winpty LIBRARY DESTINATION lib)
+INSTALL(TARGETS winconpty LIBRARY DESTINATION lib)
