@@ -72,7 +72,7 @@ void pingByConPTY() {
           InitializeStartupInfoAttachedToPseudoConsole(&startupInfo, hpc)) {
         // Launch ping to emit some text back via the pipe
         PROCESS_INFORMATION piClient{};
-        hr = CreateProcess(NULL,       // No module name - use Command Line
+        hr = CreateProcess(NULL,         // No module name - use Command Line
                            szCommand,  // Command Line
                            NULL,       // Process handle not inheritable
                            NULL,       // Thread handle not inheritable
@@ -84,6 +84,7 @@ void pingByConPTY() {
                            &piClient)
                  ? S_OK
                  : GetLastError();
+        
         if (S_OK == hr) {
           // Wait up to 10s for ping process to complete
           WaitForSingleObject(piClient.hThread, 10 * 1000);
@@ -94,13 +95,13 @@ void pingByConPTY() {
 
         // --- CLOSEDOWN ---
 
-        // Now safe to clean-up client app's process-info & thread
-        CloseHandle(piClient.hThread);
-        CloseHandle(piClient.hProcess);
-
         // Cleanup attribute list
         DeleteProcThreadAttributeList(startupInfo.lpAttributeList);
         free(startupInfo.lpAttributeList);
+
+        // Now safe to clean-up client app's process-info & thread
+        CloseHandle(piClient.hThread);
+        CloseHandle(piClient.hProcess);
 
         // Close ConPTY - this will terminate client process if running
         ClosePseudoConsole(hpc);
