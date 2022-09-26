@@ -33,7 +33,6 @@ runPom.xml
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -52,7 +51,6 @@ build-emulator-Desktop_Qt_6_3_2_MinGW_64_bit-Debug/
 CMakeLists.txt.user
 CMakeLists.txt.user.*
 .vs/
-*/x64
-*/out
-*/build
-samples/conpty/out
+x64/
+out/
+build/

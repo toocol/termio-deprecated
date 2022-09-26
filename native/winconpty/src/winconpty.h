@@ -1,22 +1,34 @@
-﻿#pragma once
+﻿#ifndef __WINCONPTY_H_
+#define __WINCONPTY_H_
 
 #include <Windows.h>
 #include <io.h>
 #include <process.h>
-#include <vector>
-
-using namespace std;
+#include <map>
+#include <mutex>
 
 struct CONPTY {
-  int fd = 0;
-  int winid = 0;
   HPCON hpc{INVALID_HANDLE_VALUE};
-  HANDLE hPipeIn{INVALID_HANDLE_VALUE};
-  HANDLE hPipeOut{INVALID_HANDLE_VALUE};
-  HANDLE ptyPipeIn{INVALID_HANDLE_VALUE};
-  HANDLE ptyPipeOut{INVALID_HANDLE_VALUE};
+  HANDLE pipeInTerminalSide{INVALID_HANDLE_VALUE};
+  HANDLE pipeOutTerminalSide{INVALID_HANDLE_VALUE};
+  HANDLE pipeInPtySide{INVALID_HANDLE_VALUE};
+  HANDLE pipeOutPtySide{INVALID_HANDLE_VALUE};
+
+  PROCESS_INFORMATION pi{};
+
+  int fd = 0;
 };
 
-static const vector<CONPTY> conptys;
+int openConPty(int lines, int columns);
 
-int openConPty();
+CONPTY* getConPty(int fd);
+
+void setUTF8Mode(bool on);
+
+void closeConPty(int fd);
+
+void resizeConPty(int fd, int lines, int columns);
+
+bool startSubProcess(int fd, LPSTR command);
+
+#endif

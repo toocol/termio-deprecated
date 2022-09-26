@@ -14,6 +14,8 @@ add_executable (conpty
     ${SOURCES}
 )
 
+add_definitions(-DUNICODE)
+
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET conpty PROPERTY CXX_STANDARD 20)
 endif()
