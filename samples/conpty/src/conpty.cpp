@@ -12,6 +12,9 @@ void __cdecl PipeListener(LPVOID);
 void fdOfConPTY();
 void pingByConPTY();
 
+wstring s2ws(const string&);
+string ws2s(const wstring&);
+
 int main() {
   // fdOfConPTY();
   pingByConPTY();
@@ -28,6 +31,9 @@ void fdOfConPTY() {
   CreatePipe(&inPipePseudoConsoleSide, &inPipeOurSide, NULL, 0);
   CreatePipe(&outPipeOurSide, &outPipePseudoConsoleSide, NULL, 0);
 
+  SetConsoleCP(CP_UTF8);
+  SetConsoleOutputCP(CP_UTF8);
+
   // Create the Pseudo Console, using the pipes
   HRESULT hr = CreatePseudoConsole({80, 32}, inPipePseudoConsoleSide,
                                    outPipePseudoConsoleSide, 0, &hPC);
@@ -36,7 +42,7 @@ void fdOfConPTY() {
 }
 
 void pingByConPTY() {
-  LPSTR szCommand = (LPSTR) "ping localhost";
+  wstring szCommand = L"ping localhost";
   HRESULT hr{E_UNEXPECTED};
   HANDLE hConsole = {GetStdHandle(STD_OUTPUT_HANDLE)};
 
@@ -59,6 +65,9 @@ void pingByConPTY() {
     HANDLE hPipeIn{INVALID_HANDLE_VALUE};
     HANDLE hPipeOut{INVALID_HANDLE_VALUE};
 
+    SetConsoleCP(CP_UTF8);
+    SetConsoleOutputCP(CP_UTF8);
+
     hr = CreatePseudoConsoleAndPipes(&hpc, &hPipeIn, &hPipeOut);
     if (S_OK == hr) {
       //  Create & start thread to listen to the incoming pipe
@@ -72,11 +81,11 @@ void pingByConPTY() {
           InitializeStartupInfoAttachedToPseudoConsole(&startupInfo, hpc)) {
         // Launch ping to emit some text back via the pipe
         PROCESS_INFORMATION piClient{};
-        hr = CreateProcess(NULL,         // No module name - use Command Line
-                           szCommand,  // Command Line
-                           NULL,       // Process handle not inheritable
-                           NULL,       // Thread handle not inheritable
-                           FALSE,      // Inherit handles
+        hr = CreateProcess(NULL,  // No module name - use Command Line
+                           (LPWSTR)szCommand.c_str(),  // Command Line
+                           NULL,   // Process handle not inheritable
+                           NULL,   // Thread handle not inheritable
+                           FALSE,  // Inherit handles
                            EXTENDED_STARTUPINFO_PRESENT,  // Creation flags
                            NULL,  // Use parent's environment block
                            NULL,  // Use parent's starting directory
@@ -84,7 +93,7 @@ void pingByConPTY() {
                            &piClient)
                  ? S_OK
                  : GetLastError();
-        
+
         if (S_OK == hr) {
           // Wait up to 10s for ping process to complete
           WaitForSingleObject(piClient.hThread, 10 * 1000);
@@ -213,4 +222,28 @@ void __cdecl PipeListener(LPVOID pipe) {
     WriteFile(hConsole, szBuffer, dwBytesRead, &dwBytesWritten, NULL);
 
   } while (fRead && dwBytesRead >= 0);
+}
+
+wstring s2ws(const string& str) {
+  if (str.empty()) {
+    return L"";
+  }
+  unsigned len = str.size() + 1;
+  setlocale(LC_CTYPE, "en_US.UTF-8");
+  std::unique_ptr<wchar_t[]> p(new wchar_t[len]);
+  mbstowcs(p.get(), str.c_str(), len);
+  std::wstring w_str(p.get());
+  return w_str;
+}
+
+string ws2s(const wstring& w_str) {
+  if (w_str.empty()) {
+    return "";
+  }
+  unsigned len = w_str.size() * 4 + 1;
+  setlocale(LC_CTYPE, "en_US.UTF-8");
+  std::unique_ptr<char[]> p(new char[len]);
+  wcstombs(p.get(), w_str.c_str(), len);
+  std::string str(p.get());
+  return str;
 }

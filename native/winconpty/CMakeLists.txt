@@ -14,6 +14,8 @@ add_library(winconpty SHARED
 	${SOURCES}
 )
 
+add_definitions(-DUNICODE)
+
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET winconpty PROPERTY CXX_STANDARD 20)
 endif()
