@@ -12,9 +12,12 @@ include_directories("src/")
 
 set(HEADERS 
 	src/winconpty.h
+	src/pipeio.h
+	src/conptytypes.h
 )
 set(SOURCES
 	src/winconpty.cpp
+	src/pipeio.cpp
 )
 
 add_library(winconpty SHARED

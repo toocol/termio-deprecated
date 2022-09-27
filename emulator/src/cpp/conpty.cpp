@@ -23,7 +23,7 @@ int ConPty::start(const QString &program, const QStringList &arguments,
 #ifdef Q_OS_WIN
   fd = openConPty(_windowLines, _windowColumns);
   setUTF8Mode(_utf8);
-  startSubProcess(fd, (LPWSTR)L"ssh");
+  startSubProcess(fd, (LPWSTR)L"ssh root@47.108.157.178");
 #endif
   return 0;
 }

@@ -51,6 +51,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <queue>
 #include <thread>
 
 // force boost to be included as header only, also on windows
@@ -74,6 +75,11 @@
 // ----------------------------------------
 
 namespace nativefx {
+
+struct NATIVE_EVENT {
+  std::string type;
+  std::string evt;
+};
 
 namespace ipc = boost::interprocess;
 
@@ -164,6 +170,8 @@ class SharedCanvas final {
 
   std::size_t MAX_SIZE;
 
+  std::queue<NATIVE_EVENT*> event_queue;
+
   SharedCanvas(std::string const& name, uchar* buffer_data,
                ipc::shared_memory_object* shm_info,
                shared_memory_info* info_data, ipc::message_queue* evt_mq,
@@ -188,6 +196,44 @@ class SharedCanvas final {
     this->evt_mq_native_name = name + IPC_EVT_MQ_NAME;
 
     this->MAX_SIZE = max_event_message_size();
+  }
+
+  void sendNativeEvent(std::string type, std::string evt) {
+    // process events
+    unsigned int priority = 0;
+
+    // timed locking of resources
+    boost::system_time const timeout =
+        boost::get_system_time() +
+        boost::posix_time::milliseconds(LOCK_TIMEOUT);
+
+    native_event nevt;
+
+    store_shared_string(type, nevt.type, IPC_NUM_NATIVE_EVT_TYPE_SIZE);
+    store_shared_string(evt, nevt.evt_msg, IPC_NUM_NATIVE_EVT_MSG_SIZE);
+
+    bool result = evt_mq_native->timed_send(&nevt, sizeof(native_event),
+                                            priority, timeout);
+    if (!result) {
+      std::cerr << "[" + name +
+                       "] can't send messages, message queue not accessible."
+                << std::endl;
+    }
+  }
+
+  void watchNativeEvent() {
+    while (true) {
+      if (!event_queue.empty()) {
+        NATIVE_EVENT* evt = event_queue.front();
+        event_queue.pop();
+        sendNativeEvent(evt->type, evt->evt);
+        delete evt;
+      }
+    }
+  }
+
+  void detachNativeEventThread() {
+    std::thread(&SharedCanvas::watchNativeEvent, this).detach();
   }
 
  public:
@@ -262,8 +308,11 @@ class SharedCanvas final {
     std::size_t MAX_SIZE = max_event_message_size();
     void* evt_mq_msg_buff = malloc(MAX_SIZE);
 
-    return new SharedCanvas(name, buffer_data, shm_info, info_data, evt_mq,
-                            evt_mq_msg_buff, evt_mq_native, W, H, NFX_SUCCESS);
+    SharedCanvas* sc =
+        new SharedCanvas(name, buffer_data, shm_info, info_data, evt_mq,
+                         evt_mq_msg_buff, evt_mq_native, W, H, NFX_SUCCESS);
+    sc->detachNativeEventThread();
+    return sc;
   }
 
   int terminate() { return deleteSharedMem(name); }
@@ -360,27 +409,9 @@ class SharedCanvas final {
     return NFX_SUCCESS;
   }
 
-  void sendNativeEvent(std::string type, std::string evt) {
-    // process events
-    unsigned int priority = 0;
-
-    // timed locking of resources
-    boost::system_time const timeout =
-        boost::get_system_time() +
-        boost::posix_time::milliseconds(LOCK_TIMEOUT);
-
-    native_event nevt;
-
-    store_shared_string(type, nevt.type, IPC_NUM_NATIVE_EVT_TYPE_SIZE);
-    store_shared_string(evt, nevt.evt_msg, IPC_NUM_NATIVE_EVT_MSG_SIZE);
-
-    bool result = evt_mq_native->timed_send(&nevt, sizeof(native_event),
-                                            priority, timeout);
-    if (!result) {
-      std::cerr << "[" + name +
-                       "] can't send messages, message queue not accessible."
-                << std::endl;
-    }
+  void pushNativeEvent(std::string type, std::string evt) {
+    NATIVE_EVENT* nv = new NATIVE_EVENT{type, evt};
+    event_queue.push(nv);
   }
 
   void processEvents(event_callback events) {
