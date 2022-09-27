@@ -172,7 +172,7 @@ bool TerminalEmulator::eventFilter(QObject *obj, QEvent *ev) {
       painter.end();
     }
     nativeRedrawCallback();
-    _terminalView->nativeCanvas()->sendNativeEvent("Paint",
+    _terminalView->nativeCanvas()->pushNativeEvent("Paint",
                                                    "Terminal View Paint");
   }
   return QWidget::eventFilter(obj, ev);

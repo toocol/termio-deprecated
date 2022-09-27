@@ -2,6 +2,10 @@
 
 #include <QSize>
 
+#ifdef Q_OS_WIN
+#include <winconpty.h>
+#endif
+
 using namespace TConsole;
 
 ConPty::ConPty(QObject *parent) : QObject{parent} { ConPty::init(); }
@@ -17,6 +21,9 @@ void ConPty::init() {
 int ConPty::start(const QString &program, const QStringList &arguments,
                   const QStringList &environment, ulong winid, bool addToUtmp) {
 #ifdef Q_OS_WIN
+  fd = openConPty(_windowLines, _windowColumns);
+  setUTF8Mode(_utf8);
+  startSubProcess(fd, (LPWSTR)L"ssh root@47.108.157.178");
 #endif
   return 0;
 }
@@ -38,6 +45,7 @@ bool ConPty::flowControlEnabled() const { return _xonXoff; }
 void ConPty::setWindowSize(int lines, int cols) {
   _windowColumns = cols;
   _windowLines = lines;
+  resizeConPty(fd, lines, cols);
 }
 
 QSize ConPty::windowSize() const { return {_windowColumns, _windowLines}; }
@@ -57,6 +65,8 @@ int ConPty::foregroundProcessGroup() const {
 
 void ConPty::setUtf8Mode(bool on) {
 #ifdef Q_OS_WIN
+  _utf8 = on;
+  setUTF8Mode(on);
 #endif
 }
 

@@ -33,13 +33,8 @@
 #include <cstdlib>
 #include <iostream>
 
-// KDE
-//#include <kde_file.h>
-//#include <kdebug.h>
-
 // Reasonable line size
 #define LINE_SIZE 1024
-#define KDE_lseek lseek
 
 using namespace TConsole;
 
@@ -135,12 +130,20 @@ void HistoryFile::add(const unsigned char* bytes, int len) {
 
   int rc = 0;
 
-  rc = KDE_lseek(ion, length, SEEK_SET);
+#ifdef _MSVC_LANG
+  rc = _lseek(ion, length, SEEK_SET);
+#else
+  rc = lseek(ion, length, SEEK_SET);
+#endif
   if (rc < 0) {
     perror("HistoryFile::add.seek");
     return;
   }
+#ifdef _MSVC_LANG
+  rc = _write(ion, bytes, len);
+#else
   rc = write(ion, bytes, len);
+#endif
   if (rc < 0) {
     perror("HistoryFile::add.write");
     return;
@@ -163,12 +166,20 @@ void HistoryFile::get(unsigned char* bytes, int len, int loc) {
 
     if (loc < 0 || len < 0 || loc + len > length)
       fprintf(stderr, "getHist(...,%d,%d): invalid args.\n", len, loc);
-    rc = KDE_lseek(ion, loc, SEEK_SET);
+#ifdef _MSVC_LANG
+    rc = _lseek(ion, loc, SEEK_SET);
+#else
+    rc = lseek(ion, loc, SEEK_SET);
+#endif
     if (rc < 0) {
       perror("HistoryFile::get.seek");
       return;
     }
+#ifdef _MSVC_LANG
+    rc = _read(ion, bytes, len);
+#else
     rc = read(ion, bytes, len);
+#endif
     if (rc < 0) {
       perror("HistoryFile::get.read");
       return;

@@ -79,6 +79,10 @@ set(SOURCES
         src/cpp/conpty.cpp
 )
 
+if (WIN32)
+    add_definitions(/utf-8)
+endif()
+
 # dirs start
 #set(KB_LAYOUT_DIR "${CMAKE_INSTALL_FULL_DATADIR}/${TERMINAL_EMULATOR_LIBRARY_NAME}/kb-layouts")
 set(KB_LAYOUT_DIR "./${TERMINAL_EMULATOR_LIBRARY_NAME}/kb-layouts")
@@ -115,9 +119,11 @@ else()
     endif()
 endif()
 
-target_link_libraries(emulator PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Core5Compat utf8proc mman)
+target_link_libraries(emulator PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Core5Compat utf8proc mman winconpty)
 
 set_target_properties(emulator PROPERTIES
+
+
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}

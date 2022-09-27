@@ -9,39 +9,7 @@ HRESULT CreatePseudoConsoleAndPipes(HPCON*, HANDLE*, HANDLE*);
 HRESULT InitializeStartupInfoAttachedToPseudoConsole(STARTUPINFOEX*, HPCON);
 void __cdecl PipeListener(LPVOID);
 
-void fdOfConPTY();
-void pingByConPTY();
-
-wstring s2ws(const string&);
-string ws2s(const wstring&);
-
 int main() {
-  // fdOfConPTY();
-  pingByConPTY();
-  return 0;
-}
-
-void fdOfConPTY() {
-  HANDLE hOut, hIn;
-  HANDLE outPipeOurSide, inPipeOurSide;
-  HANDLE outPipePseudoConsoleSide, inPipePseudoConsoleSide;
-  HPCON hPC = 0;
-
-  // Create the in/out pipes:
-  CreatePipe(&inPipePseudoConsoleSide, &inPipeOurSide, NULL, 0);
-  CreatePipe(&outPipeOurSide, &outPipePseudoConsoleSide, NULL, 0);
-
-  SetConsoleCP(CP_UTF8);
-  SetConsoleOutputCP(CP_UTF8);
-
-  // Create the Pseudo Console, using the pipes
-  HRESULT hr = CreatePseudoConsole({80, 32}, inPipePseudoConsoleSide,
-                                   outPipePseudoConsoleSide, 0, &hPC);
-
-  ClosePseudoConsole(hPC);
-}
-
-void pingByConPTY() {
   wstring szCommand = L"ping localhost";
   HRESULT hr{E_UNEXPECTED};
   HANDLE hConsole = {GetStdHandle(STD_OUTPUT_HANDLE)};
@@ -121,6 +89,7 @@ void pingByConPTY() {
       }
     }
   }
+  return 0;
 }
 
 HRESULT CreatePseudoConsoleAndPipes(HPCON* hPC, HANDLE* pipeIn,
@@ -222,28 +191,4 @@ void __cdecl PipeListener(LPVOID pipe) {
     WriteFile(hConsole, szBuffer, dwBytesRead, &dwBytesWritten, NULL);
 
   } while (fRead && dwBytesRead >= 0);
-}
-
-wstring s2ws(const string& str) {
-  if (str.empty()) {
-    return L"";
-  }
-  unsigned len = str.size() + 1;
-  setlocale(LC_CTYPE, "en_US.UTF-8");
-  std::unique_ptr<wchar_t[]> p(new wchar_t[len]);
-  mbstowcs(p.get(), str.c_str(), len);
-  std::wstring w_str(p.get());
-  return w_str;
-}
-
-string ws2s(const wstring& w_str) {
-  if (w_str.empty()) {
-    return "";
-  }
-  unsigned len = w_str.size() * 4 + 1;
-  setlocale(LC_CTYPE, "en_US.UTF-8");
-  std::unique_ptr<char[]> p(new char[len]);
-  wcstombs(p.get(), w_str.c_str(), len);
-  std::string str(p.get());
-  return str;
 }

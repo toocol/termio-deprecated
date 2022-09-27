@@ -1,34 +1,29 @@
 ﻿#ifndef __WINCONPTY_H_
 #define __WINCONPTY_H_
 
-#include <Windows.h>
-#include <io.h>
-#include <process.h>
 #include <map>
-#include <mutex>
+#include "pipeio.h"
 
-struct CONPTY {
-  HPCON hpc{INVALID_HANDLE_VALUE};
-  HANDLE pipeInTerminalSide{INVALID_HANDLE_VALUE};
-  HANDLE pipeOutTerminalSide{INVALID_HANDLE_VALUE};
-  HANDLE pipeInPtySide{INVALID_HANDLE_VALUE};
-  HANDLE pipeOutPtySide{INVALID_HANDLE_VALUE};
-
-  PROCESS_INFORMATION pi{};
-
-  int fd = 0;
-};
-
-int openConPty(int lines, int columns);
-
-CONPTY* getConPty(int fd);
-
-void setUTF8Mode(bool on);
-
-void closeConPty(int fd);
-
-void resizeConPty(int fd, int lines, int columns);
-
-bool startSubProcess(int fd, LPSTR command);
+/**
+ * Open a Windows pseudo console, and return the fd.
+ */
+__declspec(dllexport) int openConPty(int, int);
+/**
+ * Set global utf8 mode.
+ */
+__declspec(dllexport) void setUTF8Mode(bool);
+/**
+ * Close Windows pseudo console by fd.
+ */
+__declspec(dllexport) void closeConPty(int);
+/**
+ * Resize Windows pseudo console by fd.
+ */
+__declspec(dllexport) void resizeConPty(int, int, int);
+/**
+ * Start an sub process by command and combine it to Windows pseudo console by
+ * fd.
+ */
+__declspec(dllexport) bool startSubProcess(int, LPWSTR);
 
 #endif

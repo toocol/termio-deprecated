@@ -297,7 +297,7 @@ inline boost::interprocess::message_queue* open_evt_mq(
 }
 
 inline std::size_t max_event_message_size() {
-  return std::max({sizeof(event), sizeof(mouse_event), sizeof(key_event),
+  return (std::max)({sizeof(event), sizeof(mouse_event), sizeof(key_event),
                    sizeof(redraw_event)});
 }
 
@@ -305,7 +305,7 @@ inline boost::interprocess::message_queue* create_evt_mq(
     std::string evt_msg_queue_name) {
   // find the maximum event message size
   std::size_t max_evt_struct_size =
-      std::max({sizeof(event), sizeof(mouse_event), sizeof(key_event),
+      (std::max)({sizeof(event), sizeof(mouse_event), sizeof(key_event),
                 sizeof(redraw_event)});
 
   boost::interprocess::message_queue* evt_msg_queue =

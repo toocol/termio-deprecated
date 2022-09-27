@@ -20,6 +20,7 @@
 
 #ifndef TEHISTORY_H
 #define TEHISTORY_H
+#define _CRT_SECURE_NO_WARNINGS
 
 // Qt
 #include <QBitRef>
@@ -299,8 +300,10 @@ class CompactHistoryBlock {
     munmap(blockStart, blockLength);
   }
 
-  virtual unsigned int remaining() { return blockStart + blockLength - tail; }
-  virtual unsigned length() { return blockLength; }
+  virtual unsigned int remaining() {
+    return static_cast<unsigned int>(blockStart + blockLength - tail);
+  }
+  virtual unsigned length() { return static_cast<unsigned int>(blockLength); }
   virtual void* allocate(size_t length);
   virtual bool contains(void* addr) {
     return addr >= blockStart && addr < (blockStart + blockLength);

@@ -666,7 +666,11 @@ QByteArray KeyboardTranslator::Entry::unescape(const QByteArray& input) const {
             hexDigits[1] = result[i + 3];
 
           unsigned charValue = 0;
+#ifdef _MSVC_LANG
+          sscanf_s(hexDigits, "%x", &charValue);
+#else
           sscanf(hexDigits, "%x", &charValue);
+#endif
 
           replacement[0] = (char)charValue;
           charsToRemove = 2 + strlen(hexDigits);

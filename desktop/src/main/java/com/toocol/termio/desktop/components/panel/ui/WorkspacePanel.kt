@@ -75,7 +75,6 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             terminal.sizePropertyBind(findComponent(MajorPanel::class.java, 1), widthRatio, heightRatio * 0.985)
             shellCache.getShell(sessionId)!!.registerConsole(NativeTerminalConsole(terminal.key))
             children.add(terminal)
-            terminal.activeTerminal()
             terminal.requestFocus()
             latch.countDown()
         }

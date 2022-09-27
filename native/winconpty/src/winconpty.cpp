@@ -1,35 +1,43 @@
 ﻿#include "winconpty.h"
+#include <io.h>
+#include <process.h>
+#include <mutex>
 
 using namespace std;
+using namespace _winconpty_;
 
-static map<int, CONPTY*> conptysMap;
 static mutex mtx;
 
 volatile static int counter = 1;
 
-void __cdecl pipeListener(LPVOID);
+/**
+ * Get Windows pseudo console by fd.
+ */
+CONPTY* getConPty(int);
 
 int openConPty(int lines, int columns) {
   HRESULT hr{E_UNEXPECTED};
-  CONPTY conpty{};
+  CONPTY* conpty = new CONPTY;
 
-  if (CreatePipe(&conpty.pipeInPtySide, &conpty.pipeOutTerminalSide, NULL, 0) &&
-      CreatePipe(&conpty.pipeInTerminalSide, &conpty.pipeOutPtySide, NULL, 0)) {
+  if (CreatePipe(&conpty->pipeInPtySide, &conpty->pipeOutTerminalSide, NULL,
+                 0) &&
+      CreatePipe(&conpty->pipeInTerminalSide, &conpty->pipeOutPtySide, NULL,
+                 0)) {
     COORD consoleSize{SHORT(columns), SHORT(lines)};
-    hr = CreatePseudoConsole(consoleSize,            // ConPty Dimensions
-                             conpty.pipeInPtySide,   // ConPty Input
-                             conpty.pipeOutPtySide,  // ConPty Output
-                             0,                      // ConPty Flags
-                             &conpty.hpc             // ConPty Reference
+    hr = CreatePseudoConsole(consoleSize,             // ConPty Dimensions
+                             conpty->pipeInPtySide,   // ConPty Input
+                             conpty->pipeOutPtySide,  // ConPty Output
+                             0,                       // ConPty Flags
+                             &conpty->hpc             // ConPty Reference
     );
     if (S_OK == hr) {
       mtx.lock();
-      conptysMap.insert(pair<int, CONPTY*>(counter, &conpty));
-      conpty.fd = counter++;
+      conptysMap.insert(pair<int, CONPTY*>(counter, conpty));
+      conpty->fd = counter++;
       mtx.unlock();
     }
   }
-  return S_OK == hr ? conpty.fd : -1;
+  return S_OK == hr ? conpty->fd : -1;
 }
 
 void closeConPty(int fd) {
@@ -44,6 +52,7 @@ void closeConPty(int fd) {
     CloseHandle(conpty->pipeInTerminalSide);
 
   conptysMap.erase(fd);
+  delete conpty;
 }
 
 CONPTY* getConPty(int fd) { return conptysMap[fd]; }
@@ -64,7 +73,7 @@ void resizeConPty(int fd, int lines, int columns) {
   ResizePseudoConsole(conpty->hpc, size);
 }
 
-bool startSubProcess(int fd, LPSTR command) {
+bool startSubProcess(int fd, LPWSTR command) {
   CONPTY* conpty = getConPty(fd);
   HRESULT hr{E_UNEXPECTED};
   if (fd > 0 && conpty) {
@@ -93,32 +102,25 @@ bool startSubProcess(int fd, LPSTR command) {
                ? S_OK
                : HRESULT_FROM_WIN32(GetLastError());
     }
+    if (S_OK == hr) {
+      hr = CreateProcess(NULL,     // No module name - use Command Line
+                         command,  // Command Line
+                         NULL,     // Process handle not inheritable
+                         NULL,     // Thread handle not inheritable
+                         FALSE,    // Inherit handles
+                         EXTENDED_STARTUPINFO_PRESENT,  // Creation flags
+                         NULL,  // Use parent's environment block
+                         NULL,  // Use parent's starting directory
+                         &startupInfo.StartupInfo,  // Pointer to STARTUPINFO
+                         &conpty->pi)
+               ? S_OK
+               : GetLastError();
+    } else
+      return false;
+
     // Cleanup attribute list
     DeleteProcThreadAttributeList(startupInfo.lpAttributeList);
     free(startupInfo.lpAttributeList);
   }
   return S_OK == hr;
-}
-
-void __cdecl pipeListener(LPVOID pipe) {
-  HANDLE hPipe{pipe};
-  HANDLE hConsole{GetStdHandle(STD_OUTPUT_HANDLE)};
-
-  const DWORD BUFF_SIZE{512};
-  char szBuffer[BUFF_SIZE]{};
-
-  DWORD dwBytesWritten{};
-  DWORD dwBytesRead{};
-  BOOL fRead{FALSE};
-  do {
-    // Read from the pipe
-    fRead = ReadFile(hPipe, szBuffer, BUFF_SIZE, &dwBytesRead, NULL);
-
-    // Write received text to the Console
-    // Note: Write to the Console using WriteFile(hConsole...), not
-    // printf()/puts() to prevent partially-read VT sequences from corrupting
-    // output
-    WriteFile(hConsole, szBuffer, dwBytesRead, &dwBytesWritten, NULL);
-
-  } while (fRead && dwBytesRead >= 0);
 }
