@@ -21,57 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * UI Structures:<br>
- * <ul>
- *     <li>
- *         <b>Stage - Scene</b>
- *         <ul>
- *             <li>
- *                 <b>MajorPanel</b>
- *                 <ul>
- *                     <li>
- *                         <b>LeftSidePanel</b>
- *                         <ul>
- *                              <li><b>SessionManageSidebar</b></li>
- *                         </ul>
- *                     </li>
- *                     <li>
- *                         <b>CenterPanel</b>
- *                         <ul>
- *                             <li>
- *                                 <b>CommandExecutor</b>: Term Command Executor panel
- *                                 <ul>
- *                                     <li>CommandExecutorInput</li>
- *                                     <li>
- *                                         CommandExecutorResultScrollPane
- *                                         <ul>
- *                                             <li>CommandExecutorResultTextArea</li>
- *                                         </ul>
- *                                     </li>
- *                                 </ul>
- *                             </li>
- *                             <li>
- *                                  <b>WorkspacePanel</b>
- *                                  <ul>
- *                                      <li><b>HomepagePanel</b>: Home page panel</li>
- *                                      <li>
- *                                          <b>DesktopTerminal</b>: The Terminal component
- *                                          <ul>
- *                                              <li>TerminalScrollPane</li>
- *                                                <ul>
- *                                                   <li>TerminalConsoleTextArea</li>
- *                                                </ul>
- *                                             </ul>
- *                                       </li>
- *                                   </ul>
- *                             </li>
- *                         </ul>
- *                     </li>
- *                 </ul>
- *             </li>
- *         <ul/>
- *     </li>
- * </ul>
+ * Application entrance of Termio Community.
  *
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/7/28 0:42

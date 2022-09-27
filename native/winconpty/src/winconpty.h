@@ -2,10 +2,10 @@
 #define __WINCONPTY_H_
 
 #include <Windows.h>
-#include <io.h>
-#include <process.h>
-#include <map>
-#include <mutex>
+
+#ifndef _WINCONTYPES_
+typedef VOID* HPCON;
+#endif
 
 struct CONPTY {
   HPCON hpc{INVALID_HANDLE_VALUE};
@@ -19,16 +19,16 @@ struct CONPTY {
   int fd = 0;
 };
 
-int openConPty(int lines, int columns);
+__declspec(dllexport) int openConPty(int, int);
 
-CONPTY* getConPty(int fd);
+__declspec(dllexport) CONPTY* getConPty(int);
 
-void setUTF8Mode(bool on);
+__declspec(dllexport) void setUTF8Mode(bool);
 
-void closeConPty(int fd);
+__declspec(dllexport) void closeConPty(int);
 
-void resizeConPty(int fd, int lines, int columns);
+__declspec(dllexport) void resizeConPty(int, int, int);
 
-bool startSubProcess(int fd, LPSTR command);
+__declspec(dllexport) bool startSubProcess(int, LPWSTR);
 
 #endif

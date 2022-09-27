@@ -123,11 +123,14 @@ void KPtyProcess::setupChildProc() {
     if (d->addUtmp)
         d->pty->login(KUser(KUser::UseRealUserID).loginName().toLocal8Bit().data(), qgetenv("DISPLAY"));
 #endif
+
+#ifndef Q_OS_WIN
   if (d->ptyChannels & StdinChannel) dup2(d->pty->slaveFd(), 0);
 
   if (d->ptyChannels & StdoutChannel) dup2(d->pty->slaveFd(), 1);
 
   if (d->ptyChannels & StderrChannel) dup2(d->pty->slaveFd(), 2);
+#endif
 
   // there was some problem in QT6, setupChildProcess was depreted.
   // KProcess::setupChildProcess();

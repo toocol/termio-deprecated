@@ -1,5 +1,9 @@
 # Native Terminal Emulator 
 
+## Compiler
+MSVC2019 for Windows  
+GNU for Linux
+
 ## Requirements
 
 ### [mman](https://github.com/alitrack/mman-win32)

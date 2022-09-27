@@ -52,3 +52,6 @@ Mkfile.old
 dkms.conf
 
 cmake-build-debug/*
+node/bin/
+node/include/
+node/lib

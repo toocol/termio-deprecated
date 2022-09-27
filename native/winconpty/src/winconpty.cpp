@@ -1,4 +1,8 @@
 ﻿#include "winconpty.h"
+#include <io.h>
+#include <process.h>
+#include <map>
+#include <mutex>
 
 using namespace std;
 
@@ -64,7 +68,7 @@ void resizeConPty(int fd, int lines, int columns) {
   ResizePseudoConsole(conpty->hpc, size);
 }
 
-bool startSubProcess(int fd, LPSTR command) {
+bool startSubProcess(int fd, LPWSTR command) {
   CONPTY* conpty = getConPty(fd);
   HRESULT hr{E_UNEXPECTED};
   if (fd > 0 && conpty) {
@@ -93,6 +97,22 @@ bool startSubProcess(int fd, LPSTR command) {
                ? S_OK
                : HRESULT_FROM_WIN32(GetLastError());
     }
+    if (S_OK == hr) {
+      hr = CreateProcess(NULL,     // No module name - use Command Line
+                         command,  // Command Line
+                         NULL,     // Process handle not inheritable
+                         NULL,     // Thread handle not inheritable
+                         FALSE,    // Inherit handles
+                         EXTENDED_STARTUPINFO_PRESENT,  // Creation flags
+                         NULL,  // Use parent's environment block
+                         NULL,  // Use parent's starting directory
+                         &startupInfo.StartupInfo,  // Pointer to STARTUPINFO
+                         &conpty->pi)
+               ? S_OK
+               : GetLastError();
+    } else
+      return false;
+
     // Cleanup attribute list
     DeleteProcThreadAttributeList(startupInfo.lpAttributeList);
     free(startupInfo.lpAttributeList);

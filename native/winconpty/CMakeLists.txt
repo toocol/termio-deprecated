@@ -2,6 +2,14 @@
 
 project ("winconpty")
 
+if (WIN32)
+    add_definitions(/utf-8)
+endif()
+
+add_definitions(-DUNICODE)
+
+include_directories("src/")
+
 set(HEADERS 
 	src/winconpty.h
 )
@@ -10,11 +18,8 @@ set(SOURCES
 )
 
 add_library(winconpty SHARED
-	${HEADERS}
 	${SOURCES}
 )
-
-add_definitions(-DUNICODE)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET winconpty PROPERTY CXX_STANDARD 20)

@@ -128,6 +128,7 @@ class ConPty : public QObject, public VirtualPty {
   void dataReceived();
 
  private:
+  int fd;
 };
 
 }  // namespace TConsole

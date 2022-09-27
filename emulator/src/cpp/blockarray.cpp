@@ -28,7 +28,9 @@
 
 // System
 #include <sys/mman.h>
+#ifndef Q_OS_WIN
 #include <sys/param.h>
+#endif
 
 #include <cstdio>
 
@@ -73,13 +75,22 @@ size_t BlockArray::append(Block *block) {
   }
 
   int rc;
+#ifdef _MSVC_LANG
+  rc = _lseek(ion, current * blocksize, SEEK_SET);
+#else
   rc = lseek(ion, current * blocksize, SEEK_SET);
+#endif
   if (rc < 0) {
     perror("HistoryBuffer::add.seek");
     setHistorySize(0);
     return size_t(-1);
   }
+
+#ifdef _MSVC_LANG
+  rc = _write(ion, block, blocksize);
+#else
   rc = write(ion, block, blocksize);
+#endif
   if (rc < 0) {
     perror("HistoryBuffer::add.write");
     setHistorySize(0);
@@ -189,7 +200,11 @@ bool BlockArray::setHistorySize(size_t newsize) {
     delete lastblock;
     lastblock = nullptr;
     if (ion >= 0) {
+#ifdef _MSVC_LANG
+      _close(ion);
+#else
       close(ion);
+#endif
     }
     ion = -1;
     current = size_t(-1);
@@ -197,6 +212,19 @@ bool BlockArray::setHistorySize(size_t newsize) {
   }
 
   if (!size) {
+#ifdef _MSVC_LANG
+    FILE *tmp;
+    errno_t err = tmpfile_s(&tmp);
+    if (err) {
+      perror("tconsole: cannot open temp file.\n");
+    } else {
+      ion = _dup(_fileno(tmp));
+      if (ion < 0) {
+        perror("tconsole: cannot dup temp file.\n");
+        fclose(tmp);
+      }
+    }
+#else
     FILE *tmp = tmpfile();
     if (!tmp) {
       perror("konsole: cannot open temp file.\n");
@@ -207,6 +235,8 @@ bool BlockArray::setHistorySize(size_t newsize) {
         fclose(tmp);
       }
     }
+#endif
+
     if (ion < 0) {
       return false;
     }
@@ -224,7 +254,11 @@ bool BlockArray::setHistorySize(size_t newsize) {
     return false;
   } else {
     decreaseBuffer(newsize);
+#ifdef _MSVC_LANG
+    _chsize(ion, length * blocksize);
+#else
     ftruncate(ion, length * blocksize);
+#endif
     size = newsize;
 
     return true;
@@ -266,7 +300,11 @@ void BlockArray::decreaseBuffer(size_t newsize) {
   // The Block constructor could do somthing in future...
   char *buffer1 = new char[blocksize];
 
+#ifdef _MSVC_LANG
+  FILE *fion = _fdopen(_dup(ion), "w+b");
+#else
   FILE *fion = fdopen(dup(ion), "w+b");
+#endif
   if (!fion) {
     delete[] buffer1;
     perror("fdopen/dup");
@@ -321,7 +359,11 @@ void BlockArray::increaseBuffer() {
     runs = offset;
   }
 
+#ifdef _MSVC_LANG
+  FILE *fion = _fdopen(_dup(ion), "w+b");
+#else
   FILE *fion = fdopen(dup(ion), "w+b");
+#endif
   if (!fion) {
     perror("fdopen/dup");
     delete[] buffer1;

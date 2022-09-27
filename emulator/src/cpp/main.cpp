@@ -13,8 +13,6 @@ int main(int argc, char* argv[]) {
 
   QApplication app(argc, argv, false);
   QImage* image = NULL;
-  QWidget* prevEvtTarget = NULL;
-  QPoint prevP;
 
   TConsole::TerminalEmulator emulator;
   emulator.resize(1280, 800);
@@ -46,8 +44,7 @@ int main(int argc, char* argv[]) {
     }
   };
 
-  auto evt = [&emulator, &prevEvtTarget, &prevP](std::string const& name,
-                                                 nfx::event* evt) {
+  auto evt = [&emulator](std::string const& name, nfx::event* evt) {
     if (evt->type == nfx::NFX_FOCUS_EVENT) {
       nfx::focus_event* focusEvt = static_cast<nfx::focus_event*>((void*)evt);
       emulator.requestFocus(focusEvt->focus);
