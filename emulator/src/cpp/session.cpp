@@ -168,6 +168,10 @@ void Session::sendKeyEvent(QKeyEvent *e) const {
   _emulation->sendKeyEvent(e, false);
 }
 
+void Session::setCodec(QTextCodec *codec) const {
+  emulation()->setCodec(codec);
+}
+
 void Session::run() {
   // Upon a KPty error, there is no description on what that error was...
   // Check to see if the given program is executable.
@@ -344,7 +348,7 @@ void Session::setUserTitle(int what, const QString &caption) {
   }
 }
 
-void Session::done(int) {
+void Session::done(int exitStatus) {
   if (!_autoClose) {
     _userTitle = QString::fromLatin1("This session is done. Finished");
     emit titleChanged();
@@ -355,22 +359,21 @@ void Session::done(int) {
   // (https://cgit.kde.org/kpty.git/) it's part of a notification.
   // So, we make it translatable, hoping that in the future it will
   // be used in some kind of notification.
-  //  QString message;
-  //  if (!_wantedClose || exitStatus != 0) {
+  QString message;
+  if (!_wantedClose || exitStatus != 0) {
+    if (_shellProcess->exitStatus() == QProcess::NormalExit) {
+      message = tr("Session '%1' exited with status%2.")
+                    .arg(_nameTitle)
+                    .arg(exitStatus);
+    } else {
+      message = tr("Session '%1' crashed.").arg(_nameTitle);
+    }
+  }
 
-  //    if (_shellProcess->exitStatus() == QProcess::NormalExit) {
-  //      message = tr("Session '%1' exited with status
-  //      %2.").arg(_nameTitle).arg(exitStatus);
-  //    } else {
-  //      message = tr("Session '%1' crashed.").arg(_nameTitle);
-  //    }
-  //  }
-
-  //  if ( !_wantedClose && _shellProcess->exitStatus() != QProcess::NormalExit
-  //  )
-  //    message = tr("Session '%1' exited unexpectedly.").arg(_nameTitle);
-  //  else
-  //    emit finished();
+  if (!_wantedClose && _shellProcess->exitStatus() != QProcess::NormalExit)
+    message = tr("Session '%1' exited unexpectedly.").arg(_nameTitle);
+  else
+    emit finished();
 }
 
 void Session::onReceiveBlock(const char *buffer, int len) {
@@ -389,3 +392,29 @@ void Session::activityStateSet(int) {}
 void Session::viewDestroyed(QObject *view) {}
 
 WId Session::windowId() const { return 0; }
+
+// SessionGroup
+int SessionGroup::splitScreenNum = 1;
+int SessionGroup::lastSessionGroupId = 0;
+QHash<int, SessionGroup *> SessionGroup::_sessionGroupMaps =
+    QHash<int, SessionGroup *>();
+
+SessionGroup::SessionGroup(QObject *parent) {}
+
+void SessionGroup::createNewSessionGroup(QWidget *parent) {
+  SessionGroup *sessionGroup = new SessionGroup(parent);
+  sessionGroup->groupId = ++lastSessionGroupId;
+  _sessionGroupMaps[sessionGroup->groupId] = sessionGroup;
+}
+
+int SessionGroup::addSessionToGroup(SessionGroupLocation location,
+                                    Session *session) {
+  QHash<int, SessionGroup *>::iterator i;
+  for (i = _sessionGroupMaps.begin(); i != _sessionGroupMaps.end(); ++i) {
+    if (i.value()->_location == location) {
+      i.value()->_sessions.append(session);
+      return i.key();
+    }
+  }
+  return -1;
+}

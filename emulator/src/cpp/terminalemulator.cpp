@@ -26,6 +26,15 @@ TerminalEmulator::TerminalEmulator(QWidget *parent)
 
 TerminalEmulator::~TerminalEmulator() {}
 
+Session *TerminalEmulator::createSession(QWidget *parent) {
+  Session *session = new Session(parent);
+  session->setTitle(Session::NameRole, QLatin1String("Ssh Session"));
+  session->setProgram("ssh");
+  session->setAutoClose(true);
+  session->setCodec(QTextCodec::codecForName("UTF-8"));
+  return session;
+}
+
 void TerminalEmulator::initialize() {
   _mainLayout = new QVBoxLayout();
   setLayout(_mainLayout);

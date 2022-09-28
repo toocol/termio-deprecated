@@ -9,6 +9,9 @@ typedef VOID* HPCON;
 #endif
 
 namespace _winconpty_ {
+
+const int bufferSize = 2 << 18;
+
 struct CONPTY {
   HPCON hpc{INVALID_HANDLE_VALUE};
   HANDLE pipeInTerminalSide{INVALID_HANDLE_VALUE};
@@ -19,6 +22,9 @@ struct CONPTY {
   PROCESS_INFORMATION pi{};
 
   int fd = 0;
+  char ringBuffer[bufferSize]{};
+  volatile int readIndicator = 0;
+  volatile int writeIndicator = 0;
 };
 
 static std::map<int, CONPTY*> conptysMap;

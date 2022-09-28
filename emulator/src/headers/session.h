@@ -163,6 +163,15 @@ class Session : public QObject {
   void sendText(const QString& text) const;
   void sendKeyEvent(QKeyEvent* e) const;
 
+  /** Sets the text codec used by this session's terminal emulation. */
+  void setCodec(QTextCodec* codec) const;
+
+  /**
+   * Specifies whether to close the session automatically when the terminal
+   * process terminates.
+   */
+  void setAutoClose(bool b) { _autoClose = b; }
+
  signals:
   /** Emitted when the terminal process starts. */
   void started();
@@ -311,6 +320,7 @@ class Session : public QObject {
 #endif
   QStringList _environment;
   int _sessionId;
+  int _sessionGroupId;
 
   bool _autoClose;
   bool _wantedClose;
@@ -341,6 +351,55 @@ class Session : public QObject {
   bool _zmodemBusy;
   KProcess* _zmodemProc;
   //  ZModemDialog* _zmodemProgress;
+};
+
+/**
+ * A session group contains a batch of sessions, every session group has one
+ * combind TerminalView.
+ * Means Session group is used for split screen.
+ */
+class SessionGroup : public QObject {
+  Q_OBJECT
+ public:
+  enum SessionGroupLocation {
+    // Split screen for one.
+    ONE_CENTER,
+    // Split screen for two.
+    TWO_LEFT,
+    TWO_RIGHT,
+    // Split screen for three.
+    THREE_LEFT,
+    THREE_RIGHT_TOP,
+    THREE_RIGHT_BOTTOM,
+    // Split screen for four.
+    FOR_LEFT_TOP,
+    FOR_LEFT_BOTTOM,
+    FOR_RIGHT_TOP,
+    FOR_RIGHT_BOTTOM
+  };
+  explicit SessionGroup(QObject* parent = nullptr);
+
+  static void createNewSessionGroup(QWidget*);
+  /**
+   * Add the session to the specific session group via SessionGroupLocation, and
+   * return the session group id.
+   */
+  static int addSessionToGroup(SessionGroupLocation, Session*);
+
+  static int splitScreenNum;
+
+ private:
+  static int lastSessionGroupId;
+  /**
+   * key:   Session group id
+   * value: Sessions in the group
+   */
+  static QHash<int, SessionGroup*> _sessionGroupMaps;
+
+  int groupId;
+  QList<Session*> _sessions;
+  TerminalView* _view;
+  SessionGroupLocation _location = ONE_CENTER;
 };
 
 }  // namespace TConsole

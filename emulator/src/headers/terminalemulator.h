@@ -10,6 +10,7 @@
 #include <QWidget>
 
 #include "emulation.h"
+#include "session.h"
 
 namespace TConsole {
 
@@ -18,6 +19,8 @@ class TerminalEmulator : public QWidget {
  public:
   TerminalEmulator(QWidget *parent = nullptr);
   ~TerminalEmulator();
+
+  Session *createSession(QWidget *parent);
 
   void initialize();
   /** Returns the terminal session's window size in lines and columns. */

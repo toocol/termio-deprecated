@@ -2,6 +2,7 @@
 #define CONPTY_H
 
 #include <QObject>
+#include <QProcess>
 
 #include "virtualpty.h"
 
@@ -90,6 +91,8 @@ class ConPty : public QObject, public VirtualPty {
 
   bool isRunning();
 
+  QProcess::ExitStatus exitStatus() const { return _exitStatus; }
+
  public slots:
 
   /**
@@ -138,6 +141,7 @@ class ConPty : public QObject, public VirtualPty {
  private:
   int fd;
   bool _running;
+  QProcess::ExitStatus _exitStatus;
   QString _workingDirectory;
 };
 
