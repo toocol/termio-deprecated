@@ -6,7 +6,7 @@
 using namespace std;
 using namespace _winconpty_;
 
-static mutex mtx;
+static mutex mtx{};
 
 volatile static int counter = 1;
 

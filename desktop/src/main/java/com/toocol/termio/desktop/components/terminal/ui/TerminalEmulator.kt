@@ -148,7 +148,7 @@ class TerminalEmulator(id: Long, sessionId: Long) : TAnchorPane(id), Loggable {
 
     override fun actionAfterShow() {}
 
-    fun activeTerminal() {
+    private fun activeTerminal() {
         currentActiveId = id()
         setPrinter(terminalPrintStream)
     }

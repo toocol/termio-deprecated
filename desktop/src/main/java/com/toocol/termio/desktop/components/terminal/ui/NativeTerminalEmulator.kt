@@ -121,7 +121,7 @@ class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, pixelBu
 
     override fun actionAfterShow() {}
 
-    fun activeTerminal() {
+    private fun activeTerminal() {
         TerminalEmulator.currentActiveId = id()
         Printer.setPrinter(terminalPrintStream)
     }

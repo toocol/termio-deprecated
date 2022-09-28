@@ -55,6 +55,8 @@ set(HEADERS
         src/headers/pty.h
         src/headers/virtualpty.h
         src/headers/conpty.h
+        src/headers/session.h
+        src/headers/shellcommand.h
 )
 set(SOURCES
         src/cpp/main.cpp
@@ -77,6 +79,8 @@ set(SOURCES
         src/cpp/kptyprocess.cpp
         src/cpp/pty.cpp
         src/cpp/conpty.cpp
+        src/cpp/session.cpp
+        src/cpp/shellcommand.cpp
 )
 
 if (WIN32)

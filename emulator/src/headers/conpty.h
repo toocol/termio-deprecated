@@ -2,8 +2,13 @@
 #define CONPTY_H
 
 #include <QObject>
+#include <QProcess>
 
 #include "virtualpty.h"
+
+// It is written here temporarily and Signal needs to be handled separately
+// later
+#define SIGHUP 1
 
 namespace TConsole {
 
@@ -82,6 +87,12 @@ class ConPty : public QObject, public VirtualPty {
    */
   int foregroundProcessGroup() const override;
 
+  void setWorkingDirectory(const QString);
+
+  bool isRunning();
+
+  QProcess::ExitStatus exitStatus() const { return _exitStatus; }
+
  public slots:
 
   /**
@@ -129,6 +140,9 @@ class ConPty : public QObject, public VirtualPty {
 
  private:
   int fd;
+  bool _running;
+  QProcess::ExitStatus _exitStatus;
+  QString _workingDirectory;
 };
 
 }  // namespace TConsole
