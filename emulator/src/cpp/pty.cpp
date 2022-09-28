@@ -151,10 +151,7 @@ void Pty::addEnvironmentVariables(const QStringList& environment) {
 }
 
 int Pty::start(const QString& program, const QStringList& programArguments,
-               const QStringList& environment, ulong winid, bool addToUtmp
-               // const QString& dbusService,
-               // const QString& dbusSession
-) {
+               const QStringList& environment, ulong winid, bool addToUtmp) {
 #ifndef Q_OS_WIN
   clearProgram();
 

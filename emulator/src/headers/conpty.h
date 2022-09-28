@@ -5,6 +5,10 @@
 
 #include "virtualpty.h"
 
+// It is written here temporarily and Signal needs to be handled separately
+// later
+#define SIGHUP 1
+
 namespace TConsole {
 
 class ConPty : public QObject, public VirtualPty {
@@ -82,6 +86,10 @@ class ConPty : public QObject, public VirtualPty {
    */
   int foregroundProcessGroup() const override;
 
+  void setWorkingDirectory(const QString);
+
+  bool isRunning();
+
  public slots:
 
   /**
@@ -129,6 +137,8 @@ class ConPty : public QObject, public VirtualPty {
 
  private:
   int fd;
+  bool _running;
+  QString _workingDirectory;
 };
 
 }  // namespace TConsole

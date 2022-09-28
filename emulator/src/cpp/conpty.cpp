@@ -1,6 +1,8 @@
 #include "conpty.h"
 
 #include <QSize>
+#include <QString>
+#include <QStringList>
 
 #ifdef Q_OS_WIN
 #include <winconpty.h>
@@ -21,9 +23,12 @@ void ConPty::init() {
 int ConPty::start(const QString &program, const QStringList &arguments,
                   const QStringList &environment, ulong winid, bool addToUtmp) {
 #ifdef Q_OS_WIN
+  QString execute;
+  execute.append(program).append(arguments.join(" "));
   fd = openConPty(_windowLines, _windowColumns);
   setUTF8Mode(_utf8);
-  startSubProcess(fd, (LPWSTR)L"ssh root@47.108.157.178");
+  // ssh root@47.108.157.178
+  startSubProcess(fd, (LPWSTR)execute.toStdWString().c_str());
 #endif
   return 0;
 }
@@ -62,6 +67,10 @@ int ConPty::foregroundProcessGroup() const {
 #endif
   return 0;
 }
+
+void ConPty::setWorkingDirectory(const QString dir) { _workingDirectory = dir; }
+
+bool ConPty::isRunning() { return _running; }
 
 void ConPty::setUtf8Mode(bool on) {
 #ifdef Q_OS_WIN

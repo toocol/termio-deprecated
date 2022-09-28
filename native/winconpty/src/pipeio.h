@@ -1,25 +1,23 @@
 #ifndef __PIPEIO_H_
 #define __PIPEIO_H_
 
-#include <string>
 #include "conptytypes.h"
 
 /**
- * Detach a thread to listen the read pipe to get data from conpty.
- * This method can only
+ * Starting a thread to listen the read pipe to get data from conpty.
  */
 __declspec(dllexport) void startReadPipeListener(int);
 /**
- * Detach a thread to listen the write pipe to send data to conpty.
+ * Starting a thread to listen the write pipe to send data to conpty.
  */
 __declspec(dllexport) void startWritePipeListener(int);
 /**
- * Writing data to conpty.
+ * Writing data to ConPty.
  */
-__declspec(dllexport) void writeData(int, std::wstring);
+__declspec(dllexport) void writeData(int, char*);
 /**
- * Reading data from conpty.
+ * Reading data from ConPty.
  */
-__declspec(dllexport) std::wstring readData(int);
+__declspec(dllexport) char* readData(int);
 
 #endif

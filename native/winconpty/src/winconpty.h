@@ -1,7 +1,6 @@
 ﻿#ifndef __WINCONPTY_H_
 #define __WINCONPTY_H_
 
-#include <map>
 #include "pipeio.h"
 
 /**

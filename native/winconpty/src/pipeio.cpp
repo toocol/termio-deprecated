@@ -10,14 +10,13 @@ void startReadPipeListener(int fd) { _beginthread(readPipeListener, 0, &fd); }
 
 void startWritePipeListener(int fd) { _beginthread(writePipeListener, 0, &fd); }
 
-void writeData(int fd, std::wstring data) {}
+void writeData(int, char*) {}
 
-std::wstring readData(int fd) { return std::wstring(); }
+char* readData(int) { return nullptr; }
 
 void __cdecl readPipeListener(void* pfd) {
   CONPTY* conpty = conptysMap[*(int*)pfd];
   HANDLE hPipe{conpty->pipeInTerminalSide};
-  HANDLE hConsole{GetStdHandle(STD_OUTPUT_HANDLE)};
 
   const DWORD BUFF_SIZE{512};
   char szBuffer[BUFF_SIZE]{};
@@ -26,16 +25,26 @@ void __cdecl readPipeListener(void* pfd) {
   DWORD dwBytesRead{};
   BOOL fRead{FALSE};
   do {
-    // Read from the pipe
+    // Read from the pipe of ConPTY.
     fRead = ReadFile(hPipe, szBuffer, BUFF_SIZE, &dwBytesRead, NULL);
-
-    // Write received text to the Console
-    // Note: Write to the Console using WriteFile(hConsole...), not
-    // printf()/puts() to prevent partially-read VT sequences from corrupting
-    // output
-    WriteFile(hConsole, szBuffer, dwBytesRead, &dwBytesWritten, NULL);
 
   } while (fRead && dwBytesRead >= 0);
 }
 
-void __cdecl writePipeListener(void* pfd) {}
+void __cdecl writePipeListener(void* pfd) {
+  CONPTY* conpty = conptysMap[*(int*)pfd];
+  HANDLE hPipe{conpty->pipeOutTerminalSide};
+
+  const DWORD BUFF_SIZE{512};
+  char szBuffer[BUFF_SIZE]{};
+
+  DWORD dwBytesRead{};
+  DWORD dwBytesWritten{};
+  BOOL fwrite{FALSE};
+
+  do {
+    // Write received text to the ConPTY.
+    fwrite = WriteFile(hPipe, szBuffer, dwBytesRead, &dwBytesWritten, NULL);
+
+  } while (fwrite && dwBytesRead >= 0);
+}

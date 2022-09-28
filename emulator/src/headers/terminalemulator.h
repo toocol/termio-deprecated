@@ -98,7 +98,7 @@ class TerminalEmulator : public QWidget {
  private slots:
   void onViewSizeChange(int height, int width);
   void onEmulationSizeChange(QSize);
-  void onCursorChanged(KeyboardCursorShape cursorShape,
+  void onCursorChanged(TConsole::KeyboardCursorShape cursorShape,
                        bool blinkingCursorEnabled);
   void viewDestroyed(QObject *view);
 };
