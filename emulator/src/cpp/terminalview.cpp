@@ -42,6 +42,7 @@ bool TerminalView::_antialiasText = true;
 bool TerminalView::HAVE_TRANSPARENCY = true;
 
 QRegularExpression rRegularExpression(QStringLiteral("\\r+$"));
+QString qssFilePath = QString(QSS_DIR).append("/view-scrollbar.qss");
 
 const ColorEntry TConsole::base_color_table[TABLE_COLORS] =
     // The following are almost IBM standard color codes, with some slight
@@ -2346,7 +2347,7 @@ void TerminalView::dropEvent(QDropEvent *event) {
     dropText.replace(QLatin1String("\r\n"), QLatin1String("\n"));
     dropText.replace(QLatin1Char('\n'), QLatin1Char('\r'));
     if (_trimPastedTrailingNewlines) {
-      dropText.replace(QRegularExpression(QStringLiteral("\\r+$")), QString());
+      dropText.replace(rRegularExpression, QString());
     }
     if (_confirmMultilinePaste && dropText.contains(QLatin1Char('\r'))) {
       if (!multilineConfirmation(dropText)) {
@@ -2685,8 +2686,8 @@ TerminalView::TerminalView(QWidget *parent)
       _fontWidth(1),
       _fontAscend(1),
       _drawTextAdditionHeight(0),
-      _leftBaseMargin(1),
-      _topBaseMargin(1),
+      _leftBaseMargin(5),
+      _topBaseMargin(5),
       _lines(1),
       _columns(1),
       _usedLines(1),
@@ -2748,6 +2749,13 @@ TerminalView::TerminalView(QWidget *parent)
   connect(_scrollBar, SIGNAL(valueChanged(int)), this,
           SLOT(scrollBarPositionChanged(int)));
   _scrollBar->hide();
+
+  QFile qssFile(qssFilePath);
+  if (qssFile.exists() && qssFile.open(QFileDevice::ReadOnly)) {
+    QString styleSheet = qssFile.readAll();
+    _scrollBar->setStyleSheet(styleSheet);
+    qssFile.close();
+  }
 
   // set timers for blinking cursor and text
   _blinkTimer = new QTimer(this);

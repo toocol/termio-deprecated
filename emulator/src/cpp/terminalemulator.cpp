@@ -19,7 +19,8 @@ using namespace TConsole;
 TerminalEmulator::TerminalEmulator(QWidget *parent)
     : QWidget(parent), _nativeImage(nullptr) {
   _nativeEvtTimer = new QTimer(this);
-  connect(_nativeEvtTimer, &QTimer::timeout, [=]() { nativeEvtCallback(); });
+  connect(_nativeEvtTimer, &QTimer::timeout, this,
+          &TerminalEmulator::nativeEventCallback);
 }
 
 TerminalEmulator::~TerminalEmulator() {}
@@ -37,6 +38,7 @@ Session *TerminalEmulator::createSession(QWidget *parent) {
 
 void TerminalEmulator::initialize() {
   _mainLayout = new QVBoxLayout();
+  _mainLayout->setContentsMargins(QMargins(0, 0, 0, 0));
   setLayout(_mainLayout);
 
   SessionGroup::initialize(this);
@@ -199,3 +201,5 @@ void TerminalEmulator::onCursorChanged(KeyboardCursorShape cursorShape,
   setCursorShape(cursorShape);
   setBlinkingCursor(blinkingCursorEnabled);
 }
+
+void TerminalEmulator::nativeEventCallback() { nativeEvtCallback(); }

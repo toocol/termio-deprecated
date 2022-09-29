@@ -89,6 +89,7 @@ class TerminalEmulator : public QWidget {
  private slots:
   void onCursorChanged(TConsole::KeyboardCursorShape cursorShape,
                        bool blinkingCursorEnabled);
+  void nativeEventCallback();
 };
 
 }  // namespace TConsole

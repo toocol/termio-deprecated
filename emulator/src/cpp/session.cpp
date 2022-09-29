@@ -503,7 +503,7 @@ void SessionGroup::createTerminalView(QWidget *parent) {
   _view->setTerminalSizeHint(true);
   _view->setTripleClickMode(TripleClickMode::SELECT_WHOLE_LINE);
   _view->setTerminalSizeStartup(true);
-  _view->setRandomSeed(_groupId * 3L);
+  _view->setRandomSeed(_groupId * 1L);
 }
 
 TerminalView *SessionGroup::view() const { return _view; }

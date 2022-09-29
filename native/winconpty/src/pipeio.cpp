@@ -19,6 +19,7 @@ void startReadListener(int fd, std::function<void(char*)> whenRecieve) {
 
 void writeData(int fd, char* data) {
   CONPTY* conpty = conptysMap[fd];
+  if (!conpty || conpty->closed) return;
   HANDLE hPipe{conpty->pipeOutTerminalSide};
 
   DWORD dwBytesRead{sizeof(data)};
@@ -46,4 +47,5 @@ void __cdecl readPipeListener(void* p) {
     pp->whenRecieve(szBuffer);
 
   } while (!conpty->closed);
+  delete conpty;
 }
