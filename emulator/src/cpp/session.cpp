@@ -7,12 +7,16 @@
 
 using namespace TConsole;
 
+/* ------------------------------------------------------------------------- */
+/*                                                                           */
+/*                                   Session                                 */
+/*                                                                           */
+/* ------------------------------------------------------------------------- */
 int Session::lastSessionId = 0;
+QRegularExpression Session::_rexp = QRegularExpression(QLatin1String("^~"));
 
-static QRegularExpression rexp(QLatin1String("^~"));
-
-Session::Session(QObject *parent)
-    : QObject{parent},
+Session::Session(QWidget *parent)
+    : QWidget{parent},
       _emulation(nullptr),
       _shellProcess(nullptr),
       _sessionId(0),
@@ -29,6 +33,7 @@ Session::Session(QObject *parent)
 
   // create emulation backend
   _emulation = new Vt102Emulation();
+  _emulation->setParent(parent);
 
   connect(_emulation, SIGNAL(titleChanged(int, QString)), this,
           SLOT(setUserTitle(int, QString)));
@@ -115,6 +120,22 @@ void Session::setInitialWorkingDirectory(const QString &dir) {
   _initialWorkingDir = ShellCommand::expand(dir);
 }
 
+void Session::setHistoryType(const HistoryType &type) {
+  _emulation->setHistory(type);
+}
+
+const HistoryType &Session::historyType() const {
+  return _emulation->history();
+}
+
+void Session::clearHistory() { _emulation->clearHistory(); }
+
+void Session::setKeyBindings(const QString &id) {
+  _emulation->setKeyBindings(id);
+}
+
+QString Session::keyBindings() const { return _emulation->keyBindings(); }
+
 void Session::setTitle(TitleRole role, const QString &newTitle) {
   if (title(role) != newTitle) {
     if (role == NameRole) {
@@ -166,6 +187,17 @@ void Session::sendText(const QString &text) const {
 
 void Session::sendKeyEvent(QKeyEvent *e) const {
   _emulation->sendKeyEvent(e, false);
+}
+
+QSize Session::size() { return _emulation->imageSize(); }
+
+void Session::setSize(const QSize &size) {
+  if ((size.width() <= 1) || (size.height() <= 1)) {
+    return;
+  }
+  SessionGroup::getGroup(_sessionGroupId)
+      ->view()
+      ->setSize(size.width(), size.height());
 }
 
 void Session::setCodec(QTextCodec *codec) const {
@@ -324,7 +356,7 @@ void Session::setUserTitle(int what, const QString &caption) {
 
   if (what == 31) {
     QString cwd = caption;
-    cwd = cwd.replace(rexp, QDir::homePath());
+    cwd = cwd.replace(_rexp, QDir::homePath());
     emit openUrlRequest(cwd);
   }
 
@@ -383,29 +415,100 @@ void Session::onReceiveBlock(const char *buffer, int len) {
 
 void Session::monitorTimerDone() {}
 
-void Session::onViewSizeChange(int height, int width) {}
+void Session::onViewSizeChange(int height, int width) { updateTerminalSize(); }
 
-void Session::onEmulationSizeChange(QSize) {}
+void Session::onEmulationSizeChange(QSize size) { setSize(size); }
 
 void Session::activityStateSet(int) {}
 
 void Session::viewDestroyed(QObject *view) {}
 
+void Session::updateTerminalSize() {
+  int minLines = -1;
+  int minColumns = -1;
+
+  // minimum number of lines and columns that views require for
+  // their size to be taken into consideration ( to avoid problems
+  // with new view widgets which haven't yet been set to their correct size )
+  const int VIEW_LINES_THRESHOLD = 2;
+  const int VIEW_COLUMNS_THRESHOLD = 2;
+
+  // select largest number of lines and columns that will fit in all visible
+  // views
+  TerminalView *view = SessionGroup::getGroup(_sessionGroupId)->view();
+  if (view->isHidden() == false && view->lines() >= VIEW_LINES_THRESHOLD &&
+      view->columns() >= VIEW_COLUMNS_THRESHOLD) {
+    minLines = (minLines == -1) ? view->lines() : qMin(minLines, view->lines());
+    minColumns = (minColumns == -1) ? view->columns()
+                                    : qMin(minColumns, view->columns());
+  }
+
+  // backend emulation must have a _terminal of at least 1 column x 1 line in
+  // size
+  if (minLines > 0 && minColumns > 0) {
+    _emulation->setImageSize(minLines, minColumns);
+  }
+}
+
 WId Session::windowId() const { return 0; }
 
-// SessionGroup
-int SessionGroup::splitScreenNum = 1;
-int SessionGroup::lastSessionGroupId = 0;
+int Session::sessionGroupId() const { return _sessionGroupId; }
+
+void Session::setSessionGroupId(int newSessionGroupId) {
+  _sessionGroupId = newSessionGroupId;
+}
+
+/* ------------------------------------------------------------------------- */
+/*                                                                           */
+/*                                SessionGroup                               */
+/*                                                                           */
+/* ------------------------------------------------------------------------- */
+// Define the static properties.
+SessionGroup::SplitScreenState SessionGroup::_state = ZERO;
+int SessionGroup::_lastSessionGroupId = 0;
+bool SessionGroup::_isInit = false;
 QHash<int, SessionGroup *> SessionGroup::_sessionGroupMaps =
     QHash<int, SessionGroup *>();
+QHash<int, std::function<void()>> SessionGroup::_splitStateMachine =
+    QHash<int, std::function<void()>>();
 
-SessionGroup::SessionGroup(QObject *parent) {}
+// Function implements.
+SessionGroup::SessionGroup(QWidget *parent) {}
 
-void SessionGroup::createNewSessionGroup(QWidget *parent) {
-  SessionGroup *sessionGroup = new SessionGroup(parent);
-  sessionGroup->groupId = ++lastSessionGroupId;
-  _sessionGroupMaps[sessionGroup->groupId] = sessionGroup;
+void SessionGroup::initialize(QWidget *parent) {
+  _splitStateMachine[ZERO | ONE] = [parent] {
+    SessionGroup *group = createNewSessionGroup(parent);
+    group->_location = ONE_CENTER;
+  };
 }
+
+void SessionGroup::changeState(SplitScreenState newState) {
+  int key = _state < newState ? (_state | newState) : -(_state | newState);
+  if (_splitStateMachine[key]) {
+    _splitStateMachine[key]();
+  }
+}
+
+SessionGroup *SessionGroup::createNewSessionGroup(QWidget *parent) {
+  SessionGroup *sessionGroup = new SessionGroup(parent);
+  sessionGroup->_groupId = ++_lastSessionGroupId;
+  sessionGroup->createTerminalView(parent);
+  _sessionGroupMaps[sessionGroup->_groupId] = sessionGroup;
+  return sessionGroup;
+}
+
+void SessionGroup::createTerminalView(QWidget *parent) {
+  _view = new TerminalView(parent);
+  _view->setBellMode(BellMode::NOTIFY_BELL);
+  _view->setTerminalSizeHint(true);
+  _view->setTripleClickMode(TripleClickMode::SELECT_WHOLE_LINE);
+  _view->setTerminalSizeStartup(true);
+  _view->setRandomSeed(_groupId * 3L);
+}
+
+TerminalView *SessionGroup::view() const { return _view; }
+
+void SessionGroup::setView(TerminalView *newView) { _view = newView; }
 
 int SessionGroup::addSessionToGroup(SessionGroupLocation location,
                                     Session *session) {
@@ -413,8 +516,11 @@ int SessionGroup::addSessionToGroup(SessionGroupLocation location,
   for (i = _sessionGroupMaps.begin(); i != _sessionGroupMaps.end(); ++i) {
     if (i.value()->_location == location) {
       i.value()->_sessions.append(session);
+      session->setSessionGroupId(i.key());
       return i.key();
     }
   }
   return -1;
 }
+
+SessionGroup *SessionGroup::getGroup(int id) { return _sessionGroupMaps[id]; }

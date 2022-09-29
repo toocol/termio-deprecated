@@ -21,10 +21,10 @@ namespace TConsole {
  * ConPTY for Windows). The PTY(or ConPTY) handles I/O between the terminal
  * process and TConsole.
  */
-class Session : public QObject {
+class Session : public QWidget {
   Q_OBJECT
  public:
-  explicit Session(QObject* parent = nullptr);
+  explicit Session(QWidget* parent = nullptr);
 
   /**
    * Adds a new view for this session.
@@ -113,6 +113,37 @@ class Session : public QObject {
   void setInitialWorkingDirectory(const QString& dir);
 
   /**
+   * Sets the type of history store used by this session.
+   * Lines of output produced by the terminal are added
+   * to the history store.  The type of history store
+   * used affects the number of lines which can be
+   * remembered before they are lost and the storage
+   * (in memory, on-disk etc.) used.
+   */
+  void setHistoryType(const HistoryType& type);
+  /**
+   * Returns the type of history store used by this session.
+   */
+  const HistoryType& historyType() const;
+  /**
+   * Clears the history store used by this session.
+   */
+  void clearHistory();
+
+  /**
+   * Sets the key bindings used by this session.  The bindings
+   * specify how input key sequences are translated into
+   * the character stream which is sent to the terminal.
+   *
+   * @param id The name of the key bindings to use.  The
+   * names of available key bindings can be determined using the
+   * KeyboardTranslatorManager class.
+   */
+  void setKeyBindings(const QString& id);
+  /** Returns the name of the key bindings used by this session. */
+  QString keyBindings() const;
+
+  /**
    * This enum describes the available title roles.
    */
   enum TitleRole {
@@ -163,6 +194,15 @@ class Session : public QObject {
   void sendText(const QString& text) const;
   void sendKeyEvent(QKeyEvent* e) const;
 
+  /** Returns the terminal session's window size in lines and columns. */
+  QSize size();
+  /**
+   * Emits a request to resize the session to accommodate
+   * the specified window size.
+   *
+   * @param size The size in lines and columns to request.
+   */
+  void setSize(const QSize& size);
   /** Sets the text codec used by this session's terminal emulation. */
   void setCodec(QTextCodec* codec) const;
 
@@ -171,6 +211,9 @@ class Session : public QObject {
    * process terminates.
    */
   void setAutoClose(bool b) { _autoClose = b; }
+
+  int sessionGroupId() const;
+  void setSessionGroupId(int newSessionGroupId);
 
  signals:
   /** Emitted when the terminal process starts. */
@@ -307,7 +350,9 @@ class Session : public QObject {
   //  void zmodemFinished();
 
  private:
+  void updateTerminalSize();
   static int lastSessionId;
+  static QRegularExpression _rexp;
 
   WId windowId() const;
 
@@ -358,9 +403,10 @@ class Session : public QObject {
  * combind TerminalView.
  * Means Session group is used for split screen.
  */
-class SessionGroup : public QObject {
+class SessionGroup : public QWidget {
   Q_OBJECT
  public:
+  enum SplitScreenState { ZERO = 0, ONE = 1, TWO = 2, THREE = 4, FOUR = 8 };
   enum SessionGroupLocation {
     // Split screen for one.
     ONE_CENTER,
@@ -377,26 +423,45 @@ class SessionGroup : public QObject {
     FOR_RIGHT_TOP,
     FOR_RIGHT_BOTTOM
   };
-  explicit SessionGroup(QObject* parent = nullptr);
+  explicit SessionGroup(QWidget* parent = nullptr);
 
-  static void createNewSessionGroup(QWidget*);
+  static void initialize(QWidget*);
+  /**
+   * Change state and execute the state mechine.
+   */
+  static void changeState(SplitScreenState);
+
   /**
    * Add the session to the specific session group via SessionGroupLocation, and
    * return the session group id.
    */
   static int addSessionToGroup(SessionGroupLocation, Session*);
 
-  static int splitScreenNum;
+  static SessionGroup* getGroup(int);
+
+  TerminalView* view() const;
+  void setView(TerminalView* newView);
 
  private:
-  static int lastSessionGroupId;
+  static SplitScreenState _state;
+  static int _lastSessionGroupId;
+  static bool _isInit;
   /**
    * key:   Session group id
    * value: Sessions in the group
    */
   static QHash<int, SessionGroup*> _sessionGroupMaps;
+  /**
+   * key: currentState|newState(currentState < newState)
+   *      -currentState|newState(currentState > newState)
+   * value: function to execute
+   */
+  static QHash<int, std::function<void()>> _splitStateMachine;
+  static SessionGroup* createNewSessionGroup(QWidget*);
 
-  int groupId;
+  void createTerminalView(QWidget*);
+
+  int _groupId;
   QList<Session*> _sessions;
   TerminalView* _view;
   SessionGroupLocation _location = ONE_CENTER;

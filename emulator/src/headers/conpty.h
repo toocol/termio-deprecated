@@ -131,6 +131,9 @@ class ConPty : public QObject, public VirtualPty {
    */
   void receivedData(const char* buffer, int length);
 
+  void finished(int exitCode, QProcess::ExitStatus exitStatus =
+                                  QProcess::ExitStatus::NormalExit);
+
  protected:
   void init() override;
 

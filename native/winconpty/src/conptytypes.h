@@ -22,9 +22,7 @@ struct CONPTY {
   PROCESS_INFORMATION pi{};
 
   int fd = 0;
-  char ringBuffer[bufferSize]{};
-  volatile int readIndicator = 0;
-  volatile int writeIndicator = 0;
+  bool closed = false;
 };
 
 static std::map<int, CONPTY*> conptysMap;
