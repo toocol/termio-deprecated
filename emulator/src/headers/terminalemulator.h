@@ -23,15 +23,6 @@ class TerminalEmulator : public QWidget {
   Session *createSession(QWidget *parent);
 
   void initialize();
-  /** Returns the terminal session's window size in lines and columns. */
-  QSize size();
-  /**
-   * Emits a request to resize the session to accommodate
-   * the specified window size.
-   *
-   * @param size The size in lines and columns to request.
-   */
-  void setSize(const QSize &size);
   /**
    * Sets the shape of the keyboard cursor.  This is the cursor drawn
    * at the position in the terminal where keyboard input will appear.
@@ -65,10 +56,7 @@ class TerminalEmulator : public QWidget {
   bool eventFilter(QObject *obj, QEvent *ev) override;
 
  private:
-  void createEmulation();
-  void createTerminalView();
-  void bindViewToEmulation(TerminalView *terminalView);
-  void updateTerminalSize();
+  void bindViewToEmulation(Emulation *, TerminalView *);
 
   std::function<void()> nativeRedrawCallback;
   std::function<void()> nativeEvtCallback;
@@ -76,8 +64,8 @@ class TerminalEmulator : public QWidget {
   QTimer *_nativeEvtTimer;
 
   TerminalView *_terminalView;
-
   Emulation *_emulation;
+
   QVBoxLayout *_mainLayout;
 
  signals:
@@ -99,11 +87,9 @@ class TerminalEmulator : public QWidget {
   void selectionChanged(bool textSelected);
 
  private slots:
-  void onViewSizeChange(int height, int width);
-  void onEmulationSizeChange(QSize);
   void onCursorChanged(TConsole::KeyboardCursorShape cursorShape,
                        bool blinkingCursorEnabled);
-  void viewDestroyed(QObject *view);
+  void nativeEventCallback();
 };
 
 }  // namespace TConsole

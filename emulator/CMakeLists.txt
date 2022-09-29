@@ -89,12 +89,15 @@ endif()
 
 # dirs start
 #set(KB_LAYOUT_DIR "${CMAKE_INSTALL_FULL_DATADIR}/${TERMINAL_EMULATOR_LIBRARY_NAME}/kb-layouts")
-set(KB_LAYOUT_DIR "./${TERMINAL_EMULATOR_LIBRARY_NAME}/kb-layouts")
+set(KB_LAYOUT_DIR "${CMAKE_INSTALL_LIBDIR}/kb-layouts")
 message(STATUS "Keyboard layouts will be installed in: ${KB_LAYOUT_DIR}")
 
 #set(COLORSCHEMES_DIR "${CMAKE_INSTALL_FULL_DATADIR}/${TERMINAL_EMULATOR_LIBRARY_NAME}/color-schemes")
-set(COLORSCHEMES_DIR "./${TERMINAL_EMULATOR_LIBRARY_NAME}/color-schemes")
+set(COLORSCHEMES_DIR "${CMAKE_INSTALL_LIBDIR}/color-schemes")
 message(STATUS "Color schemes will be installed in: ${COLORSCHEMES_DIR}" )
+
+set(QSS_DIR "${CMAKE_INSTALL_LIBDIR}/qss")
+message(STATUS "Qss style sheet will be installed in: ${COLORSCHEMES_DIR}" )
 # dirs end
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -139,6 +142,7 @@ target_compile_definitions(${TERMINAL_EMULATOR_LIBRARY_NAME}
     PRIVATE
         "KB_LAYOUT_DIR=\"${KB_LAYOUT_DIR}\""
         "COLORSCHEMES_DIR=\"${COLORSCHEMES_DIR}\""
+        "QSS_DIR=\"${QSS_DIR}\""
         "HAVE_UTF8PROC"
 #        "TRANSLATIONS_DIR=\"${TRANSLATIONS_DIR}\""
 #        "HAVE_POSIX_OPENPT"
@@ -161,6 +165,14 @@ install(DIRECTORY
     DESTINATION "${COLORSCHEMES_DIR}"
     COMPONENT Runtime
     FILES_MATCHING PATTERN "*.*schem*"
+)
+
+# qss style sheet
+install(DIRECTORY
+    lib/color-schemes/
+    DESTINATION "${QSS_DIR}"
+    COMPONENT Runtime
+    FILES_MATCHING PATTERN "*.qss"
 )
 
 install(TARGETS emulator

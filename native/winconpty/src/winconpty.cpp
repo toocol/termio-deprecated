@@ -52,7 +52,7 @@ void closeConPty(int fd) {
     CloseHandle(conpty->pipeInTerminalSide);
 
   conptysMap.erase(fd);
-  delete conpty;
+  conpty->closed = true;
 }
 
 CONPTY* getConPty(int fd) { return conptysMap[fd]; }

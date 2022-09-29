@@ -223,12 +223,13 @@ class SharedCanvas final {
 
   void watchNativeEvent() {
     while (true) {
-      if (!event_queue.empty()) {
+      while (!event_queue.empty()) {
         NATIVE_EVENT* evt = event_queue.front();
         event_queue.pop();
         sendNativeEvent(evt->type, evt->evt);
         delete evt;
       }
+      Sleep(1);
     }
   }
 

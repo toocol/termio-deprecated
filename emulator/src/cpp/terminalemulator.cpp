@@ -2,8 +2,6 @@
 
 #include <QApplication>
 
-#include "vt102emulation.h"
-
 #ifdef Q_OS_MACOS
 // Qt does not support fontconfig on macOS, so we need to use a "real" font
 // name.
@@ -21,7 +19,8 @@ using namespace TConsole;
 TerminalEmulator::TerminalEmulator(QWidget *parent)
     : QWidget(parent), _nativeImage(nullptr) {
   _nativeEvtTimer = new QTimer(this);
-  connect(_nativeEvtTimer, &QTimer::timeout, [=]() { nativeEvtCallback(); });
+  connect(_nativeEvtTimer, &QTimer::timeout, this,
+          &TerminalEmulator::nativeEventCallback);
 }
 
 TerminalEmulator::~TerminalEmulator() {}
@@ -32,15 +31,24 @@ Session *TerminalEmulator::createSession(QWidget *parent) {
   session->setProgram("ssh");
   session->setAutoClose(true);
   session->setCodec(QTextCodec::codecForName("UTF-8"));
+  session->setHistoryType(HistoryTypeBuffer(10000));
+  session->setKeyBindings(QString());
   return session;
 }
 
 void TerminalEmulator::initialize() {
   _mainLayout = new QVBoxLayout();
+  _mainLayout->setContentsMargins(QMargins(0, 0, 0, 0));
   setLayout(_mainLayout);
 
-  createEmulation();
-  createTerminalView();
+  SessionGroup::initialize(this);
+  SessionGroup::changeState(SessionGroup::ONE);
+  Session *session = createSession(this);
+  int groupId =
+      SessionGroup::addSessionToGroup(SessionGroup::ONE_CENTER, session);
+  SessionGroup *group = SessionGroup::getGroup(groupId);
+  _terminalView = group->view();
+  _emulation = session->emulation();
 
   UrlFilter *urlFilter = new UrlFilter();
   connect(urlFilter, &UrlFilter::activated, this,
@@ -61,7 +69,6 @@ void TerminalEmulator::initialize() {
           SIGNAL(termLostFocus()));
   connect(_terminalView, &TerminalView::keyPressedSignal, this,
           [this](QKeyEvent *e, bool) { Q_EMIT termKeyPressed(e); });
-  //  _terminalView->setSize(80, 40);
 
   QFont font = QApplication::font();
   font.setFamily(QLatin1String(DEFAULT_FONT_FAMILY));
@@ -71,80 +78,46 @@ void TerminalEmulator::initialize() {
 
   _terminalView->setScrollBarPosition(ScrollBarPosition::SCROLL_BAR_RIGHT);
   _terminalView->setKeyboardCursorShape(KeyboardCursorShape::BLOCK_CURSOR);
-  bindViewToEmulation(_terminalView);
-}
-
-void TerminalEmulator::createEmulation() {
-  _emulation = new Vt102Emulation();
-  _emulation->setParent(this);
-  _emulation->setCodec(QTextCodec::codecForName("UTF-8"));
-  _emulation->setHistory(HistoryTypeBuffer(50000));
-  _emulation->setKeyBindings(QString());
-
-  connect(_emulation, SIGNAL(imageResizeRequest(QSize)), this,
-          SLOT(onEmulationSizeChange(QSize)));
-  connect(_emulation, SIGNAL(imageSizeChanged(int, int)), this,
+  bindViewToEmulation(_emulation, _terminalView);
+  // connect view signals and slots
+  connect(_terminalView, SIGNAL(changedContentSizeSignal(int, int)), session,
           SLOT(onViewSizeChange(int, int)));
-  connect(_emulation, &Vt102Emulation::cursorChanged, this,
-          &TerminalEmulator::onCursorChanged);
+
+  // slot for close
+  connect(_terminalView, SIGNAL(destroyed(QObject *)), session,
+          SLOT(viewDestroyed(QObject *)));
 }
 
-void TerminalEmulator::createTerminalView() {
-  _terminalView = new TerminalView(this);
-  _terminalView->setBellMode(BellMode::NOTIFY_BELL);
-  _terminalView->setTerminalSizeHint(true);
-  _terminalView->setTripleClickMode(TripleClickMode::SELECT_WHOLE_LINE);
-  _terminalView->setTerminalSizeStartup(true);
-  _terminalView->setRandomSeed(3L);
-}
-
-void TerminalEmulator::bindViewToEmulation(TerminalView *terminalView) {
-  if (_emulation != nullptr) {
-    terminalView->setUsesMouse(_emulation->programUseMouse());
-    terminalView->setBracketedPasteMode(
-        _emulation->programBracketedPasteMode());
+void TerminalEmulator::bindViewToEmulation(Emulation *emulation,
+                                           TerminalView *terminalView) {
+  if (emulation != nullptr) {
+    terminalView->setUsesMouse(emulation->programUseMouse());
+    terminalView->setBracketedPasteMode(emulation->programBracketedPasteMode());
 
     // connect emulation - view signals and slots
-    connect(terminalView, &TerminalView::keyPressedSignal, _emulation,
+    connect(terminalView, &TerminalView::keyPressedSignal, emulation,
             &Emulation::sendKeyEvent);
-    connect(terminalView, SIGNAL(mouseSignal(int, int, int, int)), _emulation,
+    connect(terminalView, SIGNAL(mouseSignal(int, int, int, int)), emulation,
             SLOT(sendMouseEvent(int, int, int, int)));
-    connect(terminalView, SIGNAL(sendStringToEmu(const char *)), _emulation,
+    connect(terminalView, SIGNAL(sendStringToEmu(const char *)), emulation,
             SLOT(sendString(const char *)));
 
     // allow emulation to notify view when the foreground process
     // indicates whether or not it is interested in mouse signals
-    connect(_emulation, SIGNAL(programUsesMouseChanged(bool)), terminalView,
+    connect(emulation, SIGNAL(programUsesMouseChanged(bool)), terminalView,
             SLOT(setUsesMouse(bool)));
 
-    terminalView->setUsesMouse(_emulation->programUsesMouse());
+    terminalView->setUsesMouse(emulation->programUsesMouse());
 
-    connect(_emulation, SIGNAL(programBracketedPasteModeChanged(bool)),
+    connect(emulation, SIGNAL(programBracketedPasteModeChanged(bool)),
             terminalView, SLOT(setBracketedPasteMode(bool)));
 
-    terminalView->setBracketedPasteMode(
-        _emulation->programBracketedPasteMode());
+    terminalView->setBracketedPasteMode(emulation->programBracketedPasteMode());
 
-    terminalView->setScreenWindow(_emulation->createWindow());
+    terminalView->setScreenWindow(emulation->createWindow());
 
-    // connect view signals and slots
-    connect(terminalView, SIGNAL(changedContentSizeSignal(int, int)), this,
-            SLOT(onViewSizeChange(int, int)));
-
-    connect(terminalView, SIGNAL(destroyed(QObject *)), this,
-            SLOT(viewDestroyed(QObject *)));
-    // slot for close
     connect(this, SIGNAL(finished()), terminalView, SLOT(close()));
   }
-}
-
-QSize TerminalEmulator::size() { return _emulation->imageSize(); }
-
-void TerminalEmulator::setSize(const QSize &size) {
-  if ((size.width() <= 1) || (size.height() <= 1)) {
-    return;
-  }
-  _terminalView->setSize(size.width(), size.height());
 }
 
 void TerminalEmulator::setCursorShape(KeyboardCursorShape shape) {
@@ -177,7 +150,7 @@ bool TerminalEmulator::eventFilter(QObject *obj, QEvent *ev) {
   if (ev->type() == QEvent::UpdateRequest) {
     if (_nativeImage != nullptr) {
       QPainter painter(_nativeImage);
-      _terminalView->render(&painter);
+      this->render(&painter);
       painter.end();
     }
     nativeRedrawCallback();
@@ -193,33 +166,6 @@ void TerminalEmulator::setBackgroundColor(const QColor &color) {
 
 void TerminalEmulator::setForegroundColor(const QColor &color) {
   _terminalView->setForegroundColor(color);
-}
-
-void TerminalEmulator::updateTerminalSize() {
-  int minLines = -1;
-  int minColumns = -1;
-
-  // minimum number of lines and columns that views require for
-  // their size to be taken into consideration ( to avoid problems
-  // with new view widgets which haven't yet been set to their correct size )
-  const int VIEW_LINES_THRESHOLD = 2;
-  const int VIEW_COLUMNS_THRESHOLD = 2;
-
-  // select largest number of lines and columns that will fit in all visible
-  // views
-  TerminalView *view = _terminalView;
-  if (view->isHidden() == false && view->lines() >= VIEW_LINES_THRESHOLD &&
-      view->columns() >= VIEW_COLUMNS_THRESHOLD) {
-    minLines = (minLines == -1) ? view->lines() : qMin(minLines, view->lines());
-    minColumns = (minColumns == -1) ? view->columns()
-                                    : qMin(minColumns, view->columns());
-  }
-
-  // backend emulation must have a _terminal of at least 1 column x 1 line in
-  // size
-  if (minLines > 0 && minColumns > 0) {
-    _emulation->setImageSize(minLines, minColumns);
-  }
 }
 
 void TerminalEmulator::setNativeEvtCallback(
@@ -249,12 +195,6 @@ void TerminalEmulator::selectionChanged(bool textSelected) {
   emit copyAvailable(textSelected);
 }
 
-void TerminalEmulator::onViewSizeChange(int height, int width) {
-  updateTerminalSize();
-}
-
-void TerminalEmulator::onEmulationSizeChange(QSize size) { setSize(size); }
-
 void TerminalEmulator::onCursorChanged(KeyboardCursorShape cursorShape,
                                        bool blinkingCursorEnabled) {
   // TODO: A switch to enable/disable DECSCUSR?
@@ -262,20 +202,4 @@ void TerminalEmulator::onCursorChanged(KeyboardCursorShape cursorShape,
   setBlinkingCursor(blinkingCursorEnabled);
 }
 
-void TerminalEmulator::viewDestroyed(QObject *obj) {
-  TerminalView *view = (TerminalView *)obj;
-  disconnect(view, nullptr, this, nullptr);
-
-  if (_emulation != nullptr) {
-    // disconnect
-    //  - key presses signals from widget
-    //  - mouse activity signals from widget
-    //  - string sending signals from widget
-    //
-    //  ... and any other signals connected in addView()
-    disconnect(view, nullptr, _emulation, nullptr);
-
-    // disconnect state change signals emitted by emulation
-    disconnect(_emulation, nullptr, view, nullptr);
-  }
-}
+void TerminalEmulator::nativeEventCallback() { nativeEvtCallback(); }
