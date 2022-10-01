@@ -1,6 +1,7 @@
 #include "terminalemulator.h"
 
 #include <QApplication>
+#include <QShortcut>
 
 #ifdef Q_OS_MACOS
 // Qt does not support fontconfig on macOS, so we need to use a "real" font
@@ -28,7 +29,7 @@ TerminalEmulator::~TerminalEmulator() {}
 Session *TerminalEmulator::createSession(QWidget *parent) {
   Session *session = new Session(parent);
   session->setTitle(Session::NameRole, QLatin1String("Ssh Session"));
-  session->setProgram("ssh");
+  session->setProgram(ssh);
   session->setAutoClose(true);
   session->setCodec(QTextCodec::codecForName("UTF-8"));
   session->setHistoryType(HistoryTypeBuffer(10000));
@@ -86,6 +87,9 @@ void TerminalEmulator::initialize() {
   // slot for close
   connect(_terminalView, SIGNAL(destroyed(QObject *)), session,
           SLOT(viewDestroyed(QObject *)));
+
+  // test ConPTY
+  connect(_emulation, SIGNAL(testConpty()), session, SLOT(run()));
 }
 
 void TerminalEmulator::bindViewToEmulation(Emulation *emulation,

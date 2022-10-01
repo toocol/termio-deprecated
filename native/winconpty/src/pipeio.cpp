@@ -1,51 +1,52 @@
 #include "pipeio.h"
 #include <process.h>
+#include <iostream>
 #include <mutex>
+#include <thread>
 
 using namespace std;
 using namespace _winconpty_;
 
-void __cdecl readPipeListener(void*);
-
-struct PASS_PARAM {
-  int fd;
-  function<void(char*)> whenRecieve;
-};
+void readPipeListener(int, function<void(char*)>);
 
 void startReadListener(int fd, std::function<void(char*)> whenRecieve) {
-  PASS_PARAM pp{fd, whenRecieve};
-  _beginthread(readPipeListener, 0, &pp);
+  thread(&readPipeListener, fd, whenRecieve).detach();
 }
 
-void writeData(int fd, char* data) {
-  CONPTY* conpty = conptysMap[fd];
+void writeData(int fd, const char* data) {
+  CONPTY* conpty = Storage::conptysMap[fd];
   if (!conpty || conpty->closed) return;
-  HANDLE hPipe{conpty->pipeOutTerminalSide};
+  cout << "Write data conpty: " << data << endl;
 
-  DWORD dwBytesRead{sizeof(data)};
   DWORD dwBytesWritten{};
   BOOL fwrite{FALSE};
 
   // Write received text to the ConPTY.
-  fwrite = WriteFile(hPipe, data, dwBytesRead, &dwBytesWritten, NULL);
+  fwrite = WriteFile(conpty->pipeOutTerminalSide, data, (DWORD)strlen(data),
+                     &dwBytesWritten, NULL);
 }
 
-void __cdecl readPipeListener(void* p) {
-  PASS_PARAM* pp = (PASS_PARAM*)p;
-  CONPTY* conpty = conptysMap[pp->fd];
-  HANDLE hPipe{conpty->pipeInTerminalSide};
+void readPipeListener(int fd, function<void(char*)> whenRecieve) {
+  CONPTY* conpty = Storage::conptysMap[fd];
+  if (!conpty) return;
 
-  const DWORD BUFF_SIZE{1024};
+  const DWORD BUFF_SIZE{2 << 16};
   char szBuffer[BUFF_SIZE]{};
-
-  DWORD dwBytesWritten{};
   DWORD dwBytesRead{};
   BOOL fRead{FALSE};
+
   do {
     // Read from the pipe of ConPTY.
-    fRead = ReadFile(hPipe, szBuffer, BUFF_SIZE, &dwBytesRead, NULL);
-    pp->whenRecieve(szBuffer);
+    fRead = ReadFile(conpty->pipeInTerminalSide, szBuffer, BUFF_SIZE,
+                     &dwBytesRead, NULL);
 
+    if (fRead && dwBytesRead > 0) {
+      char* copy = (char*)malloc(dwBytesRead + 1);
+      memcpy(copy, szBuffer, dwBytesRead + 1);
+      whenRecieve(copy);
+    }
+    memset(szBuffer, 0, dwBytesRead);
   } while (!conpty->closed);
+
   delete conpty;
 }

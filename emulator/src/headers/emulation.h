@@ -343,6 +343,8 @@ class Emulation : public QObject {
   void handleCommandFromKeyboard(KeyboardTranslator::Command command);
   void outputFromKeypressEvent(void);
 
+  void testConpty();
+
  public slots:
   /** Change the size of the emulation's image */
   virtual void setImageSize(int lines, int columns);

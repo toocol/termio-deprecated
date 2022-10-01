@@ -16,8 +16,6 @@ struct CONPTY {
   HPCON hpc{INVALID_HANDLE_VALUE};
   HANDLE pipeInTerminalSide{INVALID_HANDLE_VALUE};
   HANDLE pipeOutTerminalSide{INVALID_HANDLE_VALUE};
-  HANDLE pipeInPtySide{INVALID_HANDLE_VALUE};
-  HANDLE pipeOutPtySide{INVALID_HANDLE_VALUE};
 
   PROCESS_INFORMATION pi{};
 
@@ -25,7 +23,10 @@ struct CONPTY {
   bool closed = false;
 };
 
-static std::map<int, CONPTY*> conptysMap;
+class Storage {
+ public:
+  static std::map<int, CONPTY*> conptysMap;
+};
 }  // namespace _winconpty_
 
 #endif

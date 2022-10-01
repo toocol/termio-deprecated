@@ -11,6 +11,6 @@ __declspec(dllexport) void startReadListener(int, std::function<void(char*)>);
 /**
  * Writing data to ConPty.
  */
-__declspec(dllexport) void writeData(int, char*);
+__declspec(dllexport) void writeData(int, const char*);
 
 #endif

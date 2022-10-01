@@ -1,11 +1,17 @@
 #include "conpty.h"
 
+#include <QCoreApplication>
+#include <QDebug>
 #include <QSize>
 #include <QString>
 #include <QStringList>
+#include <thread>
 
 #ifdef Q_OS_WIN
+#include <pipeio.h>
 #include <winconpty.h>
+
+#include <QString>
 #endif
 
 using namespace TConsole;
@@ -23,12 +29,29 @@ void ConPty::init() {
 int ConPty::start(const QString &program, const QStringList &arguments,
                   const QStringList &environment, ulong winid, bool addToUtmp) {
 #ifdef Q_OS_WIN
+  Q_ASSERT(arguments.count() >= 1);
   QString execute;
-  execute.append(program).append(arguments.join(" "));
+  execute.append(program).append(arguments.mid(1).join(" "));
   fd = openConPty(_windowLines, _windowColumns);
   setUTF8Mode(_utf8);
-  // ssh root@47.108.157.178
-  startSubProcess(fd, (LPWSTR)execute.toStdWString().c_str());
+  if (fd > 0) {
+    startReadListener(fd, [&](const char *data) {
+      if (QString(data).contains("root@47.108.157.178's password:")) {
+        sendData(QString("@joezeo951219\n").toStdString().c_str(), -1);
+      } else {
+        emit receivedData(data, strlen(data));
+      }
+    });
+
+    // ssh root@47.108.157.178
+    auto subProcess = [&](int fd, QString execute) {
+      startSubProcess(fd, (LPWSTR)execute.append(" root@47.108.157.178 -e \033")
+                              .toStdWString()
+                              .c_str());
+      emit finished(-1);
+    };
+    std::thread(subProcess, fd, execute).detach();
+  }
 #endif
   return 0;
 }
@@ -86,6 +109,7 @@ void ConPty::lockPty(bool lock) {
 
 void ConPty::sendData(const char *buffer, int length) {
 #ifdef Q_OS_WIN
+  writeData(fd, buffer);
 #endif
 }
 

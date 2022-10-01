@@ -14,6 +14,14 @@
 
 // class ZModemDialog;
 
+#define ssh "ssh"
+#define telnet "telnet";
+#ifdef Q_OS_WIN
+#define conHost "conHost";
+#else
+#define shell "shell";
+#endif
+
 namespace TConsole {
 
 /**
@@ -299,7 +307,6 @@ class Session : public QWidget {
   void activity();
 
  public slots:
-
   /**
    * Starts the terminal session.
    *

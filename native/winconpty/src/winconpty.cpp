@@ -6,7 +6,7 @@
 using namespace std;
 using namespace _winconpty_;
 
-static mutex mtx{};
+static mutex mtx;
 
 volatile static int counter = 1;
 
@@ -17,23 +17,31 @@ CONPTY* getConPty(int);
 
 int openConPty(int lines, int columns) {
   HRESULT hr{E_UNEXPECTED};
-  CONPTY* conpty = new CONPTY;
+  CONPTY* conpty = new CONPTY{};
+  HANDLE pipeInPtySide{INVALID_HANDLE_VALUE};
+  HANDLE pipeOutPtySide{INVALID_HANDLE_VALUE};
 
-  if (CreatePipe(&conpty->pipeInPtySide, &conpty->pipeOutTerminalSide, NULL,
-                 0) &&
-      CreatePipe(&conpty->pipeInTerminalSide, &conpty->pipeOutPtySide, NULL,
-                 0)) {
+  SECURITY_ATTRIBUTES security = {0};
+  if (CreatePipe(&pipeInPtySide, &conpty->pipeOutTerminalSide, &security, 0) &&
+      CreatePipe(&conpty->pipeInTerminalSide, &pipeOutPtySide, &security, 0)) {
     COORD consoleSize{SHORT(columns), SHORT(lines)};
-    hr = CreatePseudoConsole(consoleSize,             // ConPty Dimensions
-                             conpty->pipeInPtySide,   // ConPty Input
-                             conpty->pipeOutPtySide,  // ConPty Output
-                             0,                       // ConPty Flags
-                             &conpty->hpc             // ConPty Reference
+    hr = CreatePseudoConsole(consoleSize,     // ConPty Dimensions
+                             pipeInPtySide,   // ConPty Input
+                             pipeOutPtySide,  // ConPty Output
+                             0,               // ConPty Flags
+                             &conpty->hpc     // ConPty Reference
     );
+
+    // Note: We can close the handles to the PTY-end of the pipes here
+    // because the handles are dup'ed into the ConHost and will be released
+    // when the ConPTY is destroyed.
+    if (INVALID_HANDLE_VALUE != pipeInPtySide) CloseHandle(pipeInPtySide);
+    if (INVALID_HANDLE_VALUE != pipeOutPtySide) CloseHandle(pipeOutPtySide);
+
     if (S_OK == hr) {
       mtx.lock();
-      conptysMap.insert(pair<int, CONPTY*>(counter, conpty));
       conpty->fd = counter++;
+      Storage::conptysMap.insert(pair<int, CONPTY*>(conpty->fd, conpty));
       mtx.unlock();
     }
   }
@@ -41,7 +49,8 @@ int openConPty(int lines, int columns) {
 }
 
 void closeConPty(int fd) {
-  CONPTY* conpty = conptysMap[fd];
+  CONPTY* conpty = Storage::conptysMap[fd];
+  if (!conpty) return;
   // Close ConPTY - this will terminate client process if running
   ClosePseudoConsole(conpty->hpc);
 
@@ -51,11 +60,13 @@ void closeConPty(int fd) {
   if (INVALID_HANDLE_VALUE != conpty->pipeInTerminalSide)
     CloseHandle(conpty->pipeInTerminalSide);
 
-  conptysMap.erase(fd);
   conpty->closed = true;
+  mtx.lock();
+  Storage::conptysMap.erase(fd);
+  mtx.unlock();
 }
 
-CONPTY* getConPty(int fd) { return conptysMap[fd]; }
+CONPTY* getConPty(int fd) { return Storage::conptysMap[fd]; }
 
 void setUTF8Mode(bool on) {
   if (on) {
@@ -69,6 +80,7 @@ void setUTF8Mode(bool on) {
 
 void resizeConPty(int fd, int lines, int columns) {
   CONPTY* conpty = getConPty(fd);
+  if (!conpty) return;
   COORD size{SHORT(columns), SHORT(lines)};
   ResizePseudoConsole(conpty->hpc, size);
 }
@@ -78,49 +90,56 @@ bool startSubProcess(int fd, LPWSTR command) {
   HRESULT hr{E_UNEXPECTED};
   if (fd > 0 && conpty) {
     // Initialize the necessary startup info struct
-    STARTUPINFOEX startupInfo{};
+    STARTUPINFOEX* startupInfo = new STARTUPINFOEX{};
     size_t attrListSize{};
 
-    startupInfo.StartupInfo.cb = sizeof(STARTUPINFOEX);
+    startupInfo->StartupInfo.cb = sizeof(STARTUPINFOEX);
+    startupInfo->StartupInfo.dwFlags =
+        STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+    startupInfo->StartupInfo.wShowWindow = SW_HIDE;
 
     // Get the size of the thread attribute list.
-    InitializeProcThreadAttributeList(NULL, 1, 0, &attrListSize);
+    InitializeProcThreadAttributeList(nullptr, 1, 0, &attrListSize);
 
     // Allocate a thread attribute list of the correct size
-    startupInfo.lpAttributeList =
+    startupInfo->lpAttributeList =
         reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(malloc(attrListSize));
 
+    // Initialize the necessary startup info struct
     // Initialize thread attribute list
-    if (startupInfo.lpAttributeList &&
-        InitializeProcThreadAttributeList(startupInfo.lpAttributeList, 1, 0,
+    if (startupInfo->lpAttributeList &&
+        InitializeProcThreadAttributeList(startupInfo->lpAttributeList, 1, 0,
                                           &attrListSize)) {
+      // Initialize the necessary startup info struct
       // Set Pseudo Console attribute
-      // This means major process read bytes from hpc(ConPTY)
-      hr = UpdateProcThreadAttribute(startupInfo.lpAttributeList, 0,
+      hr = UpdateProcThreadAttribute(startupInfo->lpAttributeList, 0,
                                      PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
-                                     conpty->hpc, sizeof(HPCON), NULL, NULL)
+                                     conpty->hpc, sizeof(HPCON), nullptr,
+                                     nullptr)
                ? S_OK
                : HRESULT_FROM_WIN32(GetLastError());
     }
     if (S_OK == hr) {
-      hr = CreateProcess(NULL,     // No module name - use Command Line
+      hr = CreateProcess(nullptr,  // No module name - use Command Line
                          command,  // Command Line
-                         NULL,     // Process handle not inheritable
-                         NULL,     // Thread handle not inheritable
-                         FALSE,    // Inherit handles
+                         nullptr,  // Process handle not inheritable
+                         nullptr,  // Thread handle not inheritable
+                         true,     // Inherit handles
                          EXTENDED_STARTUPINFO_PRESENT,  // Creation flags
-                         NULL,  // Use parent's environment block
-                         NULL,  // Use parent's starting directory
-                         &startupInfo.StartupInfo,  // Pointer to STARTUPINFO
+                         nullptr,  // Use parent's environment block
+                         nullptr,  // Use parent's starting directory
+                         &startupInfo->StartupInfo,  // Pointer to STARTUPINFO
                          &conpty->pi)
                ? S_OK
                : GetLastError();
+
     } else
       return false;
 
     // Cleanup attribute list
-    DeleteProcThreadAttributeList(startupInfo.lpAttributeList);
-    free(startupInfo.lpAttributeList);
+    // DeleteProcThreadAttributeList(startupInfo->lpAttributeList);
+    // free(startupInfo->lpAttributeList);
   }
+  WaitForSingleObject(conpty->pi.hThread, INFINITE);
   return S_OK == hr;
 }
