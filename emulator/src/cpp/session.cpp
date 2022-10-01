@@ -205,19 +205,23 @@ void Session::setCodec(QTextCodec *codec) const {
 }
 
 void Session::run() {
-  // Upon a KPty error, there is no description on what that error was...
-  // Check to see if the given program is executable.
+// Upon a KPty error, there is no description on what that error was...
+// Check to see if the given program is executable.
 
-  /* ok I'm not exactly sure where _program comes from - however it was set to
-   * /bin/bash on my system That's bad for BSD as its /usr/local/bin/bash there
-   * - its also bad for arch as its /usr/bin/bash there too! So i added a check
-   * to see if /bin/bash exists - if no then we use $SHELL - if that does not
-   * exist either, we fall back to /bin/sh As far as i know /bin/sh exists on
-   * every unix system.. You could also just put some ifdef __FREEBSD__ here but
-   * i think these 2 filechecks are worth their computing time on any system -
-   * especially with the problem on arch linux being there too.
-   */
+/* ok I'm not exactly sure where _program comes from - however it was set to
+ * /bin/bash on my system That's bad for BSD as its /usr/local/bin/bash there
+ * - its also bad for arch as its /usr/bin/bash there too! So i added a check
+ * to see if /bin/bash exists - if no then we use $SHELL - if that does not
+ * exist either, we fall back to /bin/sh As far as i know /bin/sh exists on
+ * every unix system.. You could also just put some ifdef __FREEBSD__ here but
+ * i think these 2 filechecks are worth their computing time on any system -
+ * especially with the problem on arch linux being there too.
+ */
+#ifdef Q_OS_WIN
+  QString exec = _program;
+#else
   QString exec = QString::fromLocal8Bit(QFile::encodeName(_program));
+#endif
   // if 'exec' is not specified, fall back to default shell.  if that
   // is not set then fall back to /bin/sh
 
@@ -264,6 +268,10 @@ void Session::run() {
   QString backgroundColorHint = _hasDarkBackground
                                     ? QLatin1String("COLORFGBG=15;0")
                                     : QLatin1String("COLORFGBG=0;15");
+
+#ifdef Q_OS_WIN
+  updateTerminalSize();
+#endif
 
   /* if we do all the checking if this shell exists then we use it ;)
    * Dont know about the arguments though.. maybe youll need some more checking
@@ -447,6 +455,7 @@ void Session::updateTerminalSize() {
   // size
   if (minLines > 0 && minColumns > 0) {
     _emulation->setImageSize(minLines, minColumns);
+    _shellProcess->setWindowSize(minLines, minColumns);
   }
 }
 

@@ -1566,6 +1566,9 @@ void Vt102Emulation::sendKeyEvent(QKeyEvent* event, bool fromPaste) {
       case Qt::Key_C:  // cancel flow control
         emit flowControlKeyPressed(false);
         break;
+      case Qt::Key_L:
+        emit testConpty();
+        break;
     }
   }
 
@@ -1629,9 +1632,8 @@ void Vt102Emulation::sendKeyEvent(QKeyEvent* event, bool fromPaste) {
 //    if (textToSend == "\r") textToSend = "\r\n";
 #endif
 
-    // There is no pty in this project, just receive data;
-    //    Q_EMIT sendData(textToSend.constData(), textToSend.length());
-    receiveData(textToSend.constData(), textToSend.length());
+    Q_EMIT sendData(textToSend.constData(), textToSend.length());
+    // receiveData(textToSend.constData(), textToSend.length());
   } else {
     // print an error message to the terminal if no key translator has been
     // set

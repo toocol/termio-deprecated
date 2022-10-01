@@ -18,6 +18,7 @@ set(HEADERS
 set(SOURCES
 	src/winconpty.cpp
 	src/pipeio.cpp
+	src/conptytypes.cpp
 )
 
 add_library(winconpty SHARED
