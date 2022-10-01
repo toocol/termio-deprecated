@@ -35,13 +35,8 @@ int ConPty::start(const QString &program, const QStringList &arguments,
   fd = openConPty(_windowLines, _windowColumns);
   setUTF8Mode(_utf8);
   if (fd > 0) {
-    startReadListener(fd, [&](const char *data) {
-      if (QString(data).contains("root@47.108.157.178's password:")) {
-        sendData(QString("@joezeo951219\n").toStdString().c_str(), -1);
-      } else {
-        emit receivedData(data, strlen(data));
-      }
-    });
+    startReadListener(
+        fd, [&](const char *data) { emit receivedData(data, strlen(data)); });
 
     // ssh root@47.108.157.178
     auto subProcess = [&](int fd, QString execute) {
