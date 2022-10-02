@@ -35,13 +35,9 @@ int ConPty::start(const QString &program, const QStringList &arguments,
   setUTF8Mode(_utf8);
   if (fd > 0) {
     startReadListener(fd, [&](const char *data, const int length) {
-      if (QString(data).contains("root@47.108.157.178's password:")) {
-        sendData(QString("@joezeo951219\n").toStdString().c_str(), -1);
-      } else {
-        char *dup = new char[length];
-        memcpy(dup, data, length);
-        emit receivedData(dup, strlen(dup));
-      }
+      char *dup = new char[length];
+      memcpy(dup, data, length);
+      emit receivedData(dup, strlen(dup));
     });
 
     // ssh root@47.108.157.178
