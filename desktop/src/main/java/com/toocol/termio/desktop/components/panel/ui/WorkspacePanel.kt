@@ -80,6 +80,7 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             latch.countDown()
         }
         latch.await()
+        System.gc()
     }
 
     fun invokeTerminal(sessionId: Long) {

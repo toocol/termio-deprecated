@@ -66,6 +66,8 @@ Session::Session(QWidget *parent)
 
   connect(_shellProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this,
           SLOT(done(int)));
+
+  connect(_emulation, SIGNAL(updateImage()), this, SLOT(viewUpdate()));
 }
 
 void Session::addView(TerminalView *widget) {
