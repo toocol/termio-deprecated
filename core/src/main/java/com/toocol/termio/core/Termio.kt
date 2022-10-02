@@ -11,6 +11,7 @@ import com.toocol.termio.utilities.module.ModuleDeployment
 import com.toocol.termio.utilities.utils.CastUtil
 import com.toocol.termio.utilities.utils.ClassScanner
 import com.toocol.termio.utilities.utils.MessageBox
+import com.toocol.termio.utilities.utils.TimeRecorder
 import io.vertx.core.*
 import io.vertx.core.eventbus.EventBus
 import java.util.concurrent.CountDownLatch
@@ -64,6 +65,7 @@ abstract class Termio {
         }
 
         init {
+            val recorder = TimeRecorder()
             /* Get the verticle which need to deploy in main class by annotation */
             val annotatedClassList = ClassScanner("com.toocol.termio") { clazz: Class<*> ->
                 clazz.isAnnotationPresent(ModuleDeployment::class.java) }.scan()
@@ -77,6 +79,7 @@ abstract class Termio {
                 }
             })
             loadingLatch = CountDownLatch(1)
+            println("Reflection obtain verticle : ${recorder.end()}")
         }
 
         @JvmStatic
@@ -91,6 +94,7 @@ abstract class Termio {
 
         @JvmStatic
         protected fun prepareVertxEnvironment(ignore: Set<Class<out AbstractVerticle>>?): Vertx {
+            val recorder = TimeRecorder()
             val initialLatchSize = if (ignore == null) verticleClassList!!.size else verticleClassList!!.size - ignore.size
             initialLatch = CountDownLatch(initialLatchSize)
 
@@ -129,6 +133,7 @@ abstract class Termio {
                 }
             }
             )
+            println("Prepare vertx environment: ${recorder.end()}")
             return vertx
         }
     }

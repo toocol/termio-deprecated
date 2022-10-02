@@ -7,6 +7,7 @@ module termio.platform {
     requires io.vertx.core;
     requires org.fxmisc.richtext;
     requires kotlin.stdlib;
+    requires kotlinx.coroutines.core.jvm;
     requires com.google.common;
     requires reactfx;
     requires annotations;

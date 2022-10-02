@@ -10,6 +10,7 @@ import com.toocol.termio.platform.ui.TScene;
 import com.toocol.termio.platform.window.StageHolder;
 import com.toocol.termio.platform.window.WindowSizeAdjuster;
 import com.toocol.termio.utilities.log.Loggable;
+import com.toocol.termio.utilities.utils.TimeRecorder;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -63,6 +64,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
 
     @Override
     public void start(Stage stage) throws IOException {
+        TimeRecorder recorder = new TimeRecorder();
         StageHolder.stage = stage;
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.setTitle("Termio Community");
@@ -100,6 +102,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
         cssParser = null;
         fontParser = null;
         System.gc();
+        System.out.println("Create application UI: " + recorder.end());
     }
 
     @Override

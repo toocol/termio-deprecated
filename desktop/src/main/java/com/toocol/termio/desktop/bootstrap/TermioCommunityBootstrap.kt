@@ -17,6 +17,8 @@ import com.toocol.termio.utilities.config.IniConfigLoader
 import com.toocol.termio.utilities.console.Console
 import com.toocol.termio.utilities.functional.Ignore
 import com.toocol.termio.utilities.log.FileAppender.close
+import com.toocol.termio.utilities.module.ModuleBootstrap
+import com.toocol.termio.utilities.module.ScopeModule
 import com.toocol.termio.utilities.utils.MessageBox
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -27,7 +29,7 @@ import kotlin.system.exitProcess
  * @date: 2022/8/2 0:34
  * @version: 0.0.1
  */
-object TermioCommunityBootstrap : Termio() {
+object TermioCommunityBootstrap : Termio(), ModuleBootstrap {
     @JvmStatic
     fun runDesktop(runClass: Class<*>) {
         runType = RunType.DESKTOP
@@ -88,5 +90,9 @@ object TermioCommunityBootstrap : Termio() {
                 exitProcess(-1)
             }
         }, "bootstrap-watch-thread").start()
+    }
+
+    override fun modules(): Array<out ScopeModule> {
+        return arrayOf()
     }
 }

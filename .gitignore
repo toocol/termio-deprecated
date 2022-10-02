@@ -42,6 +42,9 @@ runPom.xml
 ### VERTX ###
 .vertx/
 
+### GRADLE ###
+.gradle
+
 dependency-reduced-pom.xml
 
 ### cmake build directory ###

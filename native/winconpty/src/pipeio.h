@@ -7,7 +7,8 @@
 /**
  * Starting a thread to listen the read pipe to get data from conpty.
  */
-__declspec(dllexport) void startReadListener(int, std::function<void(char*)>);
+__declspec(dllexport) void startReadListener(int,
+                                             std::function<void(char*, int)>);
 /**
  * Writing data to ConPty.
  */

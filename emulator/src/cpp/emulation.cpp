@@ -1,5 +1,7 @@
 #include "emulation.h"
 
+#include <cstdlib>
+
 #define BULK_TIMEOUT1 10
 #define BULK_TIMEOUT2 40
 
@@ -260,4 +262,5 @@ void Emulation::receiveData(const char *text, int length) {
         emit zmodemDetected();
     }
   }
+  delete[] text;
 }

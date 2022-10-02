@@ -8,6 +8,7 @@ module termio.utilities {
     requires ini4j;
     requires jline;
     requires kotlin.stdlib;
+    requires kotlinx.coroutines.core.jvm;
     requires annotations;
     requires jdk.unsupported;
 
