@@ -31,7 +31,6 @@
 
         <!-- third party dependency -->
         <kotlin.version>1.7.20</kotlin.version>
-        <kotlin.maven.version>1.7.10</kotlin.maven.version>
         <kotlinx-coroutines-core.version>1.6.4</kotlinx-coroutines-core.version>
         <kotlinx-coroutines-javafx.version>1.6.4</kotlinx-coroutines-javafx.version>
 
@@ -240,7 +239,7 @@
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
-                <version>${kotlin.maven.version}</version>
+                <version>${kotlin.version}</version>
                 <executions>
                     <execution>
                         <id>compile</id>
@@ -263,6 +262,7 @@
                         <arg>-Xjvm-default=all</arg>
                         <arg>-Xcoroutines=enable</arg>
                         <arg>-opt-in=Kotlin.RequiresOptIn</arg>
+                        <arg>-Dkotlinx.coroutines.debug</arg>
                     </args>
                 </configuration>
             </plugin>

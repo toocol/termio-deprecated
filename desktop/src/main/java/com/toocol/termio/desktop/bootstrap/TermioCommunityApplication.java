@@ -102,7 +102,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
         cssParser = null;
         fontParser = null;
         System.gc();
-        System.out.println("Create application UI: " + recorder.end());
+        info("Create application UI: " + recorder.end());
     }
 
     @Override

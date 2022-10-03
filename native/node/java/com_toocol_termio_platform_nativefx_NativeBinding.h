@@ -209,6 +209,14 @@ JNIEXPORT jboolean JNICALL Java_com_toocol_termio_platform_nativefx_NativeBindin
 
 /*
  * Class:     com_toocol_termio_platform_nativefx_NativeBinding
+ * Method:    createSshSession
+ * Signature: (IJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_toocol_termio_platform_nativefx_NativeBinding_createSshSession
+  (JNIEnv *, jclass, jint, jlong, jstring, jstring, jstring, jlong);
+
+/*
+ * Class:     com_toocol_termio_platform_nativefx_NativeBinding
  * Method:    getBuffer
  * Signature: (I)Ljava/nio/ByteBuffer;
  */

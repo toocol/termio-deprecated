@@ -18,6 +18,6 @@ class SshSessionEstablishedSyncListener : EventListener<SessionEstablishedSync>(
 
     override fun actOn(event: SessionEstablishedSync) {
         val workspacePanel: WorkspacePanel = ComponentsContainer[WorkspacePanel::class.java, 1]
-        workspacePanel.createTerminal(event.sessionId)
+        workspacePanel.createSshSession(event.sessionId, event.host, event.user, event.password)
     }
 }

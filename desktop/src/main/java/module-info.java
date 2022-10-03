@@ -3,13 +3,17 @@ module termio.desktop {
     requires ini4j;
     requires jsr305;
     requires jdk.unsupported;
+    requires java.instrument;
     requires com.google.protobuf;
     requires com.google.common;
     requires org.apache.commons.io;
     requires org.apache.commons.codec;
     requires org.apache.commons.lang3;
-    requires kotlin.stdlib;
     requires annotations;
+    requires kotlinx.coroutines.core;
+    requires kotlinx.coroutines.core.jvm;
+    requires kotlinx.coroutines.javafx;
+    requires kotlin.stdlib;
 
     requires javafx.controls;
     requires org.fxmisc.richtext;

@@ -14,6 +14,7 @@ module termio.core {
     requires jsr305;
     requires ini4j;
     requires kotlin.stdlib;
+    requires kotlinx.coroutines.core.jvm;
     requires annotations;
 
     opens com.toocol.termio.core.config.core to termio.utilities;
@@ -45,4 +46,5 @@ module termio.core {
     exports com.toocol.termio.core.term.commands;
     exports com.toocol.termio.core.term.commands.processors;
     exports com.toocol.termio.core.term.core;
+    exports com.toocol.termio.core.term.api;
 }

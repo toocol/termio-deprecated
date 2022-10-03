@@ -29,13 +29,11 @@ class CommandExecutorInput(private val id: Long) : AnchorPane(), IStyleAble, ICo
             styled()
             children.addAll(text, textField)
 
-            setTopAnchor(text, 8.0)
-            setTopAnchor(textField, 5.0)
-
-            setBottomAnchor(textField, 0.0)
+            setTopAnchor(text, 4.0)
+            setTopAnchor(textField, 1.0)
 
             setLeftAnchor(text, 5.0)
-            setLeftAnchor(textField, 77.0)
+            setLeftAnchor(textField, 70.0)
 
             setRightAnchor(textField, 10.0)
 
@@ -55,6 +53,8 @@ class CommandExecutorInput(private val id: Long) : AnchorPane(), IStyleAble, ICo
 
         textField.apply {
             isEditable = true
+            maxHeight = 20.0
+            minHeight = 20.0
         }
     }
 
@@ -64,9 +64,9 @@ class CommandExecutorInput(private val id: Long) : AnchorPane(), IStyleAble, ICo
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
-        prefHeight = 30.0
-        maxHeight = 30.0
-        minHeight = 30.0
+        prefHeight = 25.0
+        maxHeight = 25.0
+        minHeight = 25.0
     }
 
     fun clear() {

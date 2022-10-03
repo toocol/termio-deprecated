@@ -55,6 +55,8 @@ public final class NativeBinding {
 
     public static native boolean requestFocus(int key, boolean focus, long timestamp);
 
+    public static native boolean createSshSession(int key, long sessionId, String host, String user, String password, long timestamp);
+
     public static native ByteBuffer getBuffer(int key);
 
     public static native boolean lock(int key);

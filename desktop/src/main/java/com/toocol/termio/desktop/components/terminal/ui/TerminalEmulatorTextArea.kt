@@ -2,7 +2,6 @@ package com.toocol.termio.desktop.components.terminal.ui
 
 import com.toocol.termio.desktop.components.panel.ui.TopMenuPanel
 import com.toocol.termio.desktop.components.sidebar.ui.BottomStatusBar
-import com.toocol.termio.desktop.components.sidebar.ui.TopSessionTabBar
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
 import com.toocol.termio.platform.text.EscapedTextStyleClassArea
@@ -85,7 +84,7 @@ class TerminalEmulatorTextArea(id: Long) : EscapedTextStyleClassArea(id), Castab
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
-        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().subtract(TopMenuPanel.fixedHeight + TopSessionTabBar.fixedHeight + BottomStatusBar.fixedHeight).multiply(heightRatio)) }
+        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().subtract(TopMenuPanel.fixedHeight + BottomStatusBar.fixedHeight).multiply(heightRatio)) }
     }
 
     override fun actionAfterShow() {}

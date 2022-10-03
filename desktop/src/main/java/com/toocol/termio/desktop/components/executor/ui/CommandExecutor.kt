@@ -1,9 +1,10 @@
 package com.toocol.termio.desktop.components.executor.ui
 
 import com.toocol.termio.core.term.TermAddress
+import com.toocol.termio.core.term.api.ExecuteCommandApi
+import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.desktop.api.term.handlers.DynamicEchoHandler
-import com.toocol.termio.desktop.components.panel.ui.MajorPanel
-import com.toocol.termio.desktop.components.panel.ui.WorkspacePanel
+import com.toocol.termio.desktop.components.terminal.ui.TerminalConsole
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.console.TerminalConsolePrintStream
@@ -19,6 +20,8 @@ import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Pane
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 
@@ -30,15 +33,15 @@ import java.nio.charset.StandardCharsets
 class CommandExecutor(id: Long) : TVBox(id), Loggable {
     private val executorOutputService = ExecutorOutputService()
     private val commandExecutorInput: CommandExecutorInput
-//    private val commandExecutorResultTextArea: CommandExecutorResultTextArea
-//    private val commandExecutorResultScrollPane: CommandExecutorResultScrollPane
+    private val commandExecutorResultTextArea: CommandExecutorResultTextArea
+    private val commandExecutorResultScrollPane: CommandExecutorResultScrollPane
 
     private var commandOut = false
 
     init {
         commandExecutorInput = CommandExecutorInput(id)
-//        commandExecutorResultTextArea = CommandExecutorResultTextArea(id)
-//        commandExecutorResultScrollPane = CommandExecutorResultScrollPane(id, commandExecutorResultTextArea)
+        commandExecutorResultTextArea = CommandExecutorResultTextArea(id)
+        commandExecutorResultScrollPane = CommandExecutorResultScrollPane(id, commandExecutorResultTextArea)
     }
 
     override fun styleClasses(): Array<String> {
@@ -50,7 +53,7 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
     override fun initialize() {
         apply {
             styled()
-//            Term.registerConsole(TerminalConsole(commandExecutorResultTextArea))
+            Term.registerConsole(TerminalConsole(commandExecutorResultTextArea))
 
             focusedProperty().addListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
                 if (newVal) {
@@ -64,7 +67,8 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
             val ctrlU: KeyCombination = KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN)
             scene.accelerators[ctrlU] = Runnable {
                 commandExecutorInput.clear()
-//                commandExecutorResultTextArea.clear()
+                commandExecutorResultTextArea.clear()
+                commandExecutorResultScrollPane.hide()
             }
 
             val ctrlI: KeyCombination = KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN)
@@ -72,30 +76,30 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                 if (!commandExecutorInput.isFocus() && isVisible) {
                     commandExecutorInput.requestFocus()
                 } else {
-                    val ratio = if (isVisible) {
+                    if (isVisible) {
                         this.hide()
-                        1.0
                     } else {
                         this.show()
                         commandExecutorInput.requestFocus()
-                        0.8
                     }
-                    val majorPanel = findComponent(MajorPanel::class.java, 1)
-                    findComponent(WorkspacePanel::class.java, 1).sizePropertyBind(majorPanel, null, ratio)
                 }
             }
 
-            children.addAll(commandExecutorInput)
+            spacing = 6.0
+            children.addAll(commandExecutorResultScrollPane, commandExecutorInput)
         }
 
         executorOutputService.apply { start() }
 
-//        commandExecutorResultTextArea.apply {
-//            initialize()
-//            onMouseClicked = EventHandler { commandExecutorInput.requestFocus() }
-//        }
+        commandExecutorResultTextArea.apply {
+            initialize()
+            onMouseClicked = EventHandler { commandExecutorInput.requestFocus() }
+        }
 
-//        commandExecutorResultScrollPane.apply { initialize() }
+        commandExecutorResultScrollPane.apply {
+            initialize()
+            hide()
+        }
 
         commandExecutorInput.apply {
             initialize()
@@ -103,9 +107,12 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                 if (StrUtil.isNewLine(event.character)) {
                     try {
                         commandOut = true
-                        val command = commandExecutorInput.text() + StrUtil.LF
-                        executorReaderInputStream.write(command.toByteArray(StandardCharsets.UTF_8))
-                        executorReaderInputStream.flush()
+                        val command = commandExecutorInput.text()
+                        launch {
+                            api(ExecuteCommandApi, Dispatchers.Default) {
+                                executeCommand(command)
+                            }
+                        }
                         commandExecutorInput.clear()
                     } catch (e: IOException) {
                         error("Write to reader failed, msg = ${e.message}")
@@ -137,10 +144,9 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
-        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
 
         commandExecutorInput.sizePropertyBind(major, widthRatio, null)
-//        commandExecutorResultTextArea.sizePropertyBind(major, widthRatio, heightRatio)
+        commandExecutorResultTextArea.sizePropertyBind(major, widthRatio, heightRatio)
     }
 
     override fun actionAfterShow() {
@@ -154,11 +160,14 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                     try {
                         if (commandExecutorPrinterOutputStream.available() > 0) {
                             val text = commandExecutorPrinterOutputStream.read()
-//                            commandExecutorResultTextArea.append(text, commandExecutorPrintStream)
+                            commandExecutorResultTextArea.append(text, commandExecutorPrintStream)
+                            if (!commandExecutorResultScrollPane.isVisible) {
+                                commandExecutorResultScrollPane.show()
+                            }
                         }
                         Thread.sleep(1)
                     } catch (e: Exception) {
-                        warn("TerminalOutputService catch exception, e = ${e.javaClass.name}, msg = ${e.message}")
+                        warn("ExecutorOutputService catch exception, e = ${e.javaClass.name}, msg = ${e.message}")
                     }
                 }
             }, "terminal-output-service")

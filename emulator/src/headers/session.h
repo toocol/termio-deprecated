@@ -223,6 +223,17 @@ class Session : public QWidget {
   int sessionGroupId() const;
   void setSessionGroupId(int newSessionGroupId);
 
+  const QString& host() const;
+  void setHost(const QString& newHost);
+
+  const QString& user() const;
+  void setUser(const QString& newUser);
+
+  const QString& password() const;
+  void setPassword(const QString& newPassword);
+
+  void setSessionId(long newSessionId);
+
  signals:
   /** Emitted when the terminal process starts. */
   void started();
@@ -358,7 +369,6 @@ class Session : public QWidget {
 
  private:
   void updateTerminalSize();
-  static int lastSessionId;
   static QRegularExpression _rexp;
 
   WId windowId() const;
@@ -371,7 +381,6 @@ class Session : public QWidget {
   Pty* _shellProcess;
 #endif
   QStringList _environment;
-  int _sessionId;
   int _sessionGroupId;
 
   bool _autoClose;
@@ -395,6 +404,11 @@ class Session : public QWidget {
 
   QString _program;
   QStringList _arguments;
+
+  long _sessionId;
+  QString _host;
+  QString _user;
+  QString _password;
 
   bool _hasDarkBackground;
   QColor _modifiedBackground;  // as set by: echo -en '\033]11;Color\007
@@ -431,6 +445,7 @@ class SessionGroup : public QWidget {
     FOR_RIGHT_BOTTOM
   };
   explicit SessionGroup(QWidget* parent = nullptr);
+  static int _lastSessionGroupId;
 
   static void initialize(QWidget*);
   /**
@@ -444,14 +459,15 @@ class SessionGroup : public QWidget {
    */
   static int addSessionToGroup(SessionGroupLocation, Session*);
 
-  static SessionGroup* getGroup(int);
+  static SessionGroup* getSessionGroup(int);
+
+  static SessionGroup* getSessionGroup(SessionGroupLocation);
 
   TerminalView* view() const;
   void setView(TerminalView* newView);
 
  private:
   static SplitScreenState _state;
-  static int _lastSessionGroupId;
   static bool _isInit;
   /**
    * key:   Session group id

@@ -6,7 +6,9 @@ import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.Castable
 import com.toocol.termio.utilities.utils.StrUtil
 import com.toocol.termio.utilities.utils.Tuple2
-import javafx.application.Platform
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -14,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/8 10:45
  */
-class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Castable {
+class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Castable, CoroutineScope by MainScope() {
     companion object {
         private val wordNumberRegex = Regex(pattern = """\w+""")
         private val numberRegex = Regex(pattern = """\d+""")
@@ -288,8 +290,7 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
 
         val actionMap = executeTarget.getActionMap()
         val split = text.split(uberEscapeModeRegex).toTypedArray()
-        Platform.runLater {
-            val startTime = System.currentTimeMillis()
+        launch {
             val multiChange = executeTarget.createMultiChangeBuilder()
             split.forEach { sp ->
                 if (StrUtil.isNotEmpty(sp) && !sp.contains("\u001b")) {
@@ -310,7 +311,6 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 executeTarget.moveTo(executeTarget.length)
                 executeTarget.requestFollowCaret()
             }
-            println("Spend time: ${(System.currentTimeMillis() - startTime)}ms")
             queue.clear()
         }
     }

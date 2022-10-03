@@ -32,9 +32,13 @@
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/sync/interprocess_semaphore.hpp>
+#include <map>
 
 #define IPC_MSG_SIZE 4096
 #define IPC_KEY_EVT_NUM_CHARS 8
+
+#define IPC_SSH_PROPERTY_SIZE 10
+#define IPC_SSH_INFO_SIZE 128
 
 #define IPC_NUM_NATIVE_EVT_TYPE_SIZE 128
 #define IPC_NUM_NATIVE_EVT_MSG_SIZE 1024
@@ -108,7 +112,8 @@ enum EVENT_TYPE {
   NFX_TERMINATION_EVENT = 15,
 
   NFX_FOCUS_EVENT = 16,
-  NFX_INPUT_TEXT_EVENT = 17
+  NFX_INPUT_TEXT_EVENT = 17,
+  NFX_CREATE_SSH_SESSION_EVENT = 18
 };
 
 enum SHARED_STRING_TYPE {
@@ -166,11 +171,15 @@ struct focus_event {
   bool focus = false;
 };
 
-struct input_text_event {
-  int type = NFX_INPUT_TEXT_EVENT;
+struct create_ssh_session_event {
+  int type = NFX_CREATE_SSH_SESSION_EVENT;
+  int indicator = 0;
+  long sessionId = 0;
   long timestamp = 0;
 
-  std::string input;
+  char host[IPC_SSH_INFO_SIZE + 1];
+  char user[IPC_SSH_INFO_SIZE + 1];
+  char password[IPC_SSH_INFO_SIZE + 1];
 };
 
 /**
@@ -233,16 +242,16 @@ inline std::string get_shared_string(char* str_to_store_to) {
 
 struct shared_memory_info {
   shared_memory_info()
-      : img_buffer_size(0),
+      : buffer_semaphore(0),
+        client_to_server_msg_semaphore(0),
+        client_to_server_res_semaphore(0),
+        img_buffer_size(0),
         shared_string_type(NFX_SHARED_DEFAULT),
         w(1280),
         h(800),
-        focus(false),
         dirty(false),
         buffer_ready(true),
-        client_to_server_msg_semaphore(0),
-        client_to_server_res_semaphore(0),
-        buffer_semaphore(0) {}
+        focus(false) {}
 
   // mutex to protect access
   boost::interprocess::interprocess_mutex mutex;
@@ -298,7 +307,8 @@ inline boost::interprocess::message_queue* open_evt_mq(
 
 inline std::size_t max_event_message_size() {
   return (std::max)({sizeof(event), sizeof(mouse_event), sizeof(key_event),
-                   sizeof(redraw_event)});
+                     sizeof(redraw_event), sizeof(focus_event),
+                     sizeof(create_ssh_session_event)});
 }
 
 inline boost::interprocess::message_queue* create_evt_mq(
@@ -306,7 +316,8 @@ inline boost::interprocess::message_queue* create_evt_mq(
   // find the maximum event message size
   std::size_t max_evt_struct_size =
       (std::max)({sizeof(event), sizeof(mouse_event), sizeof(key_event),
-                sizeof(redraw_event)});
+                  sizeof(redraw_event), sizeof(focus_event),
+                  sizeof(create_ssh_session_event)});
 
   boost::interprocess::message_queue* evt_msg_queue =
       new boost::interprocess::message_queue(

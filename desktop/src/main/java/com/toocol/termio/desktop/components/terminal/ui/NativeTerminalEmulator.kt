@@ -2,7 +2,6 @@ package com.toocol.termio.desktop.components.terminal.ui
 
 import com.toocol.termio.desktop.components.panel.ui.TopMenuPanel
 import com.toocol.termio.desktop.components.sidebar.ui.BottomStatusBar
-import com.toocol.termio.desktop.components.sidebar.ui.TopSessionTabBar
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.console.TerminalConsolePrintStream
@@ -26,7 +25,7 @@ import java.nio.charset.StandardCharsets
  * @date: 2022/9/18 18:35
  * @version: 0.0.1
  */
-class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, pixelBufferEnabled = true) {
+class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, true, true) {
     /**
      * Each DesktopTerminalPanel or CommandExecutorPanel has one onw MetadataPrinterOutputStream and PrintStream correspondent:
      * Feedback data.
@@ -111,7 +110,7 @@ class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, pixelBu
             prefWidthProperty().bind(major.widthProperty().multiply(widthRatio))
         }
         heightRatio?.run {
-            prefHeightProperty().bind(major.heightProperty().subtract(TopMenuPanel.fixedHeight + TopSessionTabBar.fixedHeight + BottomStatusBar.fixedHeight).multiply(heightRatio))
+            prefHeightProperty().bind(major.heightProperty().subtract(TopMenuPanel.fixedHeight + BottomStatusBar.fixedHeight).multiply(heightRatio))
         }
     }
 
@@ -124,6 +123,10 @@ class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, pixelBu
     fun activeTerminal() {
         TerminalEmulator.currentActiveId = id()
         Printer.setPrinter(terminalPrintStream)
+    }
+
+    fun createSshSession(sessionId: Long, host: String, user: String, password: String) {
+        NativeBinding.createSshSession(key, sessionId, host, user, password, System.nanoTime())
     }
 
     private inner class TerminalOutputService : Loggable {

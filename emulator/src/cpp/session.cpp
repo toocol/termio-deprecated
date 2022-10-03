@@ -12,19 +12,17 @@ using namespace TConsole;
 /*                                   Session                                 */
 /*                                                                           */
 /* ------------------------------------------------------------------------- */
-int Session::lastSessionId = 0;
 QRegularExpression Session::_rexp = QRegularExpression(QLatin1String("^~"));
 
 Session::Session(QWidget *parent)
     : QWidget{parent},
       _emulation(nullptr),
       _shellProcess(nullptr),
-      _sessionId(0),
       _isTitleChanged(false),
       _addToUtmp(false),
       _flowControl(true),
-      _fullScripting(false) {
-  _sessionId = ++lastSessionId;
+      _fullScripting(false),
+      _sessionId(0) {
 #ifdef Q_OS_WIN
   _shellProcess = new ConPty();
 #else
@@ -66,8 +64,6 @@ Session::Session(QWidget *parent)
 
   connect(_shellProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this,
           SLOT(done(int)));
-
-  connect(_emulation, SIGNAL(updateImage()), this, SLOT(viewUpdate()));
 }
 
 void Session::addView(TerminalView *widget) {
@@ -197,7 +193,7 @@ void Session::setSize(const QSize &size) {
   if ((size.width() <= 1) || (size.height() <= 1)) {
     return;
   }
-  SessionGroup::getGroup(_sessionGroupId)
+  SessionGroup::getSessionGroup(_sessionGroupId)
       ->view()
       ->setSize(size.width(), size.height());
 }
@@ -251,6 +247,8 @@ void Session::run() {
   QString argsTmp(_arguments.join(QLatin1Char(' ')).trimmed());
   QStringList arguments;
   arguments << exec;
+  arguments << _user.append("@").append(_host);
+  arguments << _password;
   if (argsTmp.length()) arguments << _arguments;
 
   QString cwd = QDir::currentPath();
@@ -445,7 +443,7 @@ void Session::updateTerminalSize() {
 
   // select largest number of lines and columns that will fit in all visible
   // views
-  TerminalView *view = SessionGroup::getGroup(_sessionGroupId)->view();
+  TerminalView *view = SessionGroup::getSessionGroup(_sessionGroupId)->view();
   if (view->isHidden() == false && view->lines() >= VIEW_LINES_THRESHOLD &&
       view->columns() >= VIEW_COLUMNS_THRESHOLD) {
     minLines = (minLines == -1) ? view->lines() : qMin(minLines, view->lines());
@@ -462,6 +460,22 @@ void Session::updateTerminalSize() {
 }
 
 WId Session::windowId() const { return 0; }
+
+const QString &Session::password() const { return _password; }
+
+void Session::setPassword(const QString &newPassword) {
+  _password = newPassword;
+}
+
+void Session::setSessionId(long newSessionId) { _sessionId = newSessionId; }
+
+const QString &Session::user() const { return _user; }
+
+void Session::setUser(const QString &newUser) { _user = newUser; }
+
+const QString &Session::host() const { return _host; }
+
+void Session::setHost(const QString &newHost) { _host = newHost; }
 
 int Session::sessionGroupId() const { return _sessionGroupId; }
 
@@ -534,4 +548,16 @@ int SessionGroup::addSessionToGroup(SessionGroupLocation location,
   return -1;
 }
 
-SessionGroup *SessionGroup::getGroup(int id) { return _sessionGroupMaps[id]; }
+SessionGroup *SessionGroup::getSessionGroup(int id) {
+  return _sessionGroupMaps[id];
+}
+
+SessionGroup *SessionGroup::getSessionGroup(SessionGroupLocation location) {
+  QHash<int, SessionGroup *>::iterator i;
+  for (i = _sessionGroupMaps.begin(); i != _sessionGroupMaps.end(); ++i) {
+    if (i.value()->_location == location) {
+      return i.value();
+    }
+  }
+  return nullptr;
+}

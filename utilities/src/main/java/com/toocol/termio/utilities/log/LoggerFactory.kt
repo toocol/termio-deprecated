@@ -3,7 +3,6 @@ package com.toocol.termio.utilities.log
 import com.toocol.termio.utilities.log.FileAppender.filePath
 import com.toocol.termio.utilities.log.FileAppender.openLogFile
 import com.toocol.termio.utilities.utils.FileUtil
-import io.vertx.core.Vertx
 import java.text.SimpleDateFormat
 import java.util.concurrent.ConcurrentHashMap
 
@@ -15,10 +14,10 @@ object LoggerFactory {
     private val loggerMap: java.util.AbstractMap<Class<*>, Logger> = ConcurrentHashMap()
 
     @JvmStatic
-    fun init(vertx: Vertx?) {
+    fun init() {
         try {
             FileUtil.checkAndCreateFile(filePath())
-            openLogFile(vertx!!)
+            openLogFile()
             TermioLogger.nonSkip()
         } catch (e: Exception) {
             TermioLogger.skip()
