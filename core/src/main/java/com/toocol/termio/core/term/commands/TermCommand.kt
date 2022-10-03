@@ -5,10 +5,13 @@ import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.core.term.core.TermTheme.Companion.listTheme
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder
 import com.toocol.termio.utilities.command.ICommand
+import com.toocol.termio.utilities.module.ApiAcquirer
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import com.toocol.termio.utilities.utils.Tuple2
 import io.vertx.core.eventbus.EventBus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import org.apache.commons.lang3.StringUtils
 import java.util.*
 
@@ -22,7 +25,7 @@ enum class TermCommand(
     commandProcessor: TermCommandProcessor?,
     comment: String?,
     specify: String?,
-) : ICommand {
+) : ICommand, ApiAcquirer, CoroutineScope by MainScope() {
     /**
      * outside command enums
      */

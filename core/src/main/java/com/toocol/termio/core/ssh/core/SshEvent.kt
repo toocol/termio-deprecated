@@ -9,7 +9,7 @@ import com.toocol.termio.utilities.event.core.SyncEvent
  * @date: 2022/8/24 11:53
  * @version: 0.0.1
  */
-class SessionEstablishedSync(val sessionId: Long = 0) : SyncEvent()
+class SessionEstablishedSync(val sessionId: Long = 0, val host: String, val user: String, val password: String) : SyncEvent()
 
 class SessionEstablishedAsync(val sessionId: Long = 0) : AsyncEvent()
 

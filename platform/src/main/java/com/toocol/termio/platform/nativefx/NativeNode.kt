@@ -50,6 +50,7 @@ abstract class NativeNode @JvmOverloads constructor(
 
     var updateOnce = true
 
+    @Volatile
     var key = -1
 
     /**
@@ -184,13 +185,15 @@ abstract class NativeNode @JvmOverloads constructor(
             }
             updateNativeImage()
         }
+
+        children.add(view)
+
         timer = object : AnimationTimer() {
             override fun handle(now: Long) {
                 r.run()
             }
         }
         timer!!.start()
-        children.add(view)
     }
 
     fun updateNativeImage() {
@@ -224,7 +227,8 @@ abstract class NativeNode @JvmOverloads constructor(
         // if the dimensions do not match
         if (img == null
             || currentW.toDouble().compareTo(img!!.width) != 0
-            || currentH.toDouble().compareTo(img!!.height) != 0) {
+            || currentH.toDouble().compareTo(img!!.height) != 0
+        ) {
             if (isVerbose) {
                 println("[$key]> -> new img instance, resize W: $currentW, H: $currentH")
             }
@@ -258,7 +262,9 @@ abstract class NativeNode @JvmOverloads constructor(
         val h = height.toInt()
         val sx = if (hidpiAware) scene.window.renderScaleX else 1.0
         val sy = if (hidpiAware) scene.window.renderScaleX else 1.0
-        if ((w.toDouble() != NativeBinding.getW(key) / sx || h.toDouble() != NativeBinding.getH(key) / sy) && w > 0 && h > 0) {
+        if ((w.toDouble() != NativeBinding.getW(key) / sx || h.toDouble() != NativeBinding.getH(key) / sy)
+            && w > 0 && h > 0
+        ) {
             if (isVerbose) {
                 println("[$key]> requesting buffer resize W: $w, H: $h")
             }

@@ -4,7 +4,6 @@
 #include <boost/thread/xtime.hpp>
 #include <string>
 #include <vector>
-
 #include "com_toocol_termio_platform_nativefx_NativeBinding.h"
 #include "jnitypeconverter.h"
 #include "sharedmemory.h"
@@ -14,19 +13,19 @@ namespace ipc = boost::interprocess;
 using namespace nativefx;
 
 std::vector<std::string> names;
-std::vector<shared_memory_info *> connections;
+std::vector<shared_memory_info*> connections;
 // for java events that are sent to the server
-std::vector<ipc::message_queue *> evt_msg_queues;
+std::vector<ipc::message_queue*> evt_msg_queues;
 // for native server events sent to the java clinet
-std::vector<ipc::message_queue *> evt_msg_queues_native;
-std::vector<void *> buffers;
+std::vector<ipc::message_queue*> evt_msg_queues_native;
+std::vector<void*> buffers;
 
-std::vector<ipc::shared_memory_object *> shm_infos;
-std::vector<ipc::mapped_region *> info_regions;
-std::vector<ipc::shared_memory_object *> shm_buffers;
-std::vector<ipc::mapped_region *> buffer_regions;
+std::vector<ipc::shared_memory_object*> shm_infos;
+std::vector<ipc::mapped_region*> info_regions;
+std::vector<ipc::shared_memory_object*> shm_buffers;
+std::vector<ipc::mapped_region*> buffer_regions;
 
-JNIEnv *jni_env;
+JNIEnv* jni_env;
 
 bool fire_mouse_event(jint key, int evt_type, double x, double y, double amount,
                       int buttons, int modifiers, int click_count,
@@ -60,7 +59,7 @@ bool fire_mouse_event(jint key, int evt_type, double x, double y, double amount,
   return result;
 }
 
-bool fire_key_event(int key, int evt_type, std::string const &chars,
+bool fire_key_event(int key, int evt_type, const std::string& chars,
                     int key_code, int modifiers, long timestamp) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
@@ -94,9 +93,9 @@ bool fire_key_event(int key, int evt_type, std::string const &chars,
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL
-Java_com_toocol_termio_platform_nativefx_NativeBinding_nextKey(JNIEnv *env,
+Java_com_toocol_termio_platform_nativefx_NativeBinding_nextKey(JNIEnv* env,
                                                                jclass cls) {
-  return connections.size();
+  return (jint)connections.size();
 }
 
 /*
@@ -106,14 +105,14 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_nextKey(JNIEnv *env,
  */
 JNIEXPORT jint JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_connectTo(
-    JNIEnv *env, jclass cls, jstring jname) {
+    JNIEnv* env, jclass cls, jstring jname) {
   jni_env = env;
 
   using namespace boost::interprocess;
   std::string name = stringJ2C(env, jname);
 
   // setup key and names for new connection
-  int key = connections.size();
+  int key = (int)connections.size();
   std::string info_name = get_info_name(key, name);
   std::string evt_msg_queue_name = get_evt_msg_queue_name(key, name);
   std::string evt_msg_queue_native_name =
@@ -123,7 +122,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_connectTo(
 
   try {
     // open the shared memory object.
-    shared_memory_object *shm_info =
+    shared_memory_object* shm_info =
         new shared_memory_object(open_only,          // only open (don't create)
                                  info_name.c_str(),  // name
                                  read_write          // read-write mode
@@ -132,7 +131,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_connectTo(
     shm_infos.push_back(shm_info);
 
     // map the whole shared memory in this process
-    mapped_region *info_region =
+    mapped_region* info_region =
         new mapped_region(*shm_info,  // What to map
                           read_write  // Map it as read-write
         );
@@ -140,19 +139,18 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_connectTo(
     info_regions.push_back(info_region);
 
     // get the address of the mapped region
-    void *info_addr = info_region->get_address();
+    void* info_addr = info_region->get_address();
 
     // construct the shared structure in memory
-    shared_memory_info *info_data =
-        static_cast<shared_memory_info *>(info_addr);
+    shared_memory_info* info_data = static_cast<shared_memory_info*>(info_addr);
     connections.push_back(info_data);
 
     // create mq (for java clinet events transferred to server)
-    ipc::message_queue *evt_msg_queue = open_evt_mq(evt_msg_queue_name);
+    ipc::message_queue* evt_msg_queue = open_evt_mq(evt_msg_queue_name);
     evt_msg_queues.push_back(evt_msg_queue);
 
     // create mq (for native server events transferred to java client)
-    ipc::message_queue *evt_msg_queue_native =
+    ipc::message_queue* evt_msg_queue_native =
         open_evt_mq(evt_msg_queue_native_name);
     evt_msg_queues_native.push_back(evt_msg_queue_native);
 
@@ -172,7 +170,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_connectTo(
     }
 
     // create a shared memory object.
-    shared_memory_object *shm_buffer =
+    shared_memory_object* shm_buffer =
         new shared_memory_object(open_only,            // only open
                                  buffer_name.c_str(),  // name
                                  read_write            // read-write mode
@@ -181,7 +179,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_connectTo(
     shm_buffers.push_back(shm_buffer);
 
     // map the whole shared memory in this process
-    mapped_region *buffer_region =
+    mapped_region* buffer_region =
         new mapped_region(*shm_buffer,  // What to map
                           read_write    // Map it as read-write
         );
@@ -189,7 +187,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_connectTo(
     buffer_regions.push_back(buffer_region);
 
     // get the address of the mapped region
-    void *buffer_addr = buffer_region->get_address();
+    void* buffer_addr = buffer_region->get_address();
 
     buffers.push_back(buffer_addr);
 
@@ -216,7 +214,7 @@ void update_buffer_connection(int key) {
 
   try {
     // create a shared memory object.
-    ipc::shared_memory_object *shm_buffer =
+    ipc::shared_memory_object* shm_buffer =
         new ipc::shared_memory_object(ipc::open_only,       // only open
                                       buffer_name.c_str(),  // name
                                       ipc::read_write       // read-write mode
@@ -229,7 +227,7 @@ void update_buffer_connection(int key) {
     shm_buffers[key] = shm_buffer;
 
     // map the whole shared memory in this process
-    ipc::mapped_region *buffer_region =
+    ipc::mapped_region* buffer_region =
         new ipc::mapped_region(*shm_buffer,     // what to map
                                ipc::read_write  // map it as read-write
         );
@@ -241,7 +239,7 @@ void update_buffer_connection(int key) {
     buffer_regions[key] = buffer_region;
 
     // get the address of the mapped region
-    void *buffer_addr = buffer_region->get_address();
+    void* buffer_addr = buffer_region->get_address();
 
     buffers[key] = buffer_addr;
 
@@ -281,7 +279,7 @@ void fire_native_event(int key, std::string type, std::string evt) {
  * Signature: (I)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_com_toocol_termio_platform_nativefx_NativeBinding_terminate(JNIEnv *env,
+Java_com_toocol_termio_platform_nativefx_NativeBinding_terminate(JNIEnv* env,
                                                                  jclass cls,
                                                                  jint key) {
   if (key >= connections.size()) {
@@ -342,7 +340,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_terminate(JNIEnv *env,
  * Signature: (I)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_com_toocol_termio_platform_nativefx_NativeBinding_isConnected(JNIEnv *env,
+Java_com_toocol_termio_platform_nativefx_NativeBinding_isConnected(JNIEnv* env,
                                                                    jclass cls,
                                                                    jint key) {
   namespace ipc = boost::interprocess;
@@ -357,8 +355,8 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_isConnected(JNIEnv *env,
  */
 JNIEXPORT jstring JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_sendMsg(
-    JNIEnv *env, jclass cls, jint key, jstring jmsg, jint sharedStringType) {
-  shared_memory_info *info_data = NULL;
+    JNIEnv* env, jclass cls, jint key, jstring jmsg, jint sharedStringType) {
+  shared_memory_info* info_data = NULL;
 
   if (key >= connections.size()) {
     return stringC2J(env, "ERROR: key not available");
@@ -384,7 +382,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_sendMsg(
  */
 JNIEXPORT void JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_processNativeEvents(
-    JNIEnv *env, jclass cls, jint key) {
+    JNIEnv* env, jclass cls, jint key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return;
@@ -421,7 +419,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_processNativeEvents(
  * Signature: (III)V
  */
 JNIEXPORT void JNICALL
-Java_com_toocol_termio_platform_nativefx_NativeBinding_resize(JNIEnv *env,
+Java_com_toocol_termio_platform_nativefx_NativeBinding_resize(JNIEnv* env,
                                                               jclass cls,
                                                               jint key, jint w,
                                                               jint h) {
@@ -447,7 +445,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_resize(JNIEnv *env,
  * Signature: (I)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_com_toocol_termio_platform_nativefx_NativeBinding_isDirty(JNIEnv *env,
+Java_com_toocol_termio_platform_nativefx_NativeBinding_isDirty(JNIEnv* env,
                                                                jclass cls,
                                                                jint key) {
   if (key >= connections.size() || connections[key] == NULL) {
@@ -466,7 +464,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_isDirty(JNIEnv *env,
  */
 JNIEXPORT void JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_redraw(
-    JNIEnv *env, jclass cls, jint key, jint x, jint y, jint w, jint h) {}
+    JNIEnv* env, jclass cls, jint key, jint x, jint y, jint w, jint h) {}
 
 /*
  * Class:     com_toocol_termio_platform_nativefx_NativeBinding
@@ -475,7 +473,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_redraw(
  */
 JNIEXPORT void JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_setDirty(
-    JNIEnv *env, jclass cls, jint key, jboolean dirty) {
+    JNIEnv* env, jclass cls, jint key, jboolean dirty) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
@@ -490,7 +488,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_setDirty(
  */
 JNIEXPORT void JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_setBufferReady(
-    JNIEnv *env, jclass cls, jint key, jboolean value) {
+    JNIEnv* env, jclass cls, jint key, jboolean value) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
@@ -505,7 +503,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_setBufferReady(
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_isBufferReady(
-    JNIEnv *env, jclass cls, jint key) {
+    JNIEnv* env, jclass cls, jint key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
@@ -521,7 +519,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_isBufferReady(
  * Signature: (I)I
  */
 JNIEXPORT jint JNICALL
-Java_com_toocol_termio_platform_nativefx_NativeBinding_getW(JNIEnv *env,
+Java_com_toocol_termio_platform_nativefx_NativeBinding_getW(JNIEnv* env,
                                                             jclass cls,
                                                             jint key) {
   if (key >= connections.size() || connections[key] == NULL) {
@@ -538,7 +536,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_getW(JNIEnv *env,
  * Signature: (I)I
  */
 JNIEXPORT jint JNICALL
-Java_com_toocol_termio_platform_nativefx_NativeBinding_getH(JNIEnv *env,
+Java_com_toocol_termio_platform_nativefx_NativeBinding_getH(JNIEnv* env,
                                                             jclass cls,
                                                             jint key) {
   if (key >= connections.size() || connections[key] == NULL) {
@@ -556,10 +554,10 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_getH(JNIEnv *env,
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMousePressedEvent(
-    JNIEnv *env, jclass cls, jint key, jdouble x, jdouble y, jint buttons,
+    JNIEnv* env, jclass cls, jint key, jdouble x, jdouble y, jint buttons,
     jint modifiers, jlong timestamp) {
   bool result = fire_mouse_event(key, NFX_MOUSE_MOVED, x, y, 0.0, buttons,
-                                 modifiers, 0, timestamp);
+                                 modifiers, 0, (long)timestamp);
   return boolC2J(result);
 }
 
@@ -570,10 +568,10 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMousePressedEvent(
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseReleasedEvent(
-    JNIEnv *env, jclass cls, jint key, jdouble x, jdouble y, jint buttons,
+    JNIEnv* env, jclass cls, jint key, jdouble x, jdouble y, jint buttons,
     jint modifiers, jlong timestamp) {
   bool result = fire_mouse_event(key, NFX_MOUSE_RELEASED, x, y, 0.0, buttons,
-                                 modifiers, 0, timestamp);
+                                 modifiers, 0, (long)timestamp);
   return boolC2J(result);
 }
 
@@ -584,10 +582,10 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseReleasedEvent(
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseClickedEvent(
-    JNIEnv *env, jclass cls, jint key, jdouble x, jdouble y, jint buttons,
+    JNIEnv* env, jclass cls, jint key, jdouble x, jdouble y, jint buttons,
     jint modifiers, jint click_count, jlong timestamp) {
   bool result = fire_mouse_event(key, NFX_MOUSE_CLICKED, x, y, 0.0, buttons,
-                                 modifiers, click_count, timestamp);
+                                 modifiers, click_count, (long)timestamp);
   return boolC2J(result);
 }
 
@@ -598,10 +596,10 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseClickedEvent(
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseEnteredEvent(
-    JNIEnv *env, jclass cls, jint key, jdouble x, jdouble y, jint buttons,
+    JNIEnv* env, jclass cls, jint key, jdouble x, jdouble y, jint buttons,
     jint modifiers, jint click_count, jlong timestamp) {
   bool result = fire_mouse_event(key, NFX_MOUSE_ENTERED, x, y, 0.0, buttons,
-                                 modifiers, 0, timestamp);
+                                 modifiers, 0, (long)timestamp);
   return boolC2J(result);
 }
 
@@ -612,10 +610,10 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseEnteredEvent(
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseExitedEvent(
-    JNIEnv *env, jclass cls, jint key, jdouble x, jdouble y, jint buttons,
+    JNIEnv* env, jclass cls, jint key, jdouble x, jdouble y, jint buttons,
     jint modifiers, jint click_count, jlong timestamp) {
   bool result = fire_mouse_event(key, NFX_MOUSE_EXITED, x, y, 0.0, buttons,
-                                 modifiers, 0, timestamp);
+                                 modifiers, 0, (long)timestamp);
   return boolC2J(result);
 }
 
@@ -626,10 +624,10 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseExitedEvent(
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseMoveEvent(
-    JNIEnv *env, jclass cls, jint key, jdouble x, jdouble y, jint buttons,
+    JNIEnv* env, jclass cls, jint key, jdouble x, jdouble y, jint buttons,
     jint modifiers, jlong timestamp) {
   bool result = fire_mouse_event(key, NFX_MOUSE_MOVED, x, y, 0.0, buttons,
-                                 modifiers, 0, timestamp);
+                                 modifiers, 0, (long)timestamp);
   return boolC2J(result);
 }
 
@@ -640,10 +638,10 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseMoveEvent(
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseWheelEvent(
-    JNIEnv *env, jclass cls, jint key, jdouble x, jdouble y, jdouble amount,
+    JNIEnv* env, jclass cls, jint key, jdouble x, jdouble y, jdouble amount,
     jint buttons, jint modifiers, jlong timestamp) {
   bool result = fire_mouse_event(key, NFX_MOUSE_WHEEL, x, y, amount, buttons,
-                                 modifiers, 0, timestamp);
+                                 modifiers, 0, (long)timestamp);
   return boolC2J(result);
 }
 
@@ -654,12 +652,12 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_fireMouseWheelEvent(
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_fireKeyPressedEvent(
-    JNIEnv *env, jclass cls, jint key, jstring characters, jint keyCode,
+    JNIEnv* env, jclass cls, jint key, jstring characters, jint keyCode,
     jint modifiers, jlong timestamp) {
   std::string chars = stringJ2C(env, characters);
 
   bool result = fire_key_event(key, NFX_KEY_PRESSED, chars, keyCode, modifiers,
-                               timestamp);
+                               (long)timestamp);
   return boolC2J(result);
 }
 
@@ -670,12 +668,12 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_fireKeyPressedEvent(
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_fireKeyReleasedEvent(
-    JNIEnv *env, jclass cls, jint key, jstring characters, jint keyCode,
+    JNIEnv* env, jclass cls, jint key, jstring characters, jint keyCode,
     jint modifiers, jlong timestamp) {
   std::string chars = stringJ2C(env, characters);
 
   bool result = fire_key_event(key, NFX_KEY_RELEASED, chars, keyCode, modifiers,
-                               timestamp);
+                               (long)timestamp);
   return boolC2J(result);
 }
 
@@ -686,12 +684,12 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_fireKeyReleasedEvent(
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_fireKeyTypedEvent(
-    JNIEnv *env, jclass cls, jint key, jstring characters, jint keyCode,
+    JNIEnv* env, jclass cls, jint key, jstring characters, jint keyCode,
     jint modifiers, jlong timestamp) {
   std::string chars = stringJ2C(env, characters);
 
-  bool result =
-      fire_key_event(key, NFX_KEY_TYPED, chars, keyCode, modifiers, timestamp);
+  bool result = fire_key_event(key, NFX_KEY_TYPED, chars, keyCode, modifiers,
+                               (long)timestamp);
   return boolC2J(result);
 }
 
@@ -702,7 +700,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_fireKeyTypedEvent(
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_requestFocus(
-    JNIEnv *env, jclass cls, jint key, jboolean focus, jlong timestamp) {
+    JNIEnv* env, jclass cls, jint key, jboolean focus, jlong timestamp) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return boolC2J(false);
@@ -713,7 +711,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_requestFocus(
   focus_event evt;
   evt.type = NFX_FOCUS_EVENT;
   evt.focus = focus;
-  evt.timestamp = timestamp;
+  evt.timestamp = (long)timestamp;
 
   // timed locking of resources
   boost::system_time const timeout =
@@ -731,11 +729,48 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_requestFocus(
 
 /*
  * Class:     com_toocol_termio_platform_nativefx_NativeBinding
+ * Method:    createSshSession
+ * Signature: (IJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;J)Z
+ */
+JNIEXPORT jboolean JNICALL
+Java_com_toocol_termio_platform_nativefx_NativeBinding_createSshSession(
+    JNIEnv* env, jclass cls, jint key, jlong sessionId, jstring host,
+    jstring user, jstring password, jlong timestamp) {
+  if (key >= connections.size() || connections[key] == NULL) {
+    std::cerr << "ERROR: key not available: " << key << std::endl;
+    return boolC2J(false);
+  }
+
+  create_ssh_session_event evt;
+  evt.type = NFX_CREATE_SSH_SESSION_EVENT;
+  evt.sessionId = (long)sessionId;
+  evt.timestamp = (long)timestamp;
+
+  store_shared_string(stringJ2C(env, host), evt.host, IPC_SSH_INFO_SIZE + 1);
+  store_shared_string(stringJ2C(env, user), evt.user, IPC_SSH_INFO_SIZE + 1);
+  store_shared_string(stringJ2C(env, password), evt.password,
+                      IPC_SSH_INFO_SIZE + 1);
+
+  // timed locking of resources
+  boost::system_time const timeout =
+      boost::get_system_time() + boost::posix_time::milliseconds(LOCK_TIMEOUT);
+
+  bool result = evt_msg_queues[key]->timed_send(
+      &evt,         // data to send
+      sizeof(evt),  // size of the data (check it fits into max_size)
+      0,            // msg priority
+      timeout       // timeout
+  );
+  return boolC2J(result);
+}
+
+/*
+ * Class:     com_toocol_termio_platform_nativefx_NativeBinding
  * Method:    getBuffer
  * Signature: (I)Ljava/nio/ByteBuffer;
  */
 JNIEXPORT jobject JNICALL
-Java_com_toocol_termio_platform_nativefx_NativeBinding_getBuffer(JNIEnv *env,
+Java_com_toocol_termio_platform_nativefx_NativeBinding_getBuffer(JNIEnv* env,
                                                                  jclass cls,
                                                                  jint key) {
   if (key >= connections.size() || connections[key] == NULL) {
@@ -745,7 +780,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_getBuffer(JNIEnv *env,
 
   update_buffer_connection(key);
 
-  void *buffer_addr = buffers[key];
+  void* buffer_addr = buffers[key];
 
   jobject result = env->NewDirectByteBuffer(
       buffer_addr, connections[key]->w * connections[key]->h * 4);
@@ -759,7 +794,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_getBuffer(JNIEnv *env,
  * Signature: (I)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_com_toocol_termio_platform_nativefx_NativeBinding_lock__I(JNIEnv *env,
+Java_com_toocol_termio_platform_nativefx_NativeBinding_lock__I(JNIEnv* env,
                                                                jclass cls,
                                                                jint key) {
   if (key >= connections.size() || connections[key] == NULL) {
@@ -782,7 +817,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_lock__I(JNIEnv *env,
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_lock__IJ(
-    JNIEnv *env, jclass cls, jint key, jlong jtimeout) {
+    JNIEnv* env, jclass cls, jint key, jlong jtimeout) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return false;
@@ -801,7 +836,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_lock__IJ(
  * Signature: (I)V
  */
 JNIEXPORT void JNICALL
-Java_com_toocol_termio_platform_nativefx_NativeBinding_unlock(JNIEnv *env,
+Java_com_toocol_termio_platform_nativefx_NativeBinding_unlock(JNIEnv* env,
                                                               jclass cls,
                                                               jint key) {
   if (key >= connections.size() || connections[key] == NULL) {
@@ -818,7 +853,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_unlock(JNIEnv *env,
  */
 JNIEXPORT void JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_waitForBufferChanges(
-    JNIEnv *env, jclass cls, jint key) {
+    JNIEnv* env, jclass cls, jint key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
@@ -834,7 +869,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_waitForBufferChanges(
  */
 JNIEXPORT jboolean JNICALL
 Java_com_toocol_termio_platform_nativefx_NativeBinding_hasBufferChanges(
-    JNIEnv *env, jclass cls, jint key) {
+    JNIEnv* env, jclass cls, jint key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
@@ -850,7 +885,7 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_hasBufferChanges(
  * Signature: (I)V
  */
 JNIEXPORT void JNICALL
-Java_com_toocol_termio_platform_nativefx_NativeBinding_lockBuffer(JNIEnv *env,
+Java_com_toocol_termio_platform_nativefx_NativeBinding_lockBuffer(JNIEnv* env,
                                                                   jclass cls,
                                                                   jint key) {}
 
@@ -860,6 +895,6 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_lockBuffer(JNIEnv *env,
  * Signature: (I)V
  */
 JNIEXPORT void JNICALL
-Java_com_toocol_termio_platform_nativefx_NativeBinding_unlockBuffer(JNIEnv *env,
+Java_com_toocol_termio_platform_nativefx_NativeBinding_unlockBuffer(JNIEnv* env,
                                                                     jclass cls,
                                                                     jint key) {}

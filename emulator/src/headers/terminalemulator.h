@@ -52,6 +52,9 @@ class TerminalEmulator : public QWidget {
 
   void requestFocus(bool focus);
 
+  void createSshSession(long sessionId, QString host, QString user,
+                        QString password);
+
  protected:
   bool eventFilter(QObject *obj, QEvent *ev) override;
 

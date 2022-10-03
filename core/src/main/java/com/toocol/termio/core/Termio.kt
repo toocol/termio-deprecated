@@ -5,8 +5,8 @@ import com.toocol.termio.core.term.core.TermCharEventDispatcher
 import com.toocol.termio.utilities.ansi.Printer.print
 import com.toocol.termio.utilities.ansi.Printer.setPrinter
 import com.toocol.termio.utilities.jni.JNILoader
+import com.toocol.termio.utilities.log.LoggerFactory
 import com.toocol.termio.utilities.log.LoggerFactory.getLogger
-import com.toocol.termio.utilities.log.LoggerFactory.init
 import com.toocol.termio.utilities.module.ModuleDeployment
 import com.toocol.termio.utilities.utils.CastUtil
 import com.toocol.termio.utilities.utils.ClassScanner
@@ -79,7 +79,7 @@ abstract class Termio {
                 }
             })
             loadingLatch = CountDownLatch(1)
-            println("Reflection obtain verticle : ${recorder.end()}")
+            logger.info("Reflection obtain verticle : ${recorder.end()}")
         }
 
         @JvmStatic
@@ -87,6 +87,7 @@ abstract class Termio {
             if (runType == RunType.CONSOLE) {
                 JNILoader.load()
             }
+            LoggerFactory.init()
             TermCharEventDispatcher.init()
             ShellCharEventDispatcher.init()
             setPrinter(System.out)
@@ -102,7 +103,6 @@ abstract class Termio {
             val options = VertxOptions()
                 .setBlockedThreadCheckInterval(blockedCheckInterval)
             val vertx = Vertx.vertx(options)
-            init(vertx)
 
             /* Deploy the verticle */
             if (ignore != null && ignore.isNotEmpty()) {
@@ -133,7 +133,7 @@ abstract class Termio {
                 }
             }
             )
-            println("Prepare vertx environment: ${recorder.end()}")
+            logger.info("Prepare vertx environment: ${recorder.end()}")
             return vertx
         }
     }

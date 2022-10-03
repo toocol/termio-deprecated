@@ -20,7 +20,7 @@ public final class NativeBinding {
     private static boolean initialized;
 
     private NativeBinding() {
-        throw new AssertionError("Don't instantiate me!");
+        throw new AssertionError("Illegal initialize.");
     }
 
     private static String libEnding() {
@@ -310,6 +310,8 @@ public final class NativeBinding {
     public static native boolean fireKeyTypedEvent(int key, String characters, int keyCode, int modifiers, long timestamp);
 
     public static native boolean requestFocus(int key, boolean focus, long timestamp);
+
+    public static native boolean createSshSession(int key, long sessionId, String host, String user, String password, long timestamp);
 
     public static native ByteBuffer getBuffer(int key);
 

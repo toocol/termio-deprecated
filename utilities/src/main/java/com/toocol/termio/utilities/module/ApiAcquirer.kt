@@ -1,6 +1,6 @@
 package com.toocol.termio.utilities.module
 
-import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -10,15 +10,14 @@ import kotlin.coroutines.EmptyCoroutineContext
  * @date: 2022/10/2 20:49
  * @version: 0.0.1
  */
-interface AbstractApi
+interface SuspendApi : ApiAcquirer
 
 interface ApiAcquirer {
-    @DelicateCoroutinesApi
-    suspend fun <T : AbstractApi, R, Z> R.api(
+    suspend fun <T : SuspendApi, R> CoroutineScope.api(
         api: T,
         context: CoroutineContext = EmptyCoroutineContext,
-        block: suspend T.() -> Z
-    ) : Z {
+        block: suspend T.() -> R
+    ) : R {
         return withContext(context) {
             block(api)
         }

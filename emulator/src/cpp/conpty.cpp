@@ -30,21 +30,28 @@ int ConPty::start(const QString &program, const QStringList &arguments,
 #ifdef Q_OS_WIN
   Q_ASSERT(arguments.count() >= 1);
   QString execute;
-  execute.append(program).append(arguments.mid(1).join(" "));
+  execute.append(program).append(" ").append(arguments[1]);
+  QString passwordTip = QString(arguments[1]).append("'s password:");
+  QString password = QString(arguments[2]).append("\n");
+
   fd = openConPty(_windowLines, _windowColumns);
   setUTF8Mode(_utf8);
   if (fd > 0) {
-    startReadListener(fd, [&](const char *data, const int length) {
-      char *dup = new char[length];
-      memcpy(dup, data, length);
-      emit receivedData(dup, strlen(dup));
+    startReadListener(fd, [=](const char *data, const int length) {
+      if (length < 0) return;
+      if (QString(data).contains(passwordTip)) {
+        sendData(password.toStdString().c_str(), -1);
+      } else {
+        char *dup = new char[length];
+        memcpy(dup, data, length);
+        emit receivedData(dup, strlen(dup));
+      }
     });
 
     // ssh root@47.108.157.178
     auto subProcess = [&](int fd, QString execute) {
-      startSubProcess(fd, (LPWSTR)execute.append(" root@47.108.157.178 -e \033")
-                              .toStdWString()
-                              .c_str());
+      startSubProcess(
+          fd, (LPWSTR)execute.append(" -e \033").toStdWString().c_str());
       emit finished(-1);
     };
     std::thread(subProcess, fd, execute).detach();

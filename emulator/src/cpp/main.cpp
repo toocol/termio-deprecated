@@ -32,10 +32,11 @@ int main(int argc, char* argv[]) {
     }
   };
 
+  nfx::SharedCanvas* canvas = nfx::SharedCanvas::create("_emulator_mem");
+
   auto qtResized = [&image, &emulator](std::string const& name,
                                        uchar* bufferData, int w, int h) {
     if (image == NULL || emulator.width() != w || emulator.height() != h) {
-      qDebug() << "Resize width: " << w << ", height: " << h;
       delete image;
       image = new QImage(bufferData, w, h, w * 4,
                          QImage::Format_ARGB32_Premultiplied);
@@ -48,10 +49,18 @@ int main(int argc, char* argv[]) {
     if (evt->type == nfx::NFX_FOCUS_EVENT) {
       nfx::focus_event* focusEvt = static_cast<nfx::focus_event*>((void*)evt);
       emulator.requestFocus(focusEvt->focus);
+    } else if (evt->type == nfx::NFX_CREATE_SSH_SESSION_EVENT) {
+      nfx::create_ssh_session_event* sshEvt =
+          static_cast<nfx::create_ssh_session_event*>((void*)evt);
+      std::string host = nfx::get_shared_string(sshEvt->host);
+      std::string user = nfx::get_shared_string(sshEvt->user);
+      std::string password = nfx::get_shared_string(sshEvt->password);
+
+      emulator.createSshSession(sshEvt->sessionId, QString::fromStdString(host),
+                                QString::fromStdString(user),
+                                QString::fromStdString(password));
     }
   };
-
-  nfx::SharedCanvas* canvas = nfx::SharedCanvas::create("_emulator_mem");
 
   auto nativeRedrawCallback = [&canvas, &qtRedraw, &qtResized]() {
     canvas->draw(qtRedraw, qtResized);

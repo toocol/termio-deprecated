@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 internal class TermioLoggerTest {
     @Test
     fun testLog() {
-        LoggerFactory.init(null)
+        LoggerFactory.init()
         val logger = LoggerFactory.getLogger(
             TermioLoggerTest::class.java
         )

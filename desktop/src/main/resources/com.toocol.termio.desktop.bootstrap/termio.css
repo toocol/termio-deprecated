@@ -98,12 +98,15 @@
 .command-executor-panel {
     -fx-background-color: #EFEFEF;
     -fx-border-color: #FFFFFF;
-    -fx-border-width: 2 1 1 1;
+    -fx-border-width: 3 0 1 0;
     -fx-border-style: solid;
 }
 
 .command-executor-input {
     -fx-background-color: #EFEFEF;
+    /*-fx-border-color: #AFAFAF;*/
+    /*-fx-border-width: 1 0 0 0;*/
+    /*-fx-border-style: solid;*/
 }
 
 .command-executor-input .text-field {
@@ -124,14 +127,14 @@
     -fx-border-color: #FFFFFF;
     -fx-border-radius: 5 5 5 5;
     -fx-border-width: 1 1 1 1;
-    -fx-font-size: 10pt;
+    -fx-font-size: 9pt;
     -fx-font-weight: bold;
 }
 
 .command-executor-input-text > .text {
     -fx-font-family: Consolas;
     -fx-fill: #151515;
-    -fx-font-size: 11pt;
+    -fx-font-size: 9pt;
     -fx-font-weight: bold;
 }
 

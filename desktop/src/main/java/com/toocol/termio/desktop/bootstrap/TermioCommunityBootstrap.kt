@@ -20,6 +20,7 @@ import com.toocol.termio.utilities.log.FileAppender.close
 import com.toocol.termio.utilities.module.ModuleBootstrap
 import com.toocol.termio.utilities.module.ScopeModule
 import com.toocol.termio.utilities.utils.MessageBox
+import kotlinx.coroutines.DelicateCoroutinesApi
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.system.exitProcess
@@ -30,6 +31,7 @@ import kotlin.system.exitProcess
  * @version: 0.0.1
  */
 object TermioCommunityBootstrap : Termio(), ModuleBootstrap {
+    @OptIn(DelicateCoroutinesApi::class)
     @JvmStatic
     fun runDesktop(runClass: Class<*>) {
         runType = RunType.DESKTOP
@@ -44,6 +46,7 @@ object TermioCommunityBootstrap : Termio(), ModuleBootstrap {
         Shell.initializeReader(NativeTerminalEmulator.terminalReaderInputStream)
         DesktopTermPrinter.registerPrintStream(CommandExecutor.commandExecutorPrintStream)
 
+        bootstrap()
         vertx = prepareVertxEnvironment(
             Optional.ofNullable(runClass.getAnnotation(
                 Ignore::class.java))

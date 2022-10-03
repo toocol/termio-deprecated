@@ -44,12 +44,11 @@ void TerminalEmulator::initialize() {
 
   SessionGroup::initialize(this);
   SessionGroup::changeState(SessionGroup::ONE);
-  Session *session = createSession(this);
-  int groupId =
-      SessionGroup::addSessionToGroup(SessionGroup::ONE_CENTER, session);
-  SessionGroup *group = SessionGroup::getGroup(groupId);
+  //  Session *session = createSession(this);
+  //  int groupId =
+  //      SessionGroup::addSessionToGroup(SessionGroup::ONE_CENTER, session);
+  SessionGroup *group = SessionGroup::getSessionGroup(SessionGroup::ONE_CENTER);
   _terminalView = group->view();
-  _emulation = session->emulation();
 
   UrlFilter *urlFilter = new UrlFilter();
   connect(urlFilter, &UrlFilter::activated, this,
@@ -79,17 +78,6 @@ void TerminalEmulator::initialize() {
 
   _terminalView->setScrollBarPosition(ScrollBarPosition::SCROLL_BAR_RIGHT);
   _terminalView->setKeyboardCursorShape(KeyboardCursorShape::BLOCK_CURSOR);
-  bindViewToEmulation(_emulation, _terminalView);
-  // connect view signals and slots
-  connect(_terminalView, SIGNAL(changedContentSizeSignal(int, int)), session,
-          SLOT(onViewSizeChange(int, int)));
-
-  // slot for close
-  connect(_terminalView, SIGNAL(destroyed(QObject *)), session,
-          SLOT(viewDestroyed(QObject *)));
-
-  // test ConPTY
-  connect(_emulation, SIGNAL(testConpty()), session, SLOT(run()));
 }
 
 void TerminalEmulator::bindViewToEmulation(Emulation *emulation,
@@ -184,6 +172,34 @@ void TerminalEmulator::requestFocus(bool focus) {
   } else {
     _terminalView->focusOut();
   }
+}
+
+void TerminalEmulator::createSshSession(long sessionId, QString host,
+                                        QString user, QString password) {
+  qDebug() << "Receive create ssh session event, host = " << host
+           << ", user = " << user << ", password = " << password;
+  Session *session = createSession(this);
+  SessionGroup::addSessionToGroup(SessionGroup::ONE_CENTER, session);
+  session->setSessionId(sessionId);
+  session->setHost(host);
+  session->setUser(user);
+  session->setPassword(password);
+
+  _emulation = session->emulation();
+
+  bindViewToEmulation(_emulation, _terminalView);
+  // connect view signals and slots
+  connect(_terminalView, SIGNAL(changedContentSizeSignal(int, int)), session,
+          SLOT(onViewSizeChange(int, int)));
+
+  // slot for close
+  connect(_terminalView, SIGNAL(destroyed(QObject *)), session,
+          SLOT(viewDestroyed(QObject *)));
+
+  // test ConPTY
+  connect(_emulation, SIGNAL(testConpty()), session, SLOT(run()));
+
+  session->run();
 }
 
 void TerminalEmulator::setNativeRedrawCallback(

@@ -149,6 +149,12 @@ inline int deleteSharedMem(std::string const& name) {
   return NFX_SUCCESS;
 }
 
+struct SshPropery {
+  std::string host;
+  std::string user;
+  std::string password;
+};
+
 class SharedCanvas final {
  private:
   std::string name;

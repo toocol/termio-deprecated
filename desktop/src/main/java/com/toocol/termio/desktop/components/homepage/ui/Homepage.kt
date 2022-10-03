@@ -2,10 +2,10 @@ package com.toocol.termio.desktop.components.homepage.ui
 
 import com.toocol.termio.desktop.components.panel.ui.TopMenuPanel
 import com.toocol.termio.desktop.components.sidebar.ui.BottomStatusBar
-import com.toocol.termio.desktop.components.sidebar.ui.TopSessionTabBar
-import com.toocol.termio.platform.ui.TAnchorPane
+import com.toocol.termio.platform.ui.TStackPane
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Paint
+import javafx.scene.text.Font
 import javafx.scene.text.Text
 
 /**
@@ -13,7 +13,7 @@ import javafx.scene.text.Text
  * @date: 2022/8/12 0:43
  * @version: 0.0.1
  */
-class Homepage(id: Long) : TAnchorPane(id) {
+class Homepage(id: Long) : TStackPane(id) {
     override fun styleClasses(): Array<String> {
         return arrayOf(
             "homepage-panel"
@@ -23,16 +23,15 @@ class Homepage(id: Long) : TAnchorPane(id) {
     override fun initialize() {
         styled()
 
-        val text = Text("This is Homepage.")
+        val text = Text("Termio Software")
         text.fill = Paint.valueOf("#CCCCCC")
-        text.layoutX = 10.0
-        text.layoutY = 20.0
+        text.font = Font("Consolas", 20.0)
         children.add(text)
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
-        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().subtract(TopMenuPanel.fixedHeight + TopSessionTabBar.fixedHeight + BottomStatusBar.fixedHeight).multiply(heightRatio)) }
+        heightRatio?.run { prefHeightProperty().bind(major.heightProperty().subtract(TopMenuPanel.fixedHeight + BottomStatusBar.fixedHeight).multiply(heightRatio)) }
     }
 
     override fun actionAfterShow() {}
