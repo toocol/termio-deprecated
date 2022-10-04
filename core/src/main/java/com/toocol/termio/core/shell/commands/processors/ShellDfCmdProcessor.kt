@@ -1,14 +1,15 @@
 package com.toocol.termio.core.shell.commands.processors
 
-import com.toocol.termio.core.shell.ShellAddress
+import com.toocol.termio.core.shell.api.RemoteFileApi
 import com.toocol.termio.core.shell.commands.ShellCommandProcessor
 import com.toocol.termio.core.shell.core.Shell
-import com.toocol.termio.core.shell.handlers.BlockingDfHandler
 import com.toocol.termio.utilities.utils.FilePathUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import com.toocol.termio.utilities.utils.Tuple2
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.apache.commons.lang3.StringUtils
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -61,8 +62,9 @@ class ShellDfCmdProcessor : ShellCommandProcessor() {
         val request = JsonObject()
         request.put("sessionId", shell.sessionId)
         request.put("remotePath", remotePath.toString())
-        request.put("type", BlockingDfHandler.DF_TYPE_FILE)
-        eventBus.send(ShellAddress.START_DF_COMMAND.address(), request)
+        launch(Dispatchers.IO) {
+            RemoteFileApi.dfFile(request)
+        }
         return Tuple2(null, null)
     }
 }

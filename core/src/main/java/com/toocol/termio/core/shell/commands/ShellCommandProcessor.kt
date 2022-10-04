@@ -4,13 +4,15 @@ import com.toocol.termio.core.shell.core.Shell
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.Tuple2
 import io.vertx.core.eventbus.EventBus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/4/2 17:42
  */
-abstract class ShellCommandProcessor : Loggable{
+abstract class ShellCommandProcessor : Loggable, CoroutineScope by MainScope() {
 
     /**
      * process the shell command

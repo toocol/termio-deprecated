@@ -1,10 +1,11 @@
 package com.toocol.termio.core.term.commands.processors
 
 import com.toocol.termio.core.cache.CredentialCache
-import com.toocol.termio.core.ssh.SshAddress
+import com.toocol.termio.core.ssh.core.TrySshSessionAsync
+import com.toocol.termio.core.ssh.core.TrySshSessionSync
 import com.toocol.termio.core.term.commands.TermCommandProcessor
+import com.toocol.termio.utilities.utils.SnowflakeGuidGenerator
 import com.toocol.termio.utilities.utils.Tuple2
-import io.vertx.core.eventbus.EventBus
 import org.apache.commons.lang3.StringUtils
 
 /**
@@ -13,8 +14,9 @@ import org.apache.commons.lang3.StringUtils
  */
 class NumberCmdProcessor : TermCommandProcessor() {
     private val credentialCache = CredentialCache.Instance
+    private val guidGenerator = SnowflakeGuidGenerator.getInstance()
 
-    override fun process(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
+    override fun process(cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
         if (!StringUtils.isNumeric(cmd)) {
             resultAndMsg.first(false).second("There can't be any spaces or other character between numbers.")
             return null
@@ -34,8 +36,16 @@ class NumberCmdProcessor : TermCommandProcessor() {
                 .second("The input number exceeds stored credentials' size, max number should be " + credentialCache.credentialsSize() + ".")
             return null
         }
-        eventBus.send(SshAddress.ESTABLISH_SSH_SESSION.address(), idx)
+
         resultAndMsg.first(true)
+
+        val credential = credentialCache.getCredential(idx)
+        val sessionId = guidGenerator.nextId()
+        credential ?: return null
+
+        TrySshSessionSync(sessionId, credential.host, credential.user, credential.password).dispatch()
+        TrySshSessionAsync(sessionId).dispatch()
+
         return null
     }
 }

@@ -9,6 +9,7 @@ module termio.utilities {
     requires jline;
     requires kotlin.stdlib;
     requires kotlinx.coroutines.core.jvm;
+    requires kotlinx.coroutines.core;
     requires annotations;
     requires jdk.unsupported;
 
@@ -18,10 +19,8 @@ module termio.utilities {
     exports com.toocol.termio.utilities.command;
     exports com.toocol.termio.utilities.config;
     exports com.toocol.termio.utilities.console;
-    exports com.toocol.termio.utilities.event;
     exports com.toocol.termio.utilities.event.core;
     exports com.toocol.termio.utilities.event.module;
-    exports com.toocol.termio.utilities.event.handlers;
     exports com.toocol.termio.utilities.execeptions;
     exports com.toocol.termio.utilities.functional;
     exports com.toocol.termio.utilities.module;

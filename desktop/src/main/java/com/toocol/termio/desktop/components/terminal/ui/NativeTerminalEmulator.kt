@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets
  * @date: 2022/9/18 18:35
  * @version: 0.0.1
  */
-class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, true, true) {
+object NativeTerminalEmulator : NativeNode(true, true) {
     /**
      * Each DesktopTerminalPanel or CommandExecutorPanel has one onw MetadataPrinterOutputStream and PrintStream correspondent:
      * Feedback data.
@@ -33,6 +33,12 @@ class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, true, t
     private val terminalWriterOutputStream = MetadataPrinterOutputStream()
     private val terminalPrintStream = TerminalConsolePrintStream(terminalWriterOutputStream)
     private val terminalOutputService = TerminalOutputService()
+    /**
+     * DesktopTerminalPanel has only one MetadataReaderInputStream:
+     * Get user's input data.
+     */
+    @JvmField
+    val terminalReaderInputStream = MetadataReaderInputStream()
 
     override fun initialize() {
         apply {
@@ -83,7 +89,7 @@ class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, true, t
 
             addEventHandler(KeyEvent.KEY_PRESSED) { }
             addEventHandler(KeyEvent.KEY_RELEASED) { }
-            addNativeEventListener {key, type, evt ->
+            addNativeEventListener { key, type, evt ->
                 if (WindowSizeAdjuster.onMoved && updateOnce) {
                     println("> key: $key, type: $type, evt_msg: $evt")
                     updateNativeImage()
@@ -110,7 +116,8 @@ class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, true, t
             prefWidthProperty().bind(major.widthProperty().multiply(widthRatio))
         }
         heightRatio?.run {
-            prefHeightProperty().bind(major.heightProperty().subtract(TopMenuPanel.fixedHeight + BottomStatusBar.fixedHeight).multiply(heightRatio))
+            prefHeightProperty().bind(major.heightProperty()
+                .subtract(TopMenuPanel.fixedHeight + BottomStatusBar.fixedHeight).multiply(heightRatio))
         }
     }
 
@@ -129,7 +136,7 @@ class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, true, t
         NativeBinding.createSshSession(key, sessionId, host, user, password, System.nanoTime())
     }
 
-    private inner class TerminalOutputService : Loggable {
+    private class TerminalOutputService : Loggable {
         fun start() {
             val thread = Thread({
                 while (true) {
@@ -148,17 +155,5 @@ class NativeTerminalEmulator(id: Long, sessionId: Long) : NativeNode(id, true, t
             thread.isDaemon = true
             thread.start()
         }
-    }
-
-    companion object {
-        @Volatile
-        var currentActiveId: Long = 0
-
-        /**
-         * DesktopTerminalPanel has only one MetadataReaderInputStream:
-         * Get user's input data.
-         */
-        @JvmField
-        val terminalReaderInputStream = MetadataReaderInputStream()
     }
 }

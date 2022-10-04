@@ -1,5 +1,7 @@
 package com.toocol.termio.utilities.module
 
+import com.toocol.termio.utilities.log.Loggable
+import com.toocol.termio.utilities.utils.Castable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
@@ -10,7 +12,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  * @date: 2022/10/2 20:49
  * @version: 0.0.1
  */
-interface SuspendApi : ApiAcquirer
+interface SuspendApi : ApiAcquirer, Castable, Loggable
 
 interface ApiAcquirer {
     suspend fun <T : SuspendApi, R> CoroutineScope.api(

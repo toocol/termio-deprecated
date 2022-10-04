@@ -1,6 +1,5 @@
 package com.toocol.termio.core.term.api
 
-import com.toocol.termio.core.Termio
 import com.toocol.termio.core.term.commands.TermCommand
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder
@@ -23,7 +22,7 @@ object ExecuteCommandApi : SuspendApi {
         val isCommand = TermCommand.cmdOf(cmd)
             .map { termCommand: TermCommand ->
                 try {
-                    termCommand.processCmd<Any>(Termio.eventBus(), cmd, resultAndMessage)
+                    termCommand.processCmd<Any>(cmd, resultAndMessage)
                     if ((TermCommand.CMD_NUMBER == termCommand || TermCommand.CMD_MOSH == termCommand)
                         && StringUtils.isEmpty(resultAndMessage._2())
                     ) {

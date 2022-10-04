@@ -3,9 +3,7 @@ package com.toocol.termio.core.shell.core
 import com.toocol.termio.core.Termio
 import com.toocol.termio.core.cache.CredentialCache
 import com.toocol.termio.core.cache.CredentialCache.Instance.indexOf
-import com.toocol.termio.core.cache.SWITCH_SESSION_WAIT_HANG_PREVIOUS
 import com.toocol.termio.core.cache.SshSessionCache
-import com.toocol.termio.core.ssh.SshAddress
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder
 import com.toocol.termio.utilities.ansi.AsciiControl
@@ -15,7 +13,6 @@ import com.toocol.termio.utilities.execeptions.IStacktraceParser
 import com.toocol.termio.utilities.functional.Switchable
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.StrUtil
-import io.vertx.core.Promise
 import java.util.*
 import kotlin.math.min
 
@@ -137,16 +134,16 @@ class SessionQuickSwitchHelper(private val shell: Shell) : Loggable, IStacktrace
         }
         val uri = chosen!!.uri().split("@").toTypedArray()
         val index = indexOf(uri[1], uri[0])
-        shell.vertx.executeBlocking { promise: Promise<Any?> ->
-            while (true) {
-                if (SWITCH_SESSION_WAIT_HANG_PREVIOUS) {
-                    shell.eventBus.send(SshAddress.ESTABLISH_SSH_SESSION.address(), index)
-                    SWITCH_SESSION_WAIT_HANG_PREVIOUS = false
-                    break
-                }
-            }
-            promise.complete()
-        }
+//        shell.vertx.executeBlocking { promise: Promise<Any?> ->
+//            while (true) {
+//                if (SWITCH_SESSION_WAIT_HANG_PREVIOUS) {
+//                    shell.eventBus.send(SshAddress.ESTABLISH_SSH_SESSION.address(), index)
+//                    SWITCH_SESSION_WAIT_HANG_PREVIOUS = false
+//                    break
+//                }
+//            }
+//            promise.complete()
+//        }
         quit()
         changeSession = true
     }

@@ -1,9 +1,7 @@
 package com.toocol.termio.utilities.event.core
 
-import com.toocol.termio.utilities.event.EventAddress
-import com.toocol.termio.utilities.event.handlers.SyncEventHandler
-import io.vertx.core.eventbus.DeliveryOptions
-import io.vertx.core.eventbus.EventBus
+import com.toocol.termio.utilities.event.api.AsyncEventApi
+import com.toocol.termio.utilities.event.api.SyncEventApi
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -12,22 +10,11 @@ import io.vertx.core.eventbus.EventBus
  */
 class EventDispatcher {
     companion object {
-        private val eventCodec = EventCodec()
-        private val deliveryOptions = DeliveryOptions().setCodecName(eventCodec.name())
-        private val syncEventHandler: SyncEventHandler = SyncEventHandler()
-
-        private var eventBus: EventBus? = null
-
-        fun register(eventBus: EventBus) {
-            EventDispatcher.eventBus = eventBus
-            eventBus.registerCodec(eventCodec)
-        }
-
         fun dispatch(event: AbstractEvent) {
             if (event is SyncEvent) {
-                syncEventHandler.handleInline(event)
+                SyncEventApi.handle(event)
             } else if (event is AsyncEvent) {
-                eventBus!!.send(EventAddress.HANDLE_ASYNC_EVENT.address(), event, deliveryOptions)
+                AsyncEventApi.handle(event)
             }
         }
     }

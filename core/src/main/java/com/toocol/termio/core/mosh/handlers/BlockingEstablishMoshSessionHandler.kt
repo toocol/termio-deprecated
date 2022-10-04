@@ -54,21 +54,21 @@ class BlockingEstablishMoshSessionHandler(vertx: Vertx?, context: Context?, para
             if (result.succeeded()) {
                 try {
                     eventBus.send(MoshAddress.MOSH_TICK.address(), sessionId)
-                    val shell = Shell(sessionId, vertx, eventBus, session)
+                    val shell = Shell(sessionId, session)
                     shell.user = credential.user
-                    shell.initialFirstCorrespondence(ShellProtocol.MOSH) {
-                        shellCache.putShell(sessionId, shell)
-                        shell.channelShell = sshSessionCache.getChannelShell(sessionId)
-                        shellCache.initializeQuickSessionSwitchHelper()
-                        clear()
-                        SHOW_WELCOME = true
-                        HANGED_QUIT = false
-                        MONITOR_SESSION_ID = sessionId
-                        Term.status = TermStatus.SHELL
-                        eventBus.send(ShellAddress.DISPLAY_SHELL.address(), sessionId)
-                        eventBus.send(ShellAddress.RECEIVE_SHELL.address(), sessionId)
-                        System.gc()
-                    }
+                    shell.initialFirstCorrespondence(ShellProtocol.MOSH)
+
+                    shellCache.putShell(sessionId, shell)
+                    shell.channelShell = sshSessionCache.getChannelShell(sessionId)
+                    shellCache.initializeQuickSessionSwitchHelper()
+                    clear()
+                    SHOW_WELCOME = true
+                    HANGED_QUIT = false
+                    MONITOR_SESSION_ID = sessionId
+                    Term.status = TermStatus.SHELL
+                    eventBus.send(ShellAddress.DISPLAY_SHELL.address(), sessionId)
+                    eventBus.send(ShellAddress.RECEIVE_SHELL.address(), sessionId)
+                    System.gc()
                 } catch (e: Exception) {
                     eventBus.send(TermAddress.ACCEPT_COMMAND.address(), CONNECT_FAILED)
                 }

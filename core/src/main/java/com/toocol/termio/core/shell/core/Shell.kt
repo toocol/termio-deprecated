@@ -7,8 +7,7 @@ import com.toocol.termio.core.cache.MoshSessionCache
 import com.toocol.termio.core.cache.SshSessionCache
 import com.toocol.termio.core.cache.SshSessionCache.Instance.getChannelShell
 import com.toocol.termio.core.mosh.core.MoshSession
-import com.toocol.termio.core.shell.ShellAddress
-import com.toocol.termio.core.shell.handlers.BlockingDfHandler
+import com.toocol.termio.core.shell.api.RemoteFileApi
 import com.toocol.termio.core.term.core.EscapeHelper
 import com.toocol.termio.utilities.action.AbstractDevice
 import com.toocol.termio.utilities.ansi.AsciiControl
@@ -20,19 +19,14 @@ import com.toocol.termio.utilities.ansi.Printer
 import com.toocol.termio.utilities.ansi.Printer.println
 import com.toocol.termio.utilities.console.Console
 import com.toocol.termio.utilities.execeptions.RemoteDisconnectException
-import com.toocol.termio.utilities.functional.Executable
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.CmdUtil
 import com.toocol.termio.utilities.utils.MessageBox
 import com.toocol.termio.utilities.utils.StrUtil
-import io.vertx.core.AsyncResult
-import io.vertx.core.Promise
-import io.vertx.core.Vertx
-import io.vertx.core.eventbus.EventBus
-import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
 import jline.console.ConsoleReader
+import kotlinx.coroutines.*
 import org.apache.commons.lang3.StringUtils
 import java.io.IOException
 import java.io.InputStream
@@ -48,6 +42,7 @@ import kotlin.system.exitProcess
 class Shell : AbstractDevice, Loggable {
     private val shellPrinter: ShellPrinter
     private val shellReader: ShellReader
+    private val scope = MainScope()
 
     var console: Console? = null
 
@@ -80,15 +75,6 @@ class Shell : AbstractDevice, Loggable {
      */
     val sessionId: Long
 
-    /**
-     * vert.x system
-     */
-    val vertx: Vertx
-
-    /**
-     * the EventBus of vert.x system.
-     */
-    val eventBus: EventBus
     private val host: String
 
     @JvmField
@@ -184,12 +170,10 @@ class Shell : AbstractDevice, Loggable {
 
     private val feedbackCollector = StringBuilder()
 
-    constructor(sessionId: Long, vertx: Vertx, eventBus: EventBus, moshSession: MoshSession) {
+    constructor(sessionId: Long, moshSession: MoshSession) {
         this.sessionId = sessionId
         host = moshSession.host
         user = moshSession.user
-        this.vertx = vertx
-        this.eventBus = eventBus
         this.moshSession = moshSession
         shellPrinter = ShellPrinter(this)
         shellReader = ShellReader(this, reader)
@@ -207,15 +191,11 @@ class Shell : AbstractDevice, Loggable {
         sessionId: Long,
         host: String,
         user: String,
-        vertx: Vertx,
-        eventBus: EventBus,
         channelShell: ChannelShell?,
     ) {
         this.sessionId = sessionId
         this.host = host
         this.user = user
-        this.vertx = vertx
-        this.eventBus = eventBus
         this.channelShell = channelShell
         shellPrinter = ShellPrinter(this)
         shellReader = ShellReader(this, reader)
@@ -412,38 +392,38 @@ class Shell : AbstractDevice, Loggable {
     }
 
     fun getCursorPosition(): IntArray {
-        console?: return intArrayOf(0, 0)
+        console ?: return intArrayOf(0, 0)
         val coord = console!!.getCursorPosition().split(",").toTypedArray()
         return intArrayOf(coord[0].toInt(), coord[1].toInt())
     }
 
     fun clear() {
-        console?: return
+        console ?: return
         console!!.clear()
     }
 
     fun setCursorPosition(x: Int, y: Int) {
-        console?: return
+        console ?: return
         console!!.setCursorPosition(x, y)
     }
 
     fun showCursor() {
-        console?: return
+        console ?: return
         console!!.showCursor()
     }
 
     fun hideCursor() {
-        console?: return
+        console ?: return
         console!!.hideCursor()
     }
 
     fun cursorLeft() {
-        console?: return
+        console ?: return
         console!!.cursorLeft()
     }
 
     fun cursorRight() {
-        console?: return
+        console ?: return
         console!!.cursorRight()
     }
 
@@ -479,33 +459,29 @@ class Shell : AbstractDevice, Loggable {
         return quickSwitchHelper.switchSession()
     }
 
-    fun initialFirstCorrespondence(protocol: ShellProtocol, executable: Executable) {
+    fun initialFirstCorrespondence(protocol: ShellProtocol) {
         this.protocol = protocol
         try {
             if (jumpServer) {
                 prompt.set(StrUtil.EMPTY)
                 resetIO(protocol)
-                executable.execute()
                 return
             }
             val request = JsonObject()
             request.put("sessionId", sessionId)
             request.put("remotePath", "/$user/.bash_history")
-            request.put("type", BlockingDfHandler.DF_TYPE_BYTE)
-            eventBus.request(ShellAddress.START_DF_COMMAND.address(),
-                request) { result: AsyncResult<Message<Any?>?>? ->
-                if (result?.result() == null) {
-                    return@request
-                }
-                val bytes = result.result()!!.body() as ByteArray?
+
+            scope.launch(Dispatchers.IO) {
+                val bytes = RemoteFileApi.dfBytes(request)
                 val data = String(bytes!!, StandardCharsets.UTF_8)
                 historyCmdHelper.initialize(data.split(StrUtil.LF).toTypedArray())
             }
-            vertx.executeBlocking({ promise: Promise<Any?> ->
+
+            scope.launch(Dispatchers.IO) {
                 try {
                     do {
                         if (returnWrite) {
-                            return@executeBlocking
+                            return@launch
                         }
                     } while (!promptNow)
                     if (protocol == ShellProtocol.SSH) {
@@ -514,11 +490,11 @@ class Shell : AbstractDevice, Loggable {
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()
-                } finally {
-                    promise.complete()
                 }
-            }, false)
-            vertx.executeBlocking({ promise: Promise<Any?> ->
+            }
+
+            val shell = this
+            runBlocking(Dispatchers.IO) {
                 try {
                     val tmp = ByteArray(1024)
                     val startTime = System.currentTimeMillis()
@@ -537,9 +513,9 @@ class Shell : AbstractDevice, Loggable {
                                 prompt.set(matcher.value.replace("\\[\\?1034h".toRegex(), "") + StrUtil.SPACE)
                                 true
                             } else {
-                                if (this.protocol == ShellProtocol.SSH) {
+                                if (shell.protocol == ShellProtocol.SSH) {
                                     sshWelcome!!.append(inputStr)
-                                } else if (this.protocol == ShellProtocol.MOSH) {
+                                } else if (shell.protocol == ShellProtocol.MOSH) {
                                     moshWelcome!!.append(inputStr)
                                 }
                                 true
@@ -560,10 +536,8 @@ class Shell : AbstractDevice, Loggable {
                     extractUserFromPrompt()
                     fullPath.set("/$user")
                     resetIO(protocol)
-                    executable.execute()
-                    promise.complete()
                 }
-            }, false)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }

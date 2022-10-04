@@ -1,10 +1,8 @@
 package com.toocol.termio.core.term.commands.processors
 
 import com.toocol.termio.core.cache.CredentialCache
-import com.toocol.termio.core.mosh.MoshAddress
 import com.toocol.termio.core.term.commands.TermCommandProcessor
 import com.toocol.termio.utilities.utils.Tuple2
-import io.vertx.core.eventbus.EventBus
 import org.apache.commons.lang3.StringUtils
 
 /**
@@ -14,7 +12,7 @@ import org.apache.commons.lang3.StringUtils
 class MoshCmdProcessor : TermCommandProcessor() {
     private val credentialCache = CredentialCache.Instance
 
-    override fun process(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
+    override fun process(cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
         val split = cmd.trim { it <= ' ' }.replace(" {2,}".toRegex(), " ").split(" ").toTypedArray()
         if (split.size != 2) {
             resultAndMsg.first(false).second("Wrong mosh cmd, the correct is 'mosh index'")
@@ -40,7 +38,7 @@ class MoshCmdProcessor : TermCommandProcessor() {
                 .second("The input number exceeds stored credentials' size, max number should be " + credentialCache.credentialsSize() + ".")
             return null
         }
-        eventBus.send(MoshAddress.ESTABLISH_MOSH_SESSION.address(), idx)
+//        eventBus.send(MoshAddress.ESTABLISH_MOSH_SESSION.address(), idx)
         resultAndMsg.first(true)
         return null
     }

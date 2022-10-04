@@ -8,14 +8,13 @@ import com.toocol.termio.utilities.ansi.AnsiStringBuilder
 import com.toocol.termio.utilities.ansi.Printer.clear
 import com.toocol.termio.utilities.ansi.Printer.print
 import com.toocol.termio.utilities.utils.Tuple2
-import io.vertx.core.eventbus.EventBus
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/3/30 19:24
  */
 class FlushCmdProcessor : TermCommandProcessor() {
-    override fun process(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
+    override fun process(cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
         clear()
         val term = Term.instance
         term.printScene(false)
