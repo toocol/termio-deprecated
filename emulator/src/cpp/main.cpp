@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
   emulator.initialize();
   emulator.setBackgroundColor(QColor(0x15, 0x15, 0x15));
   emulator.setForegroundColor(QColor(0xE1, 0xE1, 0xE1));
-  emulator.setBlinkingCursor(true);
+  emulator.setBlinkingCursor(false);
 
   auto qtRedraw = [&image, &emulator](std::string const& name,
                                       uchar* bufferData, int w, int h) {

@@ -1,15 +1,18 @@
 ﻿#ifndef TERMINALVIEW_H
 #define TERMINALVIEW_H
 
+#include <QCache>
 #include <QClipboard>
 #include <QColor>
 #include <QDrag>
 #include <QGridLayout>
 #include <QLabel>
 #include <QMouseEvent>
+#include <QPair>
 #include <QPixmap>
 #include <QPointer>
 #include <QScrollBar>
+#include <QStaticText>
 #include <QTimer>
 #include <QTimerEvent>
 #include <QVector>
@@ -687,6 +690,8 @@ class TerminalView : public QWidget {
 
   int _leftBaseMargin;
   int _topBaseMargin;
+
+  QCache<QPair<uint32_t, QString>, QStaticText> _staticTextCache;
 
   // The total number of lines that can be displayed in the view;
   int _lines;

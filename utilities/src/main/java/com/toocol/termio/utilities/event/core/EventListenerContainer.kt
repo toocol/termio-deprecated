@@ -2,7 +2,6 @@ package com.toocol.termio.utilities.event.core
 
 import com.toocol.termio.utilities.utils.ClassScanner
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
 /**
@@ -15,9 +14,9 @@ class EventListenerContainer {
         private const val packageName: String = "com.toocol.termio"
 
         private val syncListenerMap: MutableMap<KClass<out AbstractEvent>, MutableList<EventListener<out AbstractEvent>>> =
-            ConcurrentHashMap()
+            HashMap()
         private val asyncListenerMap: MutableMap<KClass<out AbstractEvent>, MutableList<EventListener<out AbstractEvent>>> =
-            ConcurrentHashMap()
+            HashMap()
 
         fun init() {
             ClassScanner(packageName) { clazz ->

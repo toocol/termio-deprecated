@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QClipboard>
+#include <QDateTime>
 #include <QDrag>
 #include <QEvent>
 #include <QFile>
@@ -22,6 +23,7 @@
 #include <QTimer>
 #include <QUrl>
 #include <QtDebug>
+#include <thread>
 
 #include "screen.h"
 #include "wcwidth.h"
@@ -572,10 +574,13 @@ void TerminalView::drawCharacters(QPainter &painter, const QRect &rect,
       font.italic() != useItalic || font.strikeOut() != useStrikeOut ||
       font.overline() != useOverline) {
     font.setBold(useBold);
-    font.setUnderline(useUnderline);
     font.setItalic(useItalic);
-    font.setStrikeOut(useStrikeOut);
-    font.setOverline(useOverline);
+    // static text
+    // FIXME: QStaticText have some problem with underline, strikeline and
+    // overline... see below
+    //    font.setUnderline(useUnderline);
+    //    font.setStrikeOut(useStrikeOut);
+    //    font.setOverline(useOverline);
     painter.setFont(font);
   }
 
@@ -603,13 +608,52 @@ void TerminalView::drawCharacters(QPainter &painter, const QRect &rect,
       painter.drawText(rect.x(), rect.y() + _fontAscend + _lineSpacing,
                        QString::fromStdWString(text));
     } else {
-      {
+      // static text
+      QString draw_text_str = QString::fromStdWString(text);
+      uint32_t draw_text_flags = 0;
+      if (useBold) draw_text_flags |= (1 << 0);
+      // if (useUnderline) draw_text_flags |= (1 << 1);
+      if (useItalic) draw_text_flags |= (1 << 2);
+      // if (useStrikeOut) draw_text_flags |= (1 << 3);
+      // if (useOverline) draw_text_flags |= (1 << 4);
+
+      QPair<uint32_t, QString> static_text_key(draw_text_flags, draw_text_str);
+
+      QStaticText *staticText = _staticTextCache.object(static_text_key);
+      if (!staticText) {
+        staticText = new QStaticText(draw_text_str);
+        staticText->setTextFormat(Qt::PlainText);
+        staticText->prepare(QTransform(), font);
+        _staticTextCache.insert(static_text_key, staticText);
+      }
+#if 0
         QRect drawRect(rect.topLeft(), rect.size());
         drawRect.setHeight(rect.height() + _drawTextAdditionHeight);
         painter.fillRect(drawRect, style->backgroundColor.color(_colorTable));
         painter.drawText(drawRect, Qt::AlignBottom,
                          LTR_OVERRIDE_CHAR + QString::fromStdWString(text));
-      }
+#else
+      painter.fillRect(rect, style->backgroundColor.color(_colorTable));
+      painter.drawStaticText(rect.topLeft(), *staticText);
+//      painter.drawStaticText(
+//          QPointF(
+//              rect.left(),
+//              rect.top() -
+//                  (staticText->size().height() - rect.height()) * 4 /
+//                      5),  // align baseline for fallback font (80% of height)
+//          *staticText);
+#endif
+      // FIXME: see previous comments
+      if (useUnderline)
+        painter.drawLine(QLineF(rect.left(), rect.bottom() - 0.5, rect.right(),
+                                rect.bottom() - 0.5));
+      if (useStrikeOut)
+        painter.drawLine(QLineF(rect.left(), (rect.top() + rect.bottom()) / 2.0,
+                                rect.right(),
+                                (rect.top() + rect.bottom()) / 2.0));
+      if (useOverline)
+        painter.drawLine(QLineF(rect.left(), rect.top() + 0.5, rect.right(),
+                                rect.top() + 0.5));
     }
   }
 }
@@ -1642,6 +1686,9 @@ void TerminalView::fontChange(const QFont &) {
   if (_fontWidth < 1) _fontWidth = 1;
 
   _fontAscend = fm.ascent();
+
+  // static text
+  _staticTextCache.clear();
 
   emit changedFontMetricSignal(_fontHeight, _fontWidth);
   propagateSize();
@@ -2688,6 +2735,8 @@ TerminalView::TerminalView(QWidget *parent)
       _drawTextAdditionHeight(0),
       _leftBaseMargin(5),
       _topBaseMargin(5),
+      // staitc text
+      _staticTextCache(2 << 15),
       _lines(1),
       _columns(1),
       _usedLines(1),

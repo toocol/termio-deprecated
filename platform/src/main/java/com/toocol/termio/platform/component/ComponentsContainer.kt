@@ -1,13 +1,11 @@
 package com.toocol.termio.platform.component
 
-import java.util.concurrent.ConcurrentHashMap
-
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/11 11:54
  */
 object ComponentsContainer {
-    private val componentsMap: MutableMap<String, IComponent> = ConcurrentHashMap()
+    private val componentsMap: MutableMap<String, IComponent> = HashMap()
     @JvmStatic
     fun put(clazz: Class<*>, id: Long, component: IComponent) {
         componentsMap[generateFullId(clazz, id)] = component

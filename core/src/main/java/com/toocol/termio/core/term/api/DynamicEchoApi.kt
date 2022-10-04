@@ -4,12 +4,15 @@ import com.toocol.termio.core.auth.core.SshCredential
 import com.toocol.termio.core.cache.CredentialCache
 import com.toocol.termio.core.cache.SshSessionCache
 import com.toocol.termio.core.term.commands.TermCommand
+import com.toocol.termio.core.term.commands.TermCommand.Companion.commands
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.utilities.ansi.AnsiStringBuilder
 import com.toocol.termio.utilities.ansi.ColorHelper
 import com.toocol.termio.utilities.module.SuspendApi
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.apache.commons.lang3.StringUtils
 
 /**
@@ -18,19 +21,17 @@ import org.apache.commons.lang3.StringUtils
  * @version: 0.0.1
  */
 object DynamicEchoApi : SuspendApi {
-    private val commands: Map<String, TermCommand> = TermCommand.commands
     @Volatile
     var lastInput: String? = StrUtil.EMPTY
 
     private val credentialCache = CredentialCache.Instance
     private val sshSessionCache = SshSessionCache.Instance
-    private val term = Term.instance
 
     @Volatile
     private var running = false
 
-    suspend fun dynamicEcho(cmd: String) {
-        if (running) return
+    suspend fun dynamicEcho(cmd: String) = withContext(Dispatchers.Default){
+        if (running) return@withContext
         running = true
         try {
             val commandHighlightColor = Term.theme.commandHighlightColor.color
@@ -39,8 +40,8 @@ object DynamicEchoApi : SuspendApi {
             if (command == null) {
                 if (StringUtils.isEmpty(finalCmd)) {
                     lastInput = StrUtil.EMPTY
-                    term.printDisplayEcho(StrUtil.EMPTY)
-                    return
+                    Term.printDisplayEcho(StrUtil.EMPTY)
+                    return@withContext
                 }
                 if (StringUtils.isNumeric(finalCmd)) {
                     val connectionPrompt = AnsiStringBuilder()
@@ -70,16 +71,16 @@ object DynamicEchoApi : SuspendApi {
                             .append("Status:").append(" ".repeat(15 - 7)).append(status).append("\n")
                     }
                     if (lastInput != connectionPrompt.toString()) {
-                        term.printDisplayEcho(connectionPrompt.toString())
+                        Term.printDisplayEcho(connectionPrompt.toString())
                     }
                     lastInput = connectionPrompt.toString()
-                    return
+                    return@withContext
                 }
                 spaceProcess(finalCmd)
             } else {
                 if (StringUtils.isNotEmpty(command.specify)) {
                     if (lastInput != command.specify) {
-                        term.printDisplayEcho(command.specify)
+                        Term.printDisplayEcho(command.specify)
                     }
                     lastInput = command.specify
                 } else {
@@ -92,7 +93,7 @@ object DynamicEchoApi : SuspendApi {
                         .append("Ctrl+U").deFront()
                         .append(" to clear input. ")
                     if (lastInput != builder.toString()) {
-                        term.printDisplayEcho(builder.toString())
+                        Term.printDisplayEcho(builder.toString())
                     }
                     lastInput = builder.toString()
                 }
@@ -124,13 +125,13 @@ object DynamicEchoApi : SuspendApi {
                         .append(" to clear input. ")
                 }
                 if (lastInput != printMsg.toString()) {
-                    term.printDisplayEcho(printMsg.toString())
+                    Term.printDisplayEcho(printMsg.toString())
                 }
                 lastInput = printMsg.toString()
             } else {
                 if (StringUtils.isNotEmpty(splitCommand.specify)) {
                     if (lastInput != splitCommand.specify) {
-                        term.printDisplayEcho(splitCommand.specify)
+                        Term.printDisplayEcho(splitCommand.specify)
                     }
                     lastInput = splitCommand.specify
                 }
@@ -148,7 +149,7 @@ object DynamicEchoApi : SuspendApi {
             if (printMsg.length() != 0) {
                 titleMsg.append(printMsg)
                 if (lastInput != titleMsg.toString()) {
-                    term.printDisplayEcho(titleMsg.toString())
+                    Term.printDisplayEcho(titleMsg.toString())
                 }
                 lastInput = titleMsg.toString()
             } else {
@@ -161,7 +162,7 @@ object DynamicEchoApi : SuspendApi {
                     .append("Ctrl+U").deFront()
                     .append(" to clear input. ")
                 if (lastInput != builder.toString()) {
-                    term.printDisplayEcho(builder.toString())
+                    Term.printDisplayEcho(builder.toString())
                 }
                 lastInput = builder.toString()
             }

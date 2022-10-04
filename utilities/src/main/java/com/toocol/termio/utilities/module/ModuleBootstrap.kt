@@ -14,7 +14,7 @@ interface ModuleBootstrap {
     fun modules(): Array<out ScopeModule>
 
     @DelicateCoroutinesApi
-    fun bootstrap() {
+    suspend fun bootstrap() {
         modules().forEach {
             it.launch(Dispatchers.IO) {
                 it.start()

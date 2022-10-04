@@ -30,7 +30,6 @@ enum class TermCommand(
      */
     DEFAULT(StrUtil.EMPTY, null, null, null),
     CMD_HELP("help", HelpCmdProcessor(), "Show holistic executive command.", "Show holistic executive command of Termio."),
-    CMD_CLEAR("flush", FlushCmdProcessor(), "Flush the screen.", "Refresh and clear the screen"),
     CMD_EXIT("exit", ExitCmdProcessor(), "Exit Termio.", "Exit termio."),
     CMD_THEME("theme", ThemeCmdProcessor(), "Change the Termio's color theme.", """Change the color theme, alternative themes:${listTheme()}""".trimIndent()),
     CMD_ADD("add", AddCmdProcessor(), "Add new ssh connection property.", "add user@host -c=password [-p=port] [-j]\n\n[-p=port] is a optional parameter, the default port is 22.\n[-j] If the remote connection is a JumpServer, you should add this extra parameter."),

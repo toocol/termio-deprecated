@@ -254,7 +254,8 @@ void Emulation::receiveData(const char *text, int length) {
   for (size_t i = 0; i < unicodeText.length(); i++) receiveChar(unicodeText[i]);
 
   // look for z-modem indicator
-  //-- someone who understands more about z-modems that I do may be able to move
+  //-- someone who understands more about z-modems that I do may be able to
+  // move
   // this check into the above for loop?
   for (int i = 0; i < length; i++) {
     if (text[i] == '\030') {

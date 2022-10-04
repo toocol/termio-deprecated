@@ -10,15 +10,14 @@ import com.toocol.termio.core.shell.core.Shell
 import com.toocol.termio.core.term.core.DesktopTermPrinter
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.core.term.core.TermTheme
-import com.toocol.termio.core.term.module.TermScopeModule
 import com.toocol.termio.desktop.components.executor.ui.CommandExecutor
 import com.toocol.termio.desktop.components.terminal.ui.NativeTerminalEmulator
 import com.toocol.termio.platform.nativefx.NativeBinding
 import com.toocol.termio.utilities.ansi.Printer.println
 import com.toocol.termio.utilities.config.IniConfigLoader
-import com.toocol.termio.utilities.console.Console
 import com.toocol.termio.utilities.event.module.EventScopeModule
 import com.toocol.termio.utilities.log.FileAppender.close
+import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.module.ModuleBootstrap
 import com.toocol.termio.utilities.module.ScopeModule
 import com.toocol.termio.utilities.utils.MessageBox
@@ -32,27 +31,24 @@ import java.util.*
  * @date: 2022/8/2 0:34
  * @version: 0.0.1
  */
-object TermioCommunityBootstrap : Termio(), ModuleBootstrap {
+object TermioCommunityBootstrap : Termio(), ModuleBootstrap, Loggable {
     @OptIn(DelicateCoroutinesApi::class)
     @JvmStatic
-    fun runDesktop(runClass: Class<*>) {
+    fun run() {
         launch(Dispatchers.Default) {
-            runType = RunType.DESKTOP
             System.setProperty("logFile", "termio-desktop.log")
             IniConfigLoader.setConfigFileRootPath("/config")
             IniConfigLoader.setConfigurePaths(arrayOf("com.toocol.termio.desktop"))
             componentInitialise()
 
             Term.theme = TermTheme.LIGHT_THEME
-            Term.registerConsole(Console.get())
-            Term.initializeReader(CommandExecutor.executorReaderInputStream)
             Shell.initializeReader(NativeTerminalEmulator.terminalReaderInputStream)
             DesktopTermPrinter.registerPrintStream(CommandExecutor.commandExecutorPrintStream)
 
             bootstrap()
             NativeBinding.init()
 
-            logger.info("Bootstrap Termio community success.")
+            info("Bootstrap Termio community success.")
         }
     }
 
@@ -72,7 +68,6 @@ object TermioCommunityBootstrap : Termio(), ModuleBootstrap {
             ConfigScopeModule,
             EventScopeModule,
             AuthScopeModule,
-            TermScopeModule,
         )
     }
 }

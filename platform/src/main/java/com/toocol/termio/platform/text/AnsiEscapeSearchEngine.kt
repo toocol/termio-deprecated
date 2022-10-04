@@ -59,17 +59,6 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
         // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#rgb-colors
         private val colorRgbModeRegex = Regex(pattern = """\u001b\[(38)?(48)?;2;\d{1,3};\d{1,3};\d{1,3}m""")
 
-        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#set-mode
-        private val screenModeRegex = Regex(pattern = """\u001b\[=\d{1,2}h""")
-        private val disableScreenModeRegex = Regex(pattern = """\u001b\[=\d{1,2}l""")
-
-        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#common-private-modes
-        private val commonPrivateModeRegex = Regex(pattern = """\u001b\[\?\d{2,4}[lh]""")
-
-        // see: https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336#keyboard-strings
-        private val keyBoardStringModeRegex =
-            Regex(pattern = """\u001b\[((\d{1,3};){1,2}(((\\")|'|")[\w ]+((\\")|'|");?)|(\d{1,2};?))+p""")
-
         // see: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Definitions
         private val oscBelRegex = Regex(pattern = """\u001b][01267];.+\u0007""")
     }
@@ -205,57 +194,6 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
                 tuple._1() ?: return@let null
                 tuple
             }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, screenModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                val code = numberRegex.find(it)?.value?.toInt()
-                code ?: return@let null
-                // enable screen mode
-                tuple.first(EscapeScreenMode.codeOf(code)).second(listOf(true))
-                tuple._1() ?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, disableScreenModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                val code = numberRegex.find(it)?.value?.toInt()
-                code ?: return@let null
-                // enable screen mode
-                tuple.first(EscapeScreenMode.codeOf(code)).second(listOf(false))
-                tuple._1() ?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, commonPrivateModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                val code = wordNumberRegex.find(it)?.value
-                code ?: return@let null
-                tuple.first(EscapeCommonPrivateMode.codeOf(code))
-                tuple._1() ?: return@let null
-                tuple
-            }?.apply { queue.offer(this) }
-
-            if (dealAlready.get()) return@forEach
-            parseRegex(escapeSequence, keyBoardStringModeRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {
-                codeStringRegex.findAll(it)
-                    .asSequence()
-                    .forEach { matchResult ->
-                        run {
-                            val codeString = matchResult.value
-                            var code = codeRegex.find(codeString)?.value
-                            code ?: return@run
-                            var string = stringRegex.find(codeString.replace(code, StrUtil.EMPTY))?.value
-                            string ?: return@run
-
-                            code = if (code[code.length - 1] == ';') code.substring(0, code.length - 1) else code
-                            string = if (string[string.length - 1] == ';') string.substring(0,
-                                string.length - 1) else string
-                            val tp: Tuple2<IEscapeMode, List<Any>> = Tuple2()
-                            tp.first(EscapeKeyBoardStringMode.KEY_BOARD_STRING_MODE).second(listOf(code, string))
-                            queue.offer(tp)
-                        }
-                    }
-            }
 
             if (dealAlready.get()) return@forEach
             parseRegex(escapeSequence, oscBelRegex, dealAlready)?.takeIf { it.isNotEmpty() }?.let {

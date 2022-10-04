@@ -9,23 +9,23 @@ import com.toocol.termio.utilities.execeptions.IStacktraceParser;
 public interface Loggable extends IStacktraceParser {
 
     default void debug(String message, Object... params) {
-        Logger logger = LoggerFactory.getLogger(this.getClass());
-        logger.debug(message, params);
+        Logger logger = LoggerFactory.getLogger();
+        logger.debug(this.getClass().getSimpleName(), message, params);
     }
 
     default void info(String message, Object... params) {
-        Logger logger = LoggerFactory.getLogger(this.getClass());
-        logger.info(message, params);
+        Logger logger = LoggerFactory.getLogger();
+        logger.info(this.getClass().getSimpleName(), message, params);
     }
 
     default void warn(String message, Object... params) {
-        Logger logger = LoggerFactory.getLogger(this.getClass());
-        logger.warn(message, params);
+        Logger logger = LoggerFactory.getLogger();
+        logger.warn(this.getClass().getSimpleName(), message, params);
     }
 
     default void error(String message, Object... params) {
-        Logger logger = LoggerFactory.getLogger(this.getClass());
-        logger.error(message, params);
+        Logger logger = LoggerFactory.getLogger();
+        logger.error(this.getClass().getSimpleName(), message, params);
     }
 
 }

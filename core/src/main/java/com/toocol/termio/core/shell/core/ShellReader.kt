@@ -1,10 +1,6 @@
 package com.toocol.termio.core.shell.core
 
-import com.toocol.termio.core.term.core.Term
-import com.toocol.termio.core.term.core.TermStatus
-import com.toocol.termio.utilities.utils.CharUtil
 import jline.console.ConsoleReader
-import sun.misc.Signal
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -13,26 +9,6 @@ import sun.misc.Signal
  */
 class ShellReader(private val shell: Shell, private val reader: ConsoleReader?) {
     fun initReader() {
-        /*
-         * custom handle CTRL+C
-         */
-        Signal.handle(Signal("INT")) {
-            if (Term.status == TermStatus.TERMIO) {
-                return@handle
-            }
-            if (shell.status == Shell.Status.QUICK_SWITCH) {
-                return@handle
-            }
-            try {
-                shell.historyCmdHelper.reset()
-                shell.localLastCmd.delete(0, shell.localLastCmd.length)
-                shell.cmd.delete(0, shell.cmd.length)
-                shell.writeAndFlush(CharUtil.CTRL_C)
-                shell.status = Shell.Status.NORMAL
-            } catch (e: Exception) {
-                // do nothing
-            }
-        }
     }
 
     @Throws(Exception::class)
