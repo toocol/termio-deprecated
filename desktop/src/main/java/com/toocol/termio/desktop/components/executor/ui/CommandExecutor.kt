@@ -1,9 +1,8 @@
 package com.toocol.termio.desktop.components.executor.ui
 
-import com.toocol.termio.core.term.TermAddress
+import com.toocol.termio.core.term.api.DynamicEchoApi
 import com.toocol.termio.core.term.api.ExecuteCommandApi
 import com.toocol.termio.core.term.core.Term
-import com.toocol.termio.desktop.api.term.handlers.DynamicEchoHandler
 import com.toocol.termio.desktop.components.terminal.ui.TerminalConsole
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
@@ -20,7 +19,9 @@ import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Pane
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -132,10 +133,12 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
             }
             textProperty().addListener { _, _, newVal ->
                 if (commandOut) {
-                    DynamicEchoHandler.lastInput = StrUtil.EMPTY
+                    DynamicEchoApi.lastInput = StrUtil.EMPTY
                     commandOut = false
                 } else {
-                    eventBus().send(TermAddress.TERMINAL_ECHO.address(), newVal)
+                    launch(Dispatchers.Default) {
+                        DynamicEchoApi.dynamicEcho(newVal)
+                    }
                 }
             }
             onMouseClicked = EventHandler { commandExecutorInput.requestFocus() }
@@ -153,7 +156,7 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
         commandExecutorInput.requestFocus()
     }
 
-    private inner class ExecutorOutputService : Loggable {
+    private inner class ExecutorOutputService : Loggable, CoroutineScope by MainScope() {
         fun start() {
             val thread = Thread({
                 while (true) {

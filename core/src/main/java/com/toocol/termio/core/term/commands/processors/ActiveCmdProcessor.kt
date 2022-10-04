@@ -1,14 +1,12 @@
 package com.toocol.termio.core.term.commands.processors
 
 import com.toocol.termio.core.cache.CredentialCache
-import com.toocol.termio.core.ssh.SshAddress
+import com.toocol.termio.core.ssh.api.SshApi
 import com.toocol.termio.core.term.commands.TermCommandProcessor
 import com.toocol.termio.utilities.utils.Tuple2
-import io.vertx.core.eventbus.EventBus
-import io.vertx.core.json.JsonArray
+import kotlinx.coroutines.launch
 import org.apache.commons.lang3.StringUtils
 import java.util.*
-import java.util.stream.Collectors
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -19,8 +17,8 @@ class ActiveCmdProcessor : TermCommandProcessor() {
 
     private val credentialCache = CredentialCache.Instance
 
-    override fun process(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
-        val idxs: MutableList<Int?> = ArrayList()
+    override fun process(cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
+        val idxs: MutableList<Int> = ArrayList()
         val split = cmd.trim { it <= ' ' }.replace(" {2,}".toRegex(), " ").split(" ").toTypedArray()
         try {
             if (split.size <= 1) {
@@ -93,8 +91,9 @@ class ActiveCmdProcessor : TermCommandProcessor() {
         } catch (e: Exception) {
             resultAndMsg.first(false).second("the input number is too long")
         }
-        val jsonArray = JsonArray(idxs.stream().distinct().collect(Collectors.toList()))
-        eventBus.send(SshAddress.ACTIVE_SSH_SESSION.address(), jsonArray)
+        launch {
+            SshApi.activeSshSession(idxs)
+        }
         resultAndMsg.first(true)
         return null
     }

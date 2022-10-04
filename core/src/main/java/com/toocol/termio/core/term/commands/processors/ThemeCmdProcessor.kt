@@ -6,7 +6,6 @@ import com.toocol.termio.core.term.core.TermTheme.Companion.listTheme
 import com.toocol.termio.core.term.core.TermTheme.Companion.nameOf
 import com.toocol.termio.utilities.ansi.Printer.clear
 import com.toocol.termio.utilities.utils.Tuple2
-import io.vertx.core.eventbus.EventBus
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -14,7 +13,7 @@ import io.vertx.core.eventbus.EventBus
  * @version: 0.0.1
  */
 class ThemeCmdProcessor : TermCommandProcessor() {
-    override fun process(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
+    override fun process(cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
         val split = cmd.trim { it <= ' ' }.replace(" {2,}".toRegex(), " ").split(" ").toTypedArray()
         if (split.size != 2) {
             resultAndMsg.first(false)

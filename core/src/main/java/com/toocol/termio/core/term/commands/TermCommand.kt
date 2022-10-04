@@ -9,7 +9,6 @@ import com.toocol.termio.utilities.module.ApiAcquirer
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import com.toocol.termio.utilities.utils.Tuple2
-import io.vertx.core.eventbus.EventBus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import org.apache.commons.lang3.StringUtils
@@ -54,11 +53,11 @@ enum class TermCommand(
         this.specify = specify
     }
 
-    fun <T> processCmd(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean, String?>) {
+    fun <T> processCmd(cmd: String, resultAndMsg: Tuple2<Boolean, String?>) {
         if (commandProcessor == null) {
             return
         }
-        commandProcessor.processInner(eventBus, cmd, resultAndMsg, this)
+        commandProcessor.processInner(cmd, resultAndMsg, this)
     }
 
     fun cmd(): String {

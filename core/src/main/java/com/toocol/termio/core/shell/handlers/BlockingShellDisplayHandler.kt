@@ -2,6 +2,7 @@ package com.toocol.termio.core.shell.handlers
 
 import com.toocol.termio.core.cache.*
 import com.toocol.termio.core.shell.ShellAddress
+import com.toocol.termio.core.shell.api.ShellCmdApi
 import com.toocol.termio.utilities.ansi.Printer.print
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.module.BlockingMessageHandler
@@ -113,7 +114,7 @@ class BlockingShellDisplayHandler(vertx: Vertx?, context: Context?, parallel: Bo
         if (JUST_CLOSE_EXHIBIT_SHELL) {
             JUST_CLOSE_EXHIBIT_SHELL = false
             cmdHasFeedbackWhenJustExit = false
-            countdown(BlockingExecuteCmdInShellHandler::class.java, this.javaClass)
+            countdown(ShellCmdApi.Lock::class.java, this.javaClass)
             return
         }
         if (ACCEPT_SHELL_CMD_IS_RUNNING) {

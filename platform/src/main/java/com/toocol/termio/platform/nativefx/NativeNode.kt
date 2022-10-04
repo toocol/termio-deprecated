@@ -27,7 +27,6 @@ import java.nio.IntBuffer
  * well as native events.
  */
 abstract class NativeNode @JvmOverloads constructor(
-    private val id: Long,
     private val hidpiAware: Boolean = false,
     private val pixelBufferEnabled: Boolean = false,
 ) : Region(), IComponent, IStyleAble, IActionAfterShow {
@@ -372,11 +371,8 @@ abstract class NativeNode @JvmOverloads constructor(
         return 0.0
     }
 
-    init {
-        this.registerComponent(id)
+    override fun id(): Long {
+        return 0
     }
 
-    override fun id(): Long {
-        return id
-    }
 }

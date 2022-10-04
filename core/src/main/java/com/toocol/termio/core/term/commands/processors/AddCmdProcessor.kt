@@ -1,6 +1,6 @@
 package com.toocol.termio.core.term.commands.processors
 
-import com.toocol.termio.core.auth.AuthAddress
+import com.toocol.termio.core.auth.api.AuthApi
 import com.toocol.termio.core.auth.core.SshCredential
 import com.toocol.termio.core.cache.CredentialCache
 import com.toocol.termio.core.term.commands.TermCommandProcessor
@@ -8,10 +8,8 @@ import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.utilities.ansi.Printer.clear
 import com.toocol.termio.utilities.utils.RegexUtils
 import com.toocol.termio.utilities.utils.Tuple2
-import io.vertx.core.AsyncResult
-import io.vertx.core.eventbus.EventBus
-import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
+import kotlinx.coroutines.launch
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -21,7 +19,7 @@ class AddCmdProcessor : TermCommandProcessor() {
 
     private val credentialCache = CredentialCache.Instance
 
-    override fun process(eventBus: EventBus, cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
+    override fun process(cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
         val params =
             cmd.trim { it <= ' ' }.replace(" {2,}".toRegex(), " ").replaceFirst("add ".toRegex(), "").split(" ")
                 .toTypedArray()
@@ -76,8 +74,8 @@ class AddCmdProcessor : TermCommandProcessor() {
             resultAndMsg.first(false).second("Connection property already exist.")
             return null
         }
-        eventBus.request(AuthAddress.ADD_CREDENTIAL.address(),
-            JsonObject(credential.toMap())) { res: AsyncResult<Message<Any?>?>? ->
+        launch {
+            AuthApi.addCredential(JsonObject(credential.toMap()))
             clear()
             Term.instance.printScene(false)
             Term.instance.printTermPrompt()

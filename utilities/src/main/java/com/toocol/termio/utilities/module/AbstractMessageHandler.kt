@@ -7,6 +7,8 @@ import io.vertx.core.Context
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.eventbus.Message
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import org.jetbrains.annotations.NotNull
 
 /**
@@ -20,7 +22,7 @@ abstract class AbstractMessageHandler protected constructor(
     @JvmField
     // the context of verticle.
     protected val context: Context,
-) : Castable, Loggable, IStacktraceParser {
+) : Castable, Loggable, IStacktraceParser, CoroutineScope by MainScope() {
 
     /**
      * the event bus of Vert.x

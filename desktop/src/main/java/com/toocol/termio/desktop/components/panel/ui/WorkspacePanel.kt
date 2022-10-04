@@ -2,7 +2,7 @@ package com.toocol.termio.desktop.components.panel.ui
 
 import com.toocol.termio.desktop.components.homepage.ui.Homepage
 import com.toocol.termio.desktop.components.sidebar.ui.BottomStatusBar
-import com.toocol.termio.desktop.components.terminal.ui.TerminalEmulatorFactory
+import com.toocol.termio.desktop.components.terminal.ui.NativeTerminalEmulator
 import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent
@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 class WorkspacePanel(id: Long) : TStackPane(id) {
 
     private val parser: ComponentsParser = ComponentsParser()
-    private val terminalEmulatorFactory: TerminalEmulatorFactory.Instance = TerminalEmulatorFactory.Instance
 
     private var widthRatio: Double = 1.0
     private var heightRatio: Double = 1.0
@@ -52,9 +51,7 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
         }
 
         parser.getAsComponent(Homepage::class.java)?.sizePropertyBind(major, widthRatio, heightRatio)
-        terminalEmulatorFactory.getAllTerminals()
-            .asSequence()
-            .forEach { it.sizePropertyBind(major, widthRatio, heightRatio) }
+        NativeTerminalEmulator.sizePropertyBind(major, widthRatio, heightRatio)
     }
 
     override fun actionAfterShow() {}
@@ -62,7 +59,7 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
     fun createSshSession(sessionId: Long, host: String, user: String, password: String) {
         launch {
             hideHomepage()
-            val terminal = terminalEmulatorFactory.create(assignTerminalId(), sessionId)
+            val terminal = NativeTerminalEmulator
             terminal.initialize()
             terminal.sizePropertyBind(findComponent(MajorPanel::class.java, 1), widthRatio, heightRatio * 0.985)
             children.add(terminal)
