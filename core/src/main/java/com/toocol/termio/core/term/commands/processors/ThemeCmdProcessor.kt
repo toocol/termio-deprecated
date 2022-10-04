@@ -35,8 +35,8 @@ class ThemeCmdProcessor : TermCommandProcessor() {
         }
         Term.theme = termTheme
         clear()
-        Term.instance.printScene(false)
-        Term.instance.printTermPrompt()
+        Term.printScene(false)
+        Term.printTermPrompt()
         resultAndMsg.first(true)
         return null
     }

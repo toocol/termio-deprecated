@@ -5,7 +5,6 @@ import com.toocol.termio.utilities.utils.Castable
 import javafx.scene.Node
 import java.lang.ref.WeakReference
 import java.lang.reflect.Constructor
-import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 import kotlin.system.exitProcess
 
@@ -15,7 +14,7 @@ import kotlin.system.exitProcess
  * @version: 0.0.1
  */
 class ComponentsParser : Loggable, Castable {
-    private val components: MutableMap<Class<*>, WeakReference<IComponent>> = ConcurrentHashMap()
+    private val components: MutableMap<Class<*>, WeakReference<IComponent>> = HashMap()
 
     fun parse(clazz: Class<*>) {
         val register = clazz.getAnnotation(RegisterComponent::class.java) ?: return

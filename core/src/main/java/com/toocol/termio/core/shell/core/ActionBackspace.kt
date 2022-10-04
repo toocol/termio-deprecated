@@ -1,8 +1,6 @@
 package com.toocol.termio.core.shell.core
 
-import com.toocol.termio.utilities.ansi.Printer.bel
-import com.toocol.termio.utilities.ansi.Printer.print
-import com.toocol.termio.utilities.ansi.Printer.virtualBackspace
+import com.toocol.termio.utilities.ansi.Printer
 import com.toocol.termio.utilities.event.core.CharEvent
 import com.toocol.termio.utilities.utils.ASCIIStrCache
 import com.toocol.termio.utilities.utils.CharUtil
@@ -23,7 +21,7 @@ class ActionBackspace : ShellCharAction() {
         }
         val cursorPosition = shell.getCursorPosition()
         if (cursorPosition[0] <= shell.prompt.get().length) {
-            bel()
+            Printer.bel()
             shell.status = Shell.Status.NORMAL
             return false
         }
@@ -44,7 +42,7 @@ class ActionBackspace : ShellCharAction() {
             }
             shell.currentPrint.deleteCharAt(index)
             shell.hideCursor()
-            virtualBackspace()
+            Printer.virtualBackspace()
             print(shell.currentPrint.substring(index, shell.currentPrint.length) + CharUtil.SPACE)
             shell.setCursorPosition(cursorPosition[0] - 1, cursorPosition[1])
             shell.showCursor()
@@ -71,7 +69,7 @@ class ActionBackspace : ShellCharAction() {
                 val newVal = shell.currentPrint.toString().substring(0, shell.currentPrint.length - 1)
                 shell.currentPrint.delete(0, shell.currentPrint.length).append(newVal)
             }
-            virtualBackspace()
+            Printer.virtualBackspace()
         }
         return false
     }

@@ -10,9 +10,7 @@ internal class TermioLoggerTest {
     @Test
     fun testLog() {
         LoggerFactory.init()
-        val logger = LoggerFactory.getLogger(
-            TermioLoggerTest::class.java
-        )
-        logger.info("Testing log {}", 1)
+        val logger = LoggerFactory.getLogger()
+        logger.info(javaClass.simpleName, "Testing log {}", 1)
     }
 }

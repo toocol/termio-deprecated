@@ -12,7 +12,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  * @date: 2022/10/2 20:49
  * @version: 0.0.1
  */
-interface SuspendApi : ApiAcquirer, Castable, Loggable
+interface SuspendApi : Castable, Loggable
 
 interface ApiAcquirer {
     suspend fun <T : SuspendApi, R> CoroutineScope.api(

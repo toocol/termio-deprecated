@@ -18,8 +18,6 @@ class TopMenuPanel(id: Long) : TAnchorPane(id){
     private val menuHBox: HBox = HBox()
     private val controlHBox: HBox = HBox()
 
-    private val windowSizeAdjuster = WindowSizeAdjuster.Instance
-
     override fun styleClasses(): Array<String> {
         return arrayOf(
             "top-menu-panel"
@@ -70,7 +68,7 @@ class TopMenuPanel(id: Long) : TAnchorPane(id){
                 children.addAll(maximizeIcon, restoreIcon)
                 setOnMouseClicked { event ->
                     if (event.clickCount == 1 && event.button == MouseButton.PRIMARY) {
-                        if (windowSizeAdjuster.maximize()) {
+                        if (WindowSizeAdjuster.maximize()) {
                             restoreIcon.visibleProperty().set(true)
                             maximizeIcon.visibleProperty().set(false)
                         } else {

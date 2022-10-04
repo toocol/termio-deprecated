@@ -1,13 +1,10 @@
 package com.toocol.termio.platform.component
 
-import com.toocol.termio.core.Termio
 import com.toocol.termio.platform.component.ComponentsContainer.get
 import com.toocol.termio.platform.component.ComponentsContainer.put
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.Asable
 import com.toocol.termio.utilities.utils.Castable
-import io.vertx.core.Vertx
-import io.vertx.core.eventbus.EventBus
 import javafx.scene.Node
 
 /**
@@ -60,13 +57,5 @@ interface IComponent : Asable, Castable, ISizeDynamicBinding, Loggable {
             this.isManaged = true
             this.isVisible = true
         }
-    }
-
-    fun vertx(): Vertx {
-        return Termio.vertx()
-    }
-
-    fun eventBus(): EventBus {
-        return Termio.eventBus()
     }
 }

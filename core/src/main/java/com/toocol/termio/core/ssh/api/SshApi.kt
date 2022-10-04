@@ -169,8 +169,7 @@ object SshApi : SuspendApi, Loggable {
                 }
             }
 
-            val term = Term.instance
-            term.printScene(false)
+            Term.printScene(false)
             val ansiStringBuilder = AnsiStringBuilder()
             val width = Termio.windowWidth
             for ((key, value1) in ret) {
@@ -212,7 +211,7 @@ object SshApi : SuspendApi, Loggable {
                     }
                 }
             }
-            term.printDisplay(ansiStringBuilder.toString())
+            Term.printDisplay(ansiStringBuilder.toString())
         }
     }
 }

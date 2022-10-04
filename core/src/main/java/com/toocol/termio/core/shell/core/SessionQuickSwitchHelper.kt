@@ -12,7 +12,6 @@ import com.toocol.termio.utilities.ansi.Printer.println
 import com.toocol.termio.utilities.execeptions.IStacktraceParser
 import com.toocol.termio.utilities.functional.Switchable
 import com.toocol.termio.utilities.log.Loggable
-import com.toocol.termio.utilities.utils.StrUtil
 import java.util.*
 import kotlin.math.min
 
@@ -58,45 +57,45 @@ class SessionQuickSwitchHelper(private val shell: Shell) : Loggable, IStacktrace
 
     fun switchSession(): Boolean {
         try {
-            shell.status = Shell.Status.QUICK_SWITCH
-            reset()
-            var cursorPosition = term.cursorPosition
-            var offset = 0
-            val height = Termio.windowHeight
-            if (cursorPosition[1] > height - bottomLineOffset + 1) {
-                while (offset < bottomLineOffset - 1) {
-                    println(AsciiControl.ANIS_ERASE_LINE)
-                    offset++
-                }
-            }
-            val promptBase = AnsiStringBuilder()
-                .append(shell.getPrompt())
-                .front(Term.theme.lcCmdExecuteHighlightColor.color)
-                .append("> {} <")
-            cursorPosition = term.cursorPosition
-            term.hideCursor()
-            recordCursorPos[0] = shell.getPrompt().length
-            recordCursorPos[1] = cursorPosition[1] - 1 - offset
-            term.setCursorPosition(0, recordCursorPos[1] + helpInfoLine)
-            val width = Termio.windowWidth
-            print(
-                AnsiStringBuilder().background(Term.theme.switchSessionPanelBottomBgColor.color)
-                    .append(HELP_INFO)
-                    .space(width - HELP_INFO.length)
-                    .toString()
-            )
-            while (!quit) {
-                term.setCursorPosition(0, recordCursorPos[1])
-                println(StrUtil.fullFillParam(promptBase.toString(), indicator + viewportStart))
-                term.setCursorPosition(0, recordCursorPos[1] + 1)
-                printSwitchPanel()
-                term.setCursorPosition(24, recordCursorPos[1] + 1)
-                shell.shellReader().readCmd()
-            }
-            cleanSwitchPanel()
-            term.setCursorPosition(recordCursorPos[0], recordCursorPos[1])
-            term.showCursor()
-            shell.status = Shell.Status.NORMAL
+//            shell.status = Shell.Status.QUICK_SWITCH
+//            reset()
+//            var cursorPosition = term.cursorPosition
+//            var offset = 0
+//            val height = Termio.windowHeight
+//            if (cursorPosition[1] > height - bottomLineOffset + 1) {
+//                while (offset < bottomLineOffset - 1) {
+//                    println(AsciiControl.ANIS_ERASE_LINE)
+//                    offset++
+//                }
+//            }
+//            val promptBase = AnsiStringBuilder()
+//                .append(shell.getPrompt())
+//                .front(Term.theme.lcCmdExecuteHighlightColor.color)
+//                .append("> {} <")
+//            cursorPosition = term.cursorPosition
+//            term.hideCursor()
+//            recordCursorPos[0] = shell.getPrompt().length
+//            recordCursorPos[1] = cursorPosition[1] - 1 - offset
+//            term.setCursorPosition(0, recordCursorPos[1] + helpInfoLine)
+//            val width = Termio.windowWidth
+//            print(
+//                AnsiStringBuilder().background(Term.theme.switchSessionPanelBottomBgColor.color)
+//                    .append(HELP_INFO)
+//                    .space(width - HELP_INFO.length)
+//                    .toString()
+//            )
+//            while (!quit) {
+//                term.setCursorPosition(0, recordCursorPos[1])
+//                println(StrUtil.fullFillParam(promptBase.toString(), indicator + viewportStart))
+//                term.setCursorPosition(0, recordCursorPos[1] + 1)
+//                printSwitchPanel()
+//                term.setCursorPosition(24, recordCursorPos[1] + 1)
+//                shell.shellReader().readCmd()
+//            }
+//            cleanSwitchPanel()
+//            term.setCursorPosition(recordCursorPos[0], recordCursorPos[1])
+//            term.showCursor()
+//            shell.status = Shell.Status.NORMAL
         } catch (e: Exception) {
             error("Catch exception when quick switch session, stackTrace = {}", parseStackTrace(e))
         }
@@ -211,7 +210,7 @@ class SessionQuickSwitchHelper(private val shell: Shell) : Loggable, IStacktrace
     }
 
     private fun cleanSwitchPanel() {
-        term.setCursorPosition(0, recordCursorPos[1])
+//        term.setCursorPosition(0, recordCursorPos[1])
         for (i in 0 until bottomLineOffset) {
             if (i == 0) {
                 print(AsciiControl.ANIS_ERASE_LINE)
@@ -229,6 +228,5 @@ class SessionQuickSwitchHelper(private val shell: Shell) : Loggable, IStacktrace
         private val PART_HEADS = arrayOf("   No.", "address", "path", "protocol", "status")
         private const val HELP_INFO =
             " Press '↑'/'↓' key to choose session to switch, '←'/'→' to change group, 'Enter' to confirm, 'Esc' to quit."
-        private val term = Term.instance
     }
 }

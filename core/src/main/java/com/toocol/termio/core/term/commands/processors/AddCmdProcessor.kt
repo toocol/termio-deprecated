@@ -77,8 +77,8 @@ class AddCmdProcessor : TermCommandProcessor() {
         launch {
             AuthApi.addCredential(JsonObject(credential.toMap()))
             clear()
-            Term.instance.printScene(false)
-            Term.instance.printTermPrompt()
+            Term.printScene(false)
+            Term.printTermPrompt()
         }
         resultAndMsg.first(true)
         return null

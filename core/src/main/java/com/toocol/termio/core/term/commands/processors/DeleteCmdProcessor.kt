@@ -4,7 +4,6 @@ import com.toocol.termio.core.auth.api.AuthApi
 import com.toocol.termio.core.cache.CredentialCache
 import com.toocol.termio.core.term.commands.TermCommandProcessor
 import com.toocol.termio.core.term.core.Term
-import com.toocol.termio.core.term.core.Term.Companion.promptLen
 import com.toocol.termio.utilities.ansi.Printer.clear
 import com.toocol.termio.utilities.utils.Tuple2
 import kotlinx.coroutines.launch
@@ -36,9 +35,8 @@ class DeleteCmdProcessor : TermCommandProcessor() {
         launch {
             AuthApi.deleteCredential(index)
             clear()
-            Term.instance.printScene(false)
-            Term.instance.printTermPrompt()
-            Term.instance.setCursorPosition(promptLen, Term.executeLine)
+            Term.printScene(false)
+            Term.printTermPrompt()
         }
         resultAndMsg.first(true)
         return null

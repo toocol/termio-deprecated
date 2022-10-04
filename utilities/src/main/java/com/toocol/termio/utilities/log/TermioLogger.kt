@@ -9,64 +9,67 @@ import java.util.*
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/6/28 11:52
  */
-class TermioLogger(private val clazz: Class<*>, private val logBuilder: StringBuilder, private val simpleDateFormat: SimpleDateFormat): Logger {
-    companion object {
-        private const val DEBUG = "DEBUG"
-        private const val INFO = "INFO"
-        private const val WARN = "WARN"
-        private const val ERROR = "ERROR"
-        private var skip = true
-        fun skip() {
-            skip = true
-        }
+object TermioLogger : Logger {
+    private const val DEBUG = "DEBUG"
+    private const val INFO = "INFO"
+    private const val WARN = "WARN"
+    private const val ERROR = "ERROR"
 
-        fun nonSkip() {
-            skip = false
-        }
+    private var skip = true
+
+    private val logBuilder = StringBuilder()
+    private val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+    fun skip() {
+        skip = true
     }
 
-    override fun debug(message: String?, vararg params: Any?) {
+    fun nonSkip() {
+        skip = false
+    }
+
+    override fun debug(className: String, message: String?, vararg params: Any?) {
         if (skip) {
             return
         }
-        log(message, DEBUG, *params)
+        log(className, message, DEBUG, *params)
     }
 
-    override fun info(message: String?, vararg params: Any?) {
+    override fun info(className: String, message: String?, vararg params: Any?) {
         if (skip) {
             return
         }
-        log(message, INFO, *params)
+        log(className, message, INFO, *params)
     }
 
-    override fun warn(message: String?, vararg params: Any?) {
+    override fun warn(className: String, message: String?, vararg params: Any?) {
         if (skip) {
             return
         }
-        log(message, WARN, *params)
+        log(className, message, WARN, *params)
     }
 
-    override fun error(message: String?, vararg params: Any?) {
+    override fun error(className: String, message: String?, vararg params: Any?) {
         if (skip) {
             return
         }
-        log(message, ERROR, *params)
+        log(className, message, ERROR, *params)
     }
 
     @Synchronized
-    private fun log(message: String?, level: String, vararg params: Any?) {
+    private fun log(className: String, message: String?, level: String, vararg params: Any?) {
         logBuilder.delete(0, logBuilder.length)
-        appendTime(logBuilder).append(" ").append(level).append(" ")
-        appendClassThreadInfo(logBuilder).append(StrUtil.fullFillParam(message, *params)).append("\r\n")
+        appendTime().append(" ").append(level).append(" ")
+        appendClassThreadInfo(className).append(StrUtil.fullFillParam(message, *params)).append("\r\n")
         logFileAppend(logBuilder.toString())
     }
 
-    private fun appendTime(logBuilder: StringBuilder): StringBuilder {
+    private fun appendTime(): StringBuilder {
         return logBuilder.append(simpleDateFormat.format(Date()))
     }
 
-    private fun appendClassThreadInfo(logBuilder: StringBuilder): StringBuilder {
-        return logBuilder.append("[").append(clazz.simpleName).append(",").append(" ")
+    private fun appendClassThreadInfo(className: String): StringBuilder {
+        return logBuilder.append("[").append(className).append(",").append(" ")
             .append(Thread.currentThread().name).append("]").append(" ")
     }
 }

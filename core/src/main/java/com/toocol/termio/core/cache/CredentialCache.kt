@@ -57,7 +57,6 @@ class CredentialCache private constructor() {
             lock.lock()
             try {
                 val idx = AtomicInteger(1)
-                val term = Term.instance
                 credentialSet.forEach(Consumer { credential: SshCredential? ->
                     val index = idx.getAndIncrement()
                     Printer.print(AnsiStringBuilder()
@@ -65,7 +64,6 @@ class CredentialCache private constructor() {
                         .append(StrUtil.SPACE.repeat(Termio.windowWidth))
                         .toString()
                     )
-                    term.setCursorPosition(0, term.cursorPosition[1])
                     val builder = AnsiStringBuilder()
                         .background(theme.propertiesZoneBgColor.color)
                     if (SshSessionCache.isAlive(credential!!.host)) {

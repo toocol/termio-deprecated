@@ -39,7 +39,7 @@ class HistoryOutputInfoHelper : Loggable {
             .append(showIndex)
             .append(StringUtils.repeat(" ", 40))
             .append("Press '←'/'→' to change page,'Esc' to quit.")
-        val term = Term.instance
+        val term = Term
         term.cleanDisplay()
         term.printDisplayWithRecord(builder.toString())
     }

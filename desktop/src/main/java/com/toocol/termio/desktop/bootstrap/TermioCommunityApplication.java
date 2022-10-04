@@ -59,7 +59,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
 
     @Override
     public void init() throws Exception {
-        TermioCommunityBootstrap.runDesktop(TermioCommunityApplication.class);
+        TermioCommunityBootstrap.run();
     }
 
     @Override
@@ -80,7 +80,7 @@ public class TermioCommunityApplication extends Application implements Loggable 
         assert root != null;
 
         TScene scene = new TScene(1, (Parent) root);
-        WindowSizeAdjuster.Instance.init(stage, root);
+        WindowSizeAdjuster.init(stage, root);
 
         fontParser.parse(this.getClass());
         cssParser.parse(this.getClass(), scene);

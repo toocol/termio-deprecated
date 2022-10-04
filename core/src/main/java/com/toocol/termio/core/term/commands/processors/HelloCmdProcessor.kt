@@ -11,7 +11,7 @@ import com.toocol.termio.utilities.utils.Tuple2
  */
 class HelloCmdProcessor : TermCommandProcessor() {
     override fun process(cmd: String, resultAndMsg: Tuple2<Boolean, String?>): Any? {
-        Term.instance.printDisplay("Hello you ~")
+        Term.printDisplay("Hello you ~")
         resultAndMsg.first(true)
         return null
     }

@@ -8,11 +8,9 @@ import com.toocol.termio.platform.ui.TScene
 import com.toocol.termio.utilities.escape.*
 import com.toocol.termio.utilities.escape.EscapeAsciiControlMode.*
 import com.toocol.termio.utilities.escape.EscapeColorGraphicsMode.*
-import com.toocol.termio.utilities.escape.EscapeCommonPrivateMode.*
 import com.toocol.termio.utilities.escape.EscapeCursorControlMode.*
 import com.toocol.termio.utilities.escape.EscapeEraseFunctionsMode.*
 import com.toocol.termio.utilities.escape.EscapeOSCMode.*
-import com.toocol.termio.utilities.escape.EscapeScreenMode.*
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.beans.value.ObservableValue
@@ -33,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 abstract class EscapedStyleClassedArea(private val id: Long) : StyleClassedTextArea(), EscapeCodeSequenceSupporter<EscapedStyleClassedArea>, IComponent, IActionAfterShow {
 
-    protected var paragraphStyle: EscapeStyleCollection = EscapeStyleCollection()
+    private var paragraphStyle: EscapeStyleCollection = EscapeStyleCollection()
 
     @JvmField
     protected var defaultChineseTextStyle: EscapeStyleCollection = EscapeStyleCollection()
@@ -183,14 +181,6 @@ abstract class EscapedStyleClassedArea(private val id: Long) : StyleClassedTextA
         val paragraphIndex = lineToParagraph(row)
         paragraphIndex ?: return
         cursor.setTo(calculateCursorInline(paragraphIndex, col))
-    }
-
-    fun showCursor() {
-
-    }
-
-    fun hideCursor() {
-
     }
 
     fun cursorLeft(value: Int) {
@@ -473,65 +463,6 @@ abstract class EscapedStyleClassedArea(private val id: Long) : StyleClassedTextA
         }
     }
 
-    private class EscapeScreenAction {
-        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
-            override fun focusMode(): Class<out IEscapeMode> {
-                return EscapeScreenMode::class.java
-            }
-
-            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
-                when (escapeMode) {
-                    MONOCHROME_40_25 -> {}
-                    COLOR_4_40_25 -> {}
-                    MONOCHROME_80_25 -> {}
-                    COLOR_4_80_25 -> {}
-                    COLOR_4_320_200 -> {}
-                    MONOCHROME_320_200 -> {}
-                    MONOCHROME_640_200 -> {}
-                    ENABLE_LINE_WRAPPING -> {}
-                    COLOR_16_320_200 -> {}
-                    COLOR_16_640_200 -> {}
-                    MONOCHROME_640_350 -> {}
-                    COLOR_16_640_350 -> {}
-                    MONOCHROME_640_480 -> {}
-                    COLOR_640_480 -> {}
-                    COLOR_256_320_200 -> {}
-                }
-            }
-        }
-    }
-
-    private class EscapeCommonPrivateAction {
-        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
-            override fun focusMode(): Class<out IEscapeMode> {
-                return EscapeCommonPrivateMode::class.java
-            }
-
-            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
-                when (escapeMode) {
-                    CURSOR_INVISIBLE -> {}
-                    CURSOR_VISIBLE -> {}
-                    RESTORE_SCREEN -> {}
-                    SAVE_SCREEN -> {}
-                    ENABLE_ALTERNATIVE_BUFFER -> {}
-                    DISABLE_ALTERNATIVE_BUFFER -> {}
-                }
-            }
-        }
-    }
-
-    private class EscapeKeyBoardStringAction {
-        companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
-            override fun focusMode(): Class<out IEscapeMode> {
-                return EscapeKeyBoardStringMode::class.java
-            }
-
-            override fun action(executeTarget: EscapedStyleClassedArea, escapeMode: IEscapeMode, params: List<Any>?) {
-                val code = params!![0]
-                val string = params[1]
-            }
-        }
-    }
 
     private class EscapeOscBelAction {
         companion object Instance : AnsiEscapeAction<EscapedStyleClassedArea>() {
@@ -626,9 +557,6 @@ abstract class EscapedStyleClassedArea(private val id: Long) : StyleClassedTextA
             actions.add(EscapeColorISOAction.Instance)
             actions.add(EscapeColor256Action.Instance)
             actions.add(EscapeColorRgbAction.Instance)
-            actions.add(EscapeScreenAction.Instance)
-            actions.add(EscapeCommonPrivateAction.Instance)
-            actions.add(EscapeKeyBoardStringAction.Instance)
             actions.add(EscapeOscBelAction.Instance)
             val map: MutableMap<Class<out IEscapeMode>, AnsiEscapeAction<EscapedStyleClassedArea>> = HashMap()
             for (action in actions) {

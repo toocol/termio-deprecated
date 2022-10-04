@@ -18,7 +18,6 @@ object ExecuteCommandApi : SuspendApi {
     suspend fun executeCommand(cmd: String) {
         val resultAndMessage = Tuple2<Boolean, String?>()
         val isBreak = AtomicBoolean()
-        val term = Term.instance
         val isCommand = TermCommand.cmdOf(cmd)
             .map { termCommand: TermCommand ->
                 try {
@@ -35,9 +34,9 @@ object ExecuteCommandApi : SuspendApi {
             }.orElse(false)
         val msg = resultAndMessage._2()
         if (StringUtils.isNotEmpty(msg)) {
-            term.printDisplay(msg)
+            Term.printDisplay(msg)
         } else {
-            term.cleanDisplayBuffer()
+            Term.cleanDisplayBuffer()
         }
         if (!isCommand && StringUtils.isNotEmpty(cmd)) {
             val builder = AnsiStringBuilder()
@@ -46,7 +45,7 @@ object ExecuteCommandApi : SuspendApi {
                 .append(cmd)
                 .deFront()
                 .append(": command not found.")
-            term.printDisplay(builder.toString())
+            Term.printDisplay(builder.toString())
         }
     }
 }

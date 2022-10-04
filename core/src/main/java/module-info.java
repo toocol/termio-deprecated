@@ -40,5 +40,4 @@ module termio.core {
     exports com.toocol.termio.core.term.commands.processors;
     exports com.toocol.termio.core.term.core;
     exports com.toocol.termio.core.term.api;
-    exports com.toocol.termio.core.term.module;
 }
