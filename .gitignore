@@ -48,12 +48,7 @@ runPom.xml
 dependency-reduced-pom.xml
 
 ### cmake build directory ###
-build-emulator-Desktop_Qt_6_3_1_MinGW_64_bit-Debug/
-build-emulator-Desktop_Qt_6_3_2_MinGW_64_bit-Debug/
-build-emulator-Desktop_Qt_6_3_1_MSVC2019_64bit-Debug/
-build-emulator-Desktop_Qt_6_3_2_MSVC2019_64bit-Debug/
-build-emulator-Desktop_Qt_6_3_1_MSVC2019_32bit-Debug/
-build-emulator-Desktop_Qt_6_3_2_MSVC2019_32bit-Debug/
+build-emulator-Desktop_Qt_*/
 
 CMakeLists.txt.user
 CMakeLists.txt.user.*

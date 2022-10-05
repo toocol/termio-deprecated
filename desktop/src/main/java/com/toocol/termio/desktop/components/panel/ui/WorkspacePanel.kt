@@ -36,7 +36,8 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
 
         parser.initializeAll()
 
-        children.add(parser.getAsNode(Homepage::class.java))
+        children.addAll(parser.getAsNode(Homepage::class.java), NativeTerminalEmulator)
+        NativeTerminalEmulator.hide()
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
@@ -61,11 +62,11 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             hideHomepage()
             val terminal = NativeTerminalEmulator
             terminal.initialize()
-            terminal.sizePropertyBind(findComponent(MajorPanel::class.java, 1), widthRatio, heightRatio * 0.985)
-            children.add(terminal)
+            terminal.sizePropertyBind(findComponent(MajorPanel::class.java, 1), widthRatio, heightRatio)
             terminal.createSshSession(sessionId, host, user, password)
             terminal.activeTerminal()
             terminal.requestFocus()
+            terminal.show()
             System.gc()
         }
     }

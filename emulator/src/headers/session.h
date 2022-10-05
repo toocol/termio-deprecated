@@ -445,7 +445,8 @@ class SessionGroup : public QWidget {
     FOR_RIGHT_BOTTOM
   };
   explicit SessionGroup(QWidget* parent = nullptr);
-  static int _lastSessionGroupId;
+  static int lastSessionGroupId;
+  static Session* activeSession;
 
   static void initialize(QWidget*);
   /**

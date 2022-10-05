@@ -490,7 +490,9 @@ void Session::setSessionGroupId(int newSessionGroupId) {
 /* ------------------------------------------------------------------------- */
 // Define the static properties.
 SessionGroup::SplitScreenState SessionGroup::_state = ZERO;
-int SessionGroup::_lastSessionGroupId = 0;
+int SessionGroup::lastSessionGroupId = 0;
+Session *SessionGroup::activeSession = nullptr;
+
 bool SessionGroup::_isInit = false;
 QHash<int, SessionGroup *> SessionGroup::_sessionGroupMaps =
     QHash<int, SessionGroup *>();
@@ -516,7 +518,7 @@ void SessionGroup::changeState(SplitScreenState newState) {
 
 SessionGroup *SessionGroup::createNewSessionGroup(QWidget *parent) {
   SessionGroup *sessionGroup = new SessionGroup(parent);
-  sessionGroup->_groupId = ++_lastSessionGroupId;
+  sessionGroup->_groupId = ++lastSessionGroupId;
   sessionGroup->createTerminalView(parent);
   _sessionGroupMaps[sessionGroup->_groupId] = sessionGroup;
   return sessionGroup;

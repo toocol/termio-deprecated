@@ -6,6 +6,7 @@ import com.toocol.termio.platform.component.IStyleAble
 import com.toocol.termio.platform.nativefx.NativeBinding.Modifier
 import com.toocol.termio.platform.nativefx.NativeBinding.MouseBtn
 import com.toocol.termio.platform.window.WindowSizeAdjuster
+import com.toocol.termio.utilities.utils.StrUtil
 import javafx.animation.AnimationTimer
 import javafx.geometry.Rectangle2D
 import javafx.scene.control.Label
@@ -13,10 +14,13 @@ import javafx.scene.image.ImageView
 import javafx.scene.image.PixelBuffer
 import javafx.scene.image.PixelFormat
 import javafx.scene.image.WritableImage
+import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.ScrollEvent
 import javafx.scene.layout.Region
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.IntBuffer
@@ -29,7 +33,7 @@ import java.nio.IntBuffer
 abstract class NativeNode @JvmOverloads constructor(
     private val hidpiAware: Boolean = false,
     private val pixelBufferEnabled: Boolean = false,
-) : Region(), IComponent, IStyleAble, IActionAfterShow {
+) : Region(), IComponent, IStyleAble, IActionAfterShow, CoroutineScope by MainScope() {
     private val formatInt = PixelFormat.getIntArgbPreInstance()
     private val formatByte = PixelFormat.getByteBgraPreInstance()
     private var img: WritableImage? = null
@@ -45,7 +49,8 @@ abstract class NativeNode @JvmOverloads constructor(
     private val fpsValues = DoubleArray(numValues)
     private var frameTimestamp: Long = 0
     private var fpsCounter = 0
-    private var isVerbose = false
+
+    protected var isVerbose = false
 
     var updateOnce = true
 
@@ -61,10 +66,9 @@ abstract class NativeNode @JvmOverloads constructor(
             val sy = if (hidpiAware) scene.window.renderScaleX else 1.0
             val x = ev.x * sx
             val y = ev.y * sy
-            val timestamp = System.nanoTime()
             NativeBinding.fireMouseMoveEvent(key, x, y,
                 MouseBtn.fromEvent(ev), Modifier.fromEvent(ev),
-                timestamp
+                System.nanoTime()
             )
         }
         addEventHandler(MouseEvent.MOUSE_PRESSED) { ev: MouseEvent ->
@@ -72,11 +76,10 @@ abstract class NativeNode @JvmOverloads constructor(
             val sy = if (hidpiAware) scene.window.renderScaleX else 1.0
             val x = ev.x * sx
             val y = ev.y * sy
-            val timestamp = System.nanoTime()
             buttonState = MouseBtn.fromEvent(ev)
             NativeBinding.fireMousePressedEvent(key, x, y,
                 MouseBtn.fromEvent(ev), Modifier.fromEvent(ev),
-                timestamp
+                System.nanoTime()
             )
         }
         addEventHandler(MouseEvent.MOUSE_RELEASED) { ev: MouseEvent ->
@@ -84,13 +87,12 @@ abstract class NativeNode @JvmOverloads constructor(
             val sy = if (hidpiAware) scene.window.renderScaleX else 1.0
             val x = ev.x * sx
             val y = ev.y * sy
-            val timestamp = System.nanoTime()
             NativeBinding.fireMouseReleasedEvent(key,
                 x,
                 y,  // TODO 11.07.2019 check whether we correctly detected btn up (what about multiple btns?)
                 buttonState,
                 Modifier.fromEvent(ev),
-                timestamp
+                System.nanoTime()
             )
         }
         addEventHandler(MouseEvent.MOUSE_DRAGGED) { ev: MouseEvent ->
@@ -98,10 +100,9 @@ abstract class NativeNode @JvmOverloads constructor(
             val sy = if (hidpiAware) scene.window.renderScaleX else 1.0
             val x = ev.x * sx
             val y = ev.y * sy
-            val timestamp = System.nanoTime()
             NativeBinding.fireMouseMoveEvent(key, x, y,
                 MouseBtn.fromEvent(ev), Modifier.fromEvent(ev),
-                timestamp
+                System.nanoTime()
             )
         }
         addEventHandler(MouseEvent.MOUSE_CLICKED) { ev: MouseEvent ->
@@ -110,11 +111,10 @@ abstract class NativeNode @JvmOverloads constructor(
             val sy = if (hidpiAware) scene.window.renderScaleX else 1.0
             val x = ev.x * sx
             val y = ev.y * sy
-            val timestamp = System.nanoTime()
             NativeBinding.fireMouseClickedEvent(key, x, y,
                 MouseBtn.fromEvent(ev), Modifier.fromEvent(ev),
                 ev.clickCount,
-                timestamp
+                System.nanoTime()
             )
         }
         addEventHandler(ScrollEvent.SCROLL) { ev: ScrollEvent ->
@@ -122,37 +122,51 @@ abstract class NativeNode @JvmOverloads constructor(
             val sy = if (hidpiAware) scene.window.renderScaleX else 1.0
             val x = ev.x * sx
             val y = ev.y * sy
-            val timestamp = System.nanoTime()
             NativeBinding.fireMouseWheelEvent(key, x, y, ev.deltaY,
                 MouseBtn.fromEvent(ev), Modifier.fromEvent(ev),
-                timestamp
+                System.nanoTime()
             )
         }
 
         // ---- keys
-        this.isFocusTraversable = true
-        addEventHandler(KeyEvent.KEY_PRESSED) { ev: KeyEvent ->
-            // System.out.println("KEY: pressed " + ev.getText() + " : " + ev.getCode());
-            val timestamp = System.nanoTime()
-            NativeBinding.fireKeyPressedEvent(key, ev.text, ev.code.code,  /*modifiers*/
-                0,
-                timestamp
-            )
+        this.isFocusTraversable = false
+        addEventFilter(KeyEvent.KEY_PRESSED) { ev ->
+            if (ev.code == KeyCode.TAB || ev.code == KeyCode.DOWN) {
+                NativeBinding.fireKeyPressedEvent(key, ev.text, QtKeyCode.getQtCode(ev.code.code),
+                    Modifier.fromEvent(ev),
+                    System.nanoTime()
+                )
+                ev.consume()
+            }
+        }
+        addEventFilter(KeyEvent.KEY_RELEASED) { ev ->
+            if (ev.code == KeyCode.TAB || ev.code == KeyCode.DOWN) {
+                NativeBinding.fireKeyReleasedEvent(key, ev.text, QtKeyCode.getQtCode(ev.code.code),
+                    Modifier.fromEvent(ev),
+                    System.nanoTime()
+                )
+                ev.consume()
+            }
         }
         addEventHandler(KeyEvent.KEY_RELEASED) { ev: KeyEvent ->
-            // System.out.println("KEY: released " + ev.getText() + " : " + ev.getCode());
-            val timestamp = System.nanoTime()
-            NativeBinding.fireKeyReleasedEvent(key, ev.text, ev.code.code,  /*modifiers*/
-                0,
-                timestamp
+            NativeBinding.fireKeyReleasedEvent(key, ev.text, QtKeyCode.getQtCode(ev.code.code),
+                Modifier.fromEvent(ev),
+                System.nanoTime()
+            )
+        }
+        addEventHandler(KeyEvent.KEY_PRESSED) { ev: KeyEvent ->
+            if (StrUtil.isAsciiPrintable(ev.text) || ev.code == KeyCode.ENTER) {
+                return@addEventHandler
+            }
+            NativeBinding.fireKeyPressedEvent(key, ev.text, QtKeyCode.getQtCode(ev.code.code),
+                Modifier.fromEvent(ev),
+                System.nanoTime()
             )
         }
         addEventHandler(KeyEvent.KEY_TYPED) { ev: KeyEvent ->
-            // System.out.println("KEY: typed    " + ev.getText() + " : " + ev.getCode());
-            val timestamp = System.nanoTime()
-            NativeBinding.fireKeyTypedEvent(key, ev.text, ev.code.code,  /*modifiers*/
-                0,
-                timestamp
+            NativeBinding.fireKeyTypedEvent(key, ev.character, QtKeyCode.getQtCode(ev.code.code),
+                Modifier.fromEvent(ev),
+                System.nanoTime()
             )
         }
     }
@@ -185,14 +199,14 @@ abstract class NativeNode @JvmOverloads constructor(
             updateNativeImage()
         }
 
-        children.add(view)
-
         timer = object : AnimationTimer() {
             override fun handle(now: Long) {
                 r.run()
             }
         }
         timer!!.start()
+
+        children.add(view)
     }
 
     fun updateNativeImage() {
@@ -208,9 +222,6 @@ abstract class NativeNode @JvmOverloads constructor(
         val dirty = NativeBinding.isDirty(key)
         val isReady = NativeBinding.isBufferReady(key)
 
-        // if(!isReady) {
-        //     System.out.println("["+key+"]> WARNING: buffer ready: " + isReady);
-        // }
         NativeBinding.processNativeEvents(key)
 
         // if not dirty yet and/or not ready there's nothing
@@ -241,6 +252,7 @@ abstract class NativeNode @JvmOverloads constructor(
             }
             dimensions = Rectangle2D(0.0, 0.0, currentW.toDouble(), currentH.toDouble())
             view!!.image = img
+            println("Create new ImageView")
         }
         if (pixelBufferEnabled) {
             pixelBuffer!!.updateBuffer { dimensions }

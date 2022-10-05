@@ -427,13 +427,8 @@ class SharedCanvas final {
     unsigned int priority;
 
     while (evt_mq->get_num_msg() > 0) {
-      // timed locking of resources
-      boost::system_time const timeout =
-          boost::get_system_time() +
-          boost::posix_time::milliseconds(LOCK_TIMEOUT);
-
-      bool result = evt_mq->timed_receive(evt_mq_msg_buff, MAX_SIZE, recvd_size,
-                                          priority, timeout);
+      bool result =
+          evt_mq->try_receive(evt_mq_msg_buff, MAX_SIZE, recvd_size, priority);
 
       if (!result) {
         std::cerr
@@ -445,7 +440,7 @@ class SharedCanvas final {
       event* evt = static_cast<event*>(evt_mq_msg_buff);
 
       // terminate if termination event was sent
-      if (evt->type == NFX_TERMINATION_EVENT) {
+      if (evt->type & NFX_TERMINATION_EVENT) {
         std::cerr << "[" + name + "] termination requested." << std::endl;
         this->terminate();
         std::cerr << "[" + name + "] done." << std::endl;

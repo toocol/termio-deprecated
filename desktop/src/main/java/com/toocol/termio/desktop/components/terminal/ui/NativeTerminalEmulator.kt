@@ -11,14 +11,8 @@ import com.toocol.termio.platform.nativefx.NativeNode
 import com.toocol.termio.platform.window.WindowSizeAdjuster
 import com.toocol.termio.utilities.ansi.Printer
 import com.toocol.termio.utilities.log.Loggable
-import com.toocol.termio.utilities.utils.CharUtil
 import javafx.beans.value.ObservableValue
-import javafx.event.EventHandler
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Pane
-import java.io.IOException
-import java.nio.charset.StandardCharsets
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -42,53 +36,9 @@ object NativeTerminalEmulator : NativeNode(true, true) {
 
     override fun initialize() {
         apply {
+            isVerbose = true
             connect("_emulator_mem")
 
-            /*
-             * Prevent auto caret movement when user pressed '←', '→', '↑', '↓', 'Home', 'PgUp', 'PgDn', instead of setting the caret manually
-             */
-            addEventFilter(KeyEvent.ANY) { event: KeyEvent ->
-                var input = ""
-                when (event.code) {
-                    KeyCode.LEFT -> {
-                        input = CharUtil.LEFT_ARROW.toString()
-                        event.consume()
-                    }
-                    KeyCode.RIGHT -> {
-                        input = CharUtil.RIGHT_ARROW.toString()
-                        event.consume()
-                    }
-                    KeyCode.UP -> {
-                        input = CharUtil.UP_ARROW.toString()
-                        event.consume()
-                    }
-                    KeyCode.DOWN -> {
-                        input = CharUtil.DOWN_ARROW.toString()
-                        event.consume()
-                    }
-                    KeyCode.END, KeyCode.PAGE_DOWN, KeyCode.PAGE_UP, KeyCode.HOME -> event.consume()
-                    else -> {}
-                }
-                if (input.isNotEmpty()) {
-                    TerminalEmulator.terminalReaderInputStream.write(input.toByteArray(StandardCharsets.UTF_8))
-                    TerminalEmulator.terminalReaderInputStream.flush()
-                }
-            }
-
-            onKeyTyped = EventHandler { event: KeyEvent ->
-                if (event.isShortcutDown || event.isControlDown || event.isAltDown || event.isMetaDown) {
-                    return@EventHandler
-                }
-                try {
-                    terminalReaderInputStream.write(event.character.toByteArray(StandardCharsets.UTF_8))
-                    terminalReaderInputStream.flush()
-                } catch (e: IOException) {
-                    error("Write to reader failed, msg = ${e.message}")
-                }
-            }
-
-            addEventHandler(KeyEvent.KEY_PRESSED) { }
-            addEventHandler(KeyEvent.KEY_RELEASED) { }
             addNativeEventListener { key, type, evt ->
                 if (WindowSizeAdjuster.onMoved && updateOnce) {
                     println("> key: $key, type: $type, evt_msg: $evt")
@@ -98,8 +48,6 @@ object NativeTerminalEmulator : NativeNode(true, true) {
             }
 
             terminalOutputService.start()
-
-            onMouseClicked = EventHandler { requestFocus() }
 
             focusedProperty()
                 .addListener { _: ObservableValue<out Boolean>?, _: Boolean?, nv: Boolean ->
@@ -128,7 +76,6 @@ object NativeTerminalEmulator : NativeNode(true, true) {
     override fun actionAfterShow() {}
 
     fun activeTerminal() {
-        TerminalEmulator.currentActiveId = id()
         Printer.setPrinter(terminalPrintStream)
     }
 

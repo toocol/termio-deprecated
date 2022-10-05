@@ -1,6 +1,7 @@
 package com.toocol.termio.platform.nativefx;
 
 import com.toocol.termio.utilities.utils.OsUtil;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import org.apache.commons.io.IOUtils;
@@ -100,8 +101,7 @@ public final class NativeBinding {
     public enum SharedStringType {
         NFX_SHARED_DEFAULT(0),
         NFX_SEND_TEXT(1),
-        NFX_REQUEST_SIZE(2)
-        ;
+        NFX_REQUEST_SIZE(2);
         public final int type;
 
         SharedStringType(int type) {
@@ -158,17 +158,16 @@ public final class NativeBinding {
         }
 
         static int fromEvent(ScrollEvent ev) {
-            // TODO implement me 8.07.2019
             return MouseBtn.NO_BTN;
         }
     }
 
     interface Modifier {
-        int NO_KEY = 0;
-        int SHIFT_KEY = 1;
-        int ALT_KEY = 2;
-        int META_KEY = 4;
-        int CONTROL_KEY = 8;
+        int NO_KEY = 0x00000000;
+        int SHIFT_KEY = 0x02000000;
+        int CONTROL_KEY = 0x04000000;
+        int ALT_KEY = 0x08000000;
+        int META_KEY = 0x10000000;
 
         static int fromEvent(MouseEvent ev) {
             int result = Modifier.NO_KEY;
@@ -193,6 +192,28 @@ public final class NativeBinding {
         }
 
         static int fromEvent(ScrollEvent ev) {
+            int result = Modifier.NO_KEY;
+
+            if (ev.isShiftDown()) {
+                result |= Modifier.SHIFT_KEY;
+            }
+
+            if (ev.isAltDown()) {
+                result |= Modifier.ALT_KEY;
+            }
+
+            if (ev.isMetaDown()) {
+                result |= Modifier.META_KEY;
+            }
+
+            if (ev.isControlDown()) {
+                result |= Modifier.CONTROL_KEY;
+            }
+
+            return result;
+        }
+
+        static int fromEvent(KeyEvent ev) {
             int result = Modifier.NO_KEY;
 
             if (ev.isShiftDown()) {

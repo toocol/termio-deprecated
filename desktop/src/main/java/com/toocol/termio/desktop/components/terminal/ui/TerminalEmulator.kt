@@ -151,7 +151,6 @@ class TerminalEmulator(id: Long, sessionId: Long) : TAnchorPane(id), Loggable {
     override fun actionAfterShow() {}
 
     private fun activeTerminal() {
-        currentActiveId = id()
         setPrinter(terminalPrintStream)
     }
 
@@ -180,9 +179,6 @@ class TerminalEmulator(id: Long, sessionId: Long) : TAnchorPane(id), Loggable {
     }
 
     companion object {
-        @Volatile
-        var currentActiveId: Long = 0
-
         /**
          * DesktopTerminalPanel has only one MetadataReaderInputStream:
          * Get user's input data.
