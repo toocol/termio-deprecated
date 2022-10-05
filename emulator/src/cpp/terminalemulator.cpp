@@ -13,7 +13,7 @@
 
 #define STEP_ZOOM 1
 
-static const int nativeEvtInterval = 1;
+static const int nativeEvtInterval = 10;
 
 using namespace TConsole;
 
@@ -137,7 +137,8 @@ void TerminalEmulator::requestRedrawImage(QImage *image) {
 
 bool TerminalEmulator::eventFilter(QObject *obj, QEvent *ev) {
   if (ev->type() == QEvent::Paint) {
-    _terminalView->update();
+    QPaintEvent *pe = static_cast<QPaintEvent *>(ev);
+    QWidget::paintEvent(pe);
   }
   if (ev->type() == QEvent::UpdateRequest) {
     if (_nativeImage != nullptr) {
@@ -180,6 +181,7 @@ void TerminalEmulator::createSshSession(long sessionId, QString host,
            << ", user = " << user << ", password = " << password;
   Session *session = createSession(this);
   SessionGroup::addSessionToGroup(SessionGroup::ONE_CENTER, session);
+  SessionGroup::activeSession = session;
   session->setSessionId(sessionId);
   session->setHost(host);
   session->setUser(user);
@@ -200,6 +202,12 @@ void TerminalEmulator::createSshSession(long sessionId, QString host,
   connect(_emulation, SIGNAL(testConpty()), session, SLOT(run()));
 
   session->run();
+}
+
+void TerminalEmulator::sendSimulatedEvent(QEvent *event) {
+  SessionGroup *activeGroup = SessionGroup::getSessionGroup(
+      SessionGroup::activeSession->sessionGroupId());
+  QApplication::sendEvent(activeGroup->view(), event);
 }
 
 void TerminalEmulator::setNativeRedrawCallback(

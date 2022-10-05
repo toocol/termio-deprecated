@@ -364,10 +364,14 @@ void TerminalView::drawContents(QPainter &painter, const QRect &rect) {
   const int bufferSize = _usedColumns;
   std::wstring unistr;
   unistr.reserve(bufferSize);
-  for (int y = luy; y <= rly; y++) {
+
+  int y = luy;
+  for (; y <= rly; y++) {
     quint32 c = _image[loc(lux, y)].character;
     int x = lux;
     if (!c && x) x--;  // Search for start of multi-column character
+    //    drawSegment(c, rlx, lux, x, y1, tLx, tLy, bufferSize, unistr,
+    //    painter);
     for (; x <= rlx; x++) {
       int len = 1;
       int p = 0;
@@ -605,17 +609,19 @@ void TerminalView::drawCharacters(QPainter &painter, const QRect &rect,
     painter.setLayoutDirection(Qt::LeftToRight);
 
     if (_bidiEnabled) {
+      painter.fillRect(rect, style->backgroundColor.color(_colorTable));
       painter.drawText(rect.x(), rect.y() + _fontAscend + _lineSpacing,
                        QString::fromStdWString(text));
     } else {
-      // static text
+// static text
+#if 1
       QString draw_text_str = QString::fromStdWString(text);
       uint32_t draw_text_flags = 0;
       if (useBold) draw_text_flags |= (1 << 0);
-      // if (useUnderline) draw_text_flags |= (1 << 1);
+      //       if (useUnderline) draw_text_flags |= (1 << 1);
       if (useItalic) draw_text_flags |= (1 << 2);
-      // if (useStrikeOut) draw_text_flags |= (1 << 3);
-      // if (useOverline) draw_text_flags |= (1 << 4);
+      //       if (useStrikeOut) draw_text_flags |= (1 << 3);
+      //       if (useOverline) draw_text_flags |= (1 << 4);
 
       QPair<uint32_t, QString> static_text_key(draw_text_flags, draw_text_str);
 
@@ -626,23 +632,17 @@ void TerminalView::drawCharacters(QPainter &painter, const QRect &rect,
         staticText->prepare(QTransform(), font);
         _staticTextCache.insert(static_text_key, staticText);
       }
-#if 0
-        QRect drawRect(rect.topLeft(), rect.size());
-        drawRect.setHeight(rect.height() + _drawTextAdditionHeight);
-        painter.fillRect(drawRect, style->backgroundColor.color(_colorTable));
-        painter.drawText(drawRect, Qt::AlignBottom,
-                         LTR_OVERRIDE_CHAR + QString::fromStdWString(text));
-#else
+
       painter.fillRect(rect, style->backgroundColor.color(_colorTable));
       painter.drawStaticText(rect.topLeft(), *staticText);
-//      painter.drawStaticText(
-//          QPointF(
-//              rect.left(),
-//              rect.top() -
-//                  (staticText->size().height() - rect.height()) * 4 /
-//                      5),  // align baseline for fallback font (80% of height)
-//          *staticText);
-#endif
+      //      painter.drawStaticText(
+      //          QPointF(
+      //              rect.left(),
+      //              rect.top() -
+      //                  (staticText->size().height() - rect.height()) * 4 /
+      //                      5),  // align baseline for fallback font (80% of
+      //                      height)
+      //          *staticText);
       // FIXME: see previous comments
       if (useUnderline)
         painter.drawLine(QLineF(rect.left(), rect.bottom() - 0.5, rect.right(),
@@ -654,6 +654,13 @@ void TerminalView::drawCharacters(QPainter &painter, const QRect &rect,
       if (useOverline)
         painter.drawLine(QLineF(rect.left(), rect.top() + 0.5, rect.right(),
                                 rect.top() + 0.5));
+#else
+      QRect drawRect(rect.topLeft(), rect.size());
+      drawRect.setHeight(rect.height() + _drawTextAdditionHeight);
+      painter.fillRect(drawRect, style->backgroundColor.color(_colorTable));
+      painter.drawText(drawRect, Qt::AlignBottom,
+                       LTR_OVERRIDE_CHAR + QString::fromStdWString(text));
+#endif
     }
   }
 }
@@ -1647,6 +1654,7 @@ void TerminalView::paintEvent(QPaintEvent *event) {
 
   drawInputMethodPreeditString(paint, preeditRect());
   paintFilters(paint);
+  paint.end();
 }
 
 void TerminalView::showEvent(QShowEvent *) {
@@ -1810,6 +1818,7 @@ void TerminalView::mouseDoubleClickEvent(QMouseEvent *ev) {
 }
 
 void TerminalView::mousePressEvent(QMouseEvent *ev) {
+  qDebug() << "Detected mouse pressed.";
   if (_possibleTripleClick && (ev->button() == Qt::LeftButton)) {
     mouseTripleClickEvent(ev);
     return;
