@@ -6,7 +6,6 @@ module termio.utilities {
     requires com.google.common;
     requires jsr305;
     requires ini4j;
-    requires jline;
     requires kotlin.stdlib;
     requires kotlinx.coroutines.core.jvm;
     requires kotlinx.coroutines.core;

@@ -1,7 +1,6 @@
 package com.toocol.termio.utilities.event.core
 
-import com.toocol.termio.utilities.utils.ClassScanner
-import java.util.*
+import com.toocol.termio.utilities.log.Loggable
 import kotlin.reflect.KClass
 
 /**
@@ -10,38 +9,31 @@ import kotlin.reflect.KClass
  * @version: 0.0.1
  */
 class EventListenerContainer {
-    companion object {
-        private const val packageName: String = "com.toocol.termio"
-
+    companion object : Loggable {
         private val syncListenerMap: MutableMap<KClass<out AbstractEvent>, MutableList<EventListener<out AbstractEvent>>> =
             HashMap()
         private val asyncListenerMap: MutableMap<KClass<out AbstractEvent>, MutableList<EventListener<out AbstractEvent>>> =
             HashMap()
 
-        fun init() {
-            ClassScanner(packageName) { clazz ->
-                Optional.ofNullable(clazz.superclass)
-                    .map { superClz -> superClz == EventListener::class.java }
-                    .orElse(false)
-            }
-                .scan()
-                .forEach { listenerClazz ->
-                    run {
-                        val listener = listenerClazz.getDeclaredConstructor().newInstance() as EventListener<out AbstractEvent>
-                        if (listener.watch().java.superclass == SyncEvent::class.java) {
-                            val list = syncListenerMap.getOrDefault(listener.watch(), mutableListOf())
-                            list.add(listener)
-                            syncListenerMap[listener.watch()] = list
-                        } else if (listener.watch().java.superclass == AsyncEvent::class.java) {
-                            val list = asyncListenerMap.getOrDefault(listener.watch(), mutableListOf())
-                            list.add(listener)
-                            asyncListenerMap[listener.watch()] = list
-                        }
-                    }
+        fun init(clazz: Class<*>) {
+            val listeners = clazz.getAnnotation(RegisterListeners::class.java)
+            listeners.value.forEach { listenerClazz ->
+                info("Register listener ${listenerClazz.java.name} success.")
+                val listener =
+                    listenerClazz.java.getDeclaredConstructor().newInstance() as EventListener<out AbstractEvent>
+                if (listener.watch().java.superclass == SyncEvent::class.java) {
+                    val list = syncListenerMap.getOrDefault(listener.watch(), mutableListOf())
+                    list.add(listener)
+                    syncListenerMap[listener.watch()] = list
+                } else if (listener.watch().java.superclass == AsyncEvent::class.java) {
+                    val list = asyncListenerMap.getOrDefault(listener.watch(), mutableListOf())
+                    list.add(listener)
+                    asyncListenerMap[listener.watch()] = list
                 }
+            }
         }
 
-        fun getListeners(clazz: KClass<*>) : List<EventListener<out AbstractEvent>>? {
+        fun getListeners(clazz: KClass<*>): List<EventListener<out AbstractEvent>>? {
             return when (clazz.java.superclass) {
                 SyncEvent::class.java -> {
                     syncListenerMap[clazz]?.toList()

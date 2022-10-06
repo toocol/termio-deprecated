@@ -1,14 +1,23 @@
 package com.toocol.termio.desktop.bootstrap;
 
+import com.toocol.termio.core.config.core.TermThemeConfigure;
+import com.toocol.termio.desktop.components.panel.listeners.SshSessionClosedSyncListener;
+import com.toocol.termio.desktop.components.panel.listeners.SshSessionEstablishedSyncListener;
 import com.toocol.termio.desktop.components.panel.ui.MajorPanel;
+import com.toocol.termio.desktop.components.terminal.config.TerminalConfigure;
 import com.toocol.termio.platform.component.*;
 import com.toocol.termio.platform.css.CssFileAnnotationParser;
 import com.toocol.termio.platform.css.RegisterCssFile;
 import com.toocol.termio.platform.font.FontFileAnnotationParser;
 import com.toocol.termio.platform.font.RegisterFontFile;
+import com.toocol.termio.platform.nativefx.listeners.WindowResizeEndSyncListener;
+import com.toocol.termio.platform.nativefx.listeners.WindowResizeStartSyncListener;
+import com.toocol.termio.platform.nativefx.listeners.WindowResizingSyncListener;
 import com.toocol.termio.platform.ui.TScene;
 import com.toocol.termio.platform.window.StageHolder;
 import com.toocol.termio.platform.window.WindowSizeAdjuster;
+import com.toocol.termio.utilities.config.RegisterConfigure;
+import com.toocol.termio.utilities.event.core.RegisterListeners;
 import com.toocol.termio.utilities.log.Loggable;
 import com.toocol.termio.utilities.utils.TimeRecorder;
 import javafx.application.Application;
@@ -28,9 +37,6 @@ import java.io.InputStream;
  * @date: 2022/7/28 0:42
  * @version: 0.0.1
  */
-@RegisterComponent(value = {
-        @Component(clazz = MajorPanel.class, id = 1, initialVisible = true),
-})
 @RegisterCssFile(name = {
         "base.css",
         "termio.css"
@@ -46,6 +52,20 @@ import java.io.InputStream;
         "segoeuisl.ttf",
         "seguisb.ttf",
         "Segoe-Fluent-Icons.ttf"
+})
+@RegisterListeners(value = {
+        SshSessionClosedSyncListener.class,
+        SshSessionEstablishedSyncListener.class,
+        WindowResizeStartSyncListener.class,
+        WindowResizingSyncListener.class,
+        WindowResizeEndSyncListener.class
+})
+@RegisterConfigure(value = {
+        TermThemeConfigure.class,
+        TerminalConfigure.class
+})
+@RegisterComponent(value = {
+        @Component(clazz = MajorPanel.class, id = 1, initialVisible = true),
 })
 public class TermioCommunityApplication extends Application implements Loggable {
     private ComponentsParser componentParser = new ComponentsParser();

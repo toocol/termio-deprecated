@@ -9,7 +9,6 @@ module termio.core {
     requires org.apache.commons.lang3;
     requires java.desktop;
     requires io.vertx.core;
-    requires jline;
     requires jsch;
     requires jsr305;
     requires ini4j;

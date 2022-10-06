@@ -2,6 +2,7 @@ package com.toocol.termio.core.config.module
 
 import com.toocol.termio.utilities.config.IniConfigLoader
 import com.toocol.termio.utilities.module.ScopeModule
+import com.toocol.termio.utilities.utils.PomUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
 
 /**
@@ -12,7 +13,9 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 object ConfigScopeModule : ScopeModule(){
     @DelicateCoroutinesApi
     override suspend fun start() {
-        IniConfigLoader.loadConfig()
+        val mainClass = Class.forName(PomUtil.getMainClass())
+        mainClass ?: return
+        IniConfigLoader.loadConfig(mainClass)
     }
 
     @DelicateCoroutinesApi

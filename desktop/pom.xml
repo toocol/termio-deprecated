@@ -15,7 +15,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <main.class>com.toocol.termio.desktop.bootstrap.TermioCommunityApplication</main.class>
     </properties>
 
     <dependencies>
@@ -78,6 +77,27 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>${properties-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>write-object-properties</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>write-project-properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputFile>
+                        ${project.basedir}/src/main/resources/app.properties
+                    </outputFile>
+                    <properties/>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
@@ -109,64 +129,67 @@
                     <mainClass>
                         termio.desktop/com.toocol.termio.desktop.bootstrap.TermioCommunityApplication
                     </mainClass>
-                    <graalvmHome>D:\workspace\env\Java\graalvm-ce-java17-22.2.0</graalvmHome>
+                    <graalvmHome>D:\workspace\env\Java\graalvm-ee-java17-22.1.0</graalvmHome>
+                    <nativeImageArgs>
+                        <!-- Only active on Linux AMD64 -->
+                        <!-- <arg>&#45;&#45;gc=G1</arg> -->
+                        <!-- <arg>&#45;&#45;pgo-instrument</arg>-->
+                    </nativeImageArgs>
+                    <runtimeArgs>
+                        <arg>-Xms1m</arg>
+                        <arg>-Xmn20m</arg>
+                    </runtimeArgs>
+                    <linkerArgs>
+                        <arg>management_ext.lib</arg>
+                        <arg>psapi.lib</arg>
+                    </linkerArgs>
+                    <resourcesList>
+                        <list>.*\\.ini$</list>
+                        <list>.*\\.otf$</list>
+                        <list>.*\\.properties$</list>
+                        <list>.*\\.dll$</list>
+                    </resourcesList>
+                    <jniList>
+                        <list>com.toocol.termio.platform.nativefx.NativeBinding</list>
+                    </jniList>
+                    <reflectionList>
+                        <list>com.toocol.termio.desktop.bootstrap.TermioCommunityApplication</list>
+                        <list>com.toocol.termio.desktop.bootstrap.TermioPreloader</list>
+                        <!-- Kotlin -->
+                        <list>kotlin.internal.jdk8.JDK8PlatformImplementations</list>
+                        <!-- ini -->
+                        <list>org.ini4j.spi.IniParser</list>
+                        <list>org.ini4j.spi.IniBuilder</list>
+                        <list>org.ini4j.spi.EscapeTool</list>
+                        <!-- UI -->
+                        <list>com.toocol.termio.desktop.components.panel.ui.MajorPanel</list>
+                        <list>com.toocol.termio.desktop.components.panel.ui.TopMenuPanel</list>
+                        <list>com.toocol.termio.desktop.components.panel.ui.LeftSidePanel</list>
+                        <list>com.toocol.termio.desktop.components.sidebar.ui.LeftToolSidebar</list>
+                        <list>com.toocol.termio.desktop.components.sidebar.ui.SessionManageSidebar</list>
+                        <list>com.toocol.termio.desktop.components.panel.ui.CenterPanel</list>
+                        <list>com.toocol.termio.desktop.components.panel.ui.WorkspacePanel</list>
+                        <list>com.toocol.termio.desktop.components.homepage.ui.Homepage</list>
+                        <list>com.toocol.termio.desktop.components.executor.ui.CommandExecutor</list>
+                        <list>com.toocol.termio.desktop.components.sidebar.ui.BottomStatusBar</list>
+                        <!-- Listeners -->
+                        <list>com.toocol.termio.desktop.components.panel.listeners.SshSessionClosedSyncListener</list>
+                        <list>com.toocol.termio.desktop.components.panel.listeners.SshSessionEstablishedSyncListener</list>
+                        <list>com.toocol.termio.platform.nativefx.listeners.WindowResizeEndSyncListener</list>
+                        <list>com.toocol.termio.platform.nativefx.listeners.WindowResizeStartSyncListener</list>
+                        <list>com.toocol.termio.platform.nativefx.listeners.WindowResizingSyncListener</list>
+                        <!-- Configures -->
+                        <list>com.toocol.termio.core.config.core.TermThemeConfigure</list>
+                        <list>com.toocol.termio.desktop.components.terminal.config.TerminalConfigure</list>
+                        <list>com.toocol.termio.core.config.core.TermThemeConfigure$DarkThemeSubConfigure</list>
+                        <list>com.toocol.termio.core.config.core.TermThemeConfigure$GruvboxThemeSubConfigure</list>
+                        <list>com.toocol.termio.core.config.core.TermThemeConfigure$LightThemeSubConfigure</list>
+                        <list>com.toocol.termio.desktop.components.terminal.config.TerminalConfigure$TerminalColorConfigure</list>
+                        <list>com.toocol.termio.desktop.components.terminal.config.TerminalConfigure$TerminalFontConfigure</list>
+                        <list>com.toocol.termio.desktop.components.terminal.config.TerminalConfigure$TerminalWindowConfigure</list>
+                    </reflectionList>
+                    <enableSWRendering>true</enableSWRendering>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${maven-shade-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <minimizeJar>true</minimizeJar>
-                            <filters>
-                                <filter>
-                                    <artifact>com.toocol.termio:utilities</artifact>
-                                    <includes>
-                                        <include>com/toocol/termio/**</include>
-                                    </includes>
-                                </filter>
-                                <filter>
-                                    <artifact>com.toocol.termio:core</artifact>
-                                    <includes>
-                                        <include>com/toocol/termio/**</include>
-                                    </includes>
-                                </filter>
-                                <filter>
-                                    <artifact>com.jcraft:jsch</artifact>
-                                    <includes>
-                                        <include>com/jcraft/jsch/**</include>
-                                    </includes>
-                                </filter>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/DEPENDENCIES</exclude>
-                                        <exclude>META-INF/LICENSE*</exclude>
-                                        <exclude>META-INF/NOTICE*</exclude>
-                                        <exclude>META-INF/MANIFEST*</exclude>
-                                        <exclude>META-INF/*.properties</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <manifestEntries>
-                                        <Main-Class>${main.class}</Main-Class>
-                                    </manifestEntries>
-                                </transformer>
-                            </transformers>
-                            <outputFile>${project.build.directory}/termio.jar</outputFile>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

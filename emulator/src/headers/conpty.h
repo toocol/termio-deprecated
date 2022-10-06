@@ -140,10 +140,12 @@ class ConPty : public QObject, public VirtualPty {
  private slots:
   // called when data is received from the terminal process
   void dataReceived();
+  void heartBeat();
 
  private:
   int fd;
   bool _running;
+  bool _flag;
   QProcess::ExitStatus _exitStatus;
   QString _workingDirectory;
 };

@@ -395,13 +395,8 @@ Java_com_toocol_termio_platform_nativefx_NativeBinding_processNativeEvents(
   native_event nevt;
 
   while (evt_msg_queues_native[key]->get_num_msg() > 0) {
-    // timed locking of resources
-    boost::system_time const timeout =
-        boost::get_system_time() +
-        boost::posix_time::milliseconds(LOCK_TIMEOUT);
-
-    bool result = evt_msg_queues_native[key]->timed_receive(
-        &nevt, sizeof(native_event), recvd_size, priority, timeout);
+    bool result = evt_msg_queues_native[key]->try_receive(
+        &nevt, sizeof(native_event), recvd_size, priority);
 
     if (!result) {
       std::cerr << "[" << key

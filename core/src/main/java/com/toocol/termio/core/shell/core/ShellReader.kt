@@ -1,13 +1,14 @@
 package com.toocol.termio.core.shell.core
 
-import jline.console.ConsoleReader
+import com.toocol.termio.utilities.console.IConsoleReader
+
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
  * @date: 2022/4/13 2:07
  * @version: 0.0.1
  */
-class ShellReader(private val shell: Shell, private val reader: ConsoleReader?) {
+class ShellReader(private val shell: Shell, private val reader: IConsoleReader?) {
     fun initReader() {
     }
 
@@ -18,7 +19,7 @@ class ShellReader(private val shell: Shell, private val reader: ConsoleReader?) 
             return
         }
         while (true) {
-            val inChar: Char = reader.readCharacter().toChar()
+            val inChar: Char = reader.readChar().toChar()
 
             /*
              * Start to deal with arrow key.

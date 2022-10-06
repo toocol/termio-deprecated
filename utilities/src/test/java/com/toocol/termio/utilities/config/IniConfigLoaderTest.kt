@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/3 16:06
  */
+@RegisterConfigure(value = [
+])
 internal class IniConfigLoaderTest {
     @Test
     fun read() {
@@ -20,7 +22,6 @@ internal class IniConfigLoaderTest {
     @Test
     fun load() {
         IniConfigLoader.setConfigFileRootPath("../config")
-        IniConfigLoader.setConfigurePaths(arrayOf("com.toocol.termio.core.config.core"))
-        IniConfigLoader.loadConfig()
+        IniConfigLoader.loadConfig(this.javaClass)
     }
 }

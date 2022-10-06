@@ -50,11 +50,13 @@ object NativeTerminalEmulator : NativeNode(true, true) {
             terminalOutputService.start()
 
             focusedProperty()
-                .addListener { _: ObservableValue<out Boolean>?, _: Boolean?, nv: Boolean ->
+                .addListener { _: ObservableValue<out Boolean>?, ov: Boolean, nv: Boolean ->
                     if (nv) {
                         activeTerminal()
                     }
-                    NativeBinding.requestFocus(key, nv, System.nanoTime())
+                    if (ov != nv) {
+                        NativeBinding.requestFocus(key, nv, System.nanoTime())
+                    }
                 }
         }
     }

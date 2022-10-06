@@ -129,7 +129,7 @@ abstract class NativeNode @JvmOverloads constructor(
         }
 
         // ---- keys
-        this.isFocusTraversable = false
+        isFocusTraversable = true
         addEventFilter(KeyEvent.KEY_PRESSED) { ev ->
             if (ev.code == KeyCode.TAB || ev.code == KeyCode.DOWN) {
                 NativeBinding.fireKeyPressedEvent(key, ev.text, QtKeyCode.getQtCode(ev.code.code),

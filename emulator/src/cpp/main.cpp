@@ -53,7 +53,9 @@ int main(int argc, char* argv[]) {
                                                  nfx::event* evt) {
     if (evt->type & nfx::NFX_FOCUS_EVENT) {
       nfx::focus_event* focusEvt = static_cast<nfx::focus_event*>((void*)evt);
-      emulator.requestFocus(focusEvt->focus);
+      QEvent::Type type = focusEvt->focus ? QEvent::FocusIn : QEvent::FocusOut;
+      QFocusEvent* evt = new QFocusEvent(type);
+      emulator.sendSimulatedEvent(evt);
     } else if (evt->type & nfx::NFX_CREATE_SSH_SESSION_EVENT) {
       nfx::create_ssh_session_event* sshEvt =
           static_cast<nfx::create_ssh_session_event*>((void*)evt);

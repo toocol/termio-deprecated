@@ -4,6 +4,7 @@
 #include <QSize>
 #include <QString>
 #include <QStringList>
+#include <QTimer>
 #include <thread>
 
 #ifdef Q_OS_WIN
@@ -23,6 +24,7 @@ void ConPty::init() {
   _eraseChar = 0;
   _xonXoff = true;
   _utf8 = true;
+  _flag = false;
 }
 
 int ConPty::start(const QString &program, const QStringList &arguments,
@@ -40,8 +42,9 @@ int ConPty::start(const QString &program, const QStringList &arguments,
     startReadListener(
         fd, [this, passwordTip, password](const char *data, const int length) {
           if (length < 0) return;
-          if (QString(data).contains(passwordTip)) {
+          if (QString(data).contains(passwordTip) && !_flag) {
             sendData(password.toStdString().c_str(), -1);
+            _flag = true;
           } else {
             char *dup = new char[length];
             memcpy(dup, data, length);
@@ -122,3 +125,5 @@ void ConPty::dataReceived() {
 #ifdef Q_OS_WIN
 #endif
 }
+
+void ConPty::heartBeat() { sendData("", 0); }

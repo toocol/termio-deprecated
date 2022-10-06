@@ -9,6 +9,7 @@ import java.util.Properties;
  */
 public class PomUtil {
 
+    private static String mainClass;
     private static String version;
 
     static {
@@ -16,7 +17,8 @@ public class PomUtil {
         try {
             properties.load(PomUtil.class.getClassLoader().getResourceAsStream("app.properties"));
             if (!properties.isEmpty()) {
-                version = properties.getProperty("app.version");
+                version = properties.getProperty("revision");
+                mainClass = properties.getProperty("main.class");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -25,6 +27,10 @@ public class PomUtil {
 
     public static String getVersion() {
         return version;
+    }
+
+    public static String getMainClass() {
+        return mainClass;
     }
 
 }
