@@ -2,6 +2,7 @@ package com.toocol.termio.utilities.event.module
 
 import com.toocol.termio.utilities.event.core.EventListenerContainer
 import com.toocol.termio.utilities.module.ScopeModule
+import com.toocol.termio.utilities.utils.PomUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
 
 /**
@@ -12,7 +13,9 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 object EventScopeModule : ScopeModule() {
     @DelicateCoroutinesApi
     override suspend fun start() {
-        EventListenerContainer.init()
+        val mainClass = Class.forName(PomUtil.getMainClass())
+        mainClass ?: return
+        EventListenerContainer.init(mainClass)
     }
 
     @DelicateCoroutinesApi

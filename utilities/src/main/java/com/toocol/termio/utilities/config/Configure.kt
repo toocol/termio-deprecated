@@ -2,10 +2,8 @@ package com.toocol.termio.utilities.config
 
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.Castable
-import com.toocol.termio.utilities.utils.ClassScanner
 import org.ini4j.Profile
 import java.util.*
-import java.util.function.Consumer
 
 /**
  * @author ZhaoZhe (joezane.cn@gmail.com)
@@ -34,12 +32,8 @@ abstract class Configure<T : ConfigInstance> : Loggable, Castable {
     }
 
     fun initSubConfigure() {
-        val packageName = this.javaClass.packageName
-        ClassScanner(packageName) { clazz: Class<*> ->
-            Optional.ofNullable(clazz.superclass)
-                .map { superClazz: Class<*> -> superClazz == SubConfigure::class.java }
-                .orElse(false)
-        }.scan().forEach(Consumer { subClazz: Class<*> ->
+        val subClasses = this.javaClass.declaredClasses ?: return
+        subClasses.forEach { subClazz: Class<*> ->
             try {
                 val constructor = subClazz.getDeclaredConstructor()
                 constructor.isAccessible = true
@@ -49,6 +43,6 @@ abstract class Configure<T : ConfigInstance> : Loggable, Castable {
             } catch (e: Exception) {
                 error("Initialize sub configure failed, class = {}", subClazz.name)
             }
-        })
+        }
     }
 }

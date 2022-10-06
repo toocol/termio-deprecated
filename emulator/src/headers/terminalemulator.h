@@ -50,8 +50,6 @@ class TerminalEmulator : public QWidget {
 
   void setNativeEvtCallback(const std::function<void()> &newNativeEvtCallback);
 
-  void requestFocus(bool focus);
-
   void createSshSession(long sessionId, QString host, QString user,
                         QString password);
 

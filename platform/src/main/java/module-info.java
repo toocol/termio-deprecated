@@ -23,5 +23,6 @@ module termio.platform {
     exports com.toocol.termio.platform.font;
     exports com.toocol.termio.platform.css;
     exports com.toocol.termio.platform.nativefx;
+    exports com.toocol.termio.platform.nativefx.listeners;
     exports com.toocol.termio.platform.window;
 }

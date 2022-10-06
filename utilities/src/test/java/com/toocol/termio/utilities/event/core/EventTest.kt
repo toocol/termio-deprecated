@@ -8,10 +8,13 @@ import kotlin.test.assertTrue
  * @date: 2022/8/23 17:04
  * @version:
  */
+@RegisterListeners(value = [
+    TestSyncEventListener::class
+])
 internal class EventTest {
     @Test
     fun testEventListenerContainer() {
-        EventListenerContainer.init()
+        EventListenerContainer.init(this.javaClass)
         val listeners = EventListenerContainer.getListeners(TestSyncEvent::class)
         assertTrue { listeners!!.isNotEmpty() }
     }

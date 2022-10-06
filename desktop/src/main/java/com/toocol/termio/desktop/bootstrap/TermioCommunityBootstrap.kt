@@ -36,14 +36,13 @@ object TermioCommunityBootstrap : Termio(), ModuleBootstrap, Loggable {
     @JvmStatic
     fun run() {
         launch(Dispatchers.Default) {
-            System.setProperty("logFile", "termio-desktop.log")
-            IniConfigLoader.setConfigFileRootPath("/config")
-            IniConfigLoader.setConfigurePaths(arrayOf("com.toocol.termio.desktop"))
-            componentInitialise()
-
             Term.theme = TermTheme.LIGHT_THEME
             Shell.initializeReader(NativeTerminalEmulator.terminalReaderInputStream)
             DesktopTermPrinter.registerPrintStream(CommandExecutor.commandExecutorPrintStream)
+
+            System.setProperty("logFile", "termio-desktop.log")
+            IniConfigLoader.setConfigFileRootPath("/config")
+            componentInitialise()
 
             bootstrap()
             NativeBinding.init()

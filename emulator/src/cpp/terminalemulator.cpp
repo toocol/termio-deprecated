@@ -167,14 +167,6 @@ void TerminalEmulator::setNativeEvtCallback(
   _nativeEvtTimer->start(nativeEvtInterval);
 }
 
-void TerminalEmulator::requestFocus(bool focus) {
-  if (focus) {
-    _terminalView->focusIn();
-  } else {
-    _terminalView->focusOut();
-  }
-}
-
 void TerminalEmulator::createSshSession(long sessionId, QString host,
                                         QString user, QString password) {
   qDebug() << "Receive create ssh session event, host = " << host

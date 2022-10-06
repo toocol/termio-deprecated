@@ -339,6 +339,7 @@ class SharedCanvas final {
 
   void responseSharedString(std::string resp) {
     store_shared_string(resp, info_data->client_to_server_res);
+    info_data->shared_string_type = NFX_SHARED_DEFAULT;
     info_data->client_to_server_res_semaphore.post();
   }
 

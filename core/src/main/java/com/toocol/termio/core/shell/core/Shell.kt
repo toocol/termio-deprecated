@@ -25,7 +25,6 @@ import com.toocol.termio.utilities.utils.CmdUtil
 import com.toocol.termio.utilities.utils.MessageBox
 import com.toocol.termio.utilities.utils.StrUtil
 import io.vertx.core.json.JsonObject
-import jline.console.ConsoleReader
 import kotlinx.coroutines.*
 import org.apache.commons.lang3.StringUtils
 import java.io.IOException
@@ -41,7 +40,7 @@ import kotlin.system.exitProcess
  */
 class Shell : AbstractDevice, Loggable {
     private val shellPrinter: ShellPrinter
-    private val shellReader: ShellReader
+//    private val shellReader: ShellReader
     private val scope = MainScope()
 
     var console: Console? = null
@@ -176,7 +175,7 @@ class Shell : AbstractDevice, Loggable {
         user = moshSession.user
         this.moshSession = moshSession
         shellPrinter = ShellPrinter(this)
-        shellReader = ShellReader(this, reader)
+//        shellReader = ShellReader(this, reader)
         historyCmdHelper = ShellHistoryCmdHelper(this)
         moreHelper = MoreHelper()
         escapeHelper = EscapeHelper()
@@ -184,7 +183,7 @@ class Shell : AbstractDevice, Loggable {
         quickSwitchHelper = SessionQuickSwitchHelper(this)
         shellCharEventDispatcher = ShellCharEventDispatcher()
         resetIO(ShellProtocol.MOSH)
-        shellReader.initReader()
+//        shellReader.initReader()
     }
 
     constructor(
@@ -198,7 +197,7 @@ class Shell : AbstractDevice, Loggable {
         this.user = user
         this.channelShell = channelShell
         shellPrinter = ShellPrinter(this)
-        shellReader = ShellReader(this, reader)
+//        shellReader = ShellReader(this, reader)
         historyCmdHelper = ShellHistoryCmdHelper(this)
         moreHelper = MoreHelper()
         escapeHelper = EscapeHelper()
@@ -206,7 +205,7 @@ class Shell : AbstractDevice, Loggable {
         quickSwitchHelper = SessionQuickSwitchHelper(this)
         shellCharEventDispatcher = ShellCharEventDispatcher()
         resetIO(ShellProtocol.SSH)
-        shellReader.initReader()
+//        shellReader.initReader()
     }
 
     fun resetIO(protocol: ShellProtocol) {
@@ -285,7 +284,7 @@ class Shell : AbstractDevice, Loggable {
     @Throws(Exception::class)
     fun readCmd(): String? {
         try {
-            shellReader.readCmd()
+//            shellReader.readCmd()
         } catch (e: RuntimeException) {
             return null
         }
@@ -735,8 +734,9 @@ class Shell : AbstractDevice, Loggable {
         return "$user@$host"
     }
 
-    fun shellReader(): ShellReader {
-        return shellReader
+    fun shellReader(): ShellReader? {
+//        return shellReader
+        return null
     }
 
     enum class Status(val status: Int, val comment: String) {
@@ -758,12 +758,12 @@ class Shell : AbstractDevice, Loggable {
         @JvmField
         val PROMPT_PATTERN: Regex = Regex(pattern = """(\[(\w*?)@(.*?)][$#])""")
         const val RESIZE_COMMAND = AsciiControl.DC2 + CharUtil.BRACKET_START + "resize"
-        var reader: ConsoleReader? = null
+//        var reader: ConsoleReader? = null
 
         @JvmStatic
         fun initializeReader(`in`: InputStream?) {
             try {
-                reader = ConsoleReader(`in`, null, null)
+//                reader = ConsoleReader(`in`, null, null)
             } catch (e: Exception) {
                 MessageBox.setExitMessage("Create console reader failed.")
                 exitProcess(-1)
