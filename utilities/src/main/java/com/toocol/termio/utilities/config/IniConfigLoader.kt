@@ -24,26 +24,14 @@ object IniConfigLoader : Castable, Loggable {
         configFileRootPath = FileUtil.relativeToFixed(rootPath)
     }
 
-    @JvmStatic
-    fun loadConfig(clazz: Class<*>) {
-        val annotation = clazz.getAnnotation(RegisterConfigure::class.java)
+    fun loadConfig(configures: Array<Configure<out ConfigInstance>>) {
         if (StringUtils.isEmpty(configFileRootPath)) {
             warn("Config file root path is empty, skip config loading.")
             return
         }
 
-        sectionConfigureMap = annotation.value.map {
-            try {
-                val configure = it.java.getDeclaredConstructor().newInstance() as Configure<out ConfigInstance>
-                configure.initSubConfigure()
-                return@map configure
-            } catch (e: Exception) {
-                error("Failed create Configure object, clazz = {}", clazz.name)
-            }
-            null
-        }
-            .filter { obj: Configure<out ConfigInstance>? -> Objects.nonNull(obj) }
-            .stream()
+        sectionConfigureMap = Arrays.stream(configures)
+            .peek { it.initSubConfigure() }
             .collect(Collectors.toMap({ obj: Configure<out ConfigInstance>? -> obj!!.section() },
                 { configure: Configure<out ConfigInstance>? -> configure }))
 

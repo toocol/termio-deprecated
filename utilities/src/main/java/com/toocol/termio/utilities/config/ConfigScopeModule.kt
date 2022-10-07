@@ -1,8 +1,6 @@
-package com.toocol.termio.core.config.module
+package com.toocol.termio.utilities.config
 
-import com.toocol.termio.utilities.config.IniConfigLoader
 import com.toocol.termio.utilities.module.ScopeModule
-import com.toocol.termio.utilities.utils.PomUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
 
 /**
@@ -13,9 +11,11 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 object ConfigScopeModule : ScopeModule(){
     @DelicateCoroutinesApi
     override suspend fun start() {
-        val mainClass = Class.forName(PomUtil.getMainClass())
-        mainClass ?: return
-        IniConfigLoader.loadConfig(mainClass)
+        val configures: MutableList<out Configure<out ConfigInstance>> = mutableListOf()
+        ConfigureRegister.storage.forEach {
+            for (co in it.configures()) configures.add(co.`as`())
+        }
+        IniConfigLoader.loadConfig(configures.toTypedArray())
     }
 
     @DelicateCoroutinesApi

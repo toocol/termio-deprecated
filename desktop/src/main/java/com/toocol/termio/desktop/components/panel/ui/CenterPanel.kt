@@ -18,7 +18,7 @@ import javafx.scene.layout.Pane
 ])
 class CenterPanel(id: Long) : TVBox(id) {
 
-    private val parser = ComponentsParser()
+    private val parser: ComponentsParser = ComponentsParser()
 
     override fun styleClasses(): Array<String> {
         return arrayOf(
@@ -37,22 +37,21 @@ class CenterPanel(id: Long) : TVBox(id) {
             workspacePanel,
             commandExecutor
         )
-        workspacePanel!!.viewOrder = 10.0
+        workspacePanel?.viewOrder = 10.0
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
         heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
 
-        parser.getAsComponent(WorkspacePanel::class.java)?.sizePropertyBind(major, widthRatio, heightRatio)
-        parser.getAsComponent(CommandExecutor::class.java)?.sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.3)
+        findComponent(WorkspacePanel::class.java, 1).sizePropertyBind(major, widthRatio, heightRatio)
+        findComponent(CommandExecutor::class.java, 1).sizePropertyBind(major, widthRatio, if (heightRatio == null) null else heightRatio * 0.3)
     }
 
     override fun actionAfterShow() {
-
     }
 
     init {
-        parser.parse(CenterPanel::class.java)
+        parser.parse(this::class.java)
     }
 }

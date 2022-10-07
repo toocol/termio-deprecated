@@ -6,7 +6,7 @@ import com.toocol.termio.platform.component.Component
 import com.toocol.termio.platform.component.ComponentsParser
 import com.toocol.termio.platform.component.RegisterComponent
 import com.toocol.termio.platform.ui.TBorderPane
-import com.toocol.termio.platform.ui.TScene
+import com.toocol.termio.platform.window.StageHolder
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
@@ -24,7 +24,8 @@ import jfxtras.styles.jmetro.Style
     Component(clazz = LeftToolSidebar::class, id = 1, initialVisible = true),
     Component(clazz = SessionManageSidebar::class, id = 1, initialVisible = true),
 ])
-class LeftSidePanel(id: Long) : TBorderPane(id){
+class LeftSidePanel(id: Long) : TBorderPane(id) {
+
     private val parser: ComponentsParser = ComponentsParser()
 
     override fun styleClasses(): Array<String> {
@@ -42,7 +43,7 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
         jmetro.parent = this
         styleClass.add(JMetroStyleClass.BACKGROUND)
 
-        val scene = findComponent(TScene::class.java, 1)
+        val scene = StageHolder.scene!!
         val alt1: KeyCombination = KeyCodeCombination(KeyCode.DIGIT1, KeyCombination.ALT_DOWN)
         scene.accelerators[alt1] = Runnable {
             if (isVisible) {
@@ -50,8 +51,9 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
             } else {
                 show()
             }
-            val majorPanel = findComponent(MajorPanel::class.java, 1)
-            findComponent(WorkspacePanel::class.java, 1).sizePropertyBind(majorPanel, 1.0, null)
+            findComponent(WorkspacePanel::class.java, 1).sizePropertyBind(findComponent(MajorPanel::class.java, 1),
+                1.0,
+                null)
         }
 
         left = parser.getAsNode(LeftToolSidebar::class.java)
@@ -62,14 +64,14 @@ class LeftSidePanel(id: Long) : TBorderPane(id){
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
         heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
 
-        parser.getAsComponent(LeftToolSidebar::class.java)?.sizePropertyBind(major, null, heightRatio)
-        parser.getAsComponent(SessionManageSidebar::class.java)?.sizePropertyBind(major, null, heightRatio)
+        findComponent(LeftToolSidebar::class.java, 1).sizePropertyBind(major, null, heightRatio)
+        findComponent(SessionManageSidebar::class.java, 1).sizePropertyBind(major, null, heightRatio)
     }
 
     override fun actionAfterShow() {
     }
 
     init {
-        parser.parse(LeftSidePanel::class.java)
+        parser.parse(this::class.java)
     }
 }

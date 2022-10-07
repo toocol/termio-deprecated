@@ -9,7 +9,7 @@ import kotlin.reflect.KClass
  * @date: 2022/8/24 18:33
  * @version: 0.0.1
  */
-class SshSessionClosedSyncListener : EventListener<SessionClosedSync>() {
+object SshSessionClosedSyncListener : EventListener<SessionClosedSync>() {
     override fun watch(): KClass<SessionClosedSync> {
         return SessionClosedSync::class
     }

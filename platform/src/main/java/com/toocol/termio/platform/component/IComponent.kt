@@ -36,7 +36,7 @@ interface IComponent : Asable, Castable, ISizeDynamicBinding, Loggable {
      * to get any components have registered by id.
      */
     fun registerComponent(id: Long) {
-        put(this.javaClass, id, this)
+        put(this::class.java, id, this)
     }
 
     /**

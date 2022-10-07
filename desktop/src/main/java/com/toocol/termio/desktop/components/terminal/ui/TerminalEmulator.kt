@@ -6,7 +6,6 @@ import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.console.TerminalConsolePrintStream
 import com.toocol.termio.platform.ui.TAnchorPane
-import com.toocol.termio.platform.ui.TScene
 import com.toocol.termio.utilities.ansi.Printer.setPrinter
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.CharUtil
@@ -58,7 +57,6 @@ class TerminalEmulator(id: Long, sessionId: Long) : TAnchorPane(id), Loggable {
                 }
             }
 
-            val scene = findComponent(TScene::class.java, 1)
             val ctrlU: KeyCombination = KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN)
             scene.accelerators[ctrlU] = Runnable {
                 println("line: ${terminalEmulatorTextArea.getCursorPos()[0]}")

@@ -1,5 +1,6 @@
 package com.toocol.termio.platform.window
 
+import javafx.scene.Scene
 import javafx.stage.Stage
 
 /**
@@ -10,4 +11,6 @@ import javafx.stage.Stage
 object StageHolder {
     @JvmField
     var stage: Stage? = null
+    @JvmField
+    var scene: Scene? = null
 }

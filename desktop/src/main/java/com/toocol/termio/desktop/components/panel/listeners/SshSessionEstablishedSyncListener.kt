@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
  * @date: 2022/8/23 20:02
  * @version: 0.0.1
  */
-class SshSessionEstablishedSyncListener : EventListener<TrySshSessionSync>() {
+object SshSessionEstablishedSyncListener : EventListener<TrySshSessionSync>() {
     override fun watch(): KClass<TrySshSessionSync> {
         return TrySshSessionSync::class
     }

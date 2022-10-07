@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap
 import com.toocol.termio.platform.component.IActionAfterShow
 import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.console.TerminalConsolePrintStream
-import com.toocol.termio.platform.ui.TScene
+import com.toocol.termio.platform.window.StageHolder
 import com.toocol.termio.utilities.escape.*
 import com.toocol.termio.utilities.escape.EscapeAsciiControlMode.*
 import com.toocol.termio.utilities.escape.EscapeColorGraphicsMode.*
@@ -606,7 +606,7 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     override fun initialize() {
-        findComponent(TScene::class.java, 1).addEventHandler(MouseEvent.MOUSE_RELEASED) { event ->
+        StageHolder.scene?.addEventHandler(MouseEvent.MOUSE_RELEASED) { event ->
             if (event.button == MouseButton.PRIMARY && sizeChanged) {
                 sizeChanged = false
                 updateLineIndexParagraphIndexMap(null)

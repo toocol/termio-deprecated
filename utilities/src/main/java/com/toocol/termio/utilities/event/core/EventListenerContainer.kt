@@ -15,20 +15,17 @@ class EventListenerContainer {
         private val asyncListenerMap: MutableMap<KClass<out AbstractEvent>, MutableList<EventListener<out AbstractEvent>>> =
             HashMap()
 
-        fun init(clazz: Class<*>) {
-            val listeners = clazz.getAnnotation(RegisterListeners::class.java)
-            listeners.value.forEach { listenerClazz ->
-                info("Register listener ${listenerClazz.java.name} success.")
-                val listener =
-                    listenerClazz.java.getDeclaredConstructor().newInstance() as EventListener<out AbstractEvent>
-                if (listener.watch().java.superclass == SyncEvent::class.java) {
-                    val list = syncListenerMap.getOrDefault(listener.watch(), mutableListOf())
-                    list.add(listener)
-                    syncListenerMap[listener.watch()] = list
-                } else if (listener.watch().java.superclass == AsyncEvent::class.java) {
-                    val list = asyncListenerMap.getOrDefault(listener.watch(), mutableListOf())
-                    list.add(listener)
-                    asyncListenerMap[listener.watch()] = list
+        fun init(listeners : Array<out EventListener<out AbstractEvent>>) {
+            listeners.forEach {
+                info("Register listener ${it.javaClass.name} success.")
+                if (it.watch().java.superclass == SyncEvent::class.java) {
+                    val list = syncListenerMap.getOrDefault(it.watch(), mutableListOf())
+                    list.add(it)
+                    syncListenerMap[it.watch()] = list
+                } else if (it.watch().java.superclass == AsyncEvent::class.java) {
+                    val list = asyncListenerMap.getOrDefault(it.watch(), mutableListOf())
+                    list.add(it)
+                    asyncListenerMap[it.watch()] = list
                 }
             }
         }

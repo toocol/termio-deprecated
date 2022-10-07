@@ -47,15 +47,14 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             panel.widthRatio = widthRatio
         }
         heightRatio?.run {
-            prefHeightProperty().bind(major.heightProperty().subtract(TopMenuPanel.fixedHeight + BottomStatusBar.fixedHeight).multiply(heightRatio))
+            prefHeightProperty().bind(major.heightProperty()
+                .subtract(TopMenuPanel.fixedHeight + BottomStatusBar.fixedHeight).multiply(heightRatio))
             panel.heightRatio = heightRatio
         }
 
-        parser.getAsComponent(Homepage::class.java)?.sizePropertyBind(major, widthRatio, heightRatio)
+        findComponent(Homepage::class.java, 1).sizePropertyBind(major, widthRatio, heightRatio)
         NativeTerminalEmulator.sizePropertyBind(major, widthRatio, heightRatio)
     }
-
-    override fun actionAfterShow() {}
 
     fun createSshSession(sessionId: Long, host: String, user: String, password: String) {
         launch {
@@ -80,16 +79,19 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
     }
 
     private fun showHomepage() {
-        val homepage = parser.getAsComponent(Homepage::class.java)
-        homepage?.show()
+        val homepage = findComponent(Homepage::class.java, 1)
+        homepage.show()
     }
 
     private fun hideHomepage() {
-        val homepage = parser.getAsComponent(Homepage::class.java)
-        homepage?.hide()
+        val homepage = findComponent(Homepage::class.java, 1)
+        homepage.hide()
+    }
+
+    override fun actionAfterShow() {
     }
 
     init {
-        parser.parse(WorkspacePanel::class.java)
+        parser.parse(this::class.java)
     }
 }
