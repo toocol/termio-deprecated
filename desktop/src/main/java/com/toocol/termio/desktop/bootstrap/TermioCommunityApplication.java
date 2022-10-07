@@ -1,28 +1,19 @@
 package com.toocol.termio.desktop.bootstrap;
 
-import com.toocol.termio.core.config.core.TermThemeConfigure;
-import com.toocol.termio.desktop.components.panel.listeners.SshSessionClosedSyncListener;
-import com.toocol.termio.desktop.components.panel.listeners.SshSessionEstablishedSyncListener;
 import com.toocol.termio.desktop.components.panel.ui.MajorPanel;
-import com.toocol.termio.desktop.components.terminal.config.TerminalConfigure;
 import com.toocol.termio.platform.component.*;
 import com.toocol.termio.platform.css.CssFileAnnotationParser;
 import com.toocol.termio.platform.css.RegisterCssFile;
 import com.toocol.termio.platform.font.FontFileAnnotationParser;
 import com.toocol.termio.platform.font.RegisterFontFile;
-import com.toocol.termio.platform.nativefx.listeners.WindowResizeEndSyncListener;
-import com.toocol.termio.platform.nativefx.listeners.WindowResizeStartSyncListener;
-import com.toocol.termio.platform.nativefx.listeners.WindowResizingSyncListener;
-import com.toocol.termio.platform.ui.TScene;
 import com.toocol.termio.platform.window.StageHolder;
 import com.toocol.termio.platform.window.WindowSizeAdjuster;
-import com.toocol.termio.utilities.config.RegisterConfigure;
-import com.toocol.termio.utilities.event.core.RegisterListeners;
 import com.toocol.termio.utilities.log.Loggable;
 import com.toocol.termio.utilities.utils.TimeRecorder;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -53,21 +44,11 @@ import java.io.InputStream;
         "seguisb.ttf",
         "Segoe-Fluent-Icons.ttf"
 })
-@RegisterListeners(value = {
-        SshSessionClosedSyncListener.class,
-        SshSessionEstablishedSyncListener.class,
-        WindowResizeStartSyncListener.class,
-        WindowResizingSyncListener.class,
-        WindowResizeEndSyncListener.class
-})
-@RegisterConfigure(value = {
-        TermThemeConfigure.class,
-        TerminalConfigure.class
-})
 @RegisterComponent(value = {
         @Component(clazz = MajorPanel.class, id = 1, initialVisible = true),
 })
-public class TermioCommunityApplication extends Application implements Loggable {
+public final class TermioCommunityApplication extends Application implements Loggable {
+
     private ComponentsParser componentParser = new ComponentsParser();
     private CssFileAnnotationParser cssParser = new CssFileAnnotationParser();
     private FontFileAnnotationParser fontParser = new FontFileAnnotationParser();
@@ -79,6 +60,8 @@ public class TermioCommunityApplication extends Application implements Loggable 
 
     @Override
     public void init() throws Exception {
+        TermioCommunityListenerRegister.INSTANCE.reg();
+        TermioCommunityConfigureRegister.INSTANCE.reg();
         TermioCommunityBootstrap.run();
     }
 
@@ -99,8 +82,10 @@ public class TermioCommunityApplication extends Application implements Loggable 
         Node root = componentParser.getAsNode(MajorPanel.class);
         assert root != null;
 
-        TScene scene = new TScene(1, (Parent) root);
         WindowSizeAdjuster.init(stage, root);
+
+        Scene scene = new Scene((Parent) root);
+        StageHolder.scene = scene;
 
         fontParser.parse(this.getClass());
         cssParser.parse(this.getClass(), scene);

@@ -8,14 +8,14 @@ import org.ini4j.Profile
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/4 18:01
  */
-class TerminalConfigure : Configure<TerminalConfig>() {
+object TerminalConfigure : Configure<TerminalConfig>() {
     override fun section(): String {
         return "terminal"
     }
 
     override fun assemble(section: Profile.Section) {}
 
-    internal class TerminalColorConfigure : SubConfigure<TerminalConfig.Color>() {
+    internal object TerminalColorConfigure : SubConfigure<TerminalConfig.Color>() {
         override fun section(): String {
             return "terminal.color"
         }
@@ -23,7 +23,7 @@ class TerminalConfigure : Configure<TerminalConfig>() {
         override fun assemble(section: Profile.Section) {}
     }
 
-    internal class TerminalFontConfigure : SubConfigure<TerminalConfig.Font>() {
+    internal object TerminalFontConfigure : SubConfigure<TerminalConfig.Font>() {
         override fun section(): String {
             return "terminal.font"
         }
@@ -31,11 +31,19 @@ class TerminalConfigure : Configure<TerminalConfig>() {
         override fun assemble(section: Profile.Section) {}
     }
 
-    internal class TerminalWindowConfigure : SubConfigure<TerminalConfig.Window>() {
+    internal object TerminalWindowConfigure : SubConfigure<TerminalConfig.Window>() {
         override fun section(): String {
             return "terminal.window"
         }
 
         override fun assemble(section: Profile.Section) {}
+    }
+
+    override fun subConfigures(): Array<SubConfigure<*>> {
+        return arrayOf(
+            TerminalColorConfigure,
+            TerminalFontConfigure,
+            TerminalWindowConfigure
+        )
     }
 }

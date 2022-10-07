@@ -5,7 +5,6 @@ import com.toocol.termio.core.auth.module.AuthScopeModule
 import com.toocol.termio.core.cache.MoshSessionCache
 import com.toocol.termio.core.cache.STOP_PROGRAM
 import com.toocol.termio.core.cache.SshSessionCache
-import com.toocol.termio.core.config.module.ConfigScopeModule
 import com.toocol.termio.core.shell.core.Shell
 import com.toocol.termio.core.term.core.DesktopTermPrinter
 import com.toocol.termio.core.term.core.Term
@@ -14,6 +13,7 @@ import com.toocol.termio.desktop.components.executor.ui.CommandExecutor
 import com.toocol.termio.desktop.components.terminal.ui.NativeTerminalEmulator
 import com.toocol.termio.platform.nativefx.NativeBinding
 import com.toocol.termio.utilities.ansi.Printer.println
+import com.toocol.termio.utilities.config.ConfigScopeModule
 import com.toocol.termio.utilities.config.IniConfigLoader
 import com.toocol.termio.utilities.event.module.EventScopeModule
 import com.toocol.termio.utilities.log.FileAppender.close

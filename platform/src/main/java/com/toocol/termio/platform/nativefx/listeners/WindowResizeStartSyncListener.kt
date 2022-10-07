@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
  * @date: 2022/9/19 23:06
  * @version: 0.0.1
  */
-class WindowResizeStartSyncListener : EventListener<WindowResizeStartSync>() {
+object WindowResizeStartSyncListener : EventListener<WindowResizeStartSync>() {
     override fun watch(): KClass<WindowResizeStartSync> {
         return WindowResizeStartSync::class
     }

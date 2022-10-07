@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
  * @date: 2022/9/19 23:06
  * @version: 0.0.1
  */
-class WindowResizeEndSyncListener : EventListener<WindowResizeEndSync>() {
+object WindowResizeEndSyncListener : EventListener<WindowResizeEndSync>() {
     override fun watch(): KClass<WindowResizeEndSync> {
         return WindowResizeEndSync::class
     }

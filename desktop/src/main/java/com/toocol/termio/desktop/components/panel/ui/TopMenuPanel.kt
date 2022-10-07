@@ -1,9 +1,9 @@
 package com.toocol.termio.desktop.components.panel.ui
 
-import com.toocol.termio.platform.window.StageHolder
-import com.toocol.termio.platform.window.WindowSizeAdjuster
 import com.toocol.termio.platform.font.FluentIcon
 import com.toocol.termio.platform.ui.TAnchorPane
+import com.toocol.termio.platform.window.StageHolder
+import com.toocol.termio.platform.window.WindowSizeAdjuster
 import javafx.scene.input.MouseButton
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane

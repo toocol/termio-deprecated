@@ -43,15 +43,16 @@ class MajorPanel(id: Long) : TBorderPane(id) {
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
-        parser.getAsComponent(TopMenuPanel::class.java)?.sizePropertyBind(major, widthRatio, null)
-        parser.getAsComponent(CenterPanel::class.java)?.sizePropertyBind(this, widthRatio, heightRatio!! * 1.0)
-        parser.getAsComponent(LeftSidePanel::class.java)?.sizePropertyBind(this, null, heightRatio!! * 1.0)
-        parser.getAsComponent(BottomStatusBar::class.java)?.sizePropertyBind(this, widthRatio!! * 1, null)
+        findComponent(TopMenuPanel::class.java, 1).sizePropertyBind(major, widthRatio, null)
+        findComponent(CenterPanel::class.java, 1).sizePropertyBind(this, widthRatio, heightRatio!! * 1.0)
+        findComponent(LeftSidePanel::class.java, 1).sizePropertyBind(this, null, heightRatio * 1.0)
+        findComponent(BottomStatusBar::class.java, 1).sizePropertyBind(this, widthRatio!! * 1, null)
+    }
+
+    override fun actionAfterShow() {
     }
 
     init {
-        parser.parse(MajorPanel::class.java)
+        parser.parse(this::class.java)
     }
-
-    override fun actionAfterShow() {}
 }

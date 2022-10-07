@@ -5,8 +5,8 @@ import com.toocol.termio.core.term.api.ExecuteCommandApi
 import com.toocol.termio.platform.console.MetadataPrinterOutputStream
 import com.toocol.termio.platform.console.MetadataReaderInputStream
 import com.toocol.termio.platform.console.TerminalConsolePrintStream
-import com.toocol.termio.platform.ui.TScene
 import com.toocol.termio.platform.ui.TVBox
+import com.toocol.termio.platform.window.StageHolder
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.CharUtil
 import com.toocol.termio.utilities.utils.StrUtil
@@ -61,7 +61,7 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
                 }
             }
 
-            val scene = findComponent(TScene::class.java, 1)
+            val scene = StageHolder.scene!!
             val ctrlU: KeyCombination = KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN)
             scene.accelerators[ctrlU] = Runnable {
                 commandExecutorInput.clear()

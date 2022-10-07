@@ -1,6 +1,7 @@
 package com.toocol.termio.utilities.config
 
 import com.toocol.termio.utilities.log.Loggable
+import com.toocol.termio.utilities.utils.Asable
 import com.toocol.termio.utilities.utils.Castable
 import org.ini4j.Profile
 import java.util.*
@@ -9,7 +10,7 @@ import java.util.*
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/3 15:09
  */
-abstract class Configure<T : ConfigInstance> : Loggable, Castable {
+abstract class Configure<T : ConfigInstance> : Loggable, Castable, Asable {
     private val subConfigureMap: MutableMap<String, SubConfigure<out ConfigInstance>> = HashMap()
 
     /**
@@ -22,6 +23,8 @@ abstract class Configure<T : ConfigInstance> : Loggable, Castable {
      */
     abstract fun assemble(section: Profile.Section)
 
+    abstract fun subConfigures(): Array<SubConfigure<*>>
+
     fun assignAssembleJob(name: String, section: Profile.Section) {
         if (name.contains(".")) {
             Optional.ofNullable(subConfigureMap[name])
@@ -32,16 +35,12 @@ abstract class Configure<T : ConfigInstance> : Loggable, Castable {
     }
 
     fun initSubConfigure() {
-        val subClasses = this.javaClass.declaredClasses ?: return
-        subClasses.forEach { subClazz: Class<*> ->
+        subConfigures().forEach {
             try {
-                val constructor = subClazz.getDeclaredConstructor()
-                constructor.isAccessible = true
-                val subConfigure = cast<SubConfigure<out ConfigInstance>>(constructor.newInstance())
-                subConfigureMap[subConfigure.section()] = subConfigure
-                info("Initialize sub configure success, class = {}", subClazz.name)
+                subConfigureMap[it.section()] = it
+                info("Initialize sub configure success, class = {}", it.javaClass.name)
             } catch (e: Exception) {
-                error("Initialize sub configure failed, class = {}", subClazz.name)
+                error("Initialize sub configure failed, class = {}", it.javaClass.name)
             }
         }
     }

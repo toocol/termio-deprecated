@@ -10,13 +10,13 @@ import org.ini4j.Profile
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/3 15:17
  */
-class TermThemeConfigure : Configure<TermThemeConfig>(), Loggable {
+object TermThemeConfigure : Configure<TermThemeConfig>(), Loggable {
     override fun section(): String {
         return "theme"
     }
 
     override fun assemble(section: Profile.Section) {}
-    internal class DarkThemeSubConfigure : SubConfigure<DarkTheme>() {
+    internal object DarkThemeSubConfigure : SubConfigure<DarkTheme>() {
         override fun section(): String {
             return "theme.dark"
         }
@@ -24,7 +24,7 @@ class TermThemeConfigure : Configure<TermThemeConfig>(), Loggable {
         override fun assemble(section: Profile.Section) {}
     }
 
-    internal class GruvboxThemeSubConfigure : SubConfigure<GruvboxTheme>() {
+    internal object GruvboxThemeSubConfigure : SubConfigure<GruvboxTheme>() {
         override fun section(): String {
             return "theme.gruvbox"
         }
@@ -32,11 +32,19 @@ class TermThemeConfigure : Configure<TermThemeConfig>(), Loggable {
         override fun assemble(section: Profile.Section) {}
     }
 
-    internal class LightThemeSubConfigure : SubConfigure<LightTheme>() {
+    internal object LightThemeSubConfigure : SubConfigure<LightTheme>() {
         override fun section(): String {
             return "theme.light"
         }
 
         override fun assemble(section: Profile.Section) {}
+    }
+
+    override fun subConfigures(): Array<SubConfigure<*>> {
+        return arrayOf(
+            DarkThemeSubConfigure,
+            GruvboxThemeSubConfigure,
+            LightThemeSubConfigure
+        )
     }
 }
