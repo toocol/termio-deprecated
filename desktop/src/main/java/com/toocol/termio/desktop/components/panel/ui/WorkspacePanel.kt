@@ -1,11 +1,9 @@
 package com.toocol.termio.desktop.components.panel.ui
 
-import com.toocol.termio.desktop.components.homepage.ui.Homepage
+import com.toocol.termio.desktop.components.homepage
+import com.toocol.termio.desktop.components.majorPanel
 import com.toocol.termio.desktop.components.sidebar.ui.BottomStatusBar
 import com.toocol.termio.desktop.components.terminal.ui.NativeTerminalEmulator
-import com.toocol.termio.platform.component.Component
-import com.toocol.termio.platform.component.ComponentsParser
-import com.toocol.termio.platform.component.RegisterComponent
 import com.toocol.termio.platform.ui.TStackPane
 import javafx.scene.layout.Pane
 import kotlinx.coroutines.launch
@@ -15,12 +13,7 @@ import kotlinx.coroutines.launch
  * @date: 2022/8/12 0:39
  * @version: 0.0.1
  */
-@RegisterComponent(value = [
-    Component(clazz = Homepage::class, id = 1, initialVisible = true),
-])
 class WorkspacePanel(id: Long) : TStackPane(id) {
-
-    private val parser: ComponentsParser = ComponentsParser()
 
     private var widthRatio: Double = 1.0
     private var heightRatio: Double = 1.0
@@ -34,9 +27,8 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
     override fun initialize() {
         styled()
 
-        parser.initializeAll()
+        viewOrder = 10.0
 
-        children.addAll(parser.getAsNode(Homepage::class.java), NativeTerminalEmulator)
         NativeTerminalEmulator.hide()
     }
 
@@ -52,7 +44,7 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             panel.heightRatio = heightRatio
         }
 
-        findComponent(Homepage::class.java, 1).sizePropertyBind(major, widthRatio, heightRatio)
+        homepage.sizePropertyBind(major, widthRatio, heightRatio)
         NativeTerminalEmulator.sizePropertyBind(major, widthRatio, heightRatio)
     }
 
@@ -61,7 +53,7 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
             hideHomepage()
             val terminal = NativeTerminalEmulator
             terminal.initialize()
-            terminal.sizePropertyBind(findComponent(MajorPanel::class.java, 1), widthRatio, heightRatio)
+            terminal.sizePropertyBind(majorPanel, widthRatio, heightRatio)
             terminal.createSshSession(sessionId, host, user, password)
             terminal.activeTerminal()
             terminal.requestFocus()
@@ -79,19 +71,13 @@ class WorkspacePanel(id: Long) : TStackPane(id) {
     }
 
     private fun showHomepage() {
-        val homepage = findComponent(Homepage::class.java, 1)
         homepage.show()
     }
 
     private fun hideHomepage() {
-        val homepage = findComponent(Homepage::class.java, 1)
         homepage.hide()
     }
 
     override fun actionAfterShow() {
-    }
-
-    init {
-        parser.parse(this::class.java)
     }
 }

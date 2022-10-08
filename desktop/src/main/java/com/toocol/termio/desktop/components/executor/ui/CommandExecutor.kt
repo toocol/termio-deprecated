@@ -122,8 +122,11 @@ class CommandExecutor(id: Long) : TVBox(id), Loggable {
             }
             addEventFilter(KeyEvent.KEY_PRESSED) { event: KeyEvent ->
                 if (event.code == KeyCode.UP || event.code == KeyCode.DOWN) {
-                    executorReaderInputStream.write((if (event.code == KeyCode.UP) CharUtil.UP_ARROW.toString() else CharUtil.DOWN_ARROW.toString()).toByteArray(
-                        StandardCharsets.UTF_8))
+                    executorReaderInputStream.write(
+                        (if (event.code == KeyCode.UP) CharUtil.UP_ARROW.toString() else CharUtil.DOWN_ARROW.toString()).toByteArray(
+                            StandardCharsets.UTF_8
+                        )
+                    )
                     executorReaderInputStream.flush()
                     event.consume()
                 }

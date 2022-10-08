@@ -1,7 +1,10 @@
 package com.toocol.termio.desktop.bootstrap;
 
+import com.toocol.termio.desktop.components.UIHolder;
+import com.toocol.termio.desktop.components.UILayout;
 import com.toocol.termio.desktop.components.panel.ui.MajorPanel;
-import com.toocol.termio.platform.component.*;
+import com.toocol.termio.platform.component.IActionAfterShow;
+import com.toocol.termio.platform.component.IComponent;
 import com.toocol.termio.platform.css.CssFileAnnotationParser;
 import com.toocol.termio.platform.css.RegisterCssFile;
 import com.toocol.termio.platform.font.FontFileAnnotationParser;
@@ -11,8 +14,6 @@ import com.toocol.termio.platform.window.WindowSizeAdjuster;
 import com.toocol.termio.utilities.log.Loggable;
 import com.toocol.termio.utilities.utils.TimeRecorder;
 import javafx.application.Application;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
@@ -20,6 +21,7 @@ import javafx.stage.StageStyle;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 /**
  * Application entrance of Termio Community.
@@ -44,12 +46,8 @@ import java.io.InputStream;
         "seguisb.ttf",
         "Segoe-Fluent-Icons.ttf"
 })
-@RegisterComponent(value = {
-        @Component(clazz = MajorPanel.class, id = 1, initialVisible = true),
-})
 public final class TermioCommunityApplication extends Application implements Loggable {
 
-    private ComponentsParser componentParser = new ComponentsParser();
     private CssFileAnnotationParser cssParser = new CssFileAnnotationParser();
     private FontFileAnnotationParser fontParser = new FontFileAnnotationParser();
 
@@ -67,47 +65,48 @@ public final class TermioCommunityApplication extends Application implements Log
 
     @Override
     public void start(Stage stage) throws IOException {
-        TimeRecorder recorder = new TimeRecorder();
-        StageHolder.stage = stage;
-        stage.initStyle(StageStyle.TRANSPARENT);
-        stage.setTitle("Termio Community");
-        stage.setMinWidth(500);
-        stage.setMinHeight(400);
-        InputStream image = TermioCommunityApplication.class.getResourceAsStream("/com.toocol.termio.desktop.bootstrap/icon.png");
-        if (image != null) {
-            stage.getIcons().add(new Image(image));
+        try {
+            TimeRecorder recorder = new TimeRecorder();
+            StageHolder.stage = stage;
+            stage.initStyle(StageStyle.TRANSPARENT);
+            stage.setTitle("Termio Community");
+            stage.setMinWidth(500);
+            stage.setMinHeight(400);
+            InputStream image = TermioCommunityApplication.class.getResourceAsStream("/com.toocol.termio.desktop.bootstrap/icon.png");
+            if (image != null) {
+                stage.getIcons().add(new Image(image));
+            }
+
+            MajorPanel root = UIHolder.getMajorPanel();
+            WindowSizeAdjuster.init(stage, root);
+
+            Scene scene = new Scene(root);
+            StageHolder.scene = scene;
+
+            fontParser.parse(this.getClass());
+            cssParser.parse(this.getClass(), scene);
+
+            UILayout.setLayout();
+            Arrays.stream(UIHolder.allUIComponents()).forEach(IComponent::initialize);
+
+            stage.setScene(scene);
+            stage.show();
+            notifyPreloader(new TermioPreloader.ApplicationStartupNotification());
+
+            Arrays.stream(UIHolder.allUIComponents())
+                    .filter(component -> component instanceof IActionAfterShow)
+                    .map(component -> (IActionAfterShow) component)
+                    .forEach(IActionAfterShow::actionAfterShow);
+
+            cssParser = null;
+            fontParser = null;
+            System.gc();
+
+            info("Starting termio-community success.");
+            info("Create application UI: " + recorder.end());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        componentParser.parse(this.getClass());
-        Node root = componentParser.getAsNode(MajorPanel.class);
-        assert root != null;
-
-        WindowSizeAdjuster.init(stage, root);
-
-        Scene scene = new Scene((Parent) root);
-        StageHolder.scene = scene;
-
-        fontParser.parse(this.getClass());
-        cssParser.parse(this.getClass(), scene);
-        componentParser.initializeAll();
-
-        stage.setScene(scene);
-        stage.show();
-        notifyPreloader(new TermioPreloader.ApplicationStartupNotification());
-
-        ComponentsContainer.getComponents()
-                .stream()
-                .filter(component -> component instanceof IActionAfterShow)
-                .map(component -> (IActionAfterShow) component)
-                .forEach(IActionAfterShow::actionAfterShow);
-
-        info("Starting termio-community success.");
-
-        componentParser = null;
-        cssParser = null;
-        fontParser = null;
-        System.gc();
-        info("Create application UI: " + recorder.end());
     }
 
     @Override

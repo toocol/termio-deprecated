@@ -23,7 +23,7 @@ class Homepage(id: Long) : TStackPane(id) {
     override fun initialize() {
         styled()
 
-        val text = Text("Termio: SSH/Mosh Terminal")
+        val text = Text("Termio: Terminal for Modern")
         text.fill = Paint.valueOf("#CCCCCC")
         text.font = Font("Consolas", 20.0)
         children.add(text)

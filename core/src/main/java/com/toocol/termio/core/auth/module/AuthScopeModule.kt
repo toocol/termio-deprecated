@@ -4,7 +4,6 @@ import com.toocol.termio.core.auth.core.SecurityCoder
 import com.toocol.termio.core.auth.core.SshCredential
 import com.toocol.termio.core.cache.CredentialCache
 import com.toocol.termio.core.file.api.FileApi
-import com.toocol.termio.utilities.ansi.Printer
 import com.toocol.termio.utilities.module.ScopeModule
 import com.toocol.termio.utilities.utils.Castable
 import com.toocol.termio.utilities.utils.FileUtil
@@ -25,7 +24,7 @@ object AuthScopeModule : ScopeModule(), Castable {
     override suspend fun start() {
         val filePath = FileUtil.relativeToFixed("./.credentials")
 
-        SecurityCoder("SH2DL3SJ-LL5FF4US")
+//        SecurityCoder("SH2DL3SJ-LL5FF4US")
         val coder = SecurityCoder.get()
 
         FileApi.checkFileExist(filePath)
@@ -34,8 +33,10 @@ object AuthScopeModule : ScopeModule(), Castable {
             if (coder != null) {
                 sshCredentialsStr = coder.decode(sshCredentialsStr)
                 if (sshCredentialsStr == null) {
-                    MessageBox.setExitMessage("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
-                            ", and try to delete unsafe .credentials at program's home folder.")
+                    val msg = "Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
+                            ", and try to delete unsafe .credentials at program's home folder."
+                    error(msg)
+                    MessageBox.setExitMessage(msg)
                     exitProcess(-1)
                 }
             }
@@ -44,8 +45,10 @@ object AuthScopeModule : ScopeModule(), Castable {
                 sshCredentials =
                     if (StringUtils.isEmpty(sshCredentialsStr)) JsonArray() else JsonArray(sshCredentialsStr)
             } catch (e: Exception) {
-                MessageBox.setExitMessage("Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
-                        ", and try to delete unsafe .credentials at program's home folder.")
+                val msg = "Illegal program: the program seems to have been tampered. Please download the official version at https://github.com/Joezeo/termio" +
+                        ", and try to delete unsafe .credentials at program's home folder."
+                error(msg)
+                MessageBox.setExitMessage(msg)
                 exitProcess(-1)
             }
             sshCredentials.forEach { o: Any? ->
@@ -53,7 +56,7 @@ object AuthScopeModule : ScopeModule(), Castable {
                 val sshCredential = SshCredential.transFromJson(credentialJsonObj)
                 CredentialCache.addCredential(sshCredential)
             }
-            Printer.LOADING_ACCOMPLISH = true
+            info("Authentication load success.")
         }
     }
 

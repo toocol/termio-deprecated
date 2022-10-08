@@ -1,7 +1,6 @@
 package com.toocol.termio.platform.component
 
 import com.toocol.termio.platform.component.ComponentsContainer.get
-import com.toocol.termio.platform.component.ComponentsContainer.put
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.Asable
 import com.toocol.termio.utilities.utils.Castable
@@ -36,7 +35,7 @@ interface IComponent : Asable, Castable, ISizeDynamicBinding, Loggable {
      * to get any components have registered by id.
      */
     fun registerComponent(id: Long) {
-        put(this::class.java, id, this)
+//        put(this::class.java, id, this)
     }
 
     /**
@@ -57,5 +56,12 @@ interface IComponent : Asable, Castable, ISizeDynamicBinding, Loggable {
             this.isManaged = true
             this.isVisible = true
         }
+    }
+
+    fun <R> R.initialVisible(visible: Boolean): R {
+        if (this is Node) {
+            this.isVisible = visible
+        }
+        return this
     }
 }

@@ -1,5 +1,6 @@
 package com.toocol.termio.utilities.module
 
+import com.toocol.termio.utilities.log.Loggable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.MainScope
@@ -9,7 +10,7 @@ import kotlinx.coroutines.MainScope
  * @date: 2022/10/2 19:34
  * @version: 0.0.1
  */
-abstract class ScopeModule : CoroutineScope by MainScope() {
+abstract class ScopeModule : CoroutineScope by MainScope(), Loggable {
 
     @DelicateCoroutinesApi
     abstract suspend fun start()

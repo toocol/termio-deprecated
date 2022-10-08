@@ -13,10 +13,6 @@ object Printer {
     @Volatile
     private var printer: PrintStream? = null
 
-    @JvmField
-    @Volatile
-    var LOADING_ACCOMPLISH = false
-
     @JvmStatic
     fun print(msg: String?) {
         printer!!.print(msg?.replace(StrUtil.CRLF, StrUtil.LF))
