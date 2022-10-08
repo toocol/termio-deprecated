@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
  * @date: 2022/8/12 0:39
  * @version: 0.0.1
  */
-class WorkspacePanel(id: Long) : TStackPane(id) {
+class WorkspacePanel : TStackPane() {
 
     private var widthRatio: Double = 1.0
     private var heightRatio: Double = 1.0

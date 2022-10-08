@@ -12,13 +12,5 @@ import kotlinx.coroutines.MainScope
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/11 11:04
  */
-abstract class TStackPane(protected val id: Long) : StackPane(), IComponent, IStyleAble, IActionAfterShow, ApiAcquirer,
-    CoroutineScope by MainScope() {
-    init {
-        this.registerComponent(id)
-    }
-
-    override fun id(): Long {
-        return id
-    }
-}
+abstract class TStackPane : StackPane(), IComponent, IStyleAble, IActionAfterShow, ApiAcquirer,
+    CoroutineScope by MainScope()

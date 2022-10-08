@@ -86,7 +86,7 @@ public final class TermioCommunityApplication extends Application implements Log
             fontParser.parse(this.getClass());
             cssParser.parse(this.getClass(), scene);
 
-            UILayout.setLayout();
+            UILayout.loadLayout();
             Arrays.stream(UIHolder.allUIComponents()).forEach(IComponent::initialize);
 
             stage.setScene(scene);

@@ -14,7 +14,7 @@ import javafx.scene.layout.Pane
  * @date: 2022/9/1 22:30
  * @version: 0.0.1
  */
-class TopMenuPanel(id: Long) : TAnchorPane(id){
+class TopMenuPanel : TAnchorPane(){
     private val menuHBox: HBox = HBox()
     private val controlHBox: HBox = HBox()
 

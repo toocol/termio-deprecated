@@ -10,7 +10,7 @@ import javafx.scene.layout.Pane
  * @date: 2022/8/23 12:46
  * @version: 0.0.1
  */
-class CenterPanel(id: Long) : TVBox(id) {
+class CenterPanel : TVBox() {
 
     override fun styleClasses(): Array<String> {
         return arrayOf(

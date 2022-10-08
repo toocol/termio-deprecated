@@ -11,7 +11,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane
  * @date: 2022/8/11 23:15
  * @version: 0.0.1
  */
-class TerminalScrollPane(private val id: Long, terminalEmulatorTextArea: TerminalEmulatorTextArea?) :
+class TerminalScrollPane(terminalEmulatorTextArea: TerminalEmulatorTextArea?) :
     VirtualizedScrollPane<TerminalEmulatorTextArea?>(terminalEmulatorTextArea), IStyleAble, IComponent {
     override fun styleClasses(): Array<String> {
         return arrayOf(
@@ -23,10 +23,6 @@ class TerminalScrollPane(private val id: Long, terminalEmulatorTextArea: Termina
         styled()
         vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
         hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-    }
-
-    override fun id(): Long {
-        return id
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {

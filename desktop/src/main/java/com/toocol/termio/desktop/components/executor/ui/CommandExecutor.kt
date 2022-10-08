@@ -29,19 +29,13 @@ import java.nio.charset.StandardCharsets
  * @date: 2022/8/12 0:42
  * @version: 0.0.1
  */
-class CommandExecutor(id: Long) : TVBox(id), Loggable {
+class CommandExecutor : TVBox(), Loggable {
     private val executorOutputService = ExecutorOutputService()
-    private val commandExecutorInput: CommandExecutorInput
-    private val commandExecutorResultTextArea: CommandExecutorResultTextArea
-    private val commandExecutorResultScrollPane: CommandExecutorResultScrollPane
+    private val commandExecutorInput: CommandExecutorInput = CommandExecutorInput()
+    private val commandExecutorResultTextArea: CommandExecutorResultTextArea = CommandExecutorResultTextArea()
+    private val commandExecutorResultScrollPane: CommandExecutorResultScrollPane = CommandExecutorResultScrollPane(commandExecutorResultTextArea)
 
     private var commandOut = false
-
-    init {
-        commandExecutorInput = CommandExecutorInput(id)
-        commandExecutorResultTextArea = CommandExecutorResultTextArea(id)
-        commandExecutorResultScrollPane = CommandExecutorResultScrollPane(id, commandExecutorResultTextArea)
-    }
 
     override fun styleClasses(): Array<String> {
         return arrayOf(

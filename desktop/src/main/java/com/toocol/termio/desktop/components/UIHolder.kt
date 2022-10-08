@@ -14,20 +14,20 @@ import com.toocol.termio.platform.window.WindowSizeAdjuster.initialVisible
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/10/8 11:02
  */
-val majorPanel = MajorPanel(1).initialVisible(true)
+val majorPanel = MajorPanel().initialVisible(true)
 
-val topMenuPanel = TopMenuPanel(1).initialVisible(true)
+val topMenuPanel = TopMenuPanel().initialVisible(true)
 
-val leftSidePanel = LeftSidePanel(1).initialVisible(true)
-val leftToolSidebar = LeftToolSidebar(1).initialVisible(true)
-val sessionManageSidebar = SessionManageSidebar(1).initialVisible(true)
+val leftSidePanel = LeftSidePanel().initialVisible(true)
+val leftToolSidebar = LeftToolSidebar().initialVisible(true)
+val sessionManageSidebar = SessionManageSidebar().initialVisible(true)
 
-val centerPanel = CenterPanel(1).initialVisible(true)
-val workspacePanel = WorkspacePanel(1).initialVisible(true)
-val homepage = Homepage(1).initialVisible(true)
-val commandExecutor = CommandExecutor(1).initialVisible(true)
+val centerPanel = CenterPanel().initialVisible(true)
+val workspacePanel = WorkspacePanel().initialVisible(true)
+val homepage = Homepage().initialVisible(true)
+val commandExecutor = CommandExecutor().initialVisible(true)
 
-val bottomStatusBar = BottomStatusBar(1).initialVisible(true)
+val bottomStatusBar = BottomStatusBar().initialVisible(true)
 
 fun allUIComponents(): Array<out IComponent> {
     return arrayOf(

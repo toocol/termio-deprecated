@@ -41,7 +41,7 @@ import kotlin.math.max
  * @date: 2022/8/14 17:43
  * @version: 0.0.1
  */
-abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledArea<ParagraphStyle, String, TextStyle>(
+abstract class EscapedTextStyleClassArea : GenericStyledArea<ParagraphStyle, String, TextStyle>(
     // default paragraph style
     ParagraphStyle.EMPTY,
     // paragraph style setter
@@ -100,10 +100,6 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
     }
 
     abstract fun followCaret(): Boolean
-
-    override fun id(): Long {
-        return id
-    }
 
     override fun createMultiChangeBuilder(): MultiChangeBuilder<ParagraphStyle, String, TextStyle> {
         return createMultiChange()
@@ -584,9 +580,8 @@ abstract class EscapedTextStyleClassArea(private val id: Long) : GenericStyledAr
             ParagraphStyle.CODEC,
             Codec.styledSegmentCodec(Codec.STRING_CODEC, TextStyle.CODEC)
         )
-        this.registerComponent(id)
 
-        cursor = Cursor(id)
+        cursor = Cursor()
 
         textProperty().addListener { _: ObservableValue<out String>?, oldVal: String, newVal: String ->
             cursor.update(newVal.length - oldVal.length)

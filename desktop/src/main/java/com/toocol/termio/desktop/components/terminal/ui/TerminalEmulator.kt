@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/4 11:06
  */
-class TerminalEmulator(id: Long, sessionId: Long) : TAnchorPane(id), Loggable {
+class TerminalEmulator : TAnchorPane(), Loggable {
     /**
      * Each DesktopTerminalPanel or CommandExecutorPanel has one onw MetadataPrinterOutputStream and PrintStream correspondent:
      * Feedback data.
@@ -29,13 +29,8 @@ class TerminalEmulator(id: Long, sessionId: Long) : TAnchorPane(id), Loggable {
     private val terminalWriterOutputStream = MetadataPrinterOutputStream()
     private val terminalPrintStream = TerminalConsolePrintStream(terminalWriterOutputStream)
     private val terminalOutputService = TerminalOutputService()
-    private val terminalScrollPane: TerminalScrollPane
-    private val terminalEmulatorTextArea: TerminalEmulatorTextArea
-
-    init {
-        terminalEmulatorTextArea = TerminalEmulatorTextArea(id)
-        terminalScrollPane = TerminalScrollPane(id, terminalEmulatorTextArea)
-    }
+    private val terminalEmulatorTextArea: TerminalEmulatorTextArea = TerminalEmulatorTextArea()
+    private val terminalScrollPane: TerminalScrollPane = TerminalScrollPane(terminalEmulatorTextArea)
 
     override fun styleClasses(): Array<String> {
         return arrayOf(

@@ -12,7 +12,7 @@ import javafx.scene.paint.Color
  * @date: 2022/8/14 23:33
  * @version: 0.0.1
  */
-class CommandExecutorResultTextArea(private val id: Long) : EscapedTextStyleClassArea(id), IStyleAble, IComponent {
+class CommandExecutorResultTextArea : EscapedTextStyleClassArea(), IStyleAble, IComponent {
 
     override fun styleClasses(): Array<String> {
         return arrayOf(
@@ -36,10 +36,6 @@ class CommandExecutorResultTextArea(private val id: Long) : EscapedTextStyleClas
 
     override fun followCaret(): Boolean {
         return false
-    }
-
-    override fun id(): Long {
-        return id
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {

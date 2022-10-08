@@ -1,6 +1,5 @@
 package com.toocol.termio.platform.component
 
-import com.toocol.termio.platform.component.ComponentsContainer.get
 import com.toocol.termio.utilities.log.Loggable
 import com.toocol.termio.utilities.utils.Asable
 import com.toocol.termio.utilities.utils.Castable
@@ -15,28 +14,6 @@ interface IComponent : Asable, Castable, ISizeDynamicBinding, Loggable {
      * Initialize the component.
      */
     fun initialize()
-
-    /**
-     * Get current component's id
-     */
-    fun id(): Long
-
-    /**
-     * Find Javafx Node represented by Component by registered id
-     *
-     * @return Optional<Node>
-    </Node> */
-    fun <T : IComponent?> findComponent(clazz: Class<T>, id: Long): T {
-        return get(clazz, id)
-    }
-
-    /**
-     * Register the component, so you can invoke [IComponent.findComponent]
-     * to get any components have registered by id.
-     */
-    fun registerComponent(id: Long) {
-//        put(this::class.java, id, this)
-    }
 
     /**
      * If the component is subclass of Node, hide this component.

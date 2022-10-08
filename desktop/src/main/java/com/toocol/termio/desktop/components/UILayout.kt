@@ -7,7 +7,7 @@ package com.toocol.termio.desktop.components
  */
 private var invokeOnce: Boolean = false
 
-fun setLayout() {
+fun loadLayout() {
     if (invokeOnce) return
     invokeOnce = true
 

@@ -19,7 +19,7 @@ import jfxtras.styles.jmetro.Style
  * @date: 2022/8/22 22:17
  * @version: 0.0.1
  */
-class LeftSidePanel(id: Long) : TBorderPane(id) {
+class LeftSidePanel : TBorderPane() {
 
     override fun styleClasses(): Array<String> {
         return arrayOf(

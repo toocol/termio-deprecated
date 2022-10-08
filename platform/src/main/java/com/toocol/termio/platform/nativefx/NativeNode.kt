@@ -382,9 +382,4 @@ abstract class NativeNode @JvmOverloads constructor(
         // TODO: consider insets ect...
         return 0.0
     }
-
-    override fun id(): Long {
-        return 0
-    }
-
 }

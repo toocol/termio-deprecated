@@ -12,13 +12,5 @@ import kotlinx.coroutines.MainScope
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/11 11:04
  */
-abstract class TBorderPane(protected val id: Long) : BorderPane(), IComponent, IStyleAble, IActionAfterShow,
-    ApiAcquirer, CoroutineScope by MainScope() {
-    init {
-        this.registerComponent(id)
-    }
-
-    override fun id(): Long {
-        return id
-    }
-}
+abstract class TBorderPane : BorderPane(), IComponent, IStyleAble, IActionAfterShow,
+    ApiAcquirer, CoroutineScope by MainScope()

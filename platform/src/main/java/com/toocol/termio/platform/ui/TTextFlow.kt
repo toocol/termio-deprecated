@@ -12,13 +12,5 @@ import kotlinx.coroutines.MainScope
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/12 14:28
  */
-abstract class TTextFlow(protected val id: Long) : TextFlow(), IComponent, IStyleAble, IActionAfterShow, ApiAcquirer,
-    CoroutineScope by MainScope() {
-    init {
-        this.registerComponent(id)
-    }
-
-    override fun id(): Long {
-        return id
-    }
-}
+abstract class TTextFlow : TextFlow(), IComponent, IStyleAble, IActionAfterShow, ApiAcquirer,
+    CoroutineScope by MainScope()

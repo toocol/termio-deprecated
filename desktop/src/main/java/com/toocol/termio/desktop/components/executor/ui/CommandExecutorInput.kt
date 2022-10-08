@@ -13,7 +13,7 @@ import javafx.scene.text.Text
  * @date: 2022/8/14 23:31
  * @version: 0.0.1
  */
-class CommandExecutorInput(private val id: Long) : AnchorPane(), IStyleAble, IComponent {
+class CommandExecutorInput : AnchorPane(), IStyleAble, IComponent {
 
     private val text = AnchorPane()
     private val textField = TextField()
@@ -56,10 +56,6 @@ class CommandExecutorInput(private val id: Long) : AnchorPane(), IStyleAble, ICo
             maxHeight = 20.0
             minHeight = 20.0
         }
-    }
-
-    override fun id(): Long {
-        return id
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {

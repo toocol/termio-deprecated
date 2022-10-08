@@ -13,12 +13,4 @@ import kotlinx.coroutines.MainScope
  * @date 2022/8/11 10:37
  */
 abstract class TPane(protected val id: Long) : Pane(), IComponent, IStyleAble, IActionAfterShow, ApiAcquirer,
-    CoroutineScope by MainScope() {
-    init {
-        this.registerComponent(id)
-    }
-
-    override fun id(): Long {
-        return id
-    }
-}
+    CoroutineScope by MainScope()

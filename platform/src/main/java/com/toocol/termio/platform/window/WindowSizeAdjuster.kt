@@ -178,10 +178,6 @@ object WindowSizeAdjuster : IComponent {
         return isMaximize
     }
 
-    override fun id(): Long {
-        return 0
-    }
-
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
     }
 }

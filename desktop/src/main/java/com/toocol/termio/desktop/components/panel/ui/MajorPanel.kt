@@ -12,7 +12,7 @@ import jfxtras.styles.jmetro.JMetroStyleClass
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/11 11:13
  */
-class MajorPanel(id: Long) : TBorderPane(id) {
+class MajorPanel : TBorderPane() {
 
     override fun styleClasses(): Array<String> {
         return arrayOf(

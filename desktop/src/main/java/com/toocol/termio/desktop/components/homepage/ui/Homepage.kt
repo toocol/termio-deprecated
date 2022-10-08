@@ -13,7 +13,7 @@ import javafx.scene.text.Text
  * @date: 2022/8/12 0:43
  * @version: 0.0.1
  */
-class Homepage(id: Long) : TStackPane(id) {
+class Homepage : TStackPane() {
     override fun styleClasses(): Array<String> {
         return arrayOf(
             "homepage-panel"

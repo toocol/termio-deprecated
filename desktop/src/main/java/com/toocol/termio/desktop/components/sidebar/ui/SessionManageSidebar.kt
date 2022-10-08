@@ -7,7 +7,7 @@ import javafx.scene.layout.Pane
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/5 17:26
  */
-class SessionManageSidebar(id: Long) : TAnchorPane(id) {
+class SessionManageSidebar : TAnchorPane() {
     override fun styleClasses(): Array<String> {
         return arrayOf(
             "session-manage-sidebar"
