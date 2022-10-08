@@ -164,17 +164,6 @@
                         <list>org.ini4j.spi.IniParser</list>
                         <list>org.ini4j.spi.IniBuilder</list>
                         <list>org.ini4j.spi.EscapeTool</list>
-                        <!-- UI -->
-                        <list>com.toocol.termio.desktop.components.panel.ui.MajorPanel</list>
-                        <list>com.toocol.termio.desktop.components.panel.ui.TopMenuPanel</list>
-                        <list>com.toocol.termio.desktop.components.panel.ui.LeftSidePanel</list>
-                        <list>com.toocol.termio.desktop.components.sidebar.ui.LeftToolSidebar</list>
-                        <list>com.toocol.termio.desktop.components.sidebar.ui.SessionManageSidebar</list>
-                        <list>com.toocol.termio.desktop.components.panel.ui.CenterPanel</list>
-                        <list>com.toocol.termio.desktop.components.panel.ui.WorkspacePanel</list>
-                        <list>com.toocol.termio.desktop.components.homepage.ui.Homepage</list>
-                        <list>com.toocol.termio.desktop.components.executor.ui.CommandExecutor</list>
-                        <list>com.toocol.termio.desktop.components.sidebar.ui.BottomStatusBar</list>
                     </reflectionList>
                     <enableSWRendering>true</enableSWRendering>
                 </configuration>

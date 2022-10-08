@@ -24,7 +24,7 @@ object AuthScopeModule : ScopeModule(), Castable {
     override suspend fun start() {
         val filePath = FileUtil.relativeToFixed("./.credentials")
 
-//        SecurityCoder("SH2DL3SJ-LL5FF4US")
+        SecurityCoder("SH2DL3SJ-LL5FF4US")
         val coder = SecurityCoder.get()
 
         FileApi.checkFileExist(filePath)
