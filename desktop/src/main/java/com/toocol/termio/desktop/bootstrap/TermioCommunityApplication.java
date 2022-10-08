@@ -11,6 +11,7 @@ import com.toocol.termio.platform.font.FontFileAnnotationParser;
 import com.toocol.termio.platform.font.RegisterFontFile;
 import com.toocol.termio.platform.window.StageHolder;
 import com.toocol.termio.platform.window.WindowSizeAdjuster;
+import com.toocol.termio.utilities.ansi.Printer;
 import com.toocol.termio.utilities.log.Loggable;
 import com.toocol.termio.utilities.utils.TimeRecorder;
 import javafx.application.Application;
@@ -104,6 +105,7 @@ public final class TermioCommunityApplication extends Application implements Log
 
             info("Starting termio-community success.");
             info("Create application UI: " + recorder.end());
+            Printer.printMemoryUse();
         } catch (Exception e) {
             e.printStackTrace();
         }

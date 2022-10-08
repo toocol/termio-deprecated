@@ -36,7 +36,6 @@ class NativeTerminalEmulator : NativeNode(true, true) {
 
     override fun initialize() {
         apply {
-            isVerbose = true
             connect("_emulator_mem")
 
             addNativeEventListener { key, type, evt ->

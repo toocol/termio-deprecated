@@ -57,6 +57,12 @@ object Printer {
     }
 
     @JvmStatic
+    fun printMemoryUse() {
+        val runtime = Runtime.getRuntime()
+        println("Actual memory use: ${(runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024}m")
+    }
+
+    @JvmStatic
     fun setPrinter(printer: PrintStream?) {
         this.printer = printer
     }

@@ -156,7 +156,10 @@ abstract class NativeNode @JvmOverloads constructor(
             )
         }
         addEventHandler(KeyEvent.KEY_PRESSED) { ev: KeyEvent ->
-            if (StrUtil.isAsciiPrintable(ev.text) || ev.code == KeyCode.ENTER) {
+            if ((StrUtil.isAsciiPrintable(ev.text) && ev.text.isNotEmpty())
+                || ev.code == KeyCode.ENTER
+                || ev.code == KeyCode.BACK_SPACE
+            ) {
                 return@addEventHandler
             }
             NativeBinding.fireKeyPressedEvent(key, ev.text, QtKeyCode.getQtCode(ev.code.code),
