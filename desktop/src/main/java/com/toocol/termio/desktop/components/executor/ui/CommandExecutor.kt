@@ -32,8 +32,8 @@ import java.nio.charset.StandardCharsets
 class CommandExecutor : TVBox(), Loggable {
     private val executorOutputService = ExecutorOutputService()
     private val commandExecutorInput: CommandExecutorInput = CommandExecutorInput()
-    private val commandExecutorResultTextArea: CommandExecutorResultTextArea = CommandExecutorResultTextArea()
-    private val commandExecutorResultScrollPane: CommandExecutorResultScrollPane = CommandExecutorResultScrollPane(commandExecutorResultTextArea)
+//    private val commandExecutorResultTextArea: CommandExecutorResultTextArea = CommandExecutorResultTextArea()
+//    private val commandExecutorResultScrollPane: CommandExecutorResultScrollPane = CommandExecutorResultScrollPane(commandExecutorResultTextArea)
 
     private var commandOut = false
 
@@ -59,8 +59,8 @@ class CommandExecutor : TVBox(), Loggable {
             val ctrlU: KeyCombination = KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN)
             scene.accelerators[ctrlU] = Runnable {
                 commandExecutorInput.clear()
-                commandExecutorResultTextArea.clear()
-                commandExecutorResultScrollPane.hide()
+//                commandExecutorResultTextArea.clear()
+//                commandExecutorResultScrollPane.hide()
             }
 
             val ctrlI: KeyCombination = KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN)
@@ -78,20 +78,21 @@ class CommandExecutor : TVBox(), Loggable {
             }
 
             spacing = 6.0
-            children.addAll(commandExecutorResultScrollPane, commandExecutorInput)
+//            children.addAll(commandExecutorResultScrollPane, commandExecutorInput)
+            children.addAll(commandExecutorInput)
         }
 
         executorOutputService.apply { start() }
 
-        commandExecutorResultTextArea.apply {
-            initialize()
-            onMouseClicked = EventHandler { commandExecutorInput.requestFocus() }
-        }
-
-        commandExecutorResultScrollPane.apply {
-            initialize()
-            hide()
-        }
+//        commandExecutorResultTextArea.apply {
+//            initialize()
+//            onMouseClicked = EventHandler { commandExecutorInput.requestFocus() }
+//        }
+//
+//        commandExecutorResultScrollPane.apply {
+//            initialize()
+//            hide()
+//        }
 
         commandExecutorInput.apply {
             initialize()
@@ -143,7 +144,7 @@ class CommandExecutor : TVBox(), Loggable {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
 
         commandExecutorInput.sizePropertyBind(major, widthRatio, null)
-        commandExecutorResultTextArea.sizePropertyBind(major, widthRatio, heightRatio)
+//        commandExecutorResultTextArea.sizePropertyBind(major, widthRatio, heightRatio)
     }
 
     override fun actionAfterShow() {
@@ -152,24 +153,24 @@ class CommandExecutor : TVBox(), Loggable {
 
     private inner class ExecutorOutputService : Loggable, CoroutineScope by MainScope() {
         fun start() {
-            val thread = Thread({
-                while (true) {
-                    try {
-                        if (commandExecutorPrinterOutputStream.available() > 0) {
-                            val text = commandExecutorPrinterOutputStream.read()
-                            commandExecutorResultTextArea.append(text, commandExecutorPrintStream)
-                            if (!commandExecutorResultScrollPane.isVisible) {
-                                commandExecutorResultScrollPane.show()
-                            }
-                        }
-                        Thread.sleep(1)
-                    } catch (e: Exception) {
-                        warn("ExecutorOutputService catch exception, e = ${e.javaClass.name}, msg = ${e.message}")
-                    }
-                }
-            }, "terminal-output-service")
-            thread.isDaemon = true
-            thread.start()
+//            val thread = Thread({
+//                while (true) {
+//                    try {
+//                        if (commandExecutorPrinterOutputStream.available() > 0) {
+//                            val text = commandExecutorPrinterOutputStream.read()
+//                            commandExecutorResultTextArea.append(text, commandExecutorPrintStream)
+//                            if (!commandExecutorResultScrollPane.isVisible) {
+//                                commandExecutorResultScrollPane.show()
+//                            }
+//                        }
+//                        Thread.sleep(1)
+//                    } catch (e: Exception) {
+//                        warn("ExecutorOutputService catch exception, e = ${e.javaClass.name}, msg = ${e.message}")
+//                    }
+//                }
+//            }, "terminal-output-service")
+//            thread.isDaemon = true
+//            thread.start()
         }
     }
 

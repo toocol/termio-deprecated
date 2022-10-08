@@ -17,7 +17,7 @@ fun loadLayout() {
         center = centerPanel.apply {
             children.addAll(
                 workspacePanel.apply {
-                    children.addAll(homepage)
+                    children.addAll(homepage, nativeTerminalEmulator)
                 },
                 commandExecutor
             )

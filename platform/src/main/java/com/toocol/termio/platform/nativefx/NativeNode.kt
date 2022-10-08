@@ -5,6 +5,7 @@ import com.toocol.termio.platform.component.IComponent
 import com.toocol.termio.platform.component.IStyleAble
 import com.toocol.termio.platform.nativefx.NativeBinding.Modifier
 import com.toocol.termio.platform.nativefx.NativeBinding.MouseBtn
+import com.toocol.termio.platform.window.StageHolder
 import com.toocol.termio.platform.window.WindowSizeAdjuster
 import com.toocol.termio.utilities.utils.StrUtil
 import javafx.animation.AnimationTimer
@@ -271,6 +272,7 @@ abstract class NativeNode @JvmOverloads constructor(
         NativeBinding.setDirty(key, false)
         val w = width.toInt()
         val h = height.toInt()
+        val scene = StageHolder.scene!!
         val sx = if (hidpiAware) scene.window.renderScaleX else 1.0
         val sy = if (hidpiAware) scene.window.renderScaleX else 1.0
         if ((w.toDouble() != NativeBinding.getW(key) / sx || h.toDouble() != NativeBinding.getH(key) / sy)

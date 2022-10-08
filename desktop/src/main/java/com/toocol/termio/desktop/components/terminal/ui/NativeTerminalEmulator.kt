@@ -19,7 +19,7 @@ import javafx.scene.layout.Pane
  * @date: 2022/9/18 18:35
  * @version: 0.0.1
  */
-object NativeTerminalEmulator : NativeNode(true, true) {
+class NativeTerminalEmulator : NativeNode(true, true) {
     /**
      * Each DesktopTerminalPanel or CommandExecutorPanel has one onw MetadataPrinterOutputStream and PrintStream correspondent:
      * Feedback data.
@@ -85,7 +85,7 @@ object NativeTerminalEmulator : NativeNode(true, true) {
         NativeBinding.createSshSession(key, sessionId, host, user, password, System.nanoTime())
     }
 
-    private class TerminalOutputService : Loggable {
+    inner class TerminalOutputService : Loggable {
         fun start() {
             val thread = Thread({
                 while (true) {

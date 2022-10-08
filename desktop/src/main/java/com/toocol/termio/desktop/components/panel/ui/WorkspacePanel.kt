@@ -2,8 +2,8 @@ package com.toocol.termio.desktop.components.panel.ui
 
 import com.toocol.termio.desktop.components.homepage
 import com.toocol.termio.desktop.components.majorPanel
+import com.toocol.termio.desktop.components.nativeTerminalEmulator
 import com.toocol.termio.desktop.components.sidebar.ui.BottomStatusBar
-import com.toocol.termio.desktop.components.terminal.ui.NativeTerminalEmulator
 import com.toocol.termio.platform.ui.TStackPane
 import javafx.scene.layout.Pane
 import kotlinx.coroutines.launch
@@ -29,7 +29,7 @@ class WorkspacePanel : TStackPane() {
 
         viewOrder = 10.0
 
-        NativeTerminalEmulator.hide()
+        nativeTerminalEmulator.hide()
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
@@ -45,13 +45,13 @@ class WorkspacePanel : TStackPane() {
         }
 
         homepage.sizePropertyBind(major, widthRatio, heightRatio)
-        NativeTerminalEmulator.sizePropertyBind(major, widthRatio, heightRatio)
+        nativeTerminalEmulator.sizePropertyBind(major, widthRatio, heightRatio)
     }
 
     fun createSshSession(sessionId: Long, host: String, user: String, password: String) {
         launch {
             hideHomepage()
-            val terminal = NativeTerminalEmulator
+            val terminal = nativeTerminalEmulator
             terminal.initialize()
             terminal.sizePropertyBind(majorPanel, widthRatio, heightRatio)
             terminal.createSshSession(sessionId, host, user, password)

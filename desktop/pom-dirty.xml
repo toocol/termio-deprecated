@@ -136,6 +136,7 @@
                         <!-- <arg>&#45;&#45;pgo-instrument</arg>-->
                         <arg>-R:MinHeapSize=1m</arg>
                         <arg>-R:MaxNewSize=20m</arg>
+                        <arg>--no-fallback</arg>
                     </nativeImageArgs>
                     <runtimeArgs>
                         <arg>-Xms1m</arg>
