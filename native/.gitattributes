@@ -1,3 +1,2 @@
-*.h linguist-language=C
 jni.h linguist-detectable=false
 jni_md.h linguist-detectable=false
