@@ -10,22 +10,14 @@ import kotlin.math.max
  * @date: 2022/8/14 18:21
  * @version: 0.0.1
  */
-open class Cursor(val id: Long) : IComponent, Loggable {
+open class Cursor : IComponent, Loggable {
     /**
      * This is the position which text should be inserted at.
      */
     var inlinePosition = 0
         internal set
 
-    init {
-        this.registerComponent(id)
-    }
-
     override fun initialize() {}
-
-    override fun id(): Long {
-        return id
-    }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
 

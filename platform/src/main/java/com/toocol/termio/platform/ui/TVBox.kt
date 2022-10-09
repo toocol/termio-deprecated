@@ -12,13 +12,5 @@ import kotlinx.coroutines.MainScope
  * @author ZhaoZhe (joezane.cn@gmail.com)
  * @date 2022/8/11 11:04
  */
-abstract class TVBox(protected val id: Long) : VBox(), IComponent, IStyleAble, IActionAfterShow, ApiAcquirer,
-    CoroutineScope by MainScope() {
-    init {
-        this.registerComponent(id)
-    }
-
-    override fun id(): Long {
-        return id
-    }
-}
+abstract class TVBox : VBox(), IComponent, IStyleAble, IActionAfterShow, ApiAcquirer,
+    CoroutineScope by MainScope()

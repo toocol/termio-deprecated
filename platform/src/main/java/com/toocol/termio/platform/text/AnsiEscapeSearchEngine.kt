@@ -21,9 +21,6 @@ class AnsiEscapeSearchEngine<T : EscapeCodeSequenceSupporter<T>> : Loggable, Cas
         private val wordNumberRegex = Regex(pattern = """\w+""")
         private val numberRegex = Regex(pattern = """\d+""")
         private val wordRegex = Regex(pattern = """[a-zA-Z]+""")
-        private val codeStringRegex = Regex(pattern = """(\d{1,3};){1,2}[\\"'\w ]+;?""")
-        private val codeRegex = Regex(pattern = """(\d{1,3};)+""")
-        private val stringRegex = Regex(pattern = """[\w ]+;?""")
 
         private const val uberEscapeModeRegexPattern = """(\u001b\[\d{1,4};\d{1,4}[Hf])""" +
                 """|((\u001b\[\d{0,4}([HABCDEFGsu]|(6n)))|(\u001b [M78]))""" +

@@ -11,7 +11,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane
  * @date: 2022/8/11 23:15
  * @version: 0.0.1
  */
-class CommandExecutorResultScrollPane(private val id: Long, terminalConsoleTextArea: CommandExecutorResultTextArea) :
+class CommandExecutorResultScrollPane(terminalConsoleTextArea: CommandExecutorResultTextArea) :
     VirtualizedScrollPane<CommandExecutorResultTextArea?>(terminalConsoleTextArea), IStyleAble, IComponent {
 
     override fun styleClasses(): Array<String> {
@@ -24,10 +24,6 @@ class CommandExecutorResultScrollPane(private val id: Long, terminalConsoleTextA
         styled()
         vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
         hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
-    }
-
-    override fun id(): Long {
-        return id
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {

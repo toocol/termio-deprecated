@@ -1,10 +1,9 @@
 package com.toocol.termio.desktop.components.panel.ui
 
-import com.toocol.termio.desktop.components.sidebar.ui.LeftToolSidebar
-import com.toocol.termio.desktop.components.sidebar.ui.SessionManageSidebar
-import com.toocol.termio.platform.component.Component
-import com.toocol.termio.platform.component.ComponentsParser
-import com.toocol.termio.platform.component.RegisterComponent
+import com.toocol.termio.desktop.components.leftToolSidebar
+import com.toocol.termio.desktop.components.majorPanel
+import com.toocol.termio.desktop.components.sessionManageSidebar
+import com.toocol.termio.desktop.components.workspacePanel
 import com.toocol.termio.platform.ui.TBorderPane
 import com.toocol.termio.platform.window.StageHolder
 import javafx.scene.input.KeyCode
@@ -20,13 +19,7 @@ import jfxtras.styles.jmetro.Style
  * @date: 2022/8/22 22:17
  * @version: 0.0.1
  */
-@RegisterComponent(value = [
-    Component(clazz = LeftToolSidebar::class, id = 1, initialVisible = true),
-    Component(clazz = SessionManageSidebar::class, id = 1, initialVisible = true),
-])
-class LeftSidePanel(id: Long) : TBorderPane(id) {
-
-    private val parser: ComponentsParser = ComponentsParser()
+class LeftSidePanel : TBorderPane() {
 
     override fun styleClasses(): Array<String> {
         return arrayOf(
@@ -36,8 +29,6 @@ class LeftSidePanel(id: Long) : TBorderPane(id) {
 
     override fun initialize() {
         styled()
-
-        parser.initializeAll()
 
         val jmetro = JMetro(Style.LIGHT)
         jmetro.parent = this
@@ -51,27 +42,23 @@ class LeftSidePanel(id: Long) : TBorderPane(id) {
             } else {
                 show()
             }
-            findComponent(WorkspacePanel::class.java, 1).sizePropertyBind(findComponent(MajorPanel::class.java, 1),
-                1.0,
-                null)
-        }
 
-        left = parser.getAsNode(LeftToolSidebar::class.java)
-        center = parser.getAsNode(SessionManageSidebar::class.java)
+            workspacePanel.sizePropertyBind(
+                majorPanel,
+                1.0,
+                null
+            )
+        }
     }
 
     override fun sizePropertyBind(major: Pane, widthRatio: Double?, heightRatio: Double?) {
         widthRatio?.run { prefWidthProperty().bind(major.widthProperty().multiply(widthRatio)) }
         heightRatio?.run { prefHeightProperty().bind(major.heightProperty().multiply(heightRatio)) }
 
-        findComponent(LeftToolSidebar::class.java, 1).sizePropertyBind(major, null, heightRatio)
-        findComponent(SessionManageSidebar::class.java, 1).sizePropertyBind(major, null, heightRatio)
+        leftToolSidebar.sizePropertyBind(major, null, heightRatio)
+        sessionManageSidebar.sizePropertyBind(major, null, heightRatio)
     }
 
     override fun actionAfterShow() {
-    }
-
-    init {
-        parser.parse(this::class.java)
     }
 }

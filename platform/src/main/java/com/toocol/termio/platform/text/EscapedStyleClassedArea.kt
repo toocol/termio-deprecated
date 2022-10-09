@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap
  * @date: 2022/8/14 17:43
  * @version: 0.0.1
  */
-abstract class EscapedStyleClassedArea(private val id: Long) : StyleClassedTextArea(), EscapeCodeSequenceSupporter<EscapedStyleClassedArea>, IComponent, IActionAfterShow {
+abstract class EscapedStyleClassedArea : StyleClassedTextArea(), EscapeCodeSequenceSupporter<EscapedStyleClassedArea>, IComponent, IActionAfterShow {
 
     private var paragraphStyle: EscapeStyleCollection = EscapeStyleCollection()
 
@@ -71,10 +71,6 @@ abstract class EscapedStyleClassedArea(private val id: Long) : StyleClassedTextA
     }
 
     abstract fun followCaret(): Boolean
-
-    override fun id(): Long {
-        return id
-    }
 
     override fun createMultiChangeBuilder(): MultiChangeBuilder<Collection<String>, String, Collection<String>> {
         return createMultiChange()
@@ -484,9 +480,7 @@ abstract class EscapedStyleClassedArea(private val id: Long) : StyleClassedTextA
     }
 
     init {
-        this.registerComponent(id)
-
-        cursor = Cursor(id)
+        cursor = Cursor()
 
         textProperty().addListener { _: ObservableValue<out String>?, oldVal: String, newVal: String ->
             cursor.update(newVal.length - oldVal.length)

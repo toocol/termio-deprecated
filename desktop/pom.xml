@@ -136,6 +136,7 @@
                         <!-- <arg>&#45;&#45;pgo-instrument</arg>-->
                         <arg>-R:MinHeapSize=1m</arg>
                         <arg>-R:MaxNewSize=20m</arg>
+                        <arg>--no-fallback</arg>
                     </nativeImageArgs>
                     <runtimeArgs>
                         <arg>-Xms1m</arg>
@@ -163,32 +164,6 @@
                         <list>org.ini4j.spi.IniParser</list>
                         <list>org.ini4j.spi.IniBuilder</list>
                         <list>org.ini4j.spi.EscapeTool</list>
-                        <!-- UI -->
-                        <list>com.toocol.termio.desktop.components.panel.ui.MajorPanel</list>
-                        <list>com.toocol.termio.desktop.components.panel.ui.TopMenuPanel</list>
-                        <list>com.toocol.termio.desktop.components.panel.ui.LeftSidePanel</list>
-                        <list>com.toocol.termio.desktop.components.sidebar.ui.LeftToolSidebar</list>
-                        <list>com.toocol.termio.desktop.components.sidebar.ui.SessionManageSidebar</list>
-                        <list>com.toocol.termio.desktop.components.panel.ui.CenterPanel</list>
-                        <list>com.toocol.termio.desktop.components.panel.ui.WorkspacePanel</list>
-                        <list>com.toocol.termio.desktop.components.homepage.ui.Homepage</list>
-                        <list>com.toocol.termio.desktop.components.executor.ui.CommandExecutor</list>
-                        <list>com.toocol.termio.desktop.components.sidebar.ui.BottomStatusBar</list>
-                        <!-- Listeners -->
-                        <list>com.toocol.termio.desktop.components.panel.listeners.SshSessionClosedSyncListener</list>
-                        <list>com.toocol.termio.desktop.components.panel.listeners.SshSessionEstablishedSyncListener</list>
-                        <list>com.toocol.termio.platform.nativefx.listeners.WindowResizeEndSyncListener</list>
-                        <list>com.toocol.termio.platform.nativefx.listeners.WindowResizeStartSyncListener</list>
-                        <list>com.toocol.termio.platform.nativefx.listeners.WindowResizingSyncListener</list>
-                        <!-- Configures -->
-                        <list>com.toocol.termio.core.config.core.TermThemeConfigure</list>
-                        <list>com.toocol.termio.desktop.components.terminal.config.TerminalConfigure</list>
-                        <list>com.toocol.termio.core.config.core.TermThemeConfigure$DarkThemeSubConfigure</list>
-                        <list>com.toocol.termio.core.config.core.TermThemeConfigure$GruvboxThemeSubConfigure</list>
-                        <list>com.toocol.termio.core.config.core.TermThemeConfigure$LightThemeSubConfigure</list>
-                        <list>com.toocol.termio.desktop.components.terminal.config.TerminalConfigure$TerminalColorConfigure</list>
-                        <list>com.toocol.termio.desktop.components.terminal.config.TerminalConfigure$TerminalFontConfigure</list>
-                        <list>com.toocol.termio.desktop.components.terminal.config.TerminalConfigure$TerminalWindowConfigure</list>
                     </reflectionList>
                     <enableSWRendering>true</enableSWRendering>
                 </configuration>

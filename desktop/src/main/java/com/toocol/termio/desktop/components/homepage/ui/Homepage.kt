@@ -13,7 +13,7 @@ import javafx.scene.text.Text
  * @date: 2022/8/12 0:43
  * @version: 0.0.1
  */
-class Homepage(id: Long) : TStackPane(id) {
+class Homepage : TStackPane() {
     override fun styleClasses(): Array<String> {
         return arrayOf(
             "homepage-panel"
@@ -23,7 +23,7 @@ class Homepage(id: Long) : TStackPane(id) {
     override fun initialize() {
         styled()
 
-        val text = Text("Termio: SSH/Mosh Terminal")
+        val text = Text("Termio: Terminal for Modern")
         text.fill = Paint.valueOf("#CCCCCC")
         text.font = Font("Consolas", 20.0)
         children.add(text)

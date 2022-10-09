@@ -13,10 +13,6 @@ object Printer {
     @Volatile
     private var printer: PrintStream? = null
 
-    @JvmField
-    @Volatile
-    var LOADING_ACCOMPLISH = false
-
     @JvmStatic
     fun print(msg: String?) {
         printer!!.print(msg?.replace(StrUtil.CRLF, StrUtil.LF))
@@ -58,6 +54,12 @@ object Printer {
         } catch (e: Exception) {
             // do nothing
         }
+    }
+
+    @JvmStatic
+    fun printMemoryUse() {
+        val runtime = Runtime.getRuntime()
+        println("Actual memory use: ${(runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024}m")
     }
 
     @JvmStatic

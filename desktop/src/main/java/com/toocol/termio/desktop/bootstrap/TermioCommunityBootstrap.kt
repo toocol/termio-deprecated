@@ -10,7 +10,7 @@ import com.toocol.termio.core.term.core.DesktopTermPrinter
 import com.toocol.termio.core.term.core.Term
 import com.toocol.termio.core.term.core.TermTheme
 import com.toocol.termio.desktop.components.executor.ui.CommandExecutor
-import com.toocol.termio.desktop.components.terminal.ui.NativeTerminalEmulator
+import com.toocol.termio.desktop.components.nativeTerminalEmulator
 import com.toocol.termio.platform.nativefx.NativeBinding
 import com.toocol.termio.utilities.ansi.Printer.println
 import com.toocol.termio.utilities.config.ConfigScopeModule
@@ -24,7 +24,6 @@ import com.toocol.termio.utilities.utils.MessageBox
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.*
 
 /**
  * @author ：JoeZane (joezane.cn@gmail.com)
@@ -37,7 +36,7 @@ object TermioCommunityBootstrap : Termio(), ModuleBootstrap, Loggable {
     fun run() {
         launch(Dispatchers.Default) {
             Term.theme = TermTheme.LIGHT_THEME
-            Shell.initializeReader(NativeTerminalEmulator.terminalReaderInputStream)
+            Shell.initializeReader(nativeTerminalEmulator.terminalReaderInputStream)
             DesktopTermPrinter.registerPrintStream(CommandExecutor.commandExecutorPrintStream)
 
             System.setProperty("logFile", "termio-desktop.log")

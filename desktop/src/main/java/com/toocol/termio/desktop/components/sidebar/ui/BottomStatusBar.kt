@@ -12,7 +12,7 @@ import javafx.scene.text.Text
  * @date: 2022/9/1 21:41
  * @version: 0.0.1
  */
-class BottomStatusBar(id: Long) : TAnchorPane(id) {
+class BottomStatusBar : TAnchorPane() {
 
     private val edition = Pane()
     private val functionHBox = HBox()

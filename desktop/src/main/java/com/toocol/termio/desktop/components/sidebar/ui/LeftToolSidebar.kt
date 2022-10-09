@@ -8,7 +8,7 @@ import javafx.scene.layout.Pane
  * @date: 2022/9/1 23:22
  * @version: 0.0.1
  */
-class LeftToolSidebar(id: Long) : TVBox(id) {
+class LeftToolSidebar : TVBox() {
     override fun styleClasses(): Array<String> {
         return arrayOf(
             "left-tool-sidebar"
