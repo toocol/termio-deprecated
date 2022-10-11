@@ -36,7 +36,7 @@
 #include <QtAlgorithms>
 
 // Konsole
-#include "terminalcharacterdecoder.h"
+#include "terminal_character_decoder.h"
 #include "wcwidth.h"
 
 using namespace TConsole;

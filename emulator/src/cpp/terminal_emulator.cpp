@@ -1,5 +1,4 @@
-#include "terminalemulator.h"
-
+#include "terminal_emulator.h"
 #include <QApplication>
 #include <QShortcut>
 
@@ -17,7 +16,7 @@ static const int nativeEvtInterval = 10;
 
 using namespace TConsole;
 
-TerminalEmulator::TerminalEmulator(QWidget *parent)
+TerminalEmulator::TerminalEmulator(QWidget* parent)
     : QWidget(parent), _nativeImage(nullptr) {
   _nativeEvtTimer = new QTimer(this);
   connect(_nativeEvtTimer, &QTimer::timeout, this,
@@ -26,8 +25,8 @@ TerminalEmulator::TerminalEmulator(QWidget *parent)
 
 TerminalEmulator::~TerminalEmulator() {}
 
-Session *TerminalEmulator::createSession(QWidget *parent) {
-  Session *session = new Session(parent);
+Session* TerminalEmulator::createSession(QWidget* parent) {
+  Session* session = new Session(parent);
   session->setTitle(Session::NameRole, QLatin1String("Ssh Session"));
   session->setProgram(ssh);
   session->setAutoClose(true);
@@ -47,10 +46,10 @@ void TerminalEmulator::initialize() {
   //  Session *session = createSession(this);
   //  int groupId =
   //      SessionGroup::addSessionToGroup(SessionGroup::ONE_CENTER, session);
-  SessionGroup *group = SessionGroup::getSessionGroup(SessionGroup::ONE_CENTER);
+  SessionGroup* group = SessionGroup::getSessionGroup(SessionGroup::ONE_CENTER);
   _terminalView = group->view();
 
-  UrlFilter *urlFilter = new UrlFilter();
+  UrlFilter* urlFilter = new UrlFilter();
   connect(urlFilter, &UrlFilter::activated, this,
           &TerminalEmulator::urlActivated);
   _terminalView->filterChain()->addFilter(urlFilter);
@@ -68,7 +67,7 @@ void TerminalEmulator::initialize() {
   connect(_terminalView, SIGNAL(termLostFocus()), this,
           SIGNAL(termLostFocus()));
   connect(_terminalView, &TerminalView::keyPressedSignal, this,
-          [this](QKeyEvent *e, bool) { Q_EMIT termKeyPressed(e); });
+          [this](QKeyEvent* e, bool) { Q_EMIT termKeyPressed(e); });
 
   QFont font = QApplication::font();
   font.setFamily(QLatin1String(DEFAULT_FONT_FAMILY));
@@ -80,8 +79,8 @@ void TerminalEmulator::initialize() {
   _terminalView->setKeyboardCursorShape(KeyboardCursorShape::BLOCK_CURSOR);
 }
 
-void TerminalEmulator::bindViewToEmulation(Emulation *emulation,
-                                           TerminalView *terminalView) {
+void TerminalEmulator::bindViewToEmulation(Emulation* emulation,
+                                           TerminalView* terminalView) {
   if (emulation != nullptr) {
     terminalView->setUsesMouse(emulation->programUseMouse());
     terminalView->setBracketedPasteMode(emulation->programBracketedPasteMode());
@@ -91,8 +90,8 @@ void TerminalEmulator::bindViewToEmulation(Emulation *emulation,
             &Emulation::sendKeyEvent);
     connect(terminalView, SIGNAL(mouseSignal(int, int, int, int)), emulation,
             SLOT(sendMouseEvent(int, int, int, int)));
-    connect(terminalView, SIGNAL(sendStringToEmu(const char *)), emulation,
-            SLOT(sendString(const char *)));
+    connect(terminalView, SIGNAL(sendStringToEmu(const char*)), emulation,
+            SLOT(sendString(const char*)));
 
     // allow emulation to notify view when the foreground process
     // indicates whether or not it is interested in mouse signals
@@ -120,7 +119,7 @@ void TerminalEmulator::setBlinkingCursor(bool blink) {
   _terminalView->setBlinkingCursor(blink);
 }
 
-void TerminalEmulator::setTerminalFont(const QFont &font) {
+void TerminalEmulator::setTerminalFont(const QFont& font) {
   _terminalView->setVTFont(font);
 }
 
@@ -131,13 +130,13 @@ void TerminalEmulator::clear() {
   _emulation->clearHistory();
 }
 
-void TerminalEmulator::requestRedrawImage(QImage *image) {
+void TerminalEmulator::requestRedrawImage(QImage* image) {
   this->_nativeImage = image;
 }
 
-bool TerminalEmulator::eventFilter(QObject *obj, QEvent *ev) {
+bool TerminalEmulator::eventFilter(QObject* obj, QEvent* ev) {
   if (ev->type() == QEvent::Paint) {
-    QPaintEvent *pe = static_cast<QPaintEvent *>(ev);
+    QPaintEvent* pe = static_cast<QPaintEvent*>(ev);
     QWidget::paintEvent(pe);
   }
   if (ev->type() == QEvent::UpdateRequest) {
@@ -153,16 +152,16 @@ bool TerminalEmulator::eventFilter(QObject *obj, QEvent *ev) {
   return QWidget::eventFilter(obj, ev);
 }
 
-void TerminalEmulator::setBackgroundColor(const QColor &color) {
+void TerminalEmulator::setBackgroundColor(const QColor& color) {
   _terminalView->setBackgroundColor(color);
 }
 
-void TerminalEmulator::setForegroundColor(const QColor &color) {
+void TerminalEmulator::setForegroundColor(const QColor& color) {
   _terminalView->setForegroundColor(color);
 }
 
 void TerminalEmulator::setNativeEvtCallback(
-    const std::function<void()> &newNativeEvtCallback) {
+    const std::function<void()>& newNativeEvtCallback) {
   nativeEvtCallback = newNativeEvtCallback;
   _nativeEvtTimer->start(nativeEvtInterval);
 }
@@ -171,7 +170,7 @@ void TerminalEmulator::createSshSession(long sessionId, QString host,
                                         QString user, QString password) {
   qDebug() << "Receive create ssh session event, host = " << host
            << ", user = " << user << ", password = " << password;
-  Session *session = createSession(this);
+  Session* session = createSession(this);
   SessionGroup::addSessionToGroup(SessionGroup::ONE_CENTER, session);
   SessionGroup::activeSession = session;
   session->setSessionId(sessionId);
@@ -187,8 +186,8 @@ void TerminalEmulator::createSshSession(long sessionId, QString host,
           SLOT(onViewSizeChange(int, int)));
 
   // slot for close
-  connect(_terminalView, SIGNAL(destroyed(QObject *)), session,
-          SLOT(viewDestroyed(QObject *)));
+  connect(_terminalView, SIGNAL(destroyed(QObject*)), session,
+          SLOT(viewDestroyed(QObject*)));
 
   // test ConPTY
   connect(_emulation, SIGNAL(testConpty()), session, SLOT(run()));
@@ -196,18 +195,18 @@ void TerminalEmulator::createSshSession(long sessionId, QString host,
   session->run();
 }
 
-void TerminalEmulator::sendSimulatedEvent(QEvent *event) {
-  SessionGroup *activeGroup = SessionGroup::getSessionGroup(
+void TerminalEmulator::sendSimulatedEvent(QEvent* event) {
+  SessionGroup* activeGroup = SessionGroup::getSessionGroup(
       SessionGroup::activeSession->sessionGroupId());
   QApplication::sendEvent(activeGroup->view(), event);
 }
 
 void TerminalEmulator::setNativeRedrawCallback(
-    const std::function<void()> &newNativeRedrawCallback) {
+    const std::function<void()>& newNativeRedrawCallback) {
   nativeRedrawCallback = newNativeRedrawCallback;
 }
 
-void TerminalEmulator::setNativeCanvas(nativefx::SharedCanvas *nativeCanvas) {
+void TerminalEmulator::setNativeCanvas(nativefx::SharedCanvas* nativeCanvas) {
   _terminalView->setNativeCanvas(nativeCanvas);
 }
 

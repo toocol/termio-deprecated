@@ -1,8 +1,6 @@
 #include "session.h"
-
 #include <QDir>
-
-#include "shellcommand.h"
+#include "shell_command.h"
 #include "vt102emulation.h"
 
 using namespace TConsole;
@@ -14,7 +12,7 @@ using namespace TConsole;
 /* ------------------------------------------------------------------------- */
 QRegularExpression Session::_rexp = QRegularExpression(QLatin1String("^~"));
 
-Session::Session(QWidget *parent)
+Session::Session(QWidget* parent)
     : QWidget{parent},
       _emulation(nullptr),
       _shellProcess(nullptr),
@@ -53,10 +51,10 @@ Session::Session(QWidget *parent)
   // connect teletype to emulation backend
   _shellProcess->setUtf8Mode(_emulation->utf8());
 
-  connect(_shellProcess, SIGNAL(receivedData(const char *, int)), this,
-          SLOT(onReceiveBlock(const char *, int)));
-  connect(_emulation, SIGNAL(sendData(const char *, int)), _shellProcess,
-          SLOT(sendData(const char *, int)));
+  connect(_shellProcess, SIGNAL(receivedData(const char*, int)), this,
+          SLOT(onReceiveBlock(const char*, int)));
+  connect(_emulation, SIGNAL(sendData(const char*, int)), _shellProcess,
+          SLOT(sendData(const char*, int)));
   connect(_emulation, SIGNAL(lockPtyRequest(bool)), _shellProcess,
           SLOT(lockPty(bool)));
   connect(_emulation, SIGNAL(useUtf8Request(bool)), _shellProcess,
@@ -66,12 +64,12 @@ Session::Session(QWidget *parent)
           SLOT(done(int)));
 }
 
-void Session::addView(TerminalView *widget) {
+void Session::addView(TerminalView* widget) {
   Q_ASSERT(!_views.contains(widget));
   _views.append(widget);
 }
 
-void Session::removeView(TerminalView *widget) {
+void Session::removeView(TerminalView* widget) {
   _views.removeAll(widget);
   disconnect(widget, nullptr, this, nullptr);
   // close the session automatically when the last view is removed
@@ -80,16 +78,16 @@ void Session::removeView(TerminalView *widget) {
   }
 }
 
-QList<TerminalView *> Session::views() const { return _views; }
+QList<TerminalView*> Session::views() const { return _views; }
 
-Emulation *Session::emulation() const { return _emulation; }
+Emulation* Session::emulation() const { return _emulation; }
 
 int Session::sessionId() const { return _sessionId; }
 
 QString Session::userTitle() const { return _userTitle; }
 
 void Session::setTabTitleFormat(TabTitleContext context,
-                                const QString &format) {
+                                const QString& format) {
   if (context == LocalTabTitle) {
     _localTabTitleFormat = format;
   } else if (context == RemoteTabTitle) {
@@ -106,35 +104,35 @@ QString Session::tabTitleFormat(TabTitleContext context) const {
   return QString();
 }
 
-void Session::setArguments(const QStringList &arguments) {
+void Session::setArguments(const QStringList& arguments) {
   _arguments = ShellCommand::expand(arguments);
 }
 
-void Session::setProgram(const QString &program) {
+void Session::setProgram(const QString& program) {
   _program = ShellCommand::expand(program);
 }
 
-void Session::setInitialWorkingDirectory(const QString &dir) {
+void Session::setInitialWorkingDirectory(const QString& dir) {
   _initialWorkingDir = ShellCommand::expand(dir);
 }
 
-void Session::setHistoryType(const HistoryType &type) {
+void Session::setHistoryType(const HistoryType& type) {
   _emulation->setHistory(type);
 }
 
-const HistoryType &Session::historyType() const {
+const HistoryType& Session::historyType() const {
   return _emulation->history();
 }
 
 void Session::clearHistory() { _emulation->clearHistory(); }
 
-void Session::setKeyBindings(const QString &id) {
+void Session::setKeyBindings(const QString& id) {
   _emulation->setKeyBindings(id);
 }
 
 QString Session::keyBindings() const { return _emulation->keyBindings(); }
 
-void Session::setTitle(TitleRole role, const QString &newTitle) {
+void Session::setTitle(TitleRole role, const QString& newTitle) {
   if (title(role) != newTitle) {
     if (role == NameRole) {
       _nameTitle = newTitle;
@@ -156,7 +154,7 @@ QString Session::title(TitleRole role) const {
   }
 }
 
-void Session::setIconName(const QString &iconName) {
+void Session::setIconName(const QString& iconName) {
   if (iconName != _iconName) {
     _iconName = iconName;
     emit titleChanged();
@@ -165,7 +163,7 @@ void Session::setIconName(const QString &iconName) {
 
 QString Session::iconName() const { return _iconName; }
 
-void Session::setIconText(const QString &iconText) { _iconText = iconText; }
+void Session::setIconText(const QString& iconText) { _iconText = iconText; }
 
 QString Session::iconText() const { return _iconText; }
 
@@ -179,17 +177,17 @@ void Session::setFlowControlEnabled(bool enabled) { _flowControl = enabled; }
 
 bool Session::flowControlEnabled() const { return _flowControl; }
 
-void Session::sendText(const QString &text) const {
+void Session::sendText(const QString& text) const {
   _emulation->sendText(text);
 }
 
-void Session::sendKeyEvent(QKeyEvent *e) const {
+void Session::sendKeyEvent(QKeyEvent* e) const {
   _emulation->sendKeyEvent(e, false);
 }
 
 QSize Session::size() { return _emulation->imageSize(); }
 
-void Session::setSize(const QSize &size) {
+void Session::setSize(const QSize& size) {
   if ((size.width() <= 1) || (size.height() <= 1)) {
     return;
   }
@@ -198,7 +196,7 @@ void Session::setSize(const QSize &size) {
       ->setSize(size.width(), size.height());
 }
 
-void Session::setCodec(QTextCodec *codec) const {
+void Session::setCodec(QTextCodec* codec) const {
   emulation()->setCodec(codec);
 }
 
@@ -296,8 +294,8 @@ void Session::runEmptyPTY() {
   _shellProcess->setWriteable(false);
 
   // disconnect send data from emulator to internal terminal process
-  disconnect(_emulation, SIGNAL(sendData(const char *, int)), _shellProcess,
-             SLOT(sendData(const char *, int)));
+  disconnect(_emulation, SIGNAL(sendData(const char*, int)), _shellProcess,
+             SLOT(sendData(const char*, int)));
 
   _shellProcess->setEmptyPTYProperties();
   emit started();
@@ -312,7 +310,7 @@ void Session::close() {
   }
 }
 
-void Session::setUserTitle(int what, const QString &caption) {
+void Session::setUserTitle(int what, const QString& caption) {
   // set to true if anything is actually changed (eg. old _nameTitle != new
   // _nameTitle )
   bool modified = false;
@@ -416,7 +414,7 @@ void Session::done(int exitStatus) {
     emit finished();
 }
 
-void Session::onReceiveBlock(const char *buffer, int len) {
+void Session::onReceiveBlock(const char* buffer, int len) {
   _emulation->receiveData(buffer, len);
   emit receivedData(QString::fromLatin1(buffer, len));
 }
@@ -429,7 +427,7 @@ void Session::onEmulationSizeChange(QSize size) { setSize(size); }
 
 void Session::activityStateSet(int) {}
 
-void Session::viewDestroyed(QObject *view) {}
+void Session::viewDestroyed(QObject* view) {}
 
 void Session::updateTerminalSize() {
   int minLines = -1;
@@ -443,7 +441,7 @@ void Session::updateTerminalSize() {
 
   // select largest number of lines and columns that will fit in all visible
   // views
-  TerminalView *view = SessionGroup::getSessionGroup(_sessionGroupId)->view();
+  TerminalView* view = SessionGroup::getSessionGroup(_sessionGroupId)->view();
   if (view->isHidden() == false && view->lines() >= VIEW_LINES_THRESHOLD &&
       view->columns() >= VIEW_COLUMNS_THRESHOLD) {
     minLines = (minLines == -1) ? view->lines() : qMin(minLines, view->lines());
@@ -461,21 +459,21 @@ void Session::updateTerminalSize() {
 
 WId Session::windowId() const { return 0; }
 
-const QString &Session::password() const { return _password; }
+const QString& Session::password() const { return _password; }
 
-void Session::setPassword(const QString &newPassword) {
+void Session::setPassword(const QString& newPassword) {
   _password = newPassword;
 }
 
 void Session::setSessionId(long newSessionId) { _sessionId = newSessionId; }
 
-const QString &Session::user() const { return _user; }
+const QString& Session::user() const { return _user; }
 
-void Session::setUser(const QString &newUser) { _user = newUser; }
+void Session::setUser(const QString& newUser) { _user = newUser; }
 
-const QString &Session::host() const { return _host; }
+const QString& Session::host() const { return _host; }
 
-void Session::setHost(const QString &newHost) { _host = newHost; }
+void Session::setHost(const QString& newHost) { _host = newHost; }
 
 int Session::sessionGroupId() const { return _sessionGroupId; }
 
@@ -491,20 +489,20 @@ void Session::setSessionGroupId(int newSessionGroupId) {
 // Define the static properties.
 SessionGroup::SplitScreenState SessionGroup::_state = ZERO;
 int SessionGroup::lastSessionGroupId = 0;
-Session *SessionGroup::activeSession = nullptr;
+Session* SessionGroup::activeSession = nullptr;
 
 bool SessionGroup::_isInit = false;
-QHash<int, SessionGroup *> SessionGroup::_sessionGroupMaps =
-    QHash<int, SessionGroup *>();
+QHash<int, SessionGroup*> SessionGroup::_sessionGroupMaps =
+    QHash<int, SessionGroup*>();
 QHash<int, std::function<void()>> SessionGroup::_splitStateMachine =
     QHash<int, std::function<void()>>();
 
 // Function implements.
-SessionGroup::SessionGroup(QWidget *parent) {}
+SessionGroup::SessionGroup(QWidget* parent) {}
 
-void SessionGroup::initialize(QWidget *parent) {
+void SessionGroup::initialize(QWidget* parent) {
   _splitStateMachine[ZERO | ONE] = [parent] {
-    SessionGroup *group = createNewSessionGroup(parent);
+    SessionGroup* group = createNewSessionGroup(parent);
     group->_location = ONE_CENTER;
   };
 }
@@ -516,15 +514,15 @@ void SessionGroup::changeState(SplitScreenState newState) {
   }
 }
 
-SessionGroup *SessionGroup::createNewSessionGroup(QWidget *parent) {
-  SessionGroup *sessionGroup = new SessionGroup(parent);
+SessionGroup* SessionGroup::createNewSessionGroup(QWidget* parent) {
+  SessionGroup* sessionGroup = new SessionGroup(parent);
   sessionGroup->_groupId = ++lastSessionGroupId;
   sessionGroup->createTerminalView(parent);
   _sessionGroupMaps[sessionGroup->_groupId] = sessionGroup;
   return sessionGroup;
 }
 
-void SessionGroup::createTerminalView(QWidget *parent) {
+void SessionGroup::createTerminalView(QWidget* parent) {
   _view = new TerminalView(parent);
   _view->setBellMode(BellMode::NOTIFY_BELL);
   _view->setTerminalSizeHint(true);
@@ -533,13 +531,13 @@ void SessionGroup::createTerminalView(QWidget *parent) {
   _view->setRandomSeed(_groupId * 1L);
 }
 
-TerminalView *SessionGroup::view() const { return _view; }
+TerminalView* SessionGroup::view() const { return _view; }
 
-void SessionGroup::setView(TerminalView *newView) { _view = newView; }
+void SessionGroup::setView(TerminalView* newView) { _view = newView; }
 
 int SessionGroup::addSessionToGroup(SessionGroupLocation location,
-                                    Session *session) {
-  QHash<int, SessionGroup *>::iterator i;
+                                    Session* session) {
+  QHash<int, SessionGroup*>::iterator i;
   for (i = _sessionGroupMaps.begin(); i != _sessionGroupMaps.end(); ++i) {
     if (i.value()->_location == location) {
       i.value()->_sessions.append(session);
@@ -550,12 +548,12 @@ int SessionGroup::addSessionToGroup(SessionGroupLocation location,
   return -1;
 }
 
-SessionGroup *SessionGroup::getSessionGroup(int id) {
+SessionGroup* SessionGroup::getSessionGroup(int id) {
   return _sessionGroupMaps[id];
 }
 
-SessionGroup *SessionGroup::getSessionGroup(SessionGroupLocation location) {
-  QHash<int, SessionGroup *>::iterator i;
+SessionGroup* SessionGroup::getSessionGroup(SessionGroupLocation location) {
+  QHash<int, SessionGroup*>::iterator i;
   for (i = _sessionGroupMaps.begin(); i != _sessionGroupMaps.end(); ++i) {
     if (i.value()->_location == location) {
       return i.value();

@@ -20,14 +20,13 @@
 */
 
 // Own
-#include "terminalcharacterdecoder.h"
+#include "terminal_character_decoder.h"
 
 // Qt
 #include <QTextStream>
 
 // TConsole
 #include <cwctype>
-
 #include "wcwidth.h"
 
 using namespace TConsole;

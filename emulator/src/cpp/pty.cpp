@@ -35,12 +35,10 @@
 #include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
-
 #include <cerrno>
 #include <csignal>
-
 #include "kpty.h"
-#include "kptydevice.h"
+#include "kpty_device.h"
 #endif
 
 // Qt

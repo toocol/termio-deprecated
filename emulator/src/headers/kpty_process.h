@@ -31,9 +31,8 @@
 #define KPTYPROCESS_H
 
 #include <csignal>
-
 #include "kprocess.h"
-#include "kptydevice.h"
+#include "kpty_device.h"
 
 class KPtyDevice;
 
@@ -73,7 +72,7 @@ class KPtyProcess : public KProcess {
   /**
    * Constructor
    */
-  explicit KPtyProcess(QObject *parent = nullptr);
+  explicit KPtyProcess(QObject* parent = nullptr);
 
   /**
    * Construct a process using an open pty master.
@@ -82,7 +81,7 @@ class KPtyProcess : public KProcess {
    *   The process does not take ownership of the descriptor;
    *   it will not be automatically closed at any point.
    */
-  KPtyProcess(int ptyMasterFd, QObject *parent = nullptr);
+  KPtyProcess(int ptyMasterFd, QObject* parent = nullptr);
 
   /**
    * Destructor
@@ -135,7 +134,7 @@ class KPtyProcess : public KProcess {
    *
    * @return the PTY device
    */
-  KPtyDevice *pty() const;
+  KPtyDevice* pty() const;
 
  protected:
   /**
@@ -159,7 +158,7 @@ class KPtyProcessPrivate : public KProcessPrivate {
     if (newState == QProcess::NotRunning && addUtmp) pty->logout();
   }
 
-  KPtyDevice *pty;
+  KPtyDevice* pty;
   KPtyProcess::PtyChannels ptyChannels;
   bool addUtmp : 1;
 };

@@ -26,7 +26,7 @@ REXPORT void RCALL process_native_events(ri32);
 
 REXPORT void RCALL resize(ri32, ri32, ri32);
 
-REXPORT bool RCALL is_dirty(ri32);
+REXPORT rbool RCALL is_dirty(ri32);
 
 REXPORT void RCALL redraw(ri32, ri32, ri32, ri32, ri32);
 
@@ -49,10 +49,11 @@ REXPORT rbool RCALL fire_mouse_released_event(ri32, rf64, rf64, ri32, ri32,
 REXPORT rbool RCALL fire_mouse_clicked_event(ri32, rf64, rf64, ri32, ri32, ri32,
                                              ri64);
 
-REXPORT rbool RCALL fire_mouse_entered_event(ri32, rf64, rf64, ri32, ri32,
+REXPORT rbool RCALL fire_mouse_entered_event(ri32, rf64, rf64, ri32, ri32, ri32,
                                              ri64);
 
-REXPORT rbool RCALL fire_mouse_exited_event(ri32, rf64, rf64, ri32, ri32, ri64);
+REXPORT rbool RCALL fire_mouse_exited_event(ri32, rf64, rf64, ri32, ri32, ri32,
+                                            ri64);
 
 REXPORT rbool RCALL fire_mouse_move_event(ri32, rf64, rf64, ri32, ri32, ri64);
 

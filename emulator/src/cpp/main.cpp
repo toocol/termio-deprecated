@@ -1,6 +1,5 @@
 #include <QApplication>
-
-#include "terminalemulator.h"
+#include "terminal_emulator.h"
 
 namespace nfx = nativefx;
 
@@ -23,7 +22,7 @@ int main(int argc, char* argv[]) {
   emulator.setForegroundColor(QColor(0xE1, 0xE1, 0xE1));
   emulator.setBlinkingCursor(true);
 
-  auto qtRedraw = [&image, &emulator](std::string const& name,
+  auto qtRedraw = [&image, &emulator](const std::string& name,
                                       uchar* bufferData, int w, int h) {
     if (image == NULL) {
       image = new QImage(bufferData, w, h, w * 4,
@@ -35,7 +34,7 @@ int main(int argc, char* argv[]) {
 
   nfx::SharedCanvas* canvas = nfx::SharedCanvas::create("_emulator_mem");
 
-  auto qtResized = [&image, &emulator](std::string const& name,
+  auto qtResized = [&image, &emulator](const std::string& name,
                                        uchar* bufferData, int w, int h) {
     if (image == NULL || emulator.width() != w || emulator.height() != h) {
       delete image;
@@ -49,7 +48,7 @@ int main(int argc, char* argv[]) {
   QWidget* prevEvtTarget = NULL;
   QPoint prevP;
 
-  auto evt = [&emulator, &prevEvtTarget, &prevP](std::string const& name,
+  auto evt = [&emulator, &prevEvtTarget, &prevP](const std::string& name,
                                                  nfx::event* evt) {
     if (evt->type & nfx::NFX_FOCUS_EVENT) {
       nfx::focus_event* focusEvt = static_cast<nfx::focus_event*>((void*)evt);

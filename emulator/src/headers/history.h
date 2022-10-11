@@ -32,7 +32,7 @@
 //#include <ktemporaryfile.h>
 
 // TConsole
-#include "blockarray.h"
+#include "block_array.h"
 #include "character.h"
 
 // map

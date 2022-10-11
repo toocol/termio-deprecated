@@ -29,18 +29,16 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include "kptydevice.h"
+#include "kpty_device.h"
 
 #ifndef Q_OS_WIN
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
-
 #include <QSocketNotifier>
 #include <cerrno>
 #include <csignal>
-
 #include "kpty_p.h"
 #ifdef HAVE_SYS_FILIO_H
 #include <sys/filio.h>
@@ -94,7 +92,7 @@ bool KPtyDevicePrivate::_k_canRead() {
 #else
   int available;
 #endif
-  if (::ioctl(q->masterFd(), PTY_BYTES_AVAILABLE, (char *)&available) != -1) {
+  if (::ioctl(q->masterFd(), PTY_BYTES_AVAILABLE, (char*)&available) != -1) {
 #ifdef Q_OS_SOLARIS
     // A Pty is a STREAMS module, and those can be activated
     // with 0 bytes available. This happens either when ^C is
@@ -116,7 +114,7 @@ bool KPtyDevicePrivate::_k_canRead() {
     }
 #endif
 
-    char *ptr = readBuffer.reserve(available);
+    char* ptr = readBuffer.reserve(available);
 #ifdef Q_OS_SOLARIS
     // Even if available > 0, it is possible for read()
     // to return 0 on Solaris, due to 0-byte writes in the stream.
@@ -289,7 +287,7 @@ void KPtyDevicePrivate::finishOpen(QIODevice::OpenMode mode) {
 // public member functions //
 /////////////////////////////
 
-KPtyDevice::KPtyDevice(QObject *parent)
+KPtyDevice::KPtyDevice(QObject* parent)
     : QIODevice(parent), KPty(new KPtyDevicePrivate(this)) {}
 
 KPtyDevice::~KPtyDevice() {
@@ -389,19 +387,19 @@ bool KPtyDevice::isSuspended() const {
 }
 
 // protected
-qint64 KPtyDevice::readData(char *data, qint64 maxlen) {
+qint64 KPtyDevice::readData(char* data, qint64 maxlen) {
   Q_D(KPtyDevice);
   return d->readBuffer.read(data, (int)qMin<qint64>(maxlen, KMAXINT));
 }
 
 // protected
-qint64 KPtyDevice::readLineData(char *data, qint64 maxlen) {
+qint64 KPtyDevice::readLineData(char* data, qint64 maxlen) {
   Q_D(KPtyDevice);
   return d->readBuffer.readLine(data, (int)qMin<qint64>(maxlen, KMAXINT));
 }
 
 // protected
-qint64 KPtyDevice::writeData(const char *data, qint64 len) {
+qint64 KPtyDevice::writeData(const char* data, qint64 len) {
 #ifndef Q_OS_WIN
   Q_D(KPtyDevice);
   Q_ASSERT(len <= KMAXINT);
