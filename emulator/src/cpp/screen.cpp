@@ -25,7 +25,6 @@
 
 // Standard
 #include <unistd.h>
-
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -39,7 +38,7 @@
 //#include <kdebug.h>
 
 // Konsole
-#include "terminalcharacterdecoder.h"
+#include "terminal_character_decoder.h"
 #include "wcwidth.h"
 
 using namespace TConsole;

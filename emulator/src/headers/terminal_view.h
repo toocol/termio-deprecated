@@ -17,11 +17,10 @@
 #include <QTimerEvent>
 #include <QVector>
 #include <QWidget>
-
 #include "character.h"
 #include "filter.h"
-#include "nativefxserver.hpp"
-#include "screenwindow.h"
+#include "nativefx_server.hpp"
+#include "screen_window.h"
 
 class QDrag;
 class QDragEnterEvent;

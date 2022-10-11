@@ -27,18 +27,15 @@
     Boston, MA 02110-1301, USA.
 */
 
-#include "kptyprocess.h"
-
+#include "kpty_process.h"
 #include <unistd.h>
-
 #include <QDebug>
 #include <csignal>
 #include <cstdlib>
-
 #include "kprocess.h"
-#include "kptydevice.h"
+#include "kpty_device.h"
 
-KPtyProcess::KPtyProcess(QObject *parent)
+KPtyProcess::KPtyProcess(QObject* parent)
     : KProcess(new KPtyProcessPrivate, parent) {
   Q_D(KPtyProcess);
 
@@ -48,7 +45,7 @@ KPtyProcess::KPtyProcess(QObject *parent)
           SLOT(_k_onStateChanged(QProcess::ProcessState)));
 }
 
-KPtyProcess::KPtyProcess(int ptyMasterFd, QObject *parent)
+KPtyProcess::KPtyProcess(int ptyMasterFd, QObject* parent)
     : KProcess(new KPtyProcessPrivate, parent) {
   Q_D(KPtyProcess);
 
@@ -108,7 +105,7 @@ bool KPtyProcess::isUseUtmp() const {
   return d->addUtmp;
 }
 
-KPtyDevice *KPtyProcess::pty() const {
+KPtyDevice* KPtyProcess::pty() const {
   Q_D(const KPtyProcess);
 
   return d->pty;

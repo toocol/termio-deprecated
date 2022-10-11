@@ -24,7 +24,7 @@
 #include <QtDebug>
 
 // Own
-#include "blockarray.h"
+#include "block_array.h"
 
 // System
 #include <sys/mman.h>
@@ -64,7 +64,7 @@ BlockArray::~BlockArray() {
   Q_ASSERT(!lastblock);
 }
 
-size_t BlockArray::append(Block *block) {
+size_t BlockArray::append(Block* block) {
   if (!size) {
     return size_t(-1);
   }
@@ -118,7 +118,7 @@ size_t BlockArray::newBlock() {
   return index + 1;
 }
 
-Block *BlockArray::lastBlock() const { return lastblock; }
+Block* BlockArray::lastBlock() const { return lastblock; }
 
 bool BlockArray::has(size_t i) const {
   if (i == index + 1) {
@@ -134,7 +134,7 @@ bool BlockArray::has(size_t i) const {
   return true;
 }
 
-const Block *BlockArray::at(size_t i) {
+const Block* BlockArray::at(size_t i) {
   if (i == index + 1) {
     return lastblock;
   }
@@ -158,10 +158,10 @@ const Block *BlockArray::at(size_t i) {
   Q_ASSERT(j < size);
   unmap();
 
-  Block *block = (Block *)mmap(nullptr, blocksize, PROT_READ, MAP_PRIVATE, ion,
-                               j * blocksize);
+  Block* block = (Block*)mmap(nullptr, blocksize, PROT_READ, MAP_PRIVATE, ion,
+                              j * blocksize);
 
-  if (block == (Block *)-1) {
+  if (block == (Block*)-1) {
     perror("mmap");
     return nullptr;
   }
@@ -174,7 +174,7 @@ const Block *BlockArray::at(size_t i) {
 
 void BlockArray::unmap() {
   if (lastmap) {
-    int res = munmap((char *)lastmap, blocksize);
+    int res = munmap((char*)lastmap, blocksize);
     if (res < 0) {
       perror("munmap");
     }
@@ -213,7 +213,7 @@ bool BlockArray::setHistorySize(size_t newsize) {
 
   if (!size) {
 #ifdef _MSVC_LANG
-    FILE *tmp;
+    FILE* tmp;
     errno_t err = tmpfile_s(&tmp);
     if (err) {
       perror("tconsole: cannot open temp file.\n");
@@ -225,7 +225,7 @@ bool BlockArray::setHistorySize(size_t newsize) {
       }
     }
 #else
-    FILE *tmp = tmpfile();
+    FILE* tmp = tmpfile();
     if (!tmp) {
       perror("konsole: cannot open temp file.\n");
     } else {
@@ -265,7 +265,7 @@ bool BlockArray::setHistorySize(size_t newsize) {
   }
 }
 
-void moveBlock(FILE *fion, int cursor, int newpos, char *buffer2) {
+void moveBlock(FILE* fion, int cursor, int newpos, char* buffer2) {
   int res = fseek(fion, cursor * blocksize, SEEK_SET);
   if (res) {
     perror("fseek");
@@ -298,12 +298,12 @@ void BlockArray::decreaseBuffer(size_t newsize) {
   }
 
   // The Block constructor could do somthing in future...
-  char *buffer1 = new char[blocksize];
+  char* buffer1 = new char[blocksize];
 
 #ifdef _MSVC_LANG
-  FILE *fion = _fdopen(_dup(ion), "w+b");
+  FILE* fion = _fdopen(_dup(ion), "w+b");
 #else
-  FILE *fion = fdopen(dup(ion), "w+b");
+  FILE* fion = fdopen(dup(ion), "w+b");
 #endif
   if (!fion) {
     delete[] buffer1;
@@ -348,8 +348,8 @@ void BlockArray::increaseBuffer() {
   }
 
   // The Block constructor could do somthing in future...
-  char *buffer1 = new char[blocksize];
-  char *buffer2 = new char[blocksize];
+  char* buffer1 = new char[blocksize];
+  char* buffer2 = new char[blocksize];
 
   int runs = 1;
   int bpr = size;  // blocks per run
@@ -360,9 +360,9 @@ void BlockArray::increaseBuffer() {
   }
 
 #ifdef _MSVC_LANG
-  FILE *fion = _fdopen(_dup(ion), "w+b");
+  FILE* fion = _fdopen(_dup(ion), "w+b");
 #else
-  FILE *fion = fdopen(dup(ion), "w+b");
+  FILE* fion = fdopen(dup(ion), "w+b");
 #endif
   if (!fion) {
     perror("fdopen/dup");

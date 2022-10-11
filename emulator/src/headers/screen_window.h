@@ -27,7 +27,7 @@
 
 // TConsole
 #include "character.h"
-#include "keyboardtranslator.h"
+#include "keyboard_translator.h"
 
 namespace TConsole {
 

@@ -20,7 +20,7 @@
 */
 
 // Own
-#include "shellcommand.h"
+#include "shell_command.h"
 
 // some versions of gcc(4.3) require explicit include
 #include <cstdlib>
@@ -29,9 +29,9 @@ using namespace TConsole;
 
 // expands environment variables in 'text'
 // function copied from kdelibs/kio/kio/kurlcompletion.cpp
-static bool expandEnv(QString &text);
+static bool expandEnv(QString& text);
 
-ShellCommand::ShellCommand(const QString &fullCommand) {
+ShellCommand::ShellCommand(const QString& fullCommand) {
   bool inQuotes = false;
 
   QString builder;
@@ -56,7 +56,7 @@ ShellCommand::ShellCommand(const QString &fullCommand) {
     }
   }
 }
-ShellCommand::ShellCommand(const QString &command, const QStringList &arguments)
+ShellCommand::ShellCommand(const QString& command, const QStringList& arguments)
     : _arguments(arguments) {
   if (!_arguments.isEmpty()) {
     _arguments[0] = command;
@@ -81,16 +81,16 @@ bool ShellCommand::isAvailable() const {
   Q_ASSERT(0);  // not implemented yet
   return false;
 }
-QStringList ShellCommand::expand(const QStringList &items) {
+QStringList ShellCommand::expand(const QStringList& items) {
   QStringList result;
 
-  for (const QString &item : items) {
+  for (const QString& item : items) {
     result << expand(item);
   }
 
   return result;
 }
-QString ShellCommand::expand(const QString &text) {
+QString ShellCommand::expand(const QString& text) {
   QString result = text;
   expandEnv(result);
   return result;
@@ -102,7 +102,7 @@ QString ShellCommand::expand(const QString &text) {
  * Expand environment variables in text. Escaped '$' characters are ignored.
  * Return true if any variables were expanded
  */
-static bool expandEnv(QString &text) {
+static bool expandEnv(QString& text) {
   // Find all environment variables beginning with '$'
   //
   int pos = 0;

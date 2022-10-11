@@ -17,10 +17,9 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core5Compat)
 
-include_directories("../native/src/")
-include_directories("../native/node/src/")
 include_directories("src/headers/")
 include_directories("src/cpp/")
+include_directories("../native/emu-adapter/src/")
 include_directories("D:/download/boost_1_80_0/")
 include_directories("C:/Windows/System32/include")
 
@@ -30,57 +29,57 @@ link_directories("C:/Windows/System32/lib/sys")
 link_directories("C:/Windows/System32/bin")
 
 set(HEADERS
-        src/headers/nativefxserver.hpp
+        src/headers/nativefx_server.hpp
         src/headers/args.hxx
         src/headers/character.h
-        src/headers/charactercolor.h
+        src/headers/character_color.h
         src/headers/wcwidth.h
         src/headers/history.h
-        src/headers/blockarray.h
+        src/headers/block_array.h
         src/headers/screen.h
-        src/headers/screenwindow.h
-        src/headers/terminalcharacterdecoder.h
-        src/headers/terminalemulator.h
-        src/headers/terminalview.h
+        src/headers/screen_window.h
+        src/headers/terminal_character_decoder.h
+        src/headers/terminal_emulator.h
+        src/headers/terminal_view.h
         src/headers/emulation.h
         src/headers/filter.h
-        src/headers/keyboardtranslator.h
+        src/headers/keyboard_translator.h
         src/headers/tools.h
         src/headers/vt102emulation.h
         src/headers/kpty.h
         src/headers/kpty_p.h
         src/headers/kprocess.h
-        src/headers/kptydevice.h
-        src/headers/kptyprocess.h
+        src/headers/kpty_device.h
+        src/headers/kpty_process.h
         src/headers/pty.h
-        src/headers/virtualpty.h
+        src/headers/virtual_pty.h
         src/headers/conpty.h
         src/headers/session.h
-        src/headers/shellcommand.h
+        src/headers/shell_command.h
 )
 set(SOURCES
         src/cpp/main.cpp
         src/cpp/wcwidth.cpp
         src/cpp/history.cpp
-        src/cpp/blockarray.cpp
+        src/cpp/block_array.cpp
         src/cpp/screen.cpp
-        src/cpp/screenwindow.cpp
-        src/cpp/terminalcharacterdecoder.cpp
-        src/cpp/terminalemulator.cpp
-        src/cpp/terminalview.cpp
+        src/cpp/screen_window.cpp
+        src/cpp/terminal_character_decoder.cpp
+        src/cpp/terminal_emulator.cpp
+        src/cpp/terminal_view.cpp
         src/cpp/emulation.cpp
         src/cpp/filter.cpp
-        src/cpp/keyboardtranslator.cpp
+        src/cpp/keyboard_translator.cpp
         src/cpp/tools.cpp
         src/cpp/vt102emulation.cpp
         src/cpp/kpty.cpp
         src/cpp/kprocess.cpp
-        src/cpp/kptydevice.cpp
-        src/cpp/kptyprocess.cpp
+        src/cpp/kpty_device.cpp
+        src/cpp/kpty_process.cpp
         src/cpp/pty.cpp
         src/cpp/conpty.cpp
         src/cpp/session.cpp
-        src/cpp/shellcommand.cpp
+        src/cpp/shell_command.cpp
 )
 
 if (WIN32)

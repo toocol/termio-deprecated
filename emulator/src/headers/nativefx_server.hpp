@@ -69,7 +69,7 @@
 #endif  // M_PI
 
 #include "args.hxx"
-#include "sharedmemory.h"
+#include "shared_memory.h"
 
 // ---------------------------------------- NATIVEFX CODE
 // ----------------------------------------

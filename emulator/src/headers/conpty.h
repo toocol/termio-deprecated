@@ -3,8 +3,7 @@
 
 #include <QObject>
 #include <QProcess>
-
-#include "virtualpty.h"
+#include "virtual_pty.h"
 
 // It is written here temporarily and Signal needs to be handled separately
 // later

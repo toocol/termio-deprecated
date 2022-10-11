@@ -18,7 +18,7 @@
 */
 
 // Own
-#include "screenwindow.h"
+#include "screen_window.h"
 
 // Qt
 #include <QtDebug>

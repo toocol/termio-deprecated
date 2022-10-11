@@ -3,11 +3,10 @@
 
 #include <QObject>
 #include <QTextCodec>
-
-#include "keyboardtranslator.h"
+#include "keyboard_translator.h"
 #include "screen.h"
-#include "screenwindow.h"
-#include "terminalview.h"
+#include "screen_window.h"
+#include "terminal_view.h"
 
 namespace TConsole {
 
@@ -40,7 +39,7 @@ class Emulation : public QObject {
    * of the window are then rendered by views which are set to use this window
    * using the TerminalDisplay::setScreenWindow() method.
    */
-  ScreenWindow *createWindow();
+  ScreenWindow* createWindow();
 
   /** Returns the size of the screen image which the emulation produces */
   QSize imageSize() const;
@@ -58,9 +57,9 @@ class Emulation : public QObject {
    * The number of lines which are kept and the storage location depend on the
    * type of store.
    */
-  void setHistory(const HistoryType &);
+  void setHistory(const HistoryType&);
   /** Returns the history store used by this emulation.  See setHistory() */
-  const HistoryType &history() const;
+  const HistoryType& history() const;
   /** Clears the history scroll. */
   void clearHistory();
 
@@ -75,13 +74,13 @@ class Emulation : public QObject {
    * @param startLine Index of first line to copy
    * @param endLine Index of last line to copy
    */
-  virtual void writeToStream(TerminalCharacterDecoder *decoder, int startLine,
+  virtual void writeToStream(TerminalCharacterDecoder* decoder, int startLine,
                              int endLine);
 
   /** Returns the codec used to decode incoming characters.  See setCodec() */
-  const QTextCodec *codec() const { return _codec; }
+  const QTextCodec* codec() const { return _codec; }
   /** Sets the codec used to decode incoming characters.  */
-  void setCodec(const QTextCodec *);
+  void setCodec(const QTextCodec*);
 
   /**
    * Convenience method.
@@ -101,7 +100,7 @@ class Emulation : public QObject {
    * ( received through sendKeyEvent() ) into character
    * streams to send to the terminal.
    */
-  void setKeyBindings(const QString &name);
+  void setKeyBindings(const QString& name);
   /**
    * Returns the name of the emulation's current key bindings.
    * See setKeyBindings()
@@ -163,20 +162,20 @@ class Emulation : public QObject {
 
   enum EmulationCodec { LocaleCodec = 0, Utf8Codec = 1 };
   void setCodec(EmulationCodec codec);  // codec number, 0 = locale, 1=utf8
-  QList<ScreenWindow *> _windows;
+  QList<ScreenWindow*> _windows;
 
   // current active screen
-  Screen *_currentScreen;
+  Screen* _currentScreen;
   // 0 = primary screen
   // 1 = alternate (used by vi,emocs etc. scrollBar is not enable in this mode)
-  Screen *_screen[2];
+  Screen* _screen[2];
 
   // decodes an incoming C-style character stream into a unicode QString using
   // the current text codec.  (this allows for rendering of non-ASCII characters
   // in text files etc.)
-  const QTextCodec *_codec;
-  QTextDecoder *_decoder;
-  const KeyboardTranslator *_keyTranslator;  // the keyboard layout
+  const QTextCodec* _codec;
+  QTextDecoder* _decoder;
+  const KeyboardTranslator* _keyTranslator;  // the keyboard layout
 
  private:
   bool _useMouse;
@@ -191,7 +190,7 @@ class Emulation : public QObject {
    * @param data The buffer of data ready to be sent
    * @param len The length of @p data in bytes
    */
-  void sendData(const char *data, int len);
+  void sendData(const char* data, int len);
 
   /**
    * Requests that sending of input to the emulation
@@ -289,7 +288,7 @@ class Emulation : public QObject {
    * @param newTitle Specifies the new title
    */
 
-  void titleChanged(int title, const QString &newTitle);
+  void titleChanged(int title, const QString& newTitle);
 
   /**
    * Emitted when the program running in the terminal changes the
@@ -307,7 +306,7 @@ class Emulation : public QObject {
    * Emitted after receiving the escape sequence which asks to change
    * the terminal emulator's size
    */
-  void imageResizeRequest(const QSize &sizz);
+  void imageResizeRequest(const QSize& sizz);
 
   /**
    * Emitted when the terminal program requests to change various properties
@@ -320,7 +319,7 @@ class Emulation : public QObject {
    * @param text A string expected to contain a series of key and value pairs in
    * the form:  name=value;name2=value2 ...
    */
-  void profileChangeCommandReceived(const QString &text);
+  void profileChangeCommandReceived(const QString& text);
 
   /**
    * Emitted when a flow control key combination ( Ctrl+S or Ctrl+Q ) is
@@ -354,13 +353,13 @@ class Emulation : public QObject {
    * This is equivalent to calling sendKeyEvent() for each character in @p text
    * in succession.
    */
-  virtual void sendText(const QString &text) = 0;
+  virtual void sendText(const QString& text) = 0;
 
   /**
    * Interprets a key press event and emits the sendData() signal with
    * the resulting character stream.
    */
-  virtual void sendKeyEvent(QKeyEvent *, bool fromPaste);
+  virtual void sendKeyEvent(QKeyEvent*, bool fromPaste);
 
   /**
    * Converts information about a mouse event into an xterm-compatible escape
@@ -376,7 +375,7 @@ class Emulation : public QObject {
    * will be treated as a null-terminated string and its length will be
    * determined automatically.
    */
-  virtual void sendString(const char *string, int length = -1) = 0;
+  virtual void sendString(const char* string, int length = -1) = 0;
 
   /**
    * Processes an incoming stream of characters.  receiveData() decodes the
@@ -390,7 +389,7 @@ class Emulation : public QObject {
    * @param buffer A string of characters received from the terminal program.
    * @param len The length of @p buffer
    */
-  void receiveData(const char *buffer, int len);
+  void receiveData(const char* buffer, int len);
 
  protected slots:
   /**

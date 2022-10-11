@@ -48,7 +48,7 @@ void scrolllock_set_on();
 #include <QKeyEvent>
 
 // TConsole
-#include "keyboardtranslator.h"
+#include "keyboard_translator.h"
 #include "screen.h"
 
 using namespace TConsole;

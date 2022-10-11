@@ -20,7 +20,7 @@
 */
 
 // Own
-#include "keyboardtranslator.h"
+#include "keyboard_translator.h"
 
 // System
 #include <cctype>
@@ -35,7 +35,6 @@
 #include <QKeySequence>
 #include <QTextStream>
 #include <QtDebug>
-
 #include "tools.h"
 
 // KDE

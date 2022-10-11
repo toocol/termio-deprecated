@@ -38,8 +38,8 @@
 #include <QVector>
 
 // KDE
-#include "kptyprocess.h"
-#include "virtualpty.h"
+#include "kpty_process.h"
+#include "virtual_pty.h"
 
 namespace TConsole {
 
