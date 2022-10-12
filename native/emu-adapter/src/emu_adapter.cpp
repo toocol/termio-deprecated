@@ -9,7 +9,7 @@
 
 namespace ipc = boost::interprocess;
 
-using namespace nativefx;
+using namespace nativers;
 
 std::vector<std::string> names;
 std::vector<shared_memory_info*> connections;
@@ -24,9 +24,9 @@ std::vector<ipc::mapped_region*> info_regions;
 std::vector<ipc::shared_memory_object*> shm_buffers;
 std::vector<ipc::mapped_region*> buffer_regions;
 
-rbool fire_mouse_event(ri32 key, ri32 evt_type, rf64 x, rf64 y, rf64 amount,
-                       ri32 buttons, ri32 modifiers, ri32 click_count,
-                       ri64 timestamp) {
+bool fire_mouse_event(i32 key, i32 evt_type, f64 x, f64 y, f64 amount,
+                      i32 buttons, i32 modifiers, i32 click_count,
+                      i64 timestamp) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return boolC2J(false);
@@ -56,8 +56,8 @@ rbool fire_mouse_event(ri32 key, ri32 evt_type, rf64 x, rf64 y, rf64 amount,
   return result;
 }
 
-rbool fire_key_event(ri32 key, ri32 evt_type, const rstring& chars,
-                     ri32 key_code, ri32 modifiers, ri64 timestamp) {
+bool fire_key_event(i32 key, i32 evt_type, const rstring& chars, i32 key_code,
+                    i32 modifiers, i64 timestamp) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return boolC2J(false);
@@ -155,9 +155,9 @@ void fire_native_event(int key, rstring type, rstring evt) {
                           stringC2J(jni_env, type), stringC2J(jni_env, evt));
 }
 
-REXPORT ri32 RCALL next_key(){return (ri32)connections.size()}
+REXPORT i32 RCALL next_key(){return (i32)connections.size()}
 
-REXPORT ri32 RCALL connect_to(rstring name) {
+REXPORT i32 RCALL connect_to(rstring name) {
   // setup key and names for new connection
   int key = (int)connections.size();
   std::string info_name = get_info_name(key, name);
@@ -249,7 +249,7 @@ REXPORT ri32 RCALL connect_to(rstring name) {
   return key;
 }
 
-REXPORT rbool RCALL terminate(ri32 key) {
+REXPORT bool RCALL terminate(i32 key) {
   if (key >= connections.size()) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return false;
@@ -261,7 +261,7 @@ REXPORT rbool RCALL terminate(ri32 key) {
   }
 
   termination_event evt;
-  evt.type |= NFX_TERMINATION_EVENT;
+  evt.type |= NRS_TERMINATION_EVENT;
   evt.timestamp = 0;
 
   // timed locking of resources
@@ -302,11 +302,11 @@ REXPORT rbool RCALL terminate(ri32 key) {
   return true;
 }
 
-REXPORT rbool RCALL is_connected(ri32 key) {
+REXPORT bool RCALL is_connected(i32 key) {
   return key < connections.size() && connections[key] != NULL;
 }
 
-REXPORT rstring RCALL send_msg(ri32 key, rstring msg, ri32 sharedStringType) {
+REXPORT rstring RCALL send_msg(i32 key, rstring msg, i32 sharedStringType) {
   shared_memory_info* info_data = NULL;
   if (key >= connections.size()) {
     return stringC2J(env, "ERROR: key not available");
@@ -323,7 +323,7 @@ REXPORT rstring RCALL send_msg(ri32 key, rstring msg, ri32 sharedStringType) {
   return info_data->client_to_server_res;
 }
 
-REXPORT void RCALL process_native_events(ri32 key) {
+REXPORT void RCALL process_native_events(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return;
@@ -349,7 +349,7 @@ REXPORT void RCALL process_native_events(ri32 key) {
   }
 }
 
-REXPORT void RCALL resize(ri32 key, ri32 w, ri32 h) {
+REXPORT void RCALL resize(i32 key, i32 w, i32 h) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return;
@@ -366,7 +366,7 @@ REXPORT void RCALL resize(ri32 key, ri32 w, ri32 h) {
   }
 }
 
-REXPORT rbool RCALL is_dirty(ri32 key) {
+REXPORT bool RCALL is_dirty(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
@@ -376,9 +376,9 @@ REXPORT rbool RCALL is_dirty(ri32 key) {
   return false;
 }
 
-REXPORT void RCALL redraw(ri32 key, ri32 x, ri32 y, ri32 w, ri32 h) {}
+REXPORT void RCALL redraw(i32 key, i32 x, i32 y, i32 w, i32 h) {}
 
-REXPORT void RCALL set_dirty(ri32 key, rbool dirty) {
+REXPORT void RCALL set_dirty(i32 key, bool dirty) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
@@ -386,7 +386,7 @@ REXPORT void RCALL set_dirty(ri32 key, rbool dirty) {
   }
 }
 
-REXPORT void RCALL set_buffer_ready(ri32 key, rbool value) {
+REXPORT void RCALL set_buffer_ready(i32 key, bool value) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
@@ -394,7 +394,7 @@ REXPORT void RCALL set_buffer_ready(ri32 key, rbool value) {
   }
 }
 
-REXPORT rbool RCALL is_buffer_ready(ri32 key) {
+REXPORT bool RCALL is_buffer_ready(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
@@ -404,7 +404,7 @@ REXPORT rbool RCALL is_buffer_ready(ri32 key) {
   return false;
 }
 
-REXPORT ri32 RCALL get_w(ri32 key) {
+REXPORT i32 RCALL get_w(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return -1;
@@ -413,7 +413,7 @@ REXPORT ri32 RCALL get_w(ri32 key) {
   return connections[key]->w;
 }
 
-REXPORT ri32 RCALL get_h(ri32 key) {
+REXPORT i32 RCALL get_h(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return -1;
@@ -422,77 +422,7 @@ REXPORT ri32 RCALL get_h(ri32 key) {
   return connections[key]->h;
 }
 
-REXPORT rbool RCALL fire_mouse_pressed_event(ri32 key, rf64 x, rf64 y,
-                                             ri32 buttons, ri32 modifiers,
-                                             ri64 timestamp) {
-  return fire_mouse_event(key, NFX_MOUSE_MOVED, x, y, 0.0, buttons, modifiers,
-                          0, (long)timestamp);
-}
-
-REXPORT rbool RCALL fire_mouse_released_event(ri32 key, rf64 x, rf64 y,
-                                              ri32 buttons, ri32 modifiers,
-                                              ri64 timestamp) {
-  return fire_mouse_event(key, NFX_MOUSE_RELEASED, x, y, 0.0, buttons,
-                          modifiers, 0, (long)timestamp);
-}
-
-REXPORT rbool RCALL fire_mouse_clicked_event(ri32 key, rf64 x, rf64 y,
-                                             ri32 buttons, ri32 modifiers,
-                                             ri32 click_count, ri64 timestamp) {
-  return fire_mouse_event(key, NFX_MOUSE_CLICKED, x, y, 0.0, buttons, modifiers,
-                          click_count, (long)timestamp);
-}
-
-REXPORT rbool RCALL fire_mouse_entered_event(ri32 key, rf64 x, rf64 y,
-                                             ri32 buttons, ri32 modifiers,
-                                             ri32 click_count, ri64 timestamp) {
-  return fire_mouse_event(key, NFX_MOUSE_ENTERED, x, y, 0.0, buttons, modifiers,
-                          0, (long)timestamp);
-}
-
-REXPORT rbool RCALL fire_mouse_exited_event(ri32 key, rf64 x, rf64 y,
-                                            ri32 buttons, ri32 modifiers,
-                                            ri32 click_count, ri64 timestamp) {
-  return fire_mouse_event(key, NFX_MOUSE_EXITED, x, y, 0.0, buttons, modifiers,
-                          0, (long)timestamp);
-}
-
-REXPORT rbool RCALL fire_mouse_move_event(ri32 key, rf64 x, rf64 y,
-                                          ri32 buttons, ri32 modifiers,
-                                          ri64 timestamp) {
-  return fire_mouse_event(key, NFX_MOUSE_MOVED, x, y, 0.0, buttons, modifiers,
-                          0, (long)timestamp);
-}
-
-REXPORT rbool RCALL fire_mouse_wheel_event(ri32 key, rf64 x, rf64 y,
-                                           rf64 amount, ri32 buttons,
-                                           ri32 modifiers, ri64 timestamp) {
-  return fire_mouse_event(key, NFX_MOUSE_WHEEL, x, y, amount, buttons,
-                          modifiers, 0, (long)timestamp);
-}
-
-REXPORT rbool RCALL fire_key_pressed_event(ri32 key, rstring characters,
-                                           ri32 key_code, ri32 modifiers,
-                                           ri64 timestamp) {
-  return fire_key_event(key, NFX_KEY_PRESSED, characters, key_code, modifiers,
-                        (long)timestamp);
-}
-
-REXPORT rbool RCALL fire_key_released_event(ri32 key, rstring characters,
-                                            ri32 key_code, ri32 modifiers,
-                                            ri64 timestamp) {
-  return fire_key_event(key, NFX_KEY_RELEASED, characters, key_code, modifiers,
-                        (long)timestamp);
-}
-
-REXPORT rbool RCALL fire_key_typed_event(ri32 key, rstring characters,
-                                         ri32 key_code, ri32 modifiers,
-                                         ri64 timestamp) {
-  return fire_key_event(key, NFX_KEY_TYPED, characters, key_code, modifiers,
-                        (long)timestamp);
-}
-
-REXPORT rbool RCALL request_focus(ri32 key, rbool focus, ri64 timestamp) {
+REXPORT bool RCALL request_focus(i32 key, bool focus, i64 timestamp) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return false;
@@ -501,7 +431,7 @@ REXPORT rbool RCALL request_focus(ri32 key, rbool focus, ri64 timestamp) {
   connections[key]->focus = focus;
 
   focus_event evt;
-  evt.type |= NFX_FOCUS_EVENT;
+  evt.type |= NRS_FOCUS_EVENT;
   evt.focus = focus;
   evt.timestamp = (long)timestamp;
 
@@ -517,16 +447,16 @@ REXPORT rbool RCALL request_focus(ri32 key, rbool focus, ri64 timestamp) {
   );
 }
 
-REXPORT rbool RCALL create_ssh_session(ri32 key, ri64 session_id, rstring host,
-                                       rstring user, rstring password,
-                                       ri64 timestamp) {
+REXPORT bool RCALL create_ssh_session(i32 key, i64 session_id, rstring host,
+                                      rstring user, rstring password,
+                                      i64 timestamp) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return boolC2J(false);
   }
 
   create_ssh_session_event evt;
-  evt.type |= NFX_CREATE_SSH_SESSION_EVENT;
+  evt.type |= NRS_CREATE_SSH_SESSION_EVENT;
   evt.sessionId = (long)session_id;
   evt.timestamp = (long)timestamp;
 
@@ -547,7 +477,7 @@ REXPORT rbool RCALL create_ssh_session(ri32 key, ri64 session_id, rstring host,
   );
 }
 
-REXPORT void* RCALL get_buffer(ri32 key) {
+REXPORT void* RCALL get_buffer(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return NULL;
@@ -558,7 +488,7 @@ REXPORT void* RCALL get_buffer(ri32 key) {
   return buffers[key];
 }
 
-REXPORT rbool RCALL lock(ri32 key) {
+REXPORT bool RCALL lock(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return false;
@@ -572,7 +502,7 @@ REXPORT rbool RCALL lock(ri32 key) {
   }
 }
 
-REXPORT rbool RCALL lock(ri32 key, ri64 rtimeout) {
+REXPORT bool RCALL lock(i32 key, i64 rtimeout) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return false;
@@ -585,7 +515,7 @@ REXPORT rbool RCALL lock(ri32 key, ri64 rtimeout) {
   }
 }
 
-REXPORT void RCALL unlock(ri32 key) {
+REXPORT void RCALL unlock(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
@@ -593,7 +523,7 @@ REXPORT void RCALL unlock(ri32 key) {
   }
 }
 
-REXPORT void RCALL wait_for_buffer_changes(ri32 key) {
+REXPORT void RCALL wait_for_buffer_changes(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
@@ -602,7 +532,7 @@ REXPORT void RCALL wait_for_buffer_changes(ri32 key) {
   }
 }
 
-REXPORT rbool RCALL has_buffer_changes(ri32 key) {
+REXPORT bool RCALL has_buffer_changes(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
@@ -612,6 +542,73 @@ REXPORT rbool RCALL has_buffer_changes(ri32 key) {
   return false;
 }
 
-REXPORT void RCALL lock_buffer(ri32 key) {}
+REXPORT void RCALL lock_buffer(i32 key) {}
 
-REXPORT void RCALL unlock_buffer(ri32 key) {}
+REXPORT void RCALL unlock_buffer(i32 key) {}
+
+REXPORT bool RCALL fire_mouse_pressed_event(i32 key, f64 x, f64 y, i32 buttons,
+                                            i32 modifiers, i64 timestamp) {
+  return fire_mouse_event(key, NRS_MOUSE_MOVED, x, y, 0.0, buttons, modifiers,
+                          0, (long)timestamp);
+}
+
+REXPORT bool RCALL fire_mouse_released_event(i32 key, f64 x, f64 y, i32 buttons,
+                                             i32 modifiers, i64 timestamp) {
+  return fire_mouse_event(key, NRS_MOUSE_RELEASED, x, y, 0.0, buttons,
+                          modifiers, 0, (long)timestamp);
+}
+
+REXPORT bool RCALL fire_mouse_clicked_event(i32 key, f64 x, f64 y, i32 buttons,
+                                            i32 modifiers, i32 click_count,
+                                            i64 timestamp) {
+  return fire_mouse_event(key, NRS_MOUSE_CLICKED, x, y, 0.0, buttons, modifiers,
+                          click_count, (long)timestamp);
+}
+
+REXPORT bool RCALL fire_mouse_entered_event(i32 key, f64 x, f64 y, i32 buttons,
+                                            i32 modifiers, i32 click_count,
+                                            i64 timestamp) {
+  return fire_mouse_event(key, NRS_MOUSE_ENTERED, x, y, 0.0, buttons, modifiers,
+                          0, (long)timestamp);
+}
+
+REXPORT bool RCALL fire_mouse_exited_event(i32 key, f64 x, f64 y, i32 buttons,
+                                           i32 modifiers, i32 click_count,
+                                           i64 timestamp) {
+  return fire_mouse_event(key, NRS_MOUSE_EXITED, x, y, 0.0, buttons, modifiers,
+                          0, (long)timestamp);
+}
+
+REXPORT bool RCALL fire_mouse_move_event(i32 key, f64 x, f64 y, i32 buttons,
+                                         i32 modifiers, i64 timestamp) {
+  return fire_mouse_event(key, NRS_MOUSE_MOVED, x, y, 0.0, buttons, modifiers,
+                          0, (long)timestamp);
+}
+
+REXPORT bool RCALL fire_mouse_wheel_event(i32 key, f64 x, f64 y, f64 amount,
+                                          i32 buttons, i32 modifiers,
+                                          i64 timestamp) {
+  return fire_mouse_event(key, NRS_MOUSE_WHEEL, x, y, amount, buttons,
+                          modifiers, 0, (long)timestamp);
+}
+
+REXPORT bool RCALL fire_key_pressed_event(i32 key, rstring characters,
+                                          i32 key_code, i32 modifiers,
+                                          i64 timestamp) {
+  return fire_key_event(key, NRS_KEY_PRESSED, characters, key_code, modifiers,
+                        (long)timestamp);
+}
+
+REXPORT bool RCALL fire_key_released_event(i32 key, rstring characters,
+                                           i32 key_code, i32 modifiers,
+                                           i64 timestamp) {
+  return fire_key_event(key, NRS_KEY_RELEASED, characters, key_code, modifiers,
+                        (long)timestamp);
+}
+
+REXPORT bool RCALL fire_key_typed_event(i32 key, rstring characters,
+                                        i32 key_code, i32 modifiers,
+                                        i64 timestamp) {
+  return fire_key_event(key, NRS_KEY_TYPED, characters, key_code, modifiers,
+                        (long)timestamp);
+}

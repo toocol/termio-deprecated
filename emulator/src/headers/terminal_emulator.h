@@ -46,7 +46,7 @@ class TerminalEmulator : public QWidget {
   void setNativeRedrawCallback(
       const std::function<void()> &newNativeRedrawCallback);
 
-  void setNativeCanvas(nativefx::SharedCanvas *nativeData);
+  void setNativeCanvas(nativers::SharedCanvas *nativeData);
 
   void setNativeEvtCallback(const std::function<void()> &newNativeEvtCallback);
 

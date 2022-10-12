@@ -6,84 +6,185 @@
 #define REXPORT __declspec(dllexport)
 #define RCALL __stdcall
 
-typedef long ri32;
-typedef __int64 ri64;
-typedef double rf64;
-typedef bool rbool;
+typedef long i32;
+typedef __int64 i64;
+typedef double f64;
 typedef std::string rstring;
 
-REXPORT ri32 RCALL next_key();
+/**
+ * Acquire next avaliable key of connection.
+ */
+REXPORT i32 RCALL next_key();
 
-REXPORT ri32 RCALL connect_to(rstring);
+/**
+ * Connect to the shared memory by name.
+ *
+ * @param name
+ */
+REXPORT i32 RCALL connect_to(rstring);
 
-REXPORT rbool RCALL terminate(ri32);
+/**
+ * Terminate the shared memory connection by key.
+ *
+ * @param key
+ */
+REXPORT bool RCALL terminate(i32);
 
-REXPORT rbool RCALL is_connected(ri32);
+/**
+ * Judge whether the shared memory corresponding to the key is connected.
+ *
+ * @param key
+ */
+REXPORT bool RCALL is_connected(i32);
 
-REXPORT rstring RCALL send_msg(ri32, rstring, ri32);
+/**
+ * Block send msg to shared memory server side with response.
+ *
+ * @param key
+ * @param msg
+ * @param timestamp
+ */
+REXPORT rstring RCALL send_msg(i32, rstring, i32);
 
-REXPORT void RCALL process_native_events(ri32);
+/**
+ * Process the native events which store in the shared memory.
+ *
+ * @param key
+ */
+REXPORT void RCALL process_native_events(i32);
 
-REXPORT void RCALL resize(ri32, ri32, ri32);
+/**
+ * Resize the teminal emulator.
+ *
+ * @param key
+ * @param width
+ * @param height
+ */
+REXPORT void RCALL resize(i32, i32, i32);
 
-REXPORT rbool RCALL is_dirty(ri32);
+/**
+ * When the native image buffer was changed, the property of dirty was true.
+ *
+ * @param key
+ */
+REXPORT bool RCALL is_dirty(i32);
 
-REXPORT void RCALL redraw(ri32, ri32, ri32, ri32, ri32);
+/**
+ * Client request redraw the native image buffer.
+ */
+REXPORT void RCALL redraw(i32, i32, i32, i32, i32);
 
-REXPORT void RCALL set_dirty(ri32, rbool);
+/**
+ * Set the native image buffer was dirty.
+ */
+REXPORT void RCALL set_dirty(i32, bool);
 
-REXPORT void RCALL set_buffer_ready(ri32, rbool);
+/**
+ * Set true when the native image buffer was rendering completed,
+ * set false otherwise.
+ *
+ * @param key
+ * @param isBufferReady
+ */
+REXPORT void RCALL set_buffer_ready(i32, bool);
 
-REXPORT rbool RCALL is_buffer_ready(ri32);
+/**
+ * Get the native image buffer redering state.
+ *
+ * @param key
+ */
+REXPORT bool RCALL is_buffer_ready(i32);
 
-REXPORT ri32 RCALL get_w(ri32);
+/*
+ * Get the width of native image buffer.
+ *
+ * @param key
+ */
+REXPORT i32 RCALL get_w(i32);
 
-REXPORT ri32 RCALL get_h(ri32);
+/**
+ * Get the height of native image buffer.
+ *
+ * @param key
+ */
+REXPORT i32 RCALL get_h(i32);
 
-REXPORT rbool RCALL fire_mouse_pressed_event(ri32, rf64, rf64, ri32, ri32,
-                                             ri64);
+/*
+ * Tell terminal emulator to request focus or not.
+ *
+ * @param key
+ * @param isFocus
+ * @param timestamp
+ */
+REXPORT bool RCALL request_focus(i32, bool, i64);
 
-REXPORT rbool RCALL fire_mouse_released_event(ri32, rf64, rf64, ri32, ri32,
-                                              ri64);
+/*
+ * Create a ssh sesison.
+ *
+ * @param key
+ * @param sessionId
+ * @param host
+ * @param user
+ * @param password
+ * @param timestamp
+ */
+REXPORT bool RCALL create_ssh_session(i32, i64, rstring, rstring, rstring, i64);
 
-REXPORT rbool RCALL fire_mouse_clicked_event(ri32, rf64, rf64, ri32, ri32, ri32,
-                                             ri64);
+/**
+ * Get the native image buffer.
+ *
+ * @param key
+ */
+REXPORT void* RCALL get_buffer(i32);
 
-REXPORT rbool RCALL fire_mouse_entered_event(ri32, rf64, rf64, ri32, ri32, ri32,
-                                             ri64);
+REXPORT bool RCALL lock(i32);
 
-REXPORT rbool RCALL fire_mouse_exited_event(ri32, rf64, rf64, ri32, ri32, ri32,
-                                            ri64);
+REXPORT bool RCALL lock(i32, i64);
 
-REXPORT rbool RCALL fire_mouse_move_event(ri32, rf64, rf64, ri32, ri32, ri64);
+REXPORT void RCALL unlock(i32);
 
-REXPORT rbool RCALL fire_mouse_wheel_event(ri32, rf64, rf64, rf64, ri32, ri32,
-                                           ri64);
+REXPORT void RCALL wait_for_buffer_changes(i32);
 
-REXPORT rbool RCALL fire_key_pressed_event(ri32, rstring, ri32, ri32, ri64);
+REXPORT bool RCALL has_buffer_changes(i32);
 
-REXPORT rbool RCALL fire_key_released_event(ri32, rstring, ri32, ri32, ri64);
+REXPORT void RCALL lock_buffer(i32);
 
-REXPORT rbool RCALL fire_key_typed_event(ri32, rstring, ri32, ri32, ri64);
+REXPORT void RCALL unlock_buffer(i32);
 
-REXPORT rbool RCALL request_focus(ri32, rbool, ri64);
+REXPORT bool RCALL fire_mouse_pressed_event(i32 key, f64 x, f64 y, i32 buttons,
+                                            i32 modifiers, i64 timestamp);
 
-REXPORT rbool RCALL create_ssh_session(ri32, ri64, rstring, rstring, rstring,
-                                       ri64);
+REXPORT bool RCALL fire_mouse_released_event(i32 key, f64 x, f64 y, i32 buttons,
+                                             i32 modifiers, i64 timestamp);
 
-REXPORT void* RCALL get_buffer(ri32);
+REXPORT bool RCALL fire_mouse_clicked_event(i32 key, f64 x, f64 y, i32 buttons,
+                                            i32 modifiers, i32 click_count,
+                                            i64 timestamp);
 
-REXPORT rbool RCALL lock(ri32);
+REXPORT bool RCALL fire_mouse_entered_event(i32 key, f64 x, f64 y, i32 buttons,
+                                            i32 modifiers, i32 click_count,
+                                            i64 timestamp);
 
-REXPORT rbool RCALL lock(ri32, ri64);
+REXPORT bool RCALL fire_mouse_exited_event(i32 key, f64 x, f64 y, i32 buttons,
+                                           i32 modifiers, i32 click_count,
+                                           i64 timestamp);
 
-REXPORT void RCALL unlock(ri32);
+REXPORT bool RCALL fire_mouse_move_event(i32 key, f64 x, f64 y, i32 buttons,
+                                         i32 modifiers, i64 timestamp);
 
-REXPORT void RCALL wait_for_buffer_changes(ri32);
+REXPORT bool RCALL fire_mouse_wheel_event(i32 key, f64 x, f64 y, f64 amount,
+                                          i32 buttons, i32 modifiers,
+                                          i64 timestamp);
 
-REXPORT rbool RCALL has_buffer_changes(ri32);
+REXPORT bool RCALL fire_key_pressed_event(i32 key, rstring characters,
+                                          i32 key_code, i32 modifiers,
+                                          i64 timestamp);
 
-REXPORT void RCALL lock_buffer(ri32);
+REXPORT bool RCALL fire_key_released_event(i32 key, rstring characters,
+                                           i32 key_code, i32 modifiers,
+                                           i64 timestamp);
 
-REXPORT void RCALL unlock_buffer(ri32);
+REXPORT bool RCALL fire_key_typed_event(i32 key, rstring characters,
+                                        i32 key_code, i32 modifiers,
+                                        i64 timestamp);
 #endif

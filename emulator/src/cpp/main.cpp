@@ -1,7 +1,7 @@
 #include <QApplication>
 #include "terminal_emulator.h"
 
-namespace nfx = nativefx;
+namespace nrs = nativers;
 
 static const QRegularExpression lfRegularExp("\n");
 
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     }
   };
 
-  nfx::SharedCanvas* canvas = nfx::SharedCanvas::create("_emulator_mem");
+  nrs::SharedCanvas* canvas = nrs::SharedCanvas::create("_emulator_mem");
 
   auto qtResized = [&image, &emulator](const std::string& name,
                                        uchar* bufferData, int w, int h) {
@@ -49,24 +49,24 @@ int main(int argc, char* argv[]) {
   QPoint prevP;
 
   auto evt = [&emulator, &prevEvtTarget, &prevP](const std::string& name,
-                                                 nfx::event* evt) {
-    if (evt->type & nfx::NFX_FOCUS_EVENT) {
-      nfx::focus_event* focusEvt = static_cast<nfx::focus_event*>((void*)evt);
+                                                 nrs::event* evt) {
+    if (evt->type & nrs::NRS_FOCUS_EVENT) {
+      nrs::focus_event* focusEvt = static_cast<nrs::focus_event*>((void*)evt);
       QEvent::Type type = focusEvt->focus ? QEvent::FocusIn : QEvent::FocusOut;
       QFocusEvent* evt = new QFocusEvent(type);
       emulator.sendSimulatedEvent(evt);
-    } else if (evt->type & nfx::NFX_CREATE_SSH_SESSION_EVENT) {
-      nfx::create_ssh_session_event* sshEvt =
-          static_cast<nfx::create_ssh_session_event*>((void*)evt);
-      std::string host = nfx::get_shared_string(sshEvt->host);
-      std::string user = nfx::get_shared_string(sshEvt->user);
-      std::string password = nfx::get_shared_string(sshEvt->password);
+    } else if (evt->type & nrs::NRS_CREATE_SSH_SESSION_EVENT) {
+      nrs::create_ssh_session_event* sshEvt =
+          static_cast<nrs::create_ssh_session_event*>((void*)evt);
+      std::string host = nrs::get_shared_string(sshEvt->host);
+      std::string user = nrs::get_shared_string(sshEvt->user);
+      std::string password = nrs::get_shared_string(sshEvt->password);
 
       emulator.createSshSession(sshEvt->sessionId, QString::fromStdString(host),
                                 QString::fromStdString(user),
                                 QString::fromStdString(password));
-    } else if (evt->type & nfx::NFX_KEY_EVENT) {
-      nfx::key_event* key_evt = static_cast<nfx::key_event*>((void*)evt);
+    } else if (evt->type & nrs::NRS_KEY_EVENT) {
+      nrs::key_event* key_evt = static_cast<nrs::key_event*>((void*)evt);
 
       //[static] QWidget *QApplication::focusWidget()
       // Returns the application widget that has the keyboard input focus, or 0
@@ -79,13 +79,13 @@ int main(int argc, char* argv[]) {
       std::cout << "key_evt: " << key_evt->key_code << ", chars: " << kChars
                 << std::endl;
       Qt::KeyboardModifiers modifiers = transferModifiers(key_evt->modifiers);
-      if (key_evt->type & nfx::NFX_KEY_PRESSED) {
+      if (key_evt->type & nrs::NRS_KEY_PRESSED) {
         qkevt = new QKeyEvent(QEvent::KeyPress, key_evt->key_code, modifiers, 0,
                               0, 0, kChars.c_str());
-      } else if (key_evt->type & nfx::NFX_KEY_RELEASED) {
+      } else if (key_evt->type & nrs::NRS_KEY_RELEASED) {
         qkevt = new QKeyEvent(QEvent::KeyRelease, key_evt->key_code, modifiers,
                               0, 0, 0, kChars.c_str());
-      } else if (key_evt->type & nfx::NFX_KEY_TYPED) {
+      } else if (key_evt->type & nrs::NRS_KEY_TYPED) {
         qkevt = new QKeyEvent(QEvent::KeyPress, key_evt->key_code, modifiers, 0,
                               0, 0, kChars.c_str());
       } else {
@@ -99,8 +99,8 @@ int main(int argc, char* argv[]) {
       } else {
         emulator.sendSimulatedEvent(qkevt);
       }
-    } else if (evt->type & nfx::NFX_MOUSE_EVENT) {
-      nfx::mouse_event* mouse_evt = static_cast<nfx::mouse_event*>((void*)evt);
+    } else if (evt->type & nrs::NRS_MOUSE_EVENT) {
+      nrs::mouse_event* mouse_evt = static_cast<nrs::mouse_event*>((void*)evt);
 
       QPoint p(mouse_evt->x, mouse_evt->y);
 
@@ -138,43 +138,43 @@ int main(int argc, char* argv[]) {
       prevEvtTarget = receiver;
       prevP = p;
 
-      if (mouse_evt->buttons & nfx::NFX_PRIMARY_BTN) {
+      if (mouse_evt->buttons & nrs::NRS_PRIMARY_BTN) {
         btn = Qt::LeftButton;
         // std::cout << "-> btn: PRIMARY\n";
       }
 
-      if (mouse_evt->buttons & nfx::NFX_SECONDARY_BTN) {
+      if (mouse_evt->buttons & nrs::NRS_SECONDARY_BTN) {
         btn = Qt::RightButton;
         // std::cout << "-> btn: SECONDARY\n";
       }
 
-      if (mouse_evt->buttons & nfx::NFX_MIDDLE_BTN) {
+      if (mouse_evt->buttons & nrs::NRS_MIDDLE_BTN) {
         btn = Qt::MiddleButton;
         // std::cout << "-> btn: MIDDLE\n";
       }
 
-      if (mouse_evt->type & nfx::NFX_MOUSE_MOVED) {
+      if (mouse_evt->type & nrs::NRS_MOUSE_MOVED) {
         QMouseEvent* mEvt = new QMouseEvent(
             (QEvent::MouseMove), p, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
         // std::cout << "-> evt-type: MOVE\n";
         QApplication::sendEvent(receiver, mEvt);
       }
 
-      if (mouse_evt->type & nfx::NFX_MOUSE_PRESSED) {
+      if (mouse_evt->type & nrs::NRS_MOUSE_PRESSED) {
         QMouseEvent* mEvt = new QMouseEvent((QEvent::MouseButtonPress), p, btn,
                                             Qt::NoButton, Qt::NoModifier);
         // std::cout << "-> evt-type: PRESS\n";
         QApplication::sendEvent(receiver, mEvt);
       }
 
-      if (mouse_evt->type & nfx::NFX_MOUSE_RELEASED) {
+      if (mouse_evt->type & nrs::NRS_MOUSE_RELEASED) {
         QMouseEvent* mEvt = new QMouseEvent((QEvent::MouseButtonRelease), p,
                                             btn, Qt::NoButton, Qt::NoModifier);
         // std::cout << "-> evt-type: RELEASE\n";
         QApplication::sendEvent(receiver, mEvt);
       }
 
-      if (mouse_evt->type & nfx::NFX_MOUSE_WHEEL) {
+      if (mouse_evt->type & nrs::NRS_MOUSE_WHEEL) {
         QWheelEvent* mEvt =
             new QWheelEvent(QPointF(0, 0), QPointF(0, 0), QPoint(0, 0),
                             QPoint(0, mouse_evt->amount), Qt::NoButton,
@@ -196,9 +196,9 @@ int main(int argc, char* argv[]) {
     std::string resp = "";
     QString text = QString::fromUtf8(canvas->getSharedString().c_str());
     int sharedType = canvas->sharedStringType();
-    if (sharedType == nativefx::NFX_SEND_TEXT && text != "") {
+    if (sharedType == nativers::NRS_SEND_TEXT && text != "") {
       emulator.sendText(text.replace(lfRegularExp, "\r\n"));
-    } else if (sharedType == nativefx::NFX_REQUEST_SIZE) {
+    } else if (sharedType == nativers::NRS_REQUEST_SIZE) {
       resp = "125x80";
     }
     canvas->responseSharedString(resp);

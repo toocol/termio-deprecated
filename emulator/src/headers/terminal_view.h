@@ -19,7 +19,7 @@
 #include <QWidget>
 #include "character.h"
 #include "filter.h"
-#include "nativefx_server.hpp"
+#include "nativers_server.hpp"
 #include "screen_window.h"
 
 class QDrag;
@@ -76,7 +76,7 @@ class TerminalView : public QWidget {
   explicit TerminalView(QWidget* parent = nullptr);
   ~TerminalView();
 
-  void setNativeCanvas(nativefx::SharedCanvas* nativeCanvas);
+  void setNativeCanvas(nativers::SharedCanvas* nativeCanvas);
 
   /** Returns the terminal color palette used by the display. */
   const ColorEntry* getColorTable() const;
@@ -667,7 +667,7 @@ class TerminalView : public QWidget {
   bool isLineChar(wchar_t c) const;
   bool isLineCharString(const std::wstring& string) const;
 
-  nativefx::SharedCanvas* _nativeCanvas;
+  nativers::SharedCanvas* _nativeCanvas;
 
   QPointer<ScreenWindow> _screenWindow;
 
@@ -803,7 +803,7 @@ class TerminalView : public QWidget {
   static void setTransparencyEnabled(bool enable) {
     HAVE_TRANSPARENCY = enable;
   }
-  nativefx::SharedCanvas* nativeCanvas() const;
+  nativers::SharedCanvas* nativeCanvas() const;
 };
 
 class AutoScrollHandler : public QObject {

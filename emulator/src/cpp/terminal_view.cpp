@@ -869,7 +869,7 @@ bool TerminalView::isLineCharString(const std::wstring& string) const {
   return (string.length() > 0) && (isLineChar(string[0]));
 }
 
-nativefx::SharedCanvas* TerminalView::nativeCanvas() const {
+nativers::SharedCanvas* TerminalView::nativeCanvas() const {
   return _nativeCanvas;
 }
 
@@ -2857,7 +2857,7 @@ TerminalView::~TerminalView() {
   delete _filterChain;
 }
 
-void TerminalView::setNativeCanvas(nativefx::SharedCanvas* nativeCanvas) {
+void TerminalView::setNativeCanvas(nativers::SharedCanvas* nativeCanvas) {
   _nativeCanvas = nativeCanvas;
 }
 
