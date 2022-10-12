@@ -1,5 +1,5 @@
-#ifndef NATIVEFXSERVER_HPP
-#define NATIVEFXSERVER_HPP
+#ifndef NATIVERSSERVER_HPP
+#define NATIVERSSERVER_HPP
 
 /*
  * Copyright 2019-2019 Michael Hoffer <info@michaelhoffer.de>. All rights
@@ -30,21 +30,21 @@
 // ----------------------------------------
 
 /// major version number
-#define NATIVEFX_VERSION_MAJOR 0
+#define NATIVERS_VERSION_MAJOR 0
 
 /// minor version number
-#define NATIVEFX_VERSION_MINOR 1
+#define NATIVERS_VERSION_MINOR 1
 
 /// patch number
-#define NATIVEFX_VERSION_PATCH 0
+#define NATIVERS_VERSION_PATCH 0
 
 /// complete version number
-#define NATIVEFX_VERSION_CODE                                      \
-  (NATIVEFX_VERSION_MAJOR * 10000 + NATIVEFX_VERSION_MINOR * 100 + \
-   NATIVEFX_VERSION_PATCH)
+#define NATIVERS_VERSION_CODE                                      \
+  (NATIVERS_VERSION_MAJOR * 10000 + NATIVERS_VERSION_MINOR * 100 + \
+   NATIVERS_VERSION_PATCH)
 
 /// version number as string
-#define NATIVEFX_VERSION_STRING "0.1.0"
+#define NATIVERS_VERSION_STRING "0.1.0"
 
 // ---------------------------------------- INCLUDES
 // ----------------------------------------
@@ -71,10 +71,10 @@
 #include "args.hxx"
 #include "shared_memory.h"
 
-// ---------------------------------------- NATIVEFX CODE
+// ---------------------------------------- NATIVERS CODE
 // ----------------------------------------
 
-namespace nativefx {
+namespace nativers {
 
 struct NATIVE_EVENT {
   std::string type;
@@ -146,7 +146,7 @@ inline int deleteSharedMem(std::string const& name) {
   std::cout << "> deleted shared-mem" << std::endl;
   std::cout << "  -> name:   " << name << std::endl;
 
-  return NFX_SUCCESS;
+  return NRS_SUCCESS;
 }
 
 struct SshPropery {
@@ -317,7 +317,7 @@ class SharedCanvas final {
 
     SharedCanvas* sc =
         new SharedCanvas(name, buffer_data, shm_info, info_data, evt_mq,
-                         evt_mq_msg_buff, evt_mq_native, W, H, NFX_SUCCESS);
+                         evt_mq_msg_buff, evt_mq_native, W, H, NRS_SUCCESS);
     sc->detachNativeEventThread();
     return sc;
   }
@@ -339,7 +339,7 @@ class SharedCanvas final {
 
   void responseSharedString(std::string resp) {
     store_shared_string(resp, info_data->client_to_server_res);
-    info_data->shared_string_type = NFX_SHARED_DEFAULT;
+    info_data->shared_string_type = NRS_SHARED_DEFAULT;
     info_data->client_to_server_res_semaphore.post();
   }
 
@@ -377,7 +377,7 @@ class SharedCanvas final {
                 << "ERROR: cannot connect to '" << name << "':" << std::endl;
       std::cerr << " -> But we are unable to lock the resources." << std::endl;
       std::cerr << " -> Client not running?." << std::endl;
-      return NFX_ERROR | NFX_CONNECTION_ERROR;
+      return NRS_ERROR | NRS_CONNECTION_ERROR;
     }
 
     bool is_dirty = info_data->dirty;
@@ -414,7 +414,7 @@ class SharedCanvas final {
       info_data->mutex.unlock();
     }
 
-    return NFX_SUCCESS;
+    return NRS_SUCCESS;
   }
 
   void pushNativeEvent(std::string type, std::string evt) {
@@ -441,7 +441,7 @@ class SharedCanvas final {
       event* evt = static_cast<event*>(evt_mq_msg_buff);
 
       // terminate if termination event was sent
-      if (evt->type & NFX_TERMINATION_EVENT) {
+      if (evt->type & NRS_TERMINATION_EVENT) {
         std::cerr << "[" + name + "] termination requested." << std::endl;
         this->terminate();
         std::cerr << "[" + name + "] done." << std::endl;
@@ -455,7 +455,7 @@ class SharedCanvas final {
 
   int get_status() { return this->status; }
 
-  bool is_valid() { return this->status == NFX_SUCCESS; }
+  bool is_valid() { return this->status == NRS_SUCCESS; }
 };
 
 /**
@@ -548,7 +548,7 @@ inline int startServer(std::string const& name, redraw_callback redraw,
                 << "':" << std::endl;
       std::cerr << " -> But we are unable to lock the resources." << std::endl;
       std::cerr << " -> Client not running?." << std::endl;
-      return NFX_ERROR | NFX_CONNECTION_ERROR;
+      return NRS_ERROR | NRS_CONNECTION_ERROR;
     }
 
     bool is_dirty = info_data->dirty;
@@ -606,7 +606,7 @@ inline int startServer(std::string const& name, redraw_callback redraw,
       event* evt = static_cast<event*>(evt_mq_msg_buff);
 
       // terminate if termination event was sent
-      if (evt->type == NFX_TERMINATION_EVENT) {
+      if (evt->type == NRS_TERMINATION_EVENT) {
         std::cerr << "[" + name + "] termination requested." << std::endl;
         deleteSharedMem(name);
         std::cerr << "[" + name + "] done." << std::endl;
@@ -627,7 +627,7 @@ inline int startServer(std::string const& name, redraw_callback redraw,
 
   free(evt_mq_msg_buff);
 
-  return NFX_SUCCESS;
+  return NRS_SUCCESS;
 }
 
 /**
@@ -661,14 +661,14 @@ inline int startServer(int argc, char* argv[], redraw_callback redraw,
     parser.ParseCLI(argc, argv);
   } catch (const args::Completion& e) {
     std::cout << e.what();
-    return NFX_SUCCESS;
+    return NRS_SUCCESS;
   } catch (const args::Help&) {
     std::cerr << parser;
-    return NFX_ERROR | NFX_ARGS_ERROR;
+    return NRS_ERROR | NRS_ARGS_ERROR;
   } catch (const args::ParseError& e) {
     std::cerr << e.what() << std::endl;
     std::cerr << parser;
-    return NFX_ERROR | NFX_ARGS_ERROR;
+    return NRS_ERROR | NRS_ARGS_ERROR;
   }
 
   std::string name = args::get(nameArg);
@@ -681,7 +681,7 @@ inline int startServer(int argc, char* argv[], redraw_callback redraw,
         << std::endl
         << std::endl;
     std::cerr << parser;
-    return NFX_ERROR | NFX_ARGS_ERROR;
+    return NRS_ERROR | NRS_ARGS_ERROR;
   }
 
   if (deleteSharedMemFlag) {
@@ -692,5 +692,5 @@ inline int startServer(int argc, char* argv[], redraw_callback redraw,
   return startServer(name, redraw, events);
 }
 
-}  // end namespace nativefx
+}  // end namespace nativers
 #endif

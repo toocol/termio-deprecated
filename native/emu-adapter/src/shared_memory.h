@@ -61,7 +61,7 @@ typedef unsigned char uchar;
 
 #define LOCK_TIMEOUT 1000  // milliseconds
 
-namespace nativefx {
+namespace nativers {
 
 typedef boost::interprocess::basic_string<char> shared_string;
 
@@ -69,57 +69,57 @@ typedef boost::interprocess::basic_string<char> shared_string;
  * Status indicates success as well as different types of errors.
  */
 enum STATUS {
-  NFX_SUCCESS = 0,
-  NFX_ERROR = 1,
-  NFX_CONNECTION_ERROR = 2,
-  NFX_TIMEOUT_ERROR = 4,
-  NFX_ARGS_ERROR = 8
+  NRS_SUCCESS = 0,
+  NRS_ERROR = 1,
+  NRS_CONNECTION_ERROR = 2,
+  NRS_TIMEOUT_ERROR = 4,
+  NRS_ARGS_ERROR = 8
 };
 
 enum MOUSE_BTN {
-  NFX_NO_BTN = 0,
-  NFX_PRIMARY_BTN = 1,
-  NFX_SECONDARY_BTN = 2,
-  NFX_MIDDLE_BTN = 4
+  NRS_NO_BTN = 0,
+  NRS_PRIMARY_BTN = 1,
+  NRS_SECONDARY_BTN = 2,
+  NRS_MIDDLE_BTN = 4
 };
 
 enum MODIFIER {
-  NFX_NO_KEY = 0x00000000,
-  NFX_SHIFT_KEY = 0x02000000,
-  NFX_CONTROL_KEY = 0x04000000,
-  NFX_ALT_KEY = 0x08000000,
-  NFX_META_KEY = 0x10000000
+  NRS_NO_KEY = 0x00000000,
+  NRS_SHIFT_KEY = 0x02000000,
+  NRS_CONTROL_KEY = 0x04000000,
+  NRS_ALT_KEY = 0x08000000,
+  NRS_META_KEY = 0x10000000
 };
 
 enum EVENT_TYPE {
-  NFX_NO_EVENT = 0,
-  NFX_EVENT = 1,
-  NFX_MOUSE_EVENT = 2,
-  NFX_MOUSE_MOVED = 2 << 1,
-  NFX_MOUSE_ENTERED = 2 << 2,
-  NFX_MOUSE_EXITED = 2 << 3,
-  NFX_MOUSE_RELEASED = 2 << 4,
-  NFX_MOUSE_PRESSED = 2 << 5,
-  NFX_MOUSE_CLICKED = 2 << 6,
-  NFX_MOUSE_WHEEL = 2 << 7,
+  NRS_NO_EVENT = 0,
+  NRS_EVENT = 1,
+  NRS_MOUSE_EVENT = 2,
+  NRS_MOUSE_MOVED = 2 << 1,
+  NRS_MOUSE_ENTERED = 2 << 2,
+  NRS_MOUSE_EXITED = 2 << 3,
+  NRS_MOUSE_RELEASED = 2 << 4,
+  NRS_MOUSE_PRESSED = 2 << 5,
+  NRS_MOUSE_CLICKED = 2 << 6,
+  NRS_MOUSE_WHEEL = 2 << 7,
 
-  NFX_KEY_EVENT = 2 << 8,
-  NFX_KEY_PRESSED = 2 << 9,
-  NFX_KEY_RELEASED = 2 << 10,
-  NFX_KEY_TYPED = 2 << 11,
+  NRS_KEY_EVENT = 2 << 8,
+  NRS_KEY_PRESSED = 2 << 9,
+  NRS_KEY_RELEASED = 2 << 10,
+  NRS_KEY_TYPED = 2 << 11,
 
-  NFX_REDRAW_EVENT = 2 << 12,
-  NFX_TERMINATION_EVENT = 2 << 13,
+  NRS_REDRAW_EVENT = 2 << 12,
+  NRS_TERMINATION_EVENT = 2 << 13,
 
-  NFX_FOCUS_EVENT = 2 << 14,
-  NFX_INPUT_TEXT_EVENT = 2 << 15,
-  NFX_CREATE_SSH_SESSION_EVENT = 2 << 16
+  NRS_FOCUS_EVENT = 2 << 14,
+  NRS_INPUT_TEXT_EVENT = 2 << 15,
+  NRS_CREATE_SSH_SESSION_EVENT = 2 << 16
 };
 
 enum SHARED_STRING_TYPE {
-  NFX_SHARED_DEFAULT = 0,
-  NFX_SEND_TEXT = 1,
-  NFX_REQUEST_SIZE = 2
+  NRS_SHARED_DEFAULT = 0,
+  NRS_SEND_TEXT = 1,
+  NRS_REQUEST_SIZE = 2
 };
 
 struct event {
@@ -128,11 +128,11 @@ struct event {
 };
 
 struct mouse_event {
-  int type = NFX_MOUSE_EVENT;
+  int type = NRS_MOUSE_EVENT;
   long timestamp = 0;
 
-  int buttons = NFX_NO_BTN;
-  int modifiers = NFX_NO_KEY;
+  int buttons = NRS_NO_BTN;
+  int modifiers = NRS_NO_KEY;
   int click_count = 0;
   double amount = 0;
   double x = 0;
@@ -140,17 +140,17 @@ struct mouse_event {
 };
 
 struct key_event {
-  int type = NFX_KEY_EVENT;
+  int type = NRS_KEY_EVENT;
   long timestamp = 0;
 
-  int modifiers = NFX_NO_KEY;
+  int modifiers = NRS_NO_KEY;
   char chars[IPC_KEY_EVT_NUM_CHARS +
              1];     // not initialized since it is not allowed
   int key_code = 0;  // 0 is defined as "unknown key"
 };
 
 struct redraw_event : event {
-  int type = NFX_REDRAW_EVENT;
+  int type = NRS_REDRAW_EVENT;
   long timestamp = 0;
 
   double x = 0;
@@ -160,19 +160,19 @@ struct redraw_event : event {
 };
 
 struct termination_event {
-  int type = NFX_TERMINATION_EVENT;
+  int type = NRS_TERMINATION_EVENT;
   long timestamp = 0;
 };
 
 struct focus_event {
-  int type = NFX_FOCUS_EVENT;
+  int type = NRS_FOCUS_EVENT;
   long timestamp = 0;
 
   bool focus = false;
 };
 
 struct create_ssh_session_event {
-  int type = NFX_CREATE_SSH_SESSION_EVENT;
+  int type = NRS_CREATE_SSH_SESSION_EVENT;
   int indicator = 0;
   long sessionId = 0;
   long timestamp = 0;
@@ -246,7 +246,7 @@ struct shared_memory_info {
         client_to_server_msg_semaphore(0),
         client_to_server_res_semaphore(0),
         img_buffer_size(0),
-        shared_string_type(NFX_SHARED_DEFAULT),
+        shared_string_type(NRS_SHARED_DEFAULT),
         w(1280),
         h(800),
         dirty(false),
@@ -346,5 +346,5 @@ inline boost::interprocess::message_queue* create_evt_mq_native(
   return evt_msg_queue;
 }
 
-}  // end namespace nativefx
+}  // namespace nativers
 #endif

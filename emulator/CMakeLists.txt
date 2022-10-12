@@ -29,7 +29,7 @@ link_directories("C:/Windows/System32/lib/sys")
 link_directories("C:/Windows/System32/bin")
 
 set(HEADERS
-        src/headers/nativefx_server.hpp
+        src/headers/nativers_server.hpp
         src/headers/args.hxx
         src/headers/character.h
         src/headers/character_color.h

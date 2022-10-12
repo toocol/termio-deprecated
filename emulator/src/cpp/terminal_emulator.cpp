@@ -206,7 +206,7 @@ void TerminalEmulator::setNativeRedrawCallback(
   nativeRedrawCallback = newNativeRedrawCallback;
 }
 
-void TerminalEmulator::setNativeCanvas(nativefx::SharedCanvas* nativeCanvas) {
+void TerminalEmulator::setNativeCanvas(nativers::SharedCanvas* nativeCanvas) {
   _terminalView->setNativeCanvas(nativeCanvas);
 }
 
