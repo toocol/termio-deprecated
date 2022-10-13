@@ -1,15 +1,18 @@
 #ifndef _EMU_ADAPTER_H_
 #define _EMU_ADAPTER_H_
 
-#include "shared_memory.h"
-
 #define REXPORT __declspec(dllexport)
 #define RCALL __stdcall
+
+#include <stdarg.h>
+#include <string>
 
 typedef long i32;
 typedef __int64 i64;
 typedef double f64;
 typedef std::string rstring;
+
+extern "C" {
 
 /**
  * Acquire next avaliable key of connection.
@@ -28,7 +31,7 @@ REXPORT i32 RCALL connect_to(rstring);
  *
  * @param key
  */
-REXPORT bool RCALL terminate(i32);
+REXPORT bool RCALL terminate_at(i32);
 
 /**
  * Judge whether the shared memory corresponding to the key is connected.
@@ -119,7 +122,7 @@ REXPORT i32 RCALL get_h(i32);
 REXPORT bool RCALL request_focus(i32, bool, i64);
 
 /*
- * Create a ssh sesison.
+ * Tell terminal emulator to create a ssh sesison.
  *
  * @param key
  * @param sessionId
@@ -137,18 +140,54 @@ REXPORT bool RCALL create_ssh_session(i32, i64, rstring, rstring, rstring, i64);
  */
 REXPORT void* RCALL get_buffer(i32);
 
+/**
+ * Thread lock the common resource.
+ *
+ * @param key
+ */
 REXPORT bool RCALL lock(i32);
 
-REXPORT bool RCALL lock(i32, i64);
+/**
+ * Thread lock the common resource with timeout.
+ *
+ * @param key
+ * @param timeout
+ */
+REXPORT bool RCALL lock_timeout(i32, i64);
 
+/**
+ * Unlock the common resource.
+ *
+ * @param key
+ */
 REXPORT void RCALL unlock(i32);
 
+/*
+ * Blocking wait for native image buffer changes.
+ *
+ * @param key
+ */
 REXPORT void RCALL wait_for_buffer_changes(i32);
 
+/*
+ * Whether the native image buffer has changed.
+ *
+ * @param key
+ */
 REXPORT bool RCALL has_buffer_changes(i32);
 
+/*
+ * Thread lock the native image buffer.
+ *
+ * @param key
+ */
 REXPORT void RCALL lock_buffer(i32);
 
+/*
+ * Thread unlock the native image buffer.
+ *
+ * @param key
+ */
 REXPORT void RCALL unlock_buffer(i32);
 
 REXPORT bool RCALL fire_mouse_pressed_event(i32 key, f64 x, f64 y, i32 buttons,
@@ -187,4 +226,5 @@ REXPORT bool RCALL fire_key_released_event(i32 key, rstring characters,
 REXPORT bool RCALL fire_key_typed_event(i32 key, rstring characters,
                                         i32 key_code, i32 modifiers,
                                         i64 timestamp);
+}
 #endif

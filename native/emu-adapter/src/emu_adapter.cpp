@@ -3,7 +3,7 @@
 
 #include "emu_adapter.h"
 #include <boost/thread/xtime.hpp>
-#include <string>
+#include <iostream>
 #include <vector>
 #include "shared_memory.h"
 
@@ -13,7 +13,7 @@ using namespace nativers;
 
 std::vector<std::string> names;
 std::vector<shared_memory_info*> connections;
-// for java events that are sent to the server
+// for client events that are sent to the server
 std::vector<ipc::message_queue*> evt_msg_queues;
 // for native server events sent to the java clinet
 std::vector<ipc::message_queue*> evt_msg_queues_native;
@@ -29,12 +29,12 @@ bool fire_mouse_event(i32 key, i32 evt_type, f64 x, f64 y, f64 amount,
                       i64 timestamp) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
-    return boolC2J(false);
+    return false;
   }
 
   mouse_event evt;
   evt.type |= evt_type;
-  evt.timestamp = timestamp;
+  evt.timestamp = (long)timestamp;
   evt.click_count = click_count;
   evt.x = x;
   evt.y = y;
@@ -60,12 +60,12 @@ bool fire_key_event(i32 key, i32 evt_type, const rstring& chars, i32 key_code,
                     i32 modifiers, i64 timestamp) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
-    return boolC2J(false);
+    return false;
   }
 
   key_event evt;
   evt.type |= evt_type;
-  evt.timestamp = timestamp;
+  evt.timestamp = (long)timestamp;
   store_key_codes(chars, evt.chars);
   evt.key_code = key_code;
   evt.modifiers = modifiers;
@@ -128,36 +128,35 @@ void update_buffer_connection(int key) {
   } catch (...) {
     std::cerr << "ERROR: cannot connect to '" << info_name
               << "'. Server probably not running." << std::endl;
-
-    return;
   }
 }
 
 void fire_native_event(int key, rstring type, rstring evt) {
-  if (key >= connections.size() || connections[key] == NULL) {
-    std::cerr << "ERROR: key not available: " << key << std::endl;
-    return;
-  }
+  // if (key >= connections.size() || connections[key] == NULL) {
+  //   std::cerr << "ERROR: key not available: " << key << std::endl;
+  //   return;
+  // }
 
-  jclass cls =
-      jni_env->FindClass("com/toocol/termio/platform/nativefx/NativeBinding");
+  // jclass cls =
+  //     jni_env->FindClass("com/toocol/termio/platform/nativefx/NativeBinding");
 
-  jmethodID fireNativeEventMethod = jni_env->GetStaticMethodID(
-      cls, "fireNativeEvent", "(ILjava/lang/String;Ljava/lang/String;)V");
+  // jmethodID fireNativeEventMethod = jni_env->GetStaticMethodID(
+  //   cls, "fireNativeEvent", "(ILjava/lang/String;Ljava/lang/String;)V");
 
-  if (fireNativeEventMethod == NULL) {
-    std::cerr << "ERROR: cannot fire native events. Method not found by JNI"
-              << std::endl;
-    return;
-  }
+  // if (fireNativeEventMethod == NULL) {
+  // std::cerr << "ERROR: cannot fire native events. Method not found by JNI"
+  //         << std::endl;
+  // return;
+  //}
 
-  jni_env->CallVoidMethod(cls, fireNativeEventMethod, key,
-                          stringC2J(jni_env, type), stringC2J(jni_env, evt));
+  // jni_env->CallVoidMethod(cls, fireNativeEventMethod, key,
+  //                         stringC2J(jni_env, type), stringC2J(jni_env, evt));
 }
 
-REXPORT i32 RCALL next_key(){return (i32)connections.size()}
+REXPORT i32 RCALL next_key() { return (i32)connections.size(); }
 
 REXPORT i32 RCALL connect_to(rstring name) {
+  using namespace ipc;
   // setup key and names for new connection
   int key = (int)connections.size();
   std::string info_name = get_info_name(key, name);
@@ -249,7 +248,7 @@ REXPORT i32 RCALL connect_to(rstring name) {
   return key;
 }
 
-REXPORT bool RCALL terminate(i32 key) {
+REXPORT bool RCALL terminate_at(i32 key) {
   if (key >= connections.size()) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return false;
@@ -309,7 +308,7 @@ REXPORT bool RCALL is_connected(i32 key) {
 REXPORT rstring RCALL send_msg(i32 key, rstring msg, i32 sharedStringType) {
   shared_memory_info* info_data = NULL;
   if (key >= connections.size()) {
-    return stringC2J(env, "ERROR: key not available");
+    return "ERROR: key not available";
   }
 
   info_data = connections[key];
@@ -382,7 +381,7 @@ REXPORT void RCALL set_dirty(i32 key, bool dirty) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
-    connections[key]->dirty = boolJ2C(dirty);
+    connections[key]->dirty = dirty;
   }
 }
 
@@ -390,7 +389,7 @@ REXPORT void RCALL set_buffer_ready(i32 key, bool value) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
-    connections[key]->buffer_ready = boolJ2C(value);
+    connections[key]->buffer_ready = value;
   }
 }
 
@@ -452,7 +451,7 @@ REXPORT bool RCALL create_ssh_session(i32 key, i64 session_id, rstring host,
                                       i64 timestamp) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
-    return boolC2J(false);
+    return false;
   }
 
   create_ssh_session_event evt;
@@ -460,10 +459,9 @@ REXPORT bool RCALL create_ssh_session(i32 key, i64 session_id, rstring host,
   evt.sessionId = (long)session_id;
   evt.timestamp = (long)timestamp;
 
-  store_shared_string(stringJ2C(env, host), evt.host, IPC_SSH_INFO_SIZE + 1);
-  store_shared_string(stringJ2C(env, user), evt.user, IPC_SSH_INFO_SIZE + 1);
-  store_shared_string(stringJ2C(env, password), evt.password,
-                      IPC_SSH_INFO_SIZE + 1);
+  store_shared_string(host, evt.host, IPC_SSH_INFO_SIZE + 1);
+  store_shared_string(user, evt.user, IPC_SSH_INFO_SIZE + 1);
+  store_shared_string(password, evt.password, IPC_SSH_INFO_SIZE + 1);
 
   // timed locking of resources
   boost::system_time const timeout =
@@ -502,7 +500,7 @@ REXPORT bool RCALL lock(i32 key) {
   }
 }
 
-REXPORT bool RCALL lock(i32 key, i64 rtimeout) {
+REXPORT bool RCALL lock_timeout(i32 key, i64 rtimeout) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return false;

@@ -1,5 +1,5 @@
-#ifndef SHAREDMEMORY_H
-#define SHAREDMEMORY_H
+#ifndef _SHARED_MEMORY_H_
+#define _SHARED_MEMORY_H_
 
 /*
  * Copyright 2019-2019 Michael Hoffer <info@michaelhoffer.de>. All rights

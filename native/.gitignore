@@ -55,3 +55,6 @@ cmake-build-debug/*
 node/bin/
 node/include/
 node/lib
+emu-adapter/include
+emu-adapter/bin
+emu-adapter/lib
