@@ -1,5 +1,0 @@
--XX:G1PeriodicGCInterval=1000
--XX:G1PeriodicGCSystemLoadThreshold=0
---add-reads kotlin.stdlib=kotlinx.coroutines.core.jvm
-
-mvn dependency:purge-local-repository -Dincludes=com.gluonhq:gluonfx-maven-plugin -DreResolve=false
