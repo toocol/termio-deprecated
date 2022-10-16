@@ -1,1 +1,9 @@
 [workspace]
+
+members = [
+    "desktop",
+    "utilities",
+    "core",
+    "platform",
+    "mosh"
+]
