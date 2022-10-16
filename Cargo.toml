@@ -1,4 +1,5 @@
 [workspace]
+name = "termio"
 
 members = [
     "desktop",

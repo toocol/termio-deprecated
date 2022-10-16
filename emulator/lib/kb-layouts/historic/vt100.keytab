@@ -50,7 +50,7 @@ key Escape : "\E"
 key Tab    : "\t"
 
 # VT100 can add an extra \n after return.
-# The NewLine mode is set by an escape sequence.
+# The NewLine mode is set by an escape SEQUENCE.
 
 key Return-NewLine : "\r"  
 key Return+NewLine : "\r\n"
@@ -62,7 +62,7 @@ key Delete    : "\E[3~"
 
 # These codes are for the VT52 mode of VT100
 # The Ansi mode (i.e. VT100 mode) is set by
-# an escape sequence
+# an escape SEQUENCE
 
 key Up   -Shift-Ansi : "\EA"
 key Down -Shift-Ansi : "\EB"
@@ -71,7 +71,7 @@ key Left -Shift-Ansi : "\ED"
 
 # VT100 emits a mode bit together
 # with the arrow keys.The AppCuKeys
-# mode is set by an escape sequence.
+# mode is set by an escape SEQUENCE.
 
 key Up   -Shift+Ansi+AppCuKeys : "\EOA"
 key Down -Shift+Ansi+AppCuKeys : "\EOB"
