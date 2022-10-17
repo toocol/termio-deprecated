@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+#![allow(dead_code)]
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::SystemTime;
+
+use super::time::TimeStamp;
 
 const LONG_BIT: u32 = 64;
 const UNIQUE_ID_BITS: u32 = 2;
@@ -25,12 +26,17 @@ impl SnowflakeGuidGenerator {
             }
         }
         if timestamp > LAST_TIMESTAMP.load(Ordering::SeqCst) {
-            if let Err(_e) = SEQUENCE.fetch_update(Ordering::SeqCst, Ordering::SeqCst, |_x| Some(1)) {
+            if let Err(_e) = SEQUENCE.fetch_update(Ordering::SeqCst, Ordering::SeqCst, |_x| Some(1))
+            {
                 return 0;
             }
         }
 
-        if let Err(_e) = LAST_TIMESTAMP.fetch_update(Ordering::SeqCst, Ordering::SeqCst, move |_x| Some(timestamp)) {
+        if let Err(_e) =
+            LAST_TIMESTAMP.fetch_update(Ordering::SeqCst, Ordering::SeqCst, move |_x| {
+                Some(timestamp)
+            })
+        {
             return 0;
         }
         (timestamp << TIMESTAMP_SHIFT_BITS)
@@ -39,9 +45,7 @@ impl SnowflakeGuidGenerator {
     }
 
     fn time_gen() -> u64 {
-        SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .unwrap().as_millis() as u64
+        TimeStamp::timestamp()
     }
 
     fn til_next_millis(last_timestamp: u64) -> u64 {
@@ -56,6 +60,7 @@ impl SnowflakeGuidGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
 
     #[test]
     fn test_snowflake_guid_generator() {
@@ -63,10 +68,9 @@ mod tests {
 
         for _i in 0..1000 {
             let id = SnowflakeGuidGenerator::next_id();
-            assert_ne!(0 , id);
+            assert_ne!(0, id);
             assert!(map.get(&id).is_none());
             map.insert(id, true);
         }
     }
 }
-

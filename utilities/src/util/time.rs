@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::time::SystemTime;
 
 pub struct TimeRecorder {
@@ -6,11 +7,13 @@ pub struct TimeRecorder {
 
 impl TimeRecorder {
     pub fn new() -> TimeRecorder {
-        TimeRecorder { start: SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis() as u64 }
+        TimeRecorder {
+            start: TimeStamp::timestamp(),
+        }
     }
 
     pub fn end(&self) -> u64 {
-        let end = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis() as u64;
+        let end = TimeStamp::timestamp();
         end - self.start
     }
 }
@@ -19,7 +22,10 @@ pub struct TimeStamp {}
 
 impl TimeStamp {
     pub fn timestamp() -> u64 {
-        SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis() as u64
+        SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as u64
     }
 
     pub fn timestamp_16() -> u16 {
@@ -33,9 +39,9 @@ impl TimeStamp {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use std::thread;
     use std::time::Duration;
-    use super::*;
 
     #[test]
     fn test_time_recorder() {
