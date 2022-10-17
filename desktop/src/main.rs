@@ -1,5 +1,5 @@
-use gtk::{Application, ApplicationWindow};
 use gtk::prelude::*;
+use gtk::{Application, ApplicationWindow};
 
 const APP_ID: &str = "termio.community";
 
