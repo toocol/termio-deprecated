@@ -1,23 +1,57 @@
 #![allow(dead_code)]
-mod events;
+mod dispatcher;
+pub mod events;
 
-use std::collections::HashMap;
+pub use self::events::*;
 
-pub use self::events::{AsyncEvent, SyncEvent};
+#[cfg(test)]
+mod tests {
+    use super::as_sync_event;
+    use crate::event::{SyncEvent, SyncEventListener};
+    use std::any::Any;
 
-pub trait WatchTypes {
-    fn watch(&self) -> [&'static str];
-}
+    struct TestSyncEvent {
+        val: u32,
+    }
 
-pub trait AsyncEventListener: WatchTypes {
-    fn act_on(&self, event: &dyn AsyncEvent);
-}
+    const TEST_SYNC_EVENT_TYPE: &'static str = "event.sync.test";
 
-pub trait SyncEventListener: WatchTypes {
-    fn act_on(&self, event: &dyn SyncEvent);
-}
+    impl SyncEvent for TestSyncEvent {
+        fn as_sync_event(&self) -> &dyn SyncEvent {
+            self
+        }
 
-struct EventListenerContainer {
-    sync_listener_map: HashMap<String, &'static dyn SyncEventListener>,
-    async_listener_map: HashMap<String, &'static dyn AsyncEventListener>,
+        fn as_any(&self) -> &dyn Any {
+            self
+        }
+
+        fn type_of(&self) -> &'static str {
+            TEST_SYNC_EVENT_TYPE
+        }
+    }
+
+    struct TestSyncEventListener {}
+
+    impl SyncEventListener for TestSyncEventListener {
+        fn act_on(&self, event: &dyn SyncEvent) {
+            match as_sync_event::<TestSyncEvent>(event) {
+                Some(evt) => {
+                    assert_eq!(evt.val, 1);
+                }
+                None {} => {
+                    panic!("Event listener act failed on event type transfer.")
+                }
+            };
+        }
+
+        fn watch(&self) -> &'static str {
+            TEST_SYNC_EVENT_TYPE
+        }
+    }
+
+    #[test]
+    fn test_sync_event() {
+        let event = TestSyncEvent { val: 1 };
+        event.dispath()
+    }
 }

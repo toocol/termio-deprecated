@@ -13,6 +13,11 @@ const MAX_SEQUENCE_PER_MILLIS: u64 = 0xFFFFFFFFFFFF >> (LONG_BIT - SEQUENCE_BITS
 static SEQUENCE: AtomicU64 = AtomicU64::new(1);
 static LAST_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
+/// Fetch a random global unique id by algorithm snowflake.
+/// ## Usage
+/// ```ignore
+/// let id = SnowflakeGuidGenerator::next_id();
+/// ```
 pub struct SnowflakeGuidGenerator {}
 
 impl SnowflakeGuidGenerator {
