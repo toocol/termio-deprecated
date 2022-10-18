@@ -1,6 +1,13 @@
 #![allow(dead_code)]
 use std::time::SystemTime;
 
+/// A struct to record a period of time and return it's time consumptions.
+/// ## Usage
+/// ```ignore
+/// let recorder = TimeRecorder::new();
+/// ... 
+/// let time_consumption = recorder.end();
+/// ```
 pub struct TimeRecorder {
     start: u64,
 }
