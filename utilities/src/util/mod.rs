@@ -1,2 +1,2 @@
-mod guid;
-mod time;
+pub mod guid;
+pub mod time;

@@ -82,7 +82,7 @@ where
 /// ## Usage
 /// ```ignore
 /// ...
-/// let val_opt: Option<&TestAsyncEvent> = as_sync_event::<TestAsyncEvent>(event);
+/// let val_opt: Option<&TestAsyncEvent> = as_async_event::<TestAsyncEvent>(event);
 /// ```
 pub fn as_async_event<T>(event: &dyn AsyncEvent) -> Option<&T>
 where
@@ -92,14 +92,58 @@ where
 }
 
 /////////////////////////////// Event Listener ////////////////////////////////
-pub trait SyncEventListener: Sync {
+pub trait SyncEventListener: Sync + Send {
     fn watch(&self) -> &'static str;
 
     fn act_on(&self, event: &dyn SyncEvent);
 }
 
-pub trait AsyncEventListener: Sync {
+pub trait AsyncEventListener: Sync + Send {
     fn watch(&self) -> &'static str;
 
     fn act_on(&self, event: &dyn AsyncEvent);
+}
+
+/////////////////////////////// Macros ////////////////////////////////
+pub trait RegisterListener {
+    fn process(self);
+}
+
+impl RegisterListener for Box<dyn SyncEventListener> {
+    fn process(self) {
+        SYNC_LISTENER_MAP.lock().unwrap().insert(self.watch(), self);
+    }
+}
+
+impl RegisterListener for Box<dyn AsyncEventListener> {
+    fn process(self) {
+        ASYNC_LISTENER_MAP
+            .lock()
+            .unwrap()
+            .insert(self.watch(), self);
+    }
+}
+
+#[macro_export]
+macro_rules! reg_sync_listeners {
+    ( $($x:expr),* ) => {
+        {
+            $(
+                let boxed_listener = Box::new($x) as Box<dyn super::events::SyncEventListener>;
+                super::events::RegisterListener::process(boxed_listener);
+            )*
+        }
+     };
+}
+
+#[macro_export]
+macro_rules! reg_async_listeners {
+    ( $($x:expr),* ) => {
+        {
+            $(
+                let boxed_listener = Box::new($x) as Box<dyn super::events::AsyncEventListener>;
+                super::events::RegisterListener::process(boxed_listener);
+            )*
+        }
+     };
 }

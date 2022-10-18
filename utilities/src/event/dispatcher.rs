@@ -5,7 +5,9 @@ use std::sync::Mutex;
 
 /////////////////////////////// Event Dispatcher ////////////////////////////////
 pub fn dispatch_sync_event(event: &dyn SyncEvent) {
-    println!("Receive syn event, {}", event.type_of());
+    if let Some(listener_box) = SYNC_LISTENER_MAP.lock().unwrap().get(event.type_of()) {
+        listener_box.act_on(event)
+    }
 }
 
 pub fn dispatch_async_event(event: &dyn AsyncEvent) {
@@ -13,8 +15,8 @@ pub fn dispatch_async_event(event: &dyn AsyncEvent) {
 }
 
 lazy_static! {
-    static ref SYNC_LISTENER_MAP: Mutex<HashMap<String, &'static dyn SyncEventListener>> =
+    pub static ref SYNC_LISTENER_MAP: Mutex<HashMap<&'static str, Box<dyn SyncEventListener>>> =
         Mutex::new(HashMap::new());
-    static ref ASYNC_LISTENER_MAP: Mutex<HashMap<String, &'static dyn AsyncEventListener>> =
+    pub static ref ASYNC_LISTENER_MAP: Mutex<HashMap<&'static str, Box<dyn AsyncEventListener>>> =
         Mutex::new(HashMap::new());
 }
