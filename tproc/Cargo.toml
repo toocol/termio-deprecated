@@ -1,9 +1,13 @@
 [package]
-name = "utilities"
+name = "tproc"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+proc-macro = true
+
 [dependencies]
-lazy_static = "1.4.0"
-tproc = { path = "../tproc" }
+syn = "1.0"
+quote = "1.0"
+proc-macro2 = "1.0.28"

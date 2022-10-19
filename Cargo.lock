@@ -646,6 +646,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tproc"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "ucd-trie"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -662,6 +671,7 @@ name = "utilities"
 version = "0.1.0"
 dependencies = [
  "lazy_static",
+ "tproc",
 ]
 
 [[package]]

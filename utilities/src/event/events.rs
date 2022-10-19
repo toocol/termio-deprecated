@@ -1,14 +1,16 @@
-use std::any::Any;
+pub use tproc::Dispatchable;
 
 use super::dispatcher::*;
+use std::{any::Any, vec};
 
 /////////////////////////////// Event ////////////////////////////////
 /// The trait for SyncEvent
 /// ## Example:
 /// ```
-/// use utilities::event::SyncEvent;
+/// use utilities::event::{SyncEvent, Dispatchable};
 /// use std::any::Any;
 ///
+/// #[derive(Dispatchable)]
 /// struct TestSyncEvent {}
 ///
 /// impl SyncEvent for TestSyncEvent {
@@ -18,28 +20,27 @@ use super::dispatcher::*;
 ///     }
 ///     
 ///     fn as_any(&self) -> &dyn Any { self }
-///     
-///     fn as_sync_event(&self) -> &dyn SyncEvent { self }
 /// }
+/// ```
+/// ---
+/// And dispatch the sync event by calling
+/// ``` ignore
+/// let evt = TestSyncEvent {};
+/// TestSyncEvent::dispatch(&evt);
 /// ```
 pub trait SyncEvent {
     fn type_of(&self) -> &'static str;
 
-    fn as_sync_event(&self) -> &dyn SyncEvent;
-
     fn as_any(&self) -> &dyn Any;
-
-    fn dispath(&self) {
-        dispatch_sync_event(self.as_sync_event());
-    }
 }
 
 /// The trait for AsyncEvent
 /// ## Example:
 /// ```
-/// use utilities::event::AsyncEvent;
+/// use utilities::event::{AsyncEvent, Dispatchable};
 /// use std::any::Any;
 ///
+/// #[derive(Dispatchable)]
 /// struct TestAsyncEvent {}
 ///
 /// impl AsyncEvent for TestAsyncEvent {
@@ -49,46 +50,79 @@ pub trait SyncEvent {
 ///     }
 ///     
 ///     fn as_any(&self) -> &dyn Any { self }
-///     
-///     fn as_async_event(&self) -> &dyn AsyncEvent { self }
 /// }
 /// ```
-pub trait AsyncEvent {
+/// ---
+/// And dispatch the async event by calling(the api was a little diffrent from SyncEvent):
+/// ``` ignore
+/// let evt = TestAsyncEvent {};
+/// TestAsyncEvent::dispatch(Box::new(evt));
+/// ```
+pub trait AsyncEvent: Send + Sync {
     fn type_of(&self) -> &'static str;
 
-    fn as_async_event(&self) -> &dyn AsyncEvent;
-
     fn as_any(&self) -> &dyn Any;
+}
 
-    fn dispath(&self) {
-        dispatch_async_event(self.as_async_event());
+/// Every sync/async event should derive this trait by proc marco `#[derive(Dispatchable)]`
+/// ## Sample
+/// ``` ignore
+/// #[derive(Dispatchable)]
+/// struct TestSyncEvent {}
+/// ```
+pub trait Dispatchable {
+    fn dispatch(evt: &dyn SyncEvent) {
+        // Because of these sync events were processing synchornized, we just need the reference of event.
+        dispatch_sync_event(evt);
+    }
+
+    fn dispath(evt: Box<dyn AsyncEvent>) {
+        dispatch_async_event(evt);
     }
 }
 
-/// Transfer the 'SyncEvent' trait object to the struct SyncEvent impletion 'T'
+/// Transfer the 'SyncEvent' trait object to the struct SyncEvent impletion 'T'.  
+///
+/// **Panic on type mismatch**
+///
 /// ## Usage
 /// ```ignore
 /// ...
-/// let val_opt: Option<&TestSyncEvent> = as_sync_event::<TestSyncEvent>(event);
+/// let val: &TestSyncEvent = as_sync_event::<TestSyncEvent>(event);
 /// ```
-pub fn as_sync_event<T>(event: &dyn SyncEvent) -> Option<&T>
+pub fn as_sync_event<'a, T>(event: &'a dyn SyncEvent) -> &'a T
 where
     T: SyncEvent + 'static,
 {
-    event.as_any().downcast_ref::<T>()
+    event.as_any().downcast_ref::<T>().expect(
+        format!(
+            "Sync event listener act failed on event type transfer, event = {}",
+            event.type_of()
+        )
+        .as_str(),
+    )
 }
 
 /// Transfer the 'AsyncEvent' trait object to the struct AsyncEvent impletion 'T'
+///
+/// **Panic on type mismatch**
+///
 /// ## Usage
 /// ```ignore
 /// ...
-/// let val_opt: Option<&TestAsyncEvent> = as_async_event::<TestAsyncEvent>(event);
+/// let val: &TestAsyncEvent = as_async_event::<TestAsyncEvent>(event);
 /// ```
-pub fn as_async_event<T>(event: &dyn AsyncEvent) -> Option<&T>
+pub fn as_async_event<'a, T>(event: &'a dyn AsyncEvent) -> &'a T
 where
     T: AsyncEvent + 'static,
 {
-    event.as_any().downcast_ref::<T>()
+    event.as_any().downcast_ref::<T>().expect(
+        format!(
+            "Async event listener act failed on event type transfer, event = {}",
+            event.type_of()
+        )
+        .as_str(),
+    )
 }
 
 /////////////////////////////// Event Listener ////////////////////////////////
@@ -104,23 +138,40 @@ pub trait AsyncEventListener: Sync + Send {
     fn act_on(&self, event: &dyn AsyncEvent);
 }
 
-/////////////////////////////// Macros ////////////////////////////////
+// /////////////////////////////// Macros ////////////////////////////////
 pub trait RegisterListener {
     fn process(self);
 }
 
 impl RegisterListener for Box<dyn SyncEventListener> {
     fn process(self) {
-        SYNC_LISTENER_MAP.lock().unwrap().insert(self.watch(), self);
+        match SYNC_LISTENER_MAP.lock() {
+            Ok(mut map_guard) => {
+                map_guard.entry(self.watch()).or_insert(vec![]).push(self);
+            }
+            Err(_) => {
+                eprintln!(
+                    "Register sync event listener failed, listener watch: {}",
+                    self.watch()
+                )
+            }
+        }
     }
 }
 
 impl RegisterListener for Box<dyn AsyncEventListener> {
     fn process(self) {
-        ASYNC_LISTENER_MAP
-            .lock()
-            .unwrap()
-            .insert(self.watch(), self);
+        match ASYNC_LISTENER_MAP.lock() {
+            Ok(mut map_guard) => {
+                map_guard.entry(self.watch()).or_insert(vec![]).push(self);
+            }
+            Err(_) => {
+                eprintln!(
+                    "Register async event listener failed, listener watch: {}",
+                    self.watch()
+                )
+            }
+        }
     }
 }
 

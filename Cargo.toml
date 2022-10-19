@@ -4,5 +4,6 @@ members = [
     "utilities",
     "core",
     "platform",
-    "mosh"
+    "mosh",
+    "tproc",
 ]
