@@ -90,7 +90,7 @@ pub trait Dispatchable {
 /// ...
 /// let val: &TestSyncEvent = as_sync_event::<TestSyncEvent>(event);
 /// ```
-pub fn as_sync_event<'a, T>(event: &'a dyn SyncEvent) -> &'a T
+pub fn as_sync_event<T>(event: &dyn SyncEvent) -> &T
 where
     T: SyncEvent + 'static,
 {
@@ -112,7 +112,7 @@ where
 /// ...
 /// let val: &TestAsyncEvent = as_async_event::<TestAsyncEvent>(event);
 /// ```
-pub fn as_async_event<'a, T>(event: &'a dyn AsyncEvent) -> &'a T
+pub fn as_async_event<T>(event: &dyn AsyncEvent) -> &T
 where
     T: AsyncEvent + 'static,
 {
