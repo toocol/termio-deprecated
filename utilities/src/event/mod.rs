@@ -30,16 +30,30 @@ mod tests {
         }
     }
 
-    struct TestSyncEventListener {}
+    struct TestSyncEventListener1 {}
 
-    impl SyncEventListener for TestSyncEventListener {
+    impl SyncEventListener for TestSyncEventListener1 {
         fn watch(&self) -> &'static str {
             TEST_SYNC_EVENT_TYPE
         }
 
         fn act_on(&self, event: &dyn SyncEvent) {
             let evt = as_sync_event::<TestSyncEvent>(event);
-            println!("Success processing the event, {}", event.type_of());
+            println!("[1] Success processing the event, {}", event.type_of());
+            assert_eq!(evt.val, 1);
+        }
+    }
+
+    struct TestSyncEventListener2 {}
+
+    impl SyncEventListener for TestSyncEventListener2 {
+        fn watch(&self) -> &'static str {
+            TEST_SYNC_EVENT_TYPE
+        }
+
+        fn act_on(&self, event: &dyn SyncEvent) {
+            let evt = as_sync_event::<TestSyncEvent>(event);
+            println!("[2] Success processing the event, {}", event.type_of());
             assert_eq!(evt.val, 1);
         }
     }
@@ -76,15 +90,15 @@ mod tests {
 
     #[test]
     fn test_sync_event() {
-        reg_sync_listeners![TestSyncEventListener {}];
+        reg_sync_listeners![TestSyncEventListener1 {}, TestSyncEventListener2 {}];
         let event = TestSyncEvent { val: 1 };
-        TestSyncEvent::dispatch_sync(&event);
+        TestSyncEvent::dispatch(&event);
     }
 
     #[test]
     fn test_async_event() {
         reg_async_listeners!(TestAsyncEventListener {});
         let evt = TestAsyncEvent { val: 1 };
-        TestAsyncEvent::dispath_async(Box::new(evt));
+        TestAsyncEvent::dispath(Box::new(evt));
     }
 }

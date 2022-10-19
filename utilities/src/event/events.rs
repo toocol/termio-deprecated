@@ -71,11 +71,12 @@ pub trait AsyncEvent: Send + Sync {
 /// struct TestSyncEvent {}
 /// ```
 pub trait Dispatchable {
-    fn dispatch_sync(evt: &dyn SyncEvent) {
+    fn dispatch(evt: &dyn SyncEvent) {
+        // Because of these sync events were processing synchornized, we just need the reference of event.
         dispatch_sync_event(evt);
     }
 
-    fn dispath_async(evt: Box<dyn AsyncEvent>) {
+    fn dispath(evt: Box<dyn AsyncEvent>) {
         dispatch_async_event(evt);
     }
 }
