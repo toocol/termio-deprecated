@@ -32,14 +32,14 @@ use crate::util::string_const::*;
 /// ```
 pub struct AnsiString {
     builder: String,
-    bg_256: i32,
-    fg_256: i32,
-    bg_r: i32,
-    bg_g: i32,
-    bg_b: i32,
-    fg_r: i32,
-    fg_g: i32,
-    fg_b: i32,
+    bg_256: i16,
+    fg_256: i16,
+    bg_r: i16,
+    bg_g: i16,
+    bg_b: i16,
+    fg_r: i16,
+    fg_g: i16,
+    fg_b: i16,
 }
 
 impl AnsiString {
@@ -65,7 +65,7 @@ impl AnsiString {
         self.builder.len()
     }
 
-    pub fn foreground_256(&mut self, color: i32) -> &mut Self {
+    pub fn foreground_256(&mut self, color: i16) -> &mut Self {
         if color < 0 || color > 255 {
             return self;
         }
@@ -76,7 +76,7 @@ impl AnsiString {
         self
     }
 
-    pub fn background_256(&mut self, color: i32) -> &mut Self {
+    pub fn background_256(&mut self, color: i16) -> &mut Self {
         if color < 0 || color > 255 {
             return self;
         }
@@ -87,7 +87,7 @@ impl AnsiString {
         self
     }
 
-    pub fn foreground_rgb(&mut self, r: i32, g: i32, b: i32) -> &mut Self {
+    pub fn foreground_rgb(&mut self, r: i16, g: i16, b: i16) -> &mut Self {
         if r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 {
             return self;
         }
@@ -98,7 +98,7 @@ impl AnsiString {
         self
     }
 
-    pub fn background_rgb(&mut self, r: i32, g: i32, b: i32) -> &mut Self {
+    pub fn background_rgb(&mut self, r: i16, g: i16, b: i16) -> &mut Self {
         if r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 {
             return self;
         }
@@ -155,7 +155,7 @@ impl AnsiString {
         self
     }
 
-    pub fn append_with_cursor(&mut self, str: &str, line: i32, column: i32) -> &mut Self {
+    pub fn append_with_cursor(&mut self, str: &str, line: i16, column: i16) -> &mut Self {
         if str == "" {
             return self;
         }
@@ -303,25 +303,25 @@ impl AnsiString {
 struct ColorHelper {}
 impl ColorHelper {
     // 256-Color mode
-    fn foreground_256(msg: &str, color: i32) -> String {
+    fn foreground_256(msg: &str, color: i16) -> String {
         format!("\u{001b}[38;5;{}m{}", color, msg)
     }
-    fn background_256(msg: &str, color: i32) -> String {
+    fn background_256(msg: &str, color: i16) -> String {
         format!("\u{001b}[48;5;{}m{}", color, msg)
     }
 
     // RGB-color mode
-    fn foreground_rgb(msg: &str, r: i32, g: i32, b: i32) -> String {
+    fn foreground_rgb(msg: &str, r: i16, g: i16, b: i16) -> String {
         format!("\u{001b}[38;2;{};{};{}m{}", r, g, b, msg)
     }
-    fn background_rgb(msg: &str, r: i32, g: i32, b: i32) -> String {
+    fn background_rgb(msg: &str, r: i16, g: i16, b: i16) -> String {
         format!("\u{001b}[48;2;{};{};{}m{}", r, g, b, msg)
     }
 }
 
 struct CursorPositionHelper {}
 impl CursorPositionHelper {
-    fn cursor_move(msg: &str, line: i32, column: i32) -> String {
+    fn cursor_move(msg: &str, line: i16, column: i16) -> String {
         format!("\u{001b}[{};{}H{}", line, column, msg)
     }
 }
