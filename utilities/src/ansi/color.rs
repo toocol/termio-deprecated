@@ -1,6 +1,5 @@
 use lazy_static::lazy_static;
 use std::collections::HashMap;
-use std::sync::Mutex;
 
 pub enum Color {
     Color256 {
@@ -11,7 +10,7 @@ pub enum Color {
 }
 
 lazy_static! {
-    pub static ref COLOR_256_PALETTE: Mutex<HashMap<u8, Color>> = {
+    pub static ref COLOR_256_PALETTE: HashMap<u8, Color> = {
         let color_vec = build_color_256_vec();
         let mut color_map = HashMap::new();
         for color in color_vec {
@@ -22,7 +21,7 @@ lazy_static! {
             } = color;
             color_map.insert(color_code, color);
         }
-        Mutex::new(color_map)
+        color_map
     };
 }
 
@@ -1318,7 +1317,7 @@ mod tests {
     #[test]
     fn test_color_palette() {
         let mut counter = 0;
-        for (code, color) in COLOR_256_PALETTE.lock().unwrap().iter() {
+        for (code, color) in COLOR_256_PALETTE.iter() {
             let Color::Color256 {
                 color_code,
                 hex_code: _,
