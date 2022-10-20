@@ -189,7 +189,7 @@ impl AnsiString {
         self
     }
 
-    pub fn append_i32(&mut self, val: i16) -> &mut Self {
+    pub fn append_i32(&mut self, val: i32) -> &mut Self {
         self.append(val.to_string().as_str());
         self
     }
