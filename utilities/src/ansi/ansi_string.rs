@@ -1,34 +1,37 @@
 #![allow(dead_code)]
-const ESC0M: &'static str = "\u{001b}[0m";
-const ESC1M: &'static str = "\u{001b}[1m";
-const ESC2M: &'static str = "\u{001b}[2m";
-const ESC3M: &'static str = "\u{001b}[3m";
-const ESC4M: &'static str = "\u{001b}[4m";
-const ESC5M: &'static str = "\u{001b}[5m";
-const ESC7M: &'static str = "\u{001b}[7m";
-const ESC8M: &'static str = "\u{001b}[8m";
-const ESC9M: &'static str = "\u{001b}[9m";
-const ESC22M: &'static str = "\u{001b}[22m";
-const ESC23M: &'static str = "\u{001b}[23m";
-const ESC24M: &'static str = "\u{001b}[24m";
-const ESC25M: &'static str = "\u{001b}[25m";
-const ESC27M: &'static str = "\u{001b}[27m";
-const ESC28M: &'static str = "\u{001b}[28m";
-const ESC29M: &'static str = "\u{001b}[29m";
-const ESCJ: &'static str = "\u{001b}[J";
-const ESC0J: &'static str = "\u{001b}[0J";
-const ESC1J: &'static str = "\u{001b}[1J";
-const ESC2J: &'static str = "\u{001b}[2J";
-const ESC3J: &'static str = "\u{001b}[3J";
-const ESCK: &'static str = "\u{001b}[K";
-const ESC0K: &'static str = "\u{001b}[0K";
-const ESC1K: &'static str = "\u{001b}[1K";
-const ESC2K: &'static str = "\u{001b}[2K";
-const ESCH: &'static str = "\u{001b}[H";
+use super::escape_sequence::*;
+use crate::util::string_const::*;
 
+/// Building syled string texts with [Ansi Escape Code Sequence](https://gist.github.com/Joezeo/ce688cf42636376650ead73266256336) for terminal.  
+///
+/// ### Functions:
+/// - Change the text **foreground/background** color.
+/// - Set/Reset **bold/underline/italic/blinking/strikethrough** style mode.
+/// - Move the cursor position to display inputing text on terminal.
+/// ### Example
+/// ```
+/// use utilities::ansi::AnsiString;
+///
+/// let mut ansi_string = AnsiString::new();
+/// ansi_string.foreground_256(45) // Change the foreground color to 45(256-Color).
+///             // Append text, and the text "Hello World!" will display in foreground color 45(256-color).
+///             .append("Hello World!")
+///             // Clear the foreground color.
+///             .de_foreground()
+///             // Change the background color to (12, 12, 12) (RGB-Color).
+///             .background_rgb(12, 12, 12)
+///             // Set text style bold.
+///             .bold()
+///             // Set text tyle italic.
+///             .italic()
+///             // Append text, and the text "Hello You!" will display in background color (12,12,12)(RGB-color), bold and italic.
+///             .append("Hello you!")
+///             // Clear all the style mode (foreground/background/bold/italic...)
+///             .clear_style();
+/// println!("{}", ansi_string.to_string());
+/// ```
 pub struct AnsiString {
     builder: String,
-    color_mode: ColorMode,
     bg_256: i32,
     fg_256: i32,
     bg_r: i32,
@@ -43,7 +46,6 @@ impl AnsiString {
     pub fn new() -> Self {
         AnsiString {
             builder: String::new(),
-            color_mode: ColorMode::Color256,
             bg_256: -1,
             fg_256: -1,
             bg_r: -1,
@@ -67,7 +69,9 @@ impl AnsiString {
         if color < 0 || color > 255 {
             return self;
         }
-        self.color_mode = ColorMode::Color256;
+        self.fg_r = -1;
+        self.fg_g = -1;
+        self.fg_b = -1;
         self.fg_256 = color;
         self
     }
@@ -76,7 +80,9 @@ impl AnsiString {
         if color < 0 || color > 255 {
             return self;
         }
-        self.color_mode = ColorMode::Color256;
+        self.bg_r = -1;
+        self.bg_g = -1;
+        self.bg_b = -1;
         self.bg_256 = color;
         self
     }
@@ -85,10 +91,10 @@ impl AnsiString {
         if r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 {
             return self;
         }
-        self.color_mode = ColorMode::ColorRgb;
         self.fg_r = r;
         self.fg_g = g;
         self.fg_b = b;
+        self.fg_256 = -1;
         self
     }
 
@@ -96,14 +102,14 @@ impl AnsiString {
         if r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 {
             return self;
         }
-        self.color_mode = ColorMode::ColorRgb;
         self.bg_r = r;
         self.bg_g = g;
         self.bg_b = b;
+        self.bg_256 = -1;
         self
     }
 
-    pub fn de_foreground(&mut self) -> &mut Self {
+    fn de_foreground(&mut self) -> &mut Self {
         self.fg_256 = -1;
         self.fg_r = -1;
         self.fg_g = -1;
@@ -111,7 +117,7 @@ impl AnsiString {
         self
     }
 
-    pub fn de_background(&mut self) -> &mut Self {
+    fn de_background(&mut self) -> &mut Self {
         self.bg_256 = -1;
         self.bg_r = -1;
         self.bg_g = -1;
@@ -119,26 +125,24 @@ impl AnsiString {
         self
     }
 
-    pub fn clear_color(&mut self) -> &mut Self {
+    pub fn clear_style(&mut self) -> &mut Self {
+        self.builder.push_str(ESC0M);
         self.de_background().de_foreground()
     }
 
     fn fill_color(&self, str: &str) -> String {
         let mut filled = String::from(str);
-        if self.color_mode == ColorMode::Color256 {
-            if self.fg_256 != -1 {
-                filled = ColorHelper::foreground_256(&filled, self.fg_256);
-            }
-            if self.bg_256 != -1 {
-                filled = ColorHelper::background_256(&filled, self.bg_256);
-            }
-        } else if self.color_mode == ColorMode::ColorRgb {
-            if self.fg_r != -1 && self.fg_g != -1 && self.fg_b != -1 {
-                filled = ColorHelper::foreground_rgb(&filled, self.fg_r, self.fg_g, self.fg_b);
-            }
-            if self.bg_r != -1 && self.bg_g != -1 && self.bg_b != -1 {
-                filled = ColorHelper::background_rgb(&filled, self.fg_r, self.fg_g, self.fg_b);
-            }
+        if self.fg_256 != -1 {
+            filled = ColorHelper::foreground_256(&filled, self.fg_256);
+        }
+        if self.bg_256 != -1 {
+            filled = ColorHelper::background_256(&filled, self.bg_256);
+        }
+        if self.fg_r != -1 && self.fg_g != -1 && self.fg_b != -1 {
+            filled = ColorHelper::foreground_rgb(&filled, self.fg_r, self.fg_g, self.fg_b);
+        }
+        if self.bg_r != -1 && self.bg_g != -1 && self.bg_b != -1 {
+            filled = ColorHelper::background_rgb(&filled, self.bg_r, self.bg_g, self.bg_b);
         }
         filled
     }
@@ -148,6 +152,15 @@ impl AnsiString {
             return self;
         }
         self.builder.push_str(self.fill_color(str).as_str());
+        self
+    }
+
+    pub fn append_with_cursor(&mut self, str: &str, line: i32, column: i32) -> &mut Self {
+        if str == "" {
+            return self;
+        }
+        let changed = CursorPositionHelper::cursor_move(str, line, column);
+        self.builder.push_str(changed.as_str());
         self
     }
 
@@ -201,7 +214,6 @@ impl AnsiString {
         self
     }
 
-
     pub fn append_f64(&mut self, val: f64) -> &mut Self {
         self.append(val.to_string().as_str());
         self
@@ -236,7 +248,7 @@ impl AnsiString {
         self.builder.push_str(ESC4M);
         self
     }
-    
+
     pub fn de_underline(&mut self) -> &mut Self {
         self.builder.push_str(ESC24M);
         self
@@ -261,12 +273,31 @@ impl AnsiString {
         self.builder.push_str(ESC29M);
         self
     }
-}
 
-#[derive(PartialEq, Eq)]
-enum ColorMode {
-    Color256,
-    ColorRgb,
+    pub fn crlf(&mut self) -> &Self {
+        self.builder.push_str(CRLF);
+        self
+    }
+
+    pub fn tab(&mut self) -> &Self {
+        self.builder.push_str(TAB);
+        self
+    }
+
+    pub fn space(&mut self) -> &Self {
+        self.builder.push_str(SPACE);
+        self
+    }
+
+    pub fn space_in(&mut self, cnt: usize) -> &Self {
+        self.builder.push_str(SPACE.repeat(cnt).as_str());
+        self
+    }
+
+    pub fn clear_str(&mut self) -> &Self {
+        self.builder.clear();
+        self
+    }
 }
 
 struct ColorHelper {}
@@ -285,5 +316,12 @@ impl ColorHelper {
     }
     fn background_rgb(msg: &str, r: i32, g: i32, b: i32) -> String {
         format!("\u{001b}[48;2;{};{};{}m{}", r, g, b, msg)
+    }
+}
+
+struct CursorPositionHelper {}
+impl CursorPositionHelper {
+    fn cursor_move(msg: &str, line: i32, column: i32) -> String {
+        format!("\u{001b}[{};{}H{}", line, column, msg)
     }
 }
