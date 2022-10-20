@@ -4,14 +4,14 @@ use std::sync::Mutex;
 
 pub enum Color {
     Color256 {
-        color_code: i32,
+        color_code: u8,
         hex_code: &'static str,
         rgb: &'static str,
     },
 }
 
 lazy_static! {
-    pub static ref COLOR_256_PALETTE: Mutex<HashMap<i32, Color>> = {
+    pub static ref COLOR_256_PALETTE: Mutex<HashMap<u8, Color>> = {
         let color_vec = build_color_256_vec();
         let mut color_map = HashMap::new();
         for color in color_vec {
