@@ -16,8 +16,8 @@ use crate::util::string_const::*;
 /// ansi_string.foreground_256(45) // Change the foreground color to 45(256-Color).
 ///             // Append text, and the text "Hello World!" will display in foreground color 45(256-color).
 ///             .append("Hello World!")
-///             // Clear the foreground color.
-///             .de_foreground()
+///             // Clear all the style mode (foreground/background/bold/italic...)
+///             .clear_style()
 ///             // Change the background color to (12, 12, 12) (RGB-Color).
 ///             .background_rgb(12, 12, 12)
 ///             // Set text style bold.
