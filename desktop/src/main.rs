@@ -1,5 +1,7 @@
+use env_logger::{Builder, Target};
 use gtk::prelude::*;
 use gtk::{Application, ApplicationWindow};
+use log::info;
 
 const APP_ID: &str = "termio.community";
 
@@ -11,6 +13,11 @@ const APP_ID: &str = "termio.community";
 /// GSK_RENDERER=cairo
 /// ```
 fn main() {
+    // Initialize log system.
+    let mut builder = Builder::from_default_env();
+    builder.target(Target::Stdout);
+    builder.init();
+
     // Create a new application
     let app = Application::builder().application_id(APP_ID).build();
 
@@ -32,4 +39,5 @@ fn build_ui(app: &Application) {
 
     // Present the window
     window.present();
+    info!("Startup application termio-community success.");
 }

@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 gtk = { version = "0.4.8", package = "gtk4", features = ["v4_6"] }
+log = "0.4"
+env_logger = "0.9"
+utilities = { path = "../utilities" }
