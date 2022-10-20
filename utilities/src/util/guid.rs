@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::{sync::Mutex, error::Error};
 
 use super::time::TimeStamp;
 
@@ -9,9 +9,10 @@ const SEQUENCE_BITS: u32 = 16;
 const TIMESTAMP_SHIFT_BITS: u32 = SEQUENCE_BITS + UNIQUE_ID_BITS;
 const UNIQUE_ID_SHIFT_BITS: u32 = SEQUENCE_BITS;
 const MAX_SEQUENCE_PER_MILLIS: u64 = 0xFFFFFFFFFFFF >> (LONG_BIT - SEQUENCE_BITS);
+const UNIQUE_ID:u64 = 1;
 
-static SEQUENCE: AtomicU64 = AtomicU64::new(1);
-static LAST_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
+static SEQUENCE: Mutex<u64> = Mutex::new(1);
+static mut LAST_TIMESTAMP: u64 = 0;
 
 /// Fetch a random global unique id by algorithm snowflake.
 /// ## Usage
@@ -21,32 +22,25 @@ static LAST_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 pub struct SnowflakeGuidGenerator {}
 
 impl SnowflakeGuidGenerator {
-    pub fn next_id() -> u64 {
+    pub fn next_id() -> Result<u64, Box<dyn Error>> {
+        let mut sequence = SEQUENCE.lock()?;
         let mut timestamp = SnowflakeGuidGenerator::time_gen();
 
-        if timestamp == LAST_TIMESTAMP.load(Ordering::SeqCst) {
-            SEQUENCE.fetch_add(1, Ordering::SeqCst);
-            if SEQUENCE.load(Ordering::SeqCst) > MAX_SEQUENCE_PER_MILLIS {
-                timestamp = SnowflakeGuidGenerator::til_next_millis(timestamp);
+        unsafe {
+            if timestamp == LAST_TIMESTAMP {
+                *sequence += 1;
+                if *sequence > MAX_SEQUENCE_PER_MILLIS {
+                    timestamp = SnowflakeGuidGenerator::til_next_millis(timestamp);
+                }
             }
-        }
-        if timestamp > LAST_TIMESTAMP.load(Ordering::SeqCst) {
-            if let Err(_e) = SEQUENCE.fetch_update(Ordering::SeqCst, Ordering::SeqCst, |_x| Some(1))
-            {
-                return 0;
+            if timestamp > LAST_TIMESTAMP {
+                *sequence = 0;
             }
+
+            LAST_TIMESTAMP = timestamp;
         }
 
-        if let Err(_e) =
-            LAST_TIMESTAMP.fetch_update(Ordering::SeqCst, Ordering::SeqCst, move |_x| {
-                Some(timestamp)
-            })
-        {
-            return 0;
-        }
-        (timestamp << TIMESTAMP_SHIFT_BITS)
-            | (1 << UNIQUE_ID_SHIFT_BITS)
-            | SEQUENCE.load(Ordering::SeqCst)
+        Ok((timestamp << TIMESTAMP_SHIFT_BITS) | (UNIQUE_ID << UNIQUE_ID_SHIFT_BITS) | *sequence)
     }
 
     fn time_gen() -> u64 {
@@ -65,17 +59,32 @@ impl SnowflakeGuidGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
+    use std::{
+        collections::HashMap,
+        sync::{Arc, Mutex},
+        thread,
+    };
 
     #[test]
     fn test_snowflake_guid_generator() {
-        let mut map: HashMap<u64, bool> = HashMap::new();
+        let map: HashMap<u64, bool> = HashMap::new();
+        let mut vec = vec![];
+        let arc = Arc::new(Mutex::new(map));
 
-        for _i in 0..1000 {
-            let id = SnowflakeGuidGenerator::next_id();
-            assert_ne!(0, id);
-            assert!(map.get(&id).is_none());
-            map.insert(id, true);
+        for _ in 0..5 {
+            let arcm = arc.clone();
+            vec.push(thread::spawn(move || {
+                for _i in 0..500 {
+                    let id = SnowflakeGuidGenerator::next_id().unwrap();
+                    assert_ne!(0, id);
+                    assert!(arcm.lock().unwrap().get(&id).is_none());
+                    arcm.lock().unwrap().insert(id, true);
+                }
+            }));
+        }
+
+        for h in vec {
+            h.join().unwrap();
         }
     }
 }

@@ -8,12 +8,12 @@ pub use self::events::*;
 mod tests {
     use super::{as_async_event, as_sync_event};
     use crate::{
-        event::{AsyncEvent, AsyncEventListener, Dispatchable, SyncEvent, SyncEventListener},
-        reg_async_listeners, reg_sync_listeners,
+        dispatch,
+        event::{AsyncEvent, AsyncEventListener, SyncEvent, SyncEventListener},
+        reg_listeners,
     };
     use std::any::Any;
 
-    #[derive(Dispatchable)]
     struct TestSyncEvent {
         val: u32,
     }
@@ -21,12 +21,16 @@ mod tests {
     const TEST_SYNC_EVENT_TYPE: &'static str = "event.sync.test";
 
     impl SyncEvent for TestSyncEvent {
+        fn type_of(&self) -> &'static str {
+            TEST_SYNC_EVENT_TYPE
+        }
+
         fn as_any(&self) -> &dyn Any {
             self
         }
 
-        fn type_of(&self) -> &'static str {
-            TEST_SYNC_EVENT_TYPE
+        fn as_trait(self: Box<Self>) -> Box<dyn SyncEvent> {
+            self
         }
     }
 
@@ -42,6 +46,10 @@ mod tests {
             println!("[1] Success processing the event, {}", event.type_of());
             assert_eq!(evt.val, 1);
         }
+
+        fn as_trait(self: Box<Self>) -> Box<dyn SyncEventListener> {
+            self
+        }
     }
 
     struct TestSyncEventListener2 {}
@@ -56,21 +64,28 @@ mod tests {
             println!("[2] Success processing the event, {}", event.type_of());
             assert_eq!(evt.val, 1);
         }
+
+        fn as_trait(self: Box<Self>) -> Box<dyn SyncEventListener> {
+            self
+        }
     }
 
-    #[derive(Dispatchable)]
     struct TestAsyncEvent {
         val: u32,
     }
     const TEST_ASYNC_EVENT_TYPE: &'static str = "event.async.test";
 
     impl AsyncEvent for TestAsyncEvent {
+        fn type_of(&self) -> &'static str {
+            TEST_ASYNC_EVENT_TYPE
+        }
+
         fn as_any(&self) -> &dyn Any {
             self
         }
 
-        fn type_of(&self) -> &'static str {
-            TEST_ASYNC_EVENT_TYPE
+        fn as_trait(self: Box<Self>) -> Box<dyn AsyncEvent> {
+            self
         }
     }
 
@@ -86,19 +101,35 @@ mod tests {
             println!("Success processing the event, {}", event.type_of());
             assert_eq!(evt.val, 1);
         }
+
+        fn as_trait(self: Box<Self>) -> Box<dyn AsyncEventListener> {
+            self
+        }
     }
 
     #[test]
     fn test_sync_event() {
-        reg_sync_listeners![TestSyncEventListener1 {}, TestSyncEventListener2 {}];
+        reg_listeners![TestSyncEventListener1 {}, TestSyncEventListener2 {}];
         let event = TestSyncEvent { val: 1 };
-        TestSyncEvent::dispatch(&event);
+        dispatch!(event);
     }
 
     #[test]
     fn test_async_event() {
-        reg_async_listeners!(TestAsyncEventListener {});
+        reg_listeners!(TestAsyncEventListener {});
         let evt = TestAsyncEvent { val: 1 };
-        TestAsyncEvent::dispath(Box::new(evt));
+        dispatch!(evt);
+    }
+
+    #[test]
+    fn test_mixup() {
+        reg_listeners![
+            TestSyncEventListener1 {},
+            TestSyncEventListener2 {},
+            TestAsyncEventListener {}
+        ];
+        let event = TestSyncEvent { val: 1 };
+        let evt = TestAsyncEvent { val: 1 };
+        dispatch!(event, evt);
     }
 }

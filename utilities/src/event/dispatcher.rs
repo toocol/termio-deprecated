@@ -1,22 +1,23 @@
 use super::{AsyncEvent, AsyncEventListener, SyncEvent, SyncEventListener};
 use lazy_static::{lazy_static, __Deref};
+use log::warn;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
 /////////////////////////////// Event Dispatcher ////////////////////////////////
-pub fn dispatch_sync_event(event: &dyn SyncEvent) {
+pub fn dispatch_sync_event(event: Box<dyn SyncEvent>) {
     match SYNC_LISTENER_MAP.lock() {
         Ok(map_guard) => {
             if let Some(listener_vec) = map_guard.get(event.type_of()) {
                 for listener_box in listener_vec {
-                    listener_box.act_on(event)
+                    listener_box.act_on(event.deref())
                 }
             } else {
-                eprintln!("Sync event ({}) has none listener.", event.type_of());
+                warn!("Sync event ({}) has none listener.", event.type_of());
             }
         }
         Err(_) => {
-            eprintln!(
+            warn!(
                 "Dispatcher try mutex lock err, skip the processing of event: {}",
                 event.type_of()
             )
@@ -33,11 +34,11 @@ pub fn dispatch_async_event(event: Box<dyn AsyncEvent>) {
                     listener_box.act_on(event.deref())
                 }
             } else {
-                eprintln!("Sync event ({}) has none listener.", event.type_of());
+                warn!("Sync event ({}) has none listener.", event.type_of());
             }
         }
         Err(_) => {
-            eprintln!(
+            warn!(
                 "Dispatcher try mutex lock err, skip the processing of event: {}",
                 event.type_of()
             )

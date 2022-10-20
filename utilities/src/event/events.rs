@@ -1,4 +1,4 @@
-pub use tproc::Dispatchable;
+use log::warn;
 
 use super::dispatcher::*;
 use std::{any::Any, vec};
@@ -7,10 +7,9 @@ use std::{any::Any, vec};
 /// The trait for SyncEvent
 /// ## Example:
 /// ```
-/// use utilities::event::{SyncEvent, Dispatchable};
+/// use utilities::event::SyncEvent;
 /// use std::any::Any;
 ///
-/// #[derive(Dispatchable)]
 /// struct TestSyncEvent {}
 ///
 /// impl SyncEvent for TestSyncEvent {
@@ -20,27 +19,37 @@ use std::{any::Any, vec};
 ///     }
 ///     
 ///     fn as_any(&self) -> &dyn Any { self }
+/// 
+///     fn as_trait(self: Box<Self>) -> Box<dyn SyncEvent> { self }
 /// }
 /// ```
 /// ---
-/// And dispatch the sync event by calling
+/// And dispatch the sync event by calling marco `utilites::event:dispatch`
 /// ``` ignore
-/// let evt = TestSyncEvent {};
-/// TestSyncEvent::dispatch(&evt);
+/// dispatch!(event)
+/// ```
+/// Or dispatch by boxed event:
+/// ``` ignore
+/// Box::new(event).dispatch();
 /// ```
 pub trait SyncEvent {
     fn type_of(&self) -> &'static str;
 
     fn as_any(&self) -> &dyn Any;
+
+    fn as_trait(self: Box<Self>) -> Box<dyn SyncEvent>;
+
+    fn dispatch(self: Box<Self>) {
+        dispatch_sync_event(self.as_trait());
+    }
 }
 
 /// The trait for AsyncEvent
 /// ## Example:
 /// ```
-/// use utilities::event::{AsyncEvent, Dispatchable};
+/// use utilities::event::AsyncEvent;
 /// use std::any::Any;
 ///
-/// #[derive(Dispatchable)]
 /// struct TestAsyncEvent {}
 ///
 /// impl AsyncEvent for TestAsyncEvent {
@@ -50,34 +59,28 @@ pub trait SyncEvent {
 ///     }
 ///     
 ///     fn as_any(&self) -> &dyn Any { self }
+/// 
+///     fn as_trait(self: Box<Self>) -> Box<dyn AsyncEvent> { self }
 /// }
 /// ```
 /// ---
-/// And dispatch the async event by calling(the api was a little diffrent from SyncEvent):
+/// And dispatch the async event by calling marco `utilites::event:dispatch`
 /// ``` ignore
-/// let evt = TestAsyncEvent {};
-/// TestAsyncEvent::dispatch(Box::new(evt));
+/// dispatch!(event)
+/// ```
+/// Or dispatch by boxed event:
+/// ``` ignore
+/// Box::new(event).dispatch();
 /// ```
 pub trait AsyncEvent: Send + Sync {
     fn type_of(&self) -> &'static str;
 
     fn as_any(&self) -> &dyn Any;
-}
 
-/// Every sync/async event should derive this trait by proc marco `#[derive(Dispatchable)]`
-/// ## Sample
-/// ``` ignore
-/// #[derive(Dispatchable)]
-/// struct TestSyncEvent {}
-/// ```
-pub trait Dispatchable {
-    fn dispatch(evt: &dyn SyncEvent) {
-        // Because of these sync events were processing synchornized, we just need the reference of event.
-        dispatch_sync_event(evt);
-    }
+    fn as_trait(self: Box<Self>) -> Box<dyn AsyncEvent>;
 
-    fn dispath(evt: Box<dyn AsyncEvent>) {
-        dispatch_async_event(evt);
+    fn dispatch(self: Box<Self>) {
+        dispatch_async_event(self.as_trait());
     }
 }
 
@@ -90,7 +93,7 @@ pub trait Dispatchable {
 /// ...
 /// let val: &TestSyncEvent = as_sync_event::<TestSyncEvent>(event);
 /// ```
-pub fn as_sync_event<'a, T>(event: &'a dyn SyncEvent) -> &'a T
+pub fn as_sync_event<T>(event: &dyn SyncEvent) -> &T
 where
     T: SyncEvent + 'static,
 {
@@ -112,7 +115,7 @@ where
 /// ...
 /// let val: &TestAsyncEvent = as_async_event::<TestAsyncEvent>(event);
 /// ```
-pub fn as_async_event<'a, T>(event: &'a dyn AsyncEvent) -> &'a T
+pub fn as_async_event<T>(event: &dyn AsyncEvent) -> &T
 where
     T: AsyncEvent + 'static,
 {
@@ -130,27 +133,19 @@ pub trait SyncEventListener: Sync + Send {
     fn watch(&self) -> &'static str;
 
     fn act_on(&self, event: &dyn SyncEvent);
-}
 
-pub trait AsyncEventListener: Sync + Send {
-    fn watch(&self) -> &'static str;
+    fn as_trait(self: Box<Self>) -> Box<dyn SyncEventListener>;
 
-    fn act_on(&self, event: &dyn AsyncEvent);
-}
-
-// /////////////////////////////// Macros ////////////////////////////////
-pub trait RegisterListener {
-    fn process(self);
-}
-
-impl RegisterListener for Box<dyn SyncEventListener> {
-    fn process(self) {
+    fn register(self: Box<Self>) {
         match SYNC_LISTENER_MAP.lock() {
             Ok(mut map_guard) => {
-                map_guard.entry(self.watch()).or_insert(vec![]).push(self);
+                map_guard
+                    .entry(self.watch())
+                    .or_insert(vec![])
+                    .push(self.as_trait());
             }
             Err(_) => {
-                eprintln!(
+                warn!(
                     "Register sync event listener failed, listener watch: {}",
                     self.watch()
                 )
@@ -159,14 +154,23 @@ impl RegisterListener for Box<dyn SyncEventListener> {
     }
 }
 
-impl RegisterListener for Box<dyn AsyncEventListener> {
-    fn process(self) {
+pub trait AsyncEventListener: Sync + Send {
+    fn watch(&self) -> &'static str;
+
+    fn act_on(&self, event: &dyn AsyncEvent);
+
+    fn as_trait(self: Box<Self>) -> Box<dyn AsyncEventListener>;
+
+    fn register(self: Box<Self>) {
         match ASYNC_LISTENER_MAP.lock() {
             Ok(mut map_guard) => {
-                map_guard.entry(self.watch()).or_insert(vec![]).push(self);
+                map_guard
+                    .entry(self.watch())
+                    .or_insert(vec![])
+                    .push(self.as_trait());
             }
             Err(_) => {
-                eprintln!(
+                warn!(
                     "Register async event listener failed, listener watch: {}",
                     self.watch()
                 )
@@ -175,25 +179,26 @@ impl RegisterListener for Box<dyn AsyncEventListener> {
     }
 }
 
+// /////////////////////////////// Macros ////////////////////////////////
 #[macro_export]
-macro_rules! reg_sync_listeners {
+macro_rules! reg_listeners {
+    () => {};
     ( $($x:expr),* ) => {
         {
             $(
-                let boxed_listener = Box::new($x) as Box<dyn super::events::SyncEventListener>;
-                super::events::RegisterListener::process(boxed_listener);
+                Box::new($x).register();
             )*
         }
      };
 }
 
 #[macro_export]
-macro_rules! reg_async_listeners {
+macro_rules! dispatch {
+    () => {};
     ( $($x:expr),* ) => {
         {
             $(
-                let boxed_listener = Box::new($x) as Box<dyn super::events::AsyncEventListener>;
-                super::events::RegisterListener::process(boxed_listener);
+                Box::new($x).dispatch();
             )*
         }
      };
