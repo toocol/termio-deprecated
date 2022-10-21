@@ -7,7 +7,7 @@ use crate::util::string_const::*;
 /// ### Functions:
 /// - Change the text **foreground/background** color.
 /// - Set/Reset **bold/underline/italic/blinking/strikethrough** style mode.
-/// - Move the cursor position to display inputing text on terminal.
+/// - **Move/save/restore** the cursor position to display inputing text on terminal.
 /// ### Example
 /// ```
 /// use utilities::ansi::AnsiString;
@@ -16,8 +16,8 @@ use crate::util::string_const::*;
 /// ansi_string.foreground_256(45) // Change the foreground color to 45(256-Color).
 ///             // Append text, and the text "Hello World!" will display in foreground color 45(256-color).
 ///             .append("Hello World!")
-///             // Clear the foreground color.
-///             .de_foreground()
+///             // Clear all the style mode (foreground/background/bold/italic...)
+///             .clear_style()
 ///             // Change the background color to (12, 12, 12) (RGB-Color).
 ///             .background_rgb(12, 12, 12)
 ///             // Set text style bold.
@@ -28,7 +28,7 @@ use crate::util::string_const::*;
 ///             .append("Hello you!")
 ///             // Clear all the style mode (foreground/background/bold/italic...)
 ///             .clear_style();
-/// println!("{}", ansi_string.to_string());
+/// println!("{}", ansi_string.as_str());
 /// ```
 pub struct AnsiString {
     builder: String,
@@ -57,7 +57,7 @@ impl AnsiString {
         }
     }
 
-    pub fn to_string(&self) -> &str {
+    pub fn as_str(&self) -> &str {
         self.builder.as_str()
     }
 
@@ -155,11 +155,8 @@ impl AnsiString {
         self
     }
 
-    pub fn append_with_cursor(&mut self, str: &str, line: i16, column: i16) -> &mut Self {
-        if str == "" {
-            return self;
-        }
-        let changed = CursorPositionHelper::cursor_move(str, line, column);
+    pub fn cursor_move_to(&mut self, line: i32, column: i32) -> &mut Self {
+        let changed = CursorPositionHelper::cursor_move( line, column);
         self.builder.push_str(changed.as_str());
         self
     }
@@ -264,37 +261,47 @@ impl AnsiString {
         self
     }
 
-    pub fn strikethrough(&mut self) -> &Self {
+    pub fn strikethrough(&mut self) -> &mut Self {
         self.builder.push_str(ESC9M);
         self
     }
 
-    pub fn de_strikethrough(&mut self) -> &Self {
+    pub fn de_strikethrough(&mut self) -> &mut Self {
         self.builder.push_str(ESC29M);
         self
     }
 
-    pub fn crlf(&mut self) -> &Self {
+    pub fn save_cursor_position(&mut self) -> &mut Self {
+        self.builder.push_str(ESCS);
+        self
+    }
+
+    pub fn restore_cursor_position(&mut self) -> &mut Self {
+        self.builder.push_str(ESCU);
+        self
+    }
+
+    pub fn crlf(&mut self) -> &mut Self {
         self.builder.push_str(CRLF);
         self
     }
 
-    pub fn tab(&mut self) -> &Self {
+    pub fn tab(&mut self) -> &mut Self {
         self.builder.push_str(TAB);
         self
     }
 
-    pub fn space(&mut self) -> &Self {
+    pub fn space(&mut self) -> &mut Self {
         self.builder.push_str(SPACE);
         self
     }
 
-    pub fn space_in(&mut self, cnt: usize) -> &Self {
+    pub fn space_in(&mut self, cnt: usize) -> &mut Self {
         self.builder.push_str(SPACE.repeat(cnt).as_str());
         self
     }
 
-    pub fn clear_str(&mut self) -> &Self {
+    pub fn clear_str(&mut self) -> &mut Self {
         self.builder.clear();
         self
     }
@@ -321,7 +328,70 @@ impl ColorHelper {
 
 struct CursorPositionHelper {}
 impl CursorPositionHelper {
-    fn cursor_move(msg: &str, line: i16, column: i16) -> String {
-        format!("\u{001b}[{};{}H{}", line, column, msg)
+    fn cursor_move(line: i32, column: i32) -> String {
+        format!("\u{001b}[{};{}H", line, column)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ansi_string() {
+        let mut ansi_str = AnsiString::new();
+
+        ansi_str
+            .foreground_256(15)
+            .background_rgb(112, 112, 112)
+            .italic()
+            .underline()
+            .strikethrough()
+            .append("Hello World!")
+            .tab()
+            .de_underline()
+            .de_strikethrough()
+            .bold()
+            .foreground_rgb(175, 0, 0)
+            .background_256(32)
+            .append(" Hello you!")
+            .clear_style()
+            .space()
+            .crlf()
+            .de_bold()
+            .de_italic()
+            .blinking()
+            .background_256(64)
+            .append_bool(true)
+            .space_in(1)
+            .append_char('💖')
+            .space()
+            .append_f32(0.43)
+            .space()
+            .append_f64(0.64)
+            .space()
+            .append_i16(12)
+            .space()
+            .append_i32(44)
+            .space()
+            .append_i64(32)
+            .space()
+            .append_i8(8)
+            .space()
+            .append_u8(123)
+            .space()
+            .append_u16(32)
+            .space()
+            .append_u32(42)
+            .space()
+            .append_u64(32)
+            .save_cursor_position()
+            .cursor_move_to( 0, 0)
+            .append("Home")
+            .restore_cursor_position()
+            .append_i32(0xffffff)
+            .clear_style();
+        println!("{}", ansi_str.as_str());
+        assert_eq!(ansi_str.clear_str().as_str(), "");
     }
 }

@@ -102,3 +102,19 @@ pub const ESC2K: &'static str = "\u{001b}[2K";
 /// #### Esc[H
 /// - Move cursor to the home position **(0, 0)**.
 pub const ESCH: &'static str = "\u{001b}[H";
+
+/// #### Esc[s
+/// - Save cursor position(DEC).
+pub const ESC7: &'static str = "\u{001b} 7";
+
+/// #### Esc[s
+/// - Restore cursor to the last saved position(DEC).
+pub const ESC8: &'static str = "\u{001b} 8";
+
+/// #### Esc[s
+/// - Save cursor position(SCO).
+pub const ESCS: &'static str = "\u{001b}[s";
+
+/// #### Esc[s
+/// - Restore cursor to the last saved position(SCO).
+pub const ESCU: &'static str = "\u{001b}[u";
