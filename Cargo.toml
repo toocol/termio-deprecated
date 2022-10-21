@@ -1,9 +1,20 @@
 [workspace]
-members = [
-    "desktop",
-    "utilities",
-    "core",
-    "platform",
-    "mosh",
-    "tproc",
-]
+members = ["utilities", "core", "platform", "mosh"]
+
+[package]
+name = "termio"
+version = "0.0.1"
+edition = "2018"
+
+[[bin]]
+name = "termio"
+path = "src/main.rs"
+
+[dependencies]
+utilities = { path = "utilities/" }
+core = { path = "core/" }
+platform = { path = "platform/" }
+
+gtk = { version = "0.4.8", package = "gtk4", features = ["v4_6"] }
+log = "0.4"
+env_logger = "0.9"

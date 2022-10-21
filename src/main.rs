@@ -5,23 +5,20 @@ use log::info;
 
 const APP_ID: &str = "termio.community";
 
-///
 /// Application entry of Termio Community.
-///
-/// Run with environment:
-/// ```
-/// GSK_RENDERER=cairo
-/// ```
 fn main() {
+    // Set the enviroment variable.
+    std::env::set_var("GSK_RENDERER", "cairo");
+
     // Initialize log system.
     let mut builder = Builder::from_default_env();
     builder.target(Target::Stdout);
     builder.init();
 
-    // Create a new application
+    // Create a new application.
     let app = Application::builder().application_id(APP_ID).build();
 
-    // Connect to "activate" signal of `app`
+    // Connect to "activate" signal of `app`.
     app.connect_activate(build_ui);
 
     // Run the application
