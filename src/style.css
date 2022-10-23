@@ -15,8 +15,7 @@ headerbar {
     margin: 0px;
     /* same as headerbar side padding for nicer proportions */
     padding: 0px;
-    font-size: 8pt;
-    background: white;
+    font-size: 9pt;
 }
 
 windowcontrols>button {

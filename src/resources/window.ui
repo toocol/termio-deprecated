@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+    <template class="TermioCommunityWindow" parent="GtkApplicationWindow">
+        <property name="width-request">1280</property>
+        <property name="height-request">800</property>
+        <property name="title" translatable="yes">Termio</property>
+        <child>
+            <object class="GtkBox"></object>
+        </child>
+    </template>
+</interface>
