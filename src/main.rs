@@ -1,7 +1,5 @@
 mod ui;
 
-use chrono::Local;
-use env_logger::Target;
 use gtk::gdk::Display;
 use gtk::Application;
 use gtk::{
@@ -10,7 +8,6 @@ use gtk::{
 use log::info;
 
 use crate::ui::TermioCommunityWindow;
-use std::io::Write;
 
 const APP_ID: &str = "termio.community";
 
@@ -44,20 +41,7 @@ fn main() {
 }
 
 fn initialize_log_system() {
-    let env = env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, "trace");
-    env_logger::Builder::from_env(env)
-        .format(|buf, record| {
-            writeln!(
-                buf,
-                "{} {} [{}] {}",
-                Local::now().format("%Y-%m-%d %H:%M:%S"),
-                record.level(),
-                record.module_path().unwrap_or("<unnamed>"),
-                &record.args()
-            )
-        })
-        .target(Target::Stdout)
-        .init();
+    log4rs::init_file("src/resources/log4rs.yaml", Default::default()).unwrap();
 }
 
 fn load_css() {

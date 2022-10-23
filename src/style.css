@@ -24,6 +24,7 @@ windowcontrols>button {
     padding: 0px;
     margin-top: 2px;
     margin-bottom: 2px;
+    margin-right: 2px;
 }
 
 windowcontrols>button.close:hover {
