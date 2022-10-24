@@ -46,7 +46,7 @@ fn initialize_log_system() {
 
 fn load_css() {
     let provider = CssProvider::new();
-    provider.load_from_data(include_bytes!("style.css"));
+    provider.load_from_data(include_bytes!("resources/style.css"));
 
     if let Some(display) = &Display::default() {
         StyleContext::add_provider_for_display(
