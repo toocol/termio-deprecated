@@ -6,7 +6,7 @@
         <property name="resizable">true</property>
         <property name="title" translatable="yes">Termio</property>
         <child>
-            <object class="GtkBox"></object>
+            <object class="NativeTerminalEmulator" id="native_terminal_emulator"></object>
         </child>
     </template>
 </interface>
