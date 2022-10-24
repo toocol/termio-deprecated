@@ -1,13 +1,18 @@
 use gtk::glib::subclass::InitializingObject;
 use gtk::subclass::prelude::ObjectSubclass;
 
-use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{glib, CompositeTemplate};
+use gtk::prelude::*;
+
+use crate::ui::terminal::NativeTerminalEmulator;
 
 #[derive(Default, CompositeTemplate)]
 #[template(resource = "/com/toocol/termio/community/window.ui")]
-pub struct TermioCommunityWindow {}
+pub struct TermioCommunityWindow {
+    #[template_child]
+    pub native_terminal_emulator: TemplateChild<NativeTerminalEmulator>,
+}
 
 #[glib::object_subclass]
 impl ObjectSubclass for TermioCommunityWindow {

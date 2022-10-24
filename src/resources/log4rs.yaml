@@ -1,0 +1,20 @@
+# log4rs.yaml
+# Check config file change timeout
+refresh_rate: 30 seconds
+# appender
+appenders:
+  stdout:
+    kind: console
+    encoder:
+      pattern: "{l} {d(%Y-%m-%d %H:%M:%S %Z)} [{M}, {T}-{I}] - {m}{n}"
+  file:
+    kind: file
+    path: "termio-community.log"
+    encoder:
+      pattern: "{l} {d(%Y-%m-%d %H:%M:%S %Z)} [{M}, {T}-{I}] - {m}{n}"
+# Global log settings
+root:
+  level: info
+  appenders:
+    - stdout
+    - file
