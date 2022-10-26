@@ -1,15 +1,17 @@
 // force boost to be included as header only, also on windows
 #define BOOST_ALL_NO_LIB 1
 
-#include "emu_adapter.h"
+#include "native_adapter.h"
 #include <boost/thread/xtime.hpp>
 #include <iostream>
 #include <vector>
 #include "shared_memory.h"
+#include <string>
 
 namespace ipc = boost::interprocess;
 
 using namespace nativers;
+using namespace std;
 
 std::vector<std::string> names;
 std::vector<shared_memory_info*> connections;
@@ -56,7 +58,7 @@ bool fire_mouse_event(i32 key, i32 evt_type, f64 x, f64 y, f64 amount,
   return result;
 }
 
-bool fire_key_event(i32 key, i32 evt_type, const rstring& chars, i32 key_code,
+bool fire_key_event(i32 key, i32 evt_type, const string& chars, i32 key_code,
                     i32 modifiers, i64 timestamp) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
@@ -90,9 +92,9 @@ void update_buffer_connection(int key) {
     return;
   }
 
-  rstring name = names[key];
-  rstring info_name = get_info_name(key, name);
-  rstring buffer_name = get_buffer_name(key, name);
+  string name = names[key];
+  string info_name = get_info_name(key, name);
+  string buffer_name = get_buffer_name(key, name);
 
   try {
     // create a shared memory object.
@@ -131,7 +133,7 @@ void update_buffer_connection(int key) {
   }
 }
 
-void fire_native_event(int key, rstring type, rstring evt) {
+void fire_native_event(int key, string type, string evt) {
   // if (key >= connections.size() || connections[key] == NULL) {
   //   std::cerr << "ERROR: key not available: " << key << std::endl;
   //   return;
@@ -155,8 +157,9 @@ void fire_native_event(int key, rstring type, rstring evt) {
 
 REXPORT i32 RCALL next_key() { return (i32)connections.size(); }
 
-REXPORT i32 RCALL connect_to(rstring name) {
+REXPORT i32 RCALL connect_to(cstring cname) {
   using namespace ipc;
+  std::string name = cname;
   // setup key and names for new connection
   int key = (int)connections.size();
   std::string info_name = get_info_name(key, name);
@@ -305,7 +308,7 @@ REXPORT bool RCALL is_connected(i32 key) {
   return key < connections.size() && connections[key] != NULL;
 }
 
-REXPORT rstring RCALL send_msg(i32 key, rstring msg, i32 sharedStringType) {
+REXPORT cstring RCALL send_msg(i32 key, cstring msg, i32 sharedStringType) {
   shared_memory_info* info_data = NULL;
   if (key >= connections.size()) {
     return "ERROR: key not available";
@@ -446,8 +449,8 @@ REXPORT bool RCALL request_focus(i32 key, bool focus, i64 timestamp) {
   );
 }
 
-REXPORT bool RCALL create_ssh_session(i32 key, i64 session_id, rstring host,
-                                      rstring user, rstring password,
+REXPORT bool RCALL create_ssh_session(i32 key, i64 session_id, cstring host,
+                                      cstring user, cstring password,
                                       i64 timestamp) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
@@ -590,21 +593,21 @@ REXPORT bool RCALL fire_mouse_wheel_event(i32 key, f64 x, f64 y, f64 amount,
                           modifiers, 0, (long)timestamp);
 }
 
-REXPORT bool RCALL fire_key_pressed_event(i32 key, rstring characters,
+REXPORT bool RCALL fire_key_pressed_event(i32 key, cstring characters,
                                           i32 key_code, i32 modifiers,
                                           i64 timestamp) {
   return fire_key_event(key, NRS_KEY_PRESSED, characters, key_code, modifiers,
                         (long)timestamp);
 }
 
-REXPORT bool RCALL fire_key_released_event(i32 key, rstring characters,
+REXPORT bool RCALL fire_key_released_event(i32 key, cstring characters,
                                            i32 key_code, i32 modifiers,
                                            i64 timestamp) {
   return fire_key_event(key, NRS_KEY_RELEASED, characters, key_code, modifiers,
                         (long)timestamp);
 }
 
-REXPORT bool RCALL fire_key_typed_event(i32 key, rstring characters,
+REXPORT bool RCALL fire_key_typed_event(i32 key, cstring characters,
                                         i32 key_code, i32 modifiers,
                                         i64 timestamp) {
   return fire_key_event(key, NRS_KEY_TYPED, characters, key_code, modifiers,

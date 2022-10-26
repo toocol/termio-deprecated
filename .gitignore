@@ -56,3 +56,6 @@ CMakeLists.txt.user.*
 x64/
 out/
 build/
+
+*.dll
+*.lib

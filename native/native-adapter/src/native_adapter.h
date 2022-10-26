@@ -4,13 +4,10 @@
 #define REXPORT __declspec(dllexport)
 #define RCALL __stdcall
 
-#include <stdarg.h>
-#include <string>
-
 typedef long i32;
 typedef __int64 i64;
 typedef double f64;
-typedef std::string rstring;
+typedef const char* cstring;
 
 extern "C" {
 
@@ -24,7 +21,7 @@ REXPORT i32 RCALL next_key();
  *
  * @param name
  */
-REXPORT i32 RCALL connect_to(rstring);
+REXPORT i32 RCALL connect_to(cstring);
 
 /**
  * Terminate the shared memory connection by key.
@@ -45,9 +42,9 @@ REXPORT bool RCALL is_connected(i32);
  *
  * @param key
  * @param msg
- * @param timestamp
+ * @param sharedStringType
  */
-REXPORT rstring RCALL send_msg(i32, rstring, i32);
+REXPORT cstring RCALL send_msg(i32, cstring, i32);
 
 /**
  * Process the native events which store in the shared memory.
@@ -74,11 +71,20 @@ REXPORT bool RCALL is_dirty(i32);
 
 /**
  * Client request redraw the native image buffer.
+ * 
+ * @param key
+ * @param x
+ * @param y
+ * @param w
+ * @param h
  */
 REXPORT void RCALL redraw(i32, i32, i32, i32, i32);
 
 /**
  * Set the native image buffer was dirty.
+ * 
+ * @param key
+ * @param value
  */
 REXPORT void RCALL set_dirty(i32, bool);
 
@@ -98,7 +104,7 @@ REXPORT void RCALL set_buffer_ready(i32, bool);
  */
 REXPORT bool RCALL is_buffer_ready(i32);
 
-/*
+/**
  * Get the width of native image buffer.
  *
  * @param key
@@ -112,7 +118,7 @@ REXPORT i32 RCALL get_w(i32);
  */
 REXPORT i32 RCALL get_h(i32);
 
-/*
+/**
  * Tell terminal emulator to request focus or not.
  *
  * @param key
@@ -121,7 +127,7 @@ REXPORT i32 RCALL get_h(i32);
  */
 REXPORT bool RCALL request_focus(i32, bool, i64);
 
-/*
+/**
  * Tell terminal emulator to create a ssh sesison.
  *
  * @param key
@@ -131,7 +137,7 @@ REXPORT bool RCALL request_focus(i32, bool, i64);
  * @param password
  * @param timestamp
  */
-REXPORT bool RCALL create_ssh_session(i32, i64, rstring, rstring, rstring, i64);
+REXPORT bool RCALL create_ssh_session(i32, i64, cstring, cstring, cstring, i64);
 
 /**
  * Get the native image buffer.
@@ -162,28 +168,28 @@ REXPORT bool RCALL lock_timeout(i32, i64);
  */
 REXPORT void RCALL unlock(i32);
 
-/*
+/**
  * Blocking wait for native image buffer changes.
  *
  * @param key
  */
 REXPORT void RCALL wait_for_buffer_changes(i32);
 
-/*
+/**
  * Whether the native image buffer has changed.
  *
  * @param key
  */
 REXPORT bool RCALL has_buffer_changes(i32);
 
-/*
+/**
  * Thread lock the native image buffer.
  *
  * @param key
  */
 REXPORT void RCALL lock_buffer(i32);
 
-/*
+/**
  * Thread unlock the native image buffer.
  *
  * @param key
@@ -215,15 +221,15 @@ REXPORT bool RCALL fire_mouse_wheel_event(i32 key, f64 x, f64 y, f64 amount,
                                           i32 buttons, i32 modifiers,
                                           i64 timestamp);
 
-REXPORT bool RCALL fire_key_pressed_event(i32 key, rstring characters,
+REXPORT bool RCALL fire_key_pressed_event(i32 key, cstring characters,
                                           i32 key_code, i32 modifiers,
                                           i64 timestamp);
 
-REXPORT bool RCALL fire_key_released_event(i32 key, rstring characters,
+REXPORT bool RCALL fire_key_released_event(i32 key, cstring characters,
                                            i32 key_code, i32 modifiers,
                                            i64 timestamp);
 
-REXPORT bool RCALL fire_key_typed_event(i32 key, rstring characters,
+REXPORT bool RCALL fire_key_typed_event(i32 key, cstring characters,
                                         i32 key_code, i32 modifiers,
                                         i64 timestamp);
 }

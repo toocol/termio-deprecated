@@ -1,6 +1,6 @@
 ﻿cmake_minimum_required (VERSION 3.8)
 
-project ("emuadapter")
+project ("native-adapter")
 
 if (WIN32)
     add_definitions(/utf-8)
@@ -12,19 +12,19 @@ include_directories("D:/download/boost_1_80_0/")
 link_directories("D:/download/boost_1_80_0/stage/lib")
 
 set(HEADERS 
-	src/emu_adapter.h
+	src/native_adapter.h
 	src/shared_memory.h
 )
 set(SOURCES
-	src/emu_adapter.cpp
+	src/native_adapter.cpp
 )
 
-add_library(emuadapter SHARED
+add_library(native-adapter SHARED
 	${SOURCES}
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET emuadapter PROPERTY CXX_STANDARD 20)
+  set_property(TARGET native-adapter PROPERTY CXX_STANDARD 20)
 endif()
 
 INSTALL(FILES 
@@ -33,4 +33,4 @@ INSTALL(FILES
 	include
 )
 
-INSTALL(TARGETS emuadapter LIBRARY DESTINATION lib)
+INSTALL(TARGETS native-adapter LIBRARY DESTINATION lib)
