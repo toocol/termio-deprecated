@@ -28,7 +28,7 @@ pub trait NativeNodeImpl {
 
     fn connect(&self) {
         let weak_node = self.rc().downgrade();
-        timeout_add_local(Duration::from_millis(16), move || {
+        timeout_add_local(Duration::from_millis(10), move || {
             if let Some(native_node) = weak_node.upgrade() {
                 native_node.update_native_image();
             }

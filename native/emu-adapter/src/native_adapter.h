@@ -4,13 +4,10 @@
 #define REXPORT __declspec(dllexport)
 #define RCALL __stdcall
 
-#include <stdarg.h>
-#include <string>
-
 typedef long i32;
 typedef __int64 i64;
 typedef double f64;
-typedef std::string rstring;
+typedef const char* cstring;
 
 extern "C" {
 
@@ -24,7 +21,7 @@ REXPORT i32 RCALL next_key();
  *
  * @param name
  */
-REXPORT i32 RCALL connect_to(rstring);
+REXPORT i32 RCALL connect_to(cstring);
 
 /**
  * Terminate the shared memory connection by key.
@@ -45,9 +42,9 @@ REXPORT bool RCALL is_connected(i32);
  *
  * @param key
  * @param msg
- * @param timestamp
+ * @param sharedStringType
  */
-REXPORT rstring RCALL send_msg(i32, rstring, i32);
+REXPORT cstring RCALL send_msg(i32, cstring, i32);
 
 /**
  * Process the native events which store in the shared memory.
@@ -131,7 +128,7 @@ REXPORT bool RCALL request_focus(i32, bool, i64);
  * @param password
  * @param timestamp
  */
-REXPORT bool RCALL create_ssh_session(i32, i64, rstring, rstring, rstring, i64);
+REXPORT bool RCALL create_ssh_session(i32, i64, cstring, cstring, cstring, i64);
 
 /**
  * Get the native image buffer.
@@ -215,15 +212,15 @@ REXPORT bool RCALL fire_mouse_wheel_event(i32 key, f64 x, f64 y, f64 amount,
                                           i32 buttons, i32 modifiers,
                                           i64 timestamp);
 
-REXPORT bool RCALL fire_key_pressed_event(i32 key, rstring characters,
+REXPORT bool RCALL fire_key_pressed_event(i32 key, cstring characters,
                                           i32 key_code, i32 modifiers,
                                           i64 timestamp);
 
-REXPORT bool RCALL fire_key_released_event(i32 key, rstring characters,
+REXPORT bool RCALL fire_key_released_event(i32 key, cstring characters,
                                            i32 key_code, i32 modifiers,
                                            i64 timestamp);
 
-REXPORT bool RCALL fire_key_typed_event(i32 key, rstring characters,
+REXPORT bool RCALL fire_key_typed_event(i32 key, cstring characters,
                                         i32 key_code, i32 modifiers,
                                         i64 timestamp);
 }
