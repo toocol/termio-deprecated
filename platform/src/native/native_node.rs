@@ -1,12 +1,14 @@
 #![allow(dead_code)]
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::slice;
 use std::time::Duration;
 
 use crate::native::native_adapter::*;
 use gtk::gdk_pixbuf::Pixbuf;
 use gtk::glib::clone::Downgrade;
 use gtk::glib::timeout_add_local;
+use gtk::glib::Bytes;
 use gtk::prelude::*;
 use gtk::Image;
 use utilities::TimeStamp;
@@ -15,16 +17,19 @@ pub struct NativeNode {
     pub image: Option<Rc<RefCell<Image>>>,
     pub image_buffer: Option<RefCell<Pixbuf>>,
     pub key: i32,
+    pub width: i32,
+    pub height: i32,
 
     still_connect: bool,
     is_verbose: bool,
+    hibpi_aware: bool,
     button_state: i32,
     locking_error: bool,
 
     num_values: i32,
     fps_counter: i32,
     fps_values: Vec<f64>,
-    frame_timestamp: i64,
+    frame_timestamp: u64,
 }
 
 impl Default for NativeNode {
@@ -33,8 +38,11 @@ impl Default for NativeNode {
             image: None,
             image_buffer: None,
             key: -1,
+            width: 0,
+            height: 0,
             still_connect: false,
             is_verbose: false,
+            hibpi_aware: false,
             button_state: 0,
             locking_error: false,
             num_values: 10,
@@ -46,11 +54,12 @@ impl Default for NativeNode {
 }
 
 impl NativeNode {
-    fn update_native_image(&mut self) {
-        let _current_timestamp = TimeStamp::timestamp() as i64;
+    fn update_native_image(&mut self) -> Option<()> {
+        let mut flag = false;
+        let _current_timestamp = TimeStamp::timestamp();
         self.locking_error = !native_lock(self.key);
         if self.locking_error {
-            return;
+            return None;
         }
 
         let dirty = native_is_dirty(self.key);
@@ -60,11 +69,11 @@ impl NativeNode {
 
         if !dirty || !is_ready {
             native_unlock(self.key);
-            return;
+            return None;
         }
 
-        let current_w = native_get_w(self.key);
-        let current_h = native_get_h(self.key);
+        let current_w: i32 = native_get_w(self.key);
+        let current_h: i32 = native_get_h(self.key);
 
         let image_opt = self.image.take();
         if None == image_opt
@@ -77,6 +86,62 @@ impl NativeNode {
                     self.key, current_w, current_h
                 );
             }
+            // When resize, unparent the old image.
+            if let Some(image) = image_opt {
+                image.borrow().unparent();
+            }
+
+            unsafe {
+                let buffer = slice::from_raw_parts(
+                    native_get_buffer(self.key),
+                    (current_w * current_h) as usize,
+                );
+                let pixbuf = Pixbuf::from_bytes(
+                    &Bytes::from_static(buffer),
+                    gtk::gdk_pixbuf::Colorspace::Rgb,
+                    false,
+                    8,
+                    current_w,
+                    current_h,
+                    current_w * 4,
+                );
+                self.image_buffer.replace(RefCell::new(pixbuf));
+                self.image
+                    .replace(Rc::new(RefCell::new(Image::from_pixbuf(Some(
+                        &self.image_buffer.take().unwrap().borrow(),
+                    )))));
+                flag = true;
+            }
+        } // Process if image is None
+
+        self.image
+            .take()
+            .unwrap()
+            .borrow_mut()
+            .set_from_pixbuf(Some(&self.image_buffer.take().unwrap().borrow()));
+
+        // Have update the image, not dirty anymore
+        native_set_dirty(self.key, false);
+
+        let width = self.width;
+        let height = self.height;
+        let scale_factor = 1.0;
+        if (width as f64 != native_get_w(self.key) as f64 / scale_factor
+            || height as f64 != native_get_h(self.key) as f64 / scale_factor)
+            && width > 0
+            && height > 0
+        {
+            if self.is_verbose {
+                println!("[{}]> requesting buffer resize W: {}, H: {}", self.key, width, height);
+            }
+            native_resize(self.key, width * scale_factor as i32, height * scale_factor as i32);
+        }
+        native_unlock(self.key);
+
+        if flag {
+            Some(())
+        } else {
+            None
         }
     }
 }
@@ -86,7 +151,10 @@ pub trait NativeNodeImpl {
 
     fn rc(&self) -> Rc<RefCell<NativeNode>>;
 
-    fn connect(&self) {
+    fn connect<T>(&self, set_parent: T)
+    where
+        T: Fn() + 'static,
+    {
         let node_rc = self.rc();
         let weak_node = node_rc.downgrade();
 
@@ -95,7 +163,9 @@ pub trait NativeNodeImpl {
         timeout_add_local(Duration::from_millis(10), move || {
             let mut still_connect = false;
             if let Some(native_node) = weak_node.upgrade() {
-                native_node.borrow_mut().update_native_image();
+                if let Some(_) = native_node.borrow_mut().update_native_image() {
+                    set_parent();
+                }
                 still_connect = native_node.borrow().still_connect;
             }
             Continue(still_connect)
@@ -108,6 +178,10 @@ pub trait NativeNodeImpl {
 
     fn set_verbose(&self, verbose: bool) {
         self.rc().borrow_mut().is_verbose = verbose;
+    }
+
+    fn set_hibpi_aware(&self, hibpi_aware: bool) {
+        self.rc().borrow_mut().hibpi_aware = hibpi_aware;
     }
 
     fn terminate(&self) {

@@ -1,15 +1,16 @@
-use std::{rc::Rc, cell::RefCell};
+use std::{cell::RefCell, rc::Rc};
 
-use log::info;
+use glib::clone;
+use gtk::glib;
 use gtk::prelude::Cast;
 use gtk::subclass::prelude::*;
 use gtk::traits::WidgetExt;
-use gtk::glib;
-use platform::native_node::{NativeNodeImpl, NativeNode};
+use log::info;
+use platform::native_node::{NativeNode, NativeNodeImpl};
 
 #[derive(Default)]
 pub struct NativeTerminalEmulator {
-    node: Rc<RefCell<NativeNode>>
+    node: Rc<RefCell<NativeNode>>,
 }
 
 #[glib::object_subclass]
@@ -37,7 +38,10 @@ impl ObjectImpl for NativeTerminalEmulator {
             .unwrap();
         // self.image().borrow().set_parent(&self.instance().to_owned());
         self.set_verbose(true);
-        self.connect();
+        self.set_hibpi_aware(true);
+        self.connect(clone!(@weak self as widget => move || {
+            widget.image().take().unwrap().borrow_mut().set_parent(&widget.instance().to_owned());
+        }));
         info!("NativeTerminalEmulator constructed.")
     }
 
