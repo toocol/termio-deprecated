@@ -1,133 +1,122 @@
 #![allow(dead_code)]
+use std::cell::Cell;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::slice;
 use std::time::Duration;
 
 use crate::native::native_adapter::*;
-use gtk::Picture;
-use gtk::glib;
 use gtk::gdk_pixbuf::Pixbuf;
-use gtk::glib::Object;
+use gtk::glib;
 use gtk::glib::clone::Downgrade;
+use gtk::glib::once_cell::sync::Lazy;
 use gtk::glib::timeout_add_local;
 use gtk::glib::Bytes;
+use gtk::glib::Object;
+use gtk::glib::ParamSpec;
+use gtk::glib::ParamSpecInt;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use log::info;
+use gtk::Picture;
 use utilities::TimeStamp;
 
 glib::wrapper! {
     pub struct NativeNodeObject(ObjectSubclass<NativeNode>);
 }
 
-impl NativeNodeObject {
-    pub fn new() -> Self {
-        Object::new(&[])
-    }
-}
-
 pub struct NativeNode {
-    pub picture: Option<Rc<RefCell<Picture>>>,
-    pub pixel_buffer: Option<RefCell<Pixbuf>>,
-    pub key: i32,
-    pub width: i32,
-    pub height: i32,
+    pub picture: RefCell<Option<Picture>>,
+    pub pixel_buffer: RefCell<Option<Pixbuf>>,
+    pub key: Cell<i32>,
+    pub width: Cell<i32>,
+    pub height: Cell<i32>,
 
-    still_connect: bool,
-    is_verbose: bool,
-    hibpi_aware: bool,
-    button_state: i32,
-    locking_error: bool,
+    still_connect: Cell<bool>,
+    is_verbose: Cell<bool>,
+    hibpi_aware: Cell<bool>,
+    button_state: Cell<i32>,
+    locking_error: Cell<bool>,
 
+    fps_counter: Cell<i32>,
+    frame_timestamp: Cell<u64>,
     num_values: i32,
-    fps_counter: i32,
-    fps_values: [f64; 10],
-    frame_timestamp: u64,
+    fps_values: RefCell<[f64; 10]>,
 }
 
 impl Default for NativeNode {
     fn default() -> Self {
         Self {
-            picture: None,
-            pixel_buffer: None,
-            key: -1,
-            width: 0,
-            height: 0,
-            still_connect: false,
-            is_verbose: false,
-            hibpi_aware: false,
-            button_state: 0,
-            locking_error: false,
+            picture: RefCell::new(None),
+            pixel_buffer: RefCell::new(None),
+            key: Cell::new(-1),
+            width: Cell::new(0),
+            height: Cell::new(0),
+            still_connect: Cell::new(false),
+            is_verbose: Cell::new(false),
+            hibpi_aware: Cell::new(false),
+            button_state: Cell::new(0),
+            locking_error: Cell::new(false),
+            fps_counter: Cell::new(0),
+            frame_timestamp: Cell::new(0),
             num_values: 10,
-            fps_counter: 0,
-            fps_values: [0.0; 10],
-            frame_timestamp: 0,
+            fps_values: RefCell::new([0.0; 10]),
         }
     }
 }
 
-#[glib::object_subclass]
-impl ObjectSubclass for NativeNode {
-    const NAME: &'static str = "NativeNode";
-
-    type Type = NativeNodeObject;
-}
-
-impl ObjectImpl for NativeNode {
-    fn constructed(&self) {
-        self.parent_constructed();
-        info!("Construct `NativeNode`")
+impl NativeNodeObject {
+    pub fn new() -> Self {
+        Object::new(&[])
     }
-}
 
-impl NativeNode {
-    fn update_native_buffered_picture(&mut self) -> Option<&Self> {
+    fn update_native_buffered_picture(&self) -> Option<&Self> {
+        let imp = self.imp();
         let mut flag = false;
         let current_timestamp = TimeStamp::timestamp();
-        self.locking_error = !native_lock(self.key);
-        if self.locking_error {
+        let key = imp.key.get();
+        imp.locking_error.set(!native_lock(key));
+        if imp.locking_error.get() {
             return None;
         }
 
-        let dirty = native_is_dirty(self.key);
-        let is_ready = native_is_buffer_ready(self.key);
+        let dirty = native_is_dirty(key);
+        let is_ready = native_is_buffer_ready(key);
 
-        native_process_native_events(self.key);
+        native_process_native_events(key);
 
         if !dirty || !is_ready {
-            native_unlock(self.key);
+            native_unlock(key);
             return None;
         }
 
-        let current_w = native_get_w(self.key);
-        let current_h = native_get_h(self.key);
+        let current_w = native_get_w(key);
+        let current_h = native_get_h(key);
 
-        let picture_w = match &self.picture {
-            Some(picture) => picture.borrow().width(),
+        let picture_w = match *imp.picture.borrow() {
+            Some(ref picture) => picture.width(),
             None => 0,
         };
-        let picture_h = match &self.picture {
-            Some(picture) => picture.borrow().height(),
+        let picture_h = match *imp.picture.borrow() {
+            Some(ref picture) => picture.height(),
             None => 0,
         };
 
-        if &None == &self.picture || picture_w != current_w || picture_h != current_h {
-            if self.is_verbose {
+        if None == *imp.picture.borrow() || picture_w != current_w || picture_h != current_h {
+            if imp.is_verbose.get() {
                 println!(
                     "[{}]> -> new img instance, resize W: {}, H: {}",
-                    self.key, current_w, current_h
+                    key, current_w, current_h
                 );
             }
             // When resize, unparent the old picture.
-            if let Some(picture) = &self.picture {
-                println!("[{}] -> Unparent the old picture.", self.key);
-                picture.borrow().unparent();
+            if let Some(ref picture) = *imp.picture.borrow() {
+                println!("[{}] -> Unparent the old picture.", key);
+                picture.unparent();
             }
 
             unsafe {
                 let buffer = slice::from_raw_parts(
-                    native_get_buffer(self.key),
+                    native_get_buffer(key),
                     (current_w * current_h * 4) as usize,
                 );
                 let pixbuf = Pixbuf::from_bytes(
@@ -144,59 +133,51 @@ impl NativeNode {
                 picture.set_can_shrink(false);
                 picture.set_halign(gtk::Align::Start);
                 picture.set_valign(gtk::Align::Start);
-                self.picture
-                    .replace(Rc::new(RefCell::new(picture)));
-                self.pixel_buffer.replace(RefCell::new(pixbuf));
+                imp.picture.borrow_mut().replace(picture);
+                imp.pixel_buffer.borrow_mut().replace(pixbuf);
                 flag = true;
             }
         } // Process if picture is None, or window size was changed.
 
-        // if let Some(image) = &self.picture {
-        //     if let Some(buffer) = &self.image_buffer {
-        //         info!("Image size, w:{}, h{}", image.borrow().width(), image.borrow().height());
-        //         image.borrow_mut().set_from_pixbuf(Some(&buffer.borrow()));
-        //     }
-        // }
-
         // Have update the image, not dirty anymore
-        native_set_dirty(self.key, false);
-        let width = self.width;
-        let height = self.height;
+        native_set_dirty(key, false);
+        let width = imp.width.get();
+        let height = imp.height.get();
         let scale_factor = 1.0;
-        if (width as f64 != native_get_w(self.key) as f64 / scale_factor
-            || height as f64 != native_get_h(self.key) as f64 / scale_factor)
+        if (width as f64 != native_get_w(key) as f64 / scale_factor
+            || height as f64 != native_get_h(key) as f64 / scale_factor)
             && width > 0
             && height > 0
         {
-            if self.is_verbose {
+            if imp.is_verbose.get() {
                 println!(
                     "[{}]> requesting buffer resize W: {}, H: {}",
-                    self.key, width, height
+                    key, width, height
                 );
             }
             native_resize(
-                self.key,
+                key,
                 width * scale_factor as i32,
                 height * scale_factor as i32,
             );
         }
-        native_unlock(self.key);
+        native_unlock(key);
 
-        if self.is_verbose {
-            let duration = current_timestamp - self.frame_timestamp;
+        if imp.is_verbose.get() {
+            let duration = current_timestamp - imp.frame_timestamp.get();
             let fps = (1e9 as f64) / (duration as f64);
-            self.fps_values[self.fps_counter as usize] = fps;
-            if self.fps_counter == self.num_values - 1 {
+            imp.fps_values.borrow_mut()[imp.fps_counter.get() as usize] = fps;
+            if imp.fps_counter.get() == imp.num_values - 1 {
                 let mut fps_average = 0.0;
-                for fps_val in self.fps_values.iter() {
+                for fps_val in imp.fps_values.borrow().iter() {
                     fps_average += fps_val;
                 }
-                fps_average /= self.num_values as f64;
-                self.fps_counter = 0;
-                println!("[{}]> fps: {}", self.key, fps_average);
+                fps_average /= imp.num_values as f64;
+                imp.fps_counter.set(0);
+                println!("[{}]> fps: {}", key, fps_average);
             }
-            self.fps_counter += 1;
-            self.frame_timestamp = current_timestamp;
+            imp.fps_counter.set(imp.fps_counter.get() + 1);
+            imp.frame_timestamp.set(current_timestamp);
         }
 
         if flag {
@@ -207,10 +188,54 @@ impl NativeNode {
     }
 }
 
+#[glib::object_subclass]
+impl ObjectSubclass for NativeNode {
+    const NAME: &'static str = "NativeNode";
+
+    type Type = NativeNodeObject;
+}
+
+impl ObjectImpl for NativeNode {
+    fn properties() -> &'static [ParamSpec] {
+        static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
+            vec![
+                ParamSpecInt::builder("width").build(),
+                ParamSpecInt::builder("height").build(),
+            ]
+        });
+
+        PROPERTIES.as_ref()
+    }
+
+    fn set_property(&self, _id: usize, value: &glib::Value, pspec: &ParamSpec) {
+        match pspec.name() {
+            "width" => {
+                let width = value.get().expect("`NativeNode` width needs to be of type `i32`.");
+                self.width.set(width);
+                println!("Set node width: {}", width);
+            },
+            "height" => {
+                let height = value.get().expect("`NativeNode` height needs to be of type `i32`.");
+                self.height.set(height);
+                println!("Set node height: {}", height);
+            },
+            _ => unimplemented!()
+        }
+    }
+
+    fn property(&self, _id: usize, pspec: &ParamSpec) -> glib::Value {
+        match pspec.name() {
+            "width" => self.width.get().to_value(),
+            "height" => self.height.get().to_value(),
+            _ => unimplemented!()
+        }
+    }
+}
+
 pub trait NativeNodeImpl {
     const CONNECTION_NAME: &'static str;
 
-    fn rc(&self) -> Rc<RefCell<NativeNode>>;
+    fn rc(&self) -> Rc<RefCell<NativeNodeObject>>;
 
     fn connect<T>(&self, set_parent: T)
     where
@@ -219,46 +244,50 @@ pub trait NativeNodeImpl {
         let node_rc = self.rc();
         let weak_node = node_rc.downgrade();
 
-        if node_rc.borrow().key < 0 || !native_is_connected(node_rc.borrow().key) {
-            node_rc.borrow_mut().key = native_connect_to(Self::CONNECTION_NAME);
+        if node_rc.borrow().imp().key.get() < 0
+            || !native_is_connected(node_rc.borrow().imp().key.get())
+        {
+            node_rc
+                .borrow()
+                .imp()
+                .key
+                .set(native_connect_to(Self::CONNECTION_NAME));
         }
-        node_rc.borrow_mut().still_connect = true;
+        node_rc.borrow().imp().still_connect.set(true);
 
         timeout_add_local(Duration::from_millis(10), move || {
             let mut still_connect = false;
             if let Some(native_node) = weak_node.upgrade() {
-                if let Some(node) = native_node.borrow_mut().update_native_buffered_picture() {
-                    info!("First create native image picture.");
-                    if let Some(picture) = &node.picture {
-                        set_parent(&*picture.borrow() as *const Picture);
+                if let Some(node) = native_node.borrow().update_native_buffered_picture() {
+                    if let Some(ref picture) = *node.imp().picture.borrow() {
+                        set_parent(picture as *const Picture);
                     }
                 }
-                still_connect = native_node.borrow().still_connect;
+                still_connect = native_node.borrow().imp().still_connect.get();
             }
             Continue(still_connect)
         });
     }
 
     fn unparent(&self) {
-        if let Some(picture) = &self.rc().borrow().picture {
-            picture.borrow().unparent();
+        if let Some(ref picture) = *self.rc().borrow().imp().picture.borrow() {
+            picture.unparent();
         }
     }
 
     fn set_verbose(&self, verbose: bool) {
-        self.rc().borrow_mut().is_verbose = verbose;
+        self.rc().borrow().imp().is_verbose.set(verbose);
     }
 
     fn set_hibpi_aware(&self, hibpi_aware: bool) {
-        self.rc().borrow_mut().hibpi_aware = hibpi_aware;
+        self.rc().borrow().imp().hibpi_aware.set(hibpi_aware);
     }
 
     fn terminate(&self) {
-        let node_rc = self.rc();
-        if node_rc.borrow_mut().key < 0 {
+        if self.rc().borrow().imp().key.get() < 0 {
             return;
         }
-        native_terminate_at(node_rc.borrow().key);
-        node_rc.borrow_mut().still_connect = false;
+        native_terminate_at(self.rc().borrow().imp().key.get());
+        self.rc().borrow().imp().still_connect.set(false);
     }
 }
