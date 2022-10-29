@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use glib::clone;
-use gtk::glib;
+use gtk::{glib, Picture};
 use gtk::prelude::Cast;
 use gtk::subclass::prelude::*;
 use gtk::traits::WidgetExt;
@@ -10,8 +10,14 @@ use platform::native_node::{NativeNode, NativeNodeImpl};
 
 #[derive(Default)]
 pub struct NativeTerminalEmulator {
-    node: Rc<RefCell<NativeNode>>,
+    native_node: Rc<RefCell<NativeNode>>,
 }
+
+// impl Default for NativeTerminalEmulator {
+//     fn default() -> Self {
+//         Self { native_node_object: Rc::new(RefCell::new(NativeNodeObject::new())) }
+//     }
+// }
 
 #[glib::object_subclass]
 impl ObjectSubclass for NativeTerminalEmulator {
@@ -36,19 +42,21 @@ impl ObjectImpl for NativeTerminalEmulator {
             .unwrap()
             .downcast::<gtk::BoxLayout>()
             .unwrap();
-        // self.image().borrow().set_parent(&self.instance().to_owned());
+
         self.set_verbose(true);
         self.set_hibpi_aware(true);
-        self.connect(clone!(@weak self as widget => move || {
-            widget.image().take().unwrap().borrow_mut().set_parent(&widget.instance().to_owned());
+        self.connect(clone!(@weak self as widget => move |image| {
+            unsafe {
+                let image: &Picture = <Picture>::as_ref(&*image);
+                image.set_parent(&widget.instance().to_owned());
+                info!("Bind native buffered picture to NativeTerminalEmulator");
+            }
         }));
         info!("NativeTerminalEmulator constructed.")
     }
 
     fn dispose(&self) {
-        if let Some(image) = self.image() {
-            image.borrow().unparent();
-        }
+        self.unparent();
     }
 }
 
@@ -58,6 +66,6 @@ impl NativeNodeImpl for NativeTerminalEmulator {
     const CONNECTION_NAME: &'static str = "_emulator_mem";
 
     fn rc(&self) -> Rc<RefCell<NativeNode>> {
-        self.node.clone()
+        self.native_node.clone()
     }
 }
