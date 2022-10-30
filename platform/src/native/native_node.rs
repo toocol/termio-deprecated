@@ -17,14 +17,20 @@ use gtk::glib::ParamSpec;
 use gtk::glib::ParamSpecInt;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
+use gtk::DrawingArea;
 use gtk::Picture;
 use utilities::TimeStamp;
 
 glib::wrapper! {
-    pub struct NativeNodeObject(ObjectSubclass<NativeNode>);
+    pub struct NativeNodeObject(ObjectSubclass<NativeNode>)
+        @extends gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
+static mut REC_BYTES: [u8; 1280 * 800 * 4] = [0u8; 1280 * 800 * 4];
+
 pub struct NativeNode {
+    pub drawing_area: RefCell<Option<DrawingArea>>,
     pub picture: RefCell<Option<Picture>>,
     pub pixel_buffer: RefCell<Option<Pixbuf>>,
     pub key: Cell<i32>,
@@ -46,6 +52,7 @@ pub struct NativeNode {
 impl Default for NativeNode {
     fn default() -> Self {
         Self {
+            drawing_area: RefCell::new(None),
             picture: RefCell::new(None),
             pixel_buffer: RefCell::new(None),
             key: Cell::new(-1),
@@ -67,6 +74,38 @@ impl Default for NativeNode {
 impl NativeNodeObject {
     pub fn new() -> Self {
         Object::new(&[])
+    }
+
+    pub fn buffer_changer(&self) -> bool {
+        unsafe {
+            let imp = self.imp();
+            let mut flag = false;
+            if let Some(ref pb) = *imp.pixel_buffer.borrow() {
+                let bytes = pb.pixels();
+                for i in 0..1280 * 800 * 4 {
+                    if bytes[i] != REC_BYTES[i] {
+                        flag = true;
+                    }
+                }
+            }
+            flag
+        }
+    }
+
+    pub fn draw_snapshot(&self) {}
+
+    pub fn cairo_draw_area(&self, pixbuf: Pixbuf) {
+        if let Some(ref area) = *self.imp().drawing_area.borrow() {
+            area.set_draw_func(move |_, cr, _width, _height| {
+                GdkCairoContextExt::set_source_pixbuf(
+                    cr,
+                    &pixbuf,
+                    pixbuf.width() as f64,
+                    pixbuf.height() as f64,
+                );
+                cr.paint().expect("Invalid cario surface state.");
+            });
+        }
     }
 
     fn update_native_buffered_picture(&self) -> Option<&Self> {
@@ -100,6 +139,18 @@ impl NativeNodeObject {
             Some(ref picture) => picture.height(),
             None => 0,
         };
+        // let picture_w = match *imp.drawing_area.borrow() {
+        //     Some(ref picture) => picture.width(),
+        //     None => 0,
+        // };
+        // let picture_h = match *imp.drawing_area.borrow() {
+        //     Some(ref picture) => picture.height(),
+        //     None => 0,
+        // };
+        println!(
+            "picture cw:{}, ch:{}, w:{}, h:{}",
+            current_w, current_h, picture_w, picture_h
+        );
 
         if None == *imp.picture.borrow() || picture_w != current_w || picture_h != current_h {
             if imp.is_verbose.get() {
@@ -119,6 +170,7 @@ impl NativeNodeObject {
                     native_get_buffer(key),
                     (current_w * current_h * 4) as usize,
                 );
+                REC_BYTES.copy_from_slice(buffer);
                 let pixbuf = Pixbuf::from_bytes(
                     &Bytes::from_static(buffer),
                     gtk::gdk_pixbuf::Colorspace::Rgb,
@@ -129,15 +181,28 @@ impl NativeNodeObject {
                     current_w * 4,
                 );
 
+                let drawing_area = DrawingArea::builder()
+                    .content_width(current_w)
+                    .content_height(current_h)
+                    .focus_on_click(true)
+                    .build();
+                // self.cairo_draw_area(pixbuf);
+                // drawing_area.queue_draw();
+
                 let picture = Picture::for_pixbuf(&pixbuf);
                 picture.set_can_shrink(false);
                 picture.set_halign(gtk::Align::Start);
                 picture.set_valign(gtk::Align::Start);
+                picture.set_content_fit(gtk::ContentFit::Cover);
+
                 imp.picture.borrow_mut().replace(picture);
                 imp.pixel_buffer.borrow_mut().replace(pixbuf);
+                imp.drawing_area.borrow_mut().replace(drawing_area);
                 flag = true;
             }
         } // Process if picture is None, or window size was changed.
+
+        // println!("Buffer changed: {}", self.buffer_changer());
 
         // Have update the image, not dirty anymore
         native_set_dirty(key, false);
@@ -193,6 +258,8 @@ impl ObjectSubclass for NativeNode {
     const NAME: &'static str = "NativeNode";
 
     type Type = NativeNodeObject;
+
+    type ParentType = gtk::Widget;
 }
 
 impl ObjectImpl for NativeNode {
@@ -210,16 +277,20 @@ impl ObjectImpl for NativeNode {
     fn set_property(&self, _id: usize, value: &glib::Value, pspec: &ParamSpec) {
         match pspec.name() {
             "width" => {
-                let width = value.get().expect("`NativeNode` width needs to be of type `i32`.");
+                let width = value
+                    .get()
+                    .expect("`NativeNode` width needs to be of type `i32`.");
                 self.width.set(width);
                 println!("Set node width: {}", width);
-            },
+            }
             "height" => {
-                let height = value.get().expect("`NativeNode` height needs to be of type `i32`.");
+                let height = value
+                    .get()
+                    .expect("`NativeNode` height needs to be of type `i32`.");
                 self.height.set(height);
                 println!("Set node height: {}", height);
-            },
-            _ => unimplemented!()
+            }
+            _ => unimplemented!(),
         }
     }
 
@@ -227,19 +298,21 @@ impl ObjectImpl for NativeNode {
         match pspec.name() {
             "width" => self.width.get().to_value(),
             "height" => self.height.get().to_value(),
-            _ => unimplemented!()
+            _ => unimplemented!(),
         }
     }
 }
+
+impl WidgetImpl for NativeNode {}
 
 pub trait NativeNodeImpl {
     const CONNECTION_NAME: &'static str;
 
     fn rc(&self) -> Rc<RefCell<NativeNodeObject>>;
 
-    fn connect<T>(&self, set_parent: T)
+    fn connect<T>(&self, _width: i32, _height: i32, set_parent: T)
     where
-        T: Fn(*const Picture) + 'static,
+        T: Fn(*const Picture, *const DrawingArea) + 'static,
     {
         let node_rc = self.rc();
         let weak_node = node_rc.downgrade();
@@ -257,13 +330,15 @@ pub trait NativeNodeImpl {
 
         timeout_add_local(Duration::from_millis(10), move || {
             let mut still_connect = false;
-            if let Some(native_node) = weak_node.upgrade() {
-                if let Some(node) = native_node.borrow().update_native_buffered_picture() {
+            if let Some(node_ref) = weak_node.upgrade() {
+                if let Some(node) = node_ref.borrow().update_native_buffered_picture() {
                     if let Some(ref picture) = *node.imp().picture.borrow() {
-                        set_parent(picture as *const Picture);
+                        if let Some(ref area) = *node.imp().drawing_area.borrow() {
+                            set_parent(picture as *const Picture, area as *const DrawingArea);
+                        }
                     }
                 }
-                still_connect = native_node.borrow().imp().still_connect.get();
+                still_connect = node_ref.borrow().imp().still_connect.get();
             }
             Continue(still_connect)
         });

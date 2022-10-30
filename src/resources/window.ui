@@ -6,7 +6,13 @@
         <property name="resizable">true</property>
         <property name="title" translatable="yes">Termio</property>
         <child>
-            <object class="NativeTerminalEmulator" id="native_terminal_emulator"></object>
+            <object class="GtkScrolledWindow" id="gtk_scrolled_window">
+                <property name="hscrollbar-policy">GTK_POLICY_EXTERNAL</property>
+                <property name="vscrollbar-policy">GTK_POLICY_EXTERNAL</property>
+                <child>
+                    <object class="NativeTerminalEmulator" id="native_terminal_emulator"></object>
+                </child>
+            </object>
         </child>
     </template>
 </interface>

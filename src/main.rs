@@ -64,6 +64,7 @@ fn prelude_settings() {
 }
 
 fn build_ui(app: &Application) {
-    TermioCommunityWindow::new(app).present();
+    let window = TermioCommunityWindow::new(app);
+    window.present();
     info!("Startup application termio-community success.");
 }
