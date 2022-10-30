@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
                                       uchar* bufferData, int w, int h) {
     if (image == NULL) {
       image = new QImage(bufferData, w, h, w * 4,
-                         QImage::Format_ARGB32_Premultiplied);
+                         QImage::Format_RGBA8888_Premultiplied);
       emulator.resize(w, h);
       emulator.requestRedrawImage(image);
     }
@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     if (image == NULL || emulator.width() != w || emulator.height() != h) {
       delete image;
       image = new QImage(bufferData, w, h, w * 4,
-                         QImage::Format_ARGB32_Premultiplied);
+                         QImage::Format_RGBA8888_Premultiplied);
       emulator.resize(w, h);
       emulator.requestRedrawImage(image);
     }

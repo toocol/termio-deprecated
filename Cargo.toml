@@ -15,9 +15,10 @@ utilities = { path = "utilities/" }
 core = { path = "core/" }
 platform = { path = "platform/" }
 
-gtk = { version = "0.5.0", package = "gtk4", features = ["v4_6"] }
+gtk = { version = "0.5.0", package = "gtk4", features = ["v4_6", "v4_8"] }
 log = "0.4"
 log4rs = "1.1.1"
+lazy_static = "1.4.0"
 
 [build-dependencies]
 glib-build-tools = "0.16.0"
