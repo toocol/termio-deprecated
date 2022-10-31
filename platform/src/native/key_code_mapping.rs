@@ -1,10 +1,31 @@
-#![allow(dead_code)]
-use gtk::gdk::ffi::*;
+use gtk::gdk::{ffi::*, ModifierType};
+use log::debug;
 
 pub struct QtCodeMapping;
 
 #[allow(non_upper_case_globals)]
 impl QtCodeMapping {
+    pub fn get_qt_modifier(gtk_modifier: ModifierType) -> i32 {
+        match gtk_modifier {
+            ModifierType::SHIFT_MASK => 0,
+            ModifierType::LOCK_MASK => 0,
+            ModifierType::CONTROL_MASK => 0,
+            ModifierType::ALT_MASK => 0,
+            ModifierType::BUTTON1_MASK => 0,
+            ModifierType::BUTTON2_MASK => 0,
+            ModifierType::BUTTON3_MASK => 0,
+            ModifierType::BUTTON4_MASK => 0,
+            ModifierType::BUTTON5_MASK => 0,
+            ModifierType::SUPER_MASK => 0,
+            ModifierType::HYPER_MASK => 0,
+            ModifierType::META_MASK => 0,
+            _ => {
+                debug!("Non match modfier.");
+                0
+            }
+        }
+    }
+
     pub fn get_qt_code(gtk_code: i32) -> i32 {
         match gtk_code {
             GDK_KEY_Escape => 0x01000000,
@@ -70,7 +91,10 @@ impl QtCodeMapping {
             GDK_KEY_F22 => 0x01000045,
             GDK_KEY_F23 => 0x01000046,
             GDK_KEY_F24 => 0x01000047,
-            _ => gtk_code,
+            _ => {
+                debug!("Non match key code.");
+                gtk_code
+            },
         }
     }
 }

@@ -1,6 +1,7 @@
 mod imp;
 
 use gtk::glib::Object;
+use gtk::subclass::prelude::ObjectSubclassIsExt;
 use gtk::{gio, glib, Application};
 
 glib::wrapper! {
@@ -13,5 +14,9 @@ glib::wrapper! {
 impl TermioCommunityWindow {
     pub fn new(app: &Application) -> Self {
         Object::new(&[("application", app)])
+    }
+
+    pub fn initialize(&self) {
+        self.imp().native_terminal_emulator.initialize();
     }
 }

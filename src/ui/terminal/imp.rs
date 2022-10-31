@@ -9,7 +9,7 @@ use log::info;
 use platform::native_node::{NativeNodeImpl, NativeNodeObject};
 
 pub struct NativeTerminalEmulator {
-    native_node_object: Rc<RefCell<NativeNodeObject>>,
+    pub native_node_object: Rc<RefCell<NativeNodeObject>>,
 }
 
 impl Default for NativeTerminalEmulator {
@@ -47,18 +47,15 @@ impl ObjectImpl for NativeTerminalEmulator {
 
         self.set_verbose(true);
         self.set_hibpi_aware(true);
-
-        self.connect(
-            clone!(@weak self as widget => move |picture, _area| {
-                unsafe {
-                    let picture: &Picture = <Picture>::as_ref(&*picture);
-                    picture.set_parent(&widget.instance().to_owned());
-                    // let area: &DrawingArea = <DrawingArea>::as_ref(&*area);
-                    // area.set_parent(&widget.instance().to_owned());
-                    info!("Bind native buffered picture to NativeTerminalEmulator.");
-                }
-            }),
-        );
+        self.connect(clone!(@weak self as widget => move |picture, _area| {
+            unsafe {
+                let picture: &Picture = <Picture>::as_ref(&*picture);
+                picture.set_parent(&widget.instance().to_owned());
+                // let area: &DrawingArea = <DrawingArea>::as_ref(&*area);
+                // area.set_parent(&widget.instance().to_owned());
+                info!("Bind native buffered picture to NativeTerminalEmulator.");
+            }
+        }));
         info!("NativeTerminalEmulator constructed.")
     }
 
@@ -71,7 +68,11 @@ impl WidgetImpl for NativeTerminalEmulator {
     fn realize(&self) {
         self.parent_realize();
         let allocation = self.instance().allocation();
-        println!("Realize! w:{}, h:{}", allocation.width(), allocation.height());
+        println!(
+            "Realize! w:{}, h:{}",
+            allocation.width(),
+            allocation.height()
+        );
     }
 
     fn show(&self) {
@@ -94,7 +95,7 @@ impl WidgetImpl for NativeTerminalEmulator {
 
     fn snapshot(&self, snapshot: &gtk::Snapshot) {
         self.parent_snapshot(snapshot);
-        self.native_node_object.borrow().draw_snapshot();
+        self.native_node_object.borrow().process_snapshot();
     }
 }
 

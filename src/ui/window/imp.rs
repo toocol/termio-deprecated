@@ -6,6 +6,7 @@ use gtk::{glib, CompositeTemplate, ScrolledWindow};
 use gtk::prelude::*;
 
 use crate::ui::terminal::NativeTerminalEmulator;
+use log::debug;
 
 #[derive(Default, CompositeTemplate)]
 #[template(resource = "/com/toocol/termio/community/window.ui")]
@@ -40,14 +41,16 @@ impl WidgetImpl for TermioCommunityWindow {
         self.parent_realize();
 
         let allocation = self.instance().imp().gtk_scrolled_window.allocation();
-        println!("Window realize! w:{}, h:{}", allocation.width(), allocation.height());
+        debug!("Window realize! w:{}, h:{}", allocation.width(), allocation.height());
     }
 
     fn snapshot(&self, snapshot: &gtk::Snapshot) {
         self.parent_snapshot(snapshot);
         
-        let allocation = self.instance().imp().gtk_scrolled_window.allocation();
-        println!("Window snapshot! w:{}, h:{}", allocation.width(), allocation.height());
+        let window_allocation = self.instance().imp().gtk_scrolled_window.allocation();
+        let terminal_allocation = self.instance().imp().native_terminal_emulator.allocation();
+        debug!("Window snapshot! w:{}, h:{}", window_allocation.width(), window_allocation.height());
+        debug!("Terminal snapshot! w:{}, h:{}", terminal_allocation.width(), terminal_allocation.height());
     }
 }
 

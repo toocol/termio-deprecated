@@ -1,33 +1,33 @@
 #![allow(dead_code)]
-use std::cell::Cell;
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::slice;
-use std::time::Duration;
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+    slice,
+    sync::atomic::{AtomicI32, Ordering},
+    time::Duration,
+};
 
-use crate::native::native_adapter::*;
-use gtk::gdk_pixbuf::Pixbuf;
-use gtk::glib;
-use gtk::glib::clone::Downgrade;
-use gtk::glib::once_cell::sync::Lazy;
-use gtk::glib::timeout_add_local;
-use gtk::glib::Bytes;
-use gtk::glib::Object;
-use gtk::glib::ParamSpec;
-use gtk::glib::ParamSpecInt;
-use gtk::prelude::*;
-use gtk::subclass::prelude::*;
-use gtk::DrawingArea;
-use gtk::Picture;
+use crate::{native::native_adapter::*, key_code_mapping::QtCodeMapping};
+use gtk::{
+    gdk::{Key, ModifierType},
+    gdk_pixbuf::Pixbuf,
+    glib::{
+        self, clone::Downgrade, once_cell::sync::Lazy, timeout_add_local, Bytes, Object, ParamSpec,
+        ParamSpecInt,
+    },
+    prelude::*,
+    subclass::prelude::*,
+    DrawingArea, Picture,
+};
 use utilities::TimeStamp;
+use log::debug;
 
 glib::wrapper! {
-    pub struct NativeNodeObject(ObjectSubclass<NativeNode>)
-        @extends gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+    pub struct NativeNodeObject(ObjectSubclass<NativeNode>);
 }
 
 static mut REC_BYTES: [u8; 1280 * 800 * 4] = [0u8; 1280 * 800 * 4];
+static MODIFIER: AtomicI32 = AtomicI32::new(0);
 
 pub struct NativeNode {
     pub drawing_area: RefCell<Option<DrawingArea>>,
@@ -76,7 +76,7 @@ impl NativeNodeObject {
         Object::new(&[])
     }
 
-    pub fn buffer_changer(&self) -> bool {
+    pub fn buffer_changed(&self) -> bool {
         unsafe {
             let imp = self.imp();
             let mut flag = false;
@@ -92,7 +92,55 @@ impl NativeNodeObject {
         }
     }
 
-    pub fn draw_snapshot(&self) {}
+    pub fn process_snapshot(&self) {}
+
+    pub fn react_key_pressed_event(&self, key: Key, keycode: u32, modifier: ModifierType) {
+        debug!(
+            "`NativeNode` key pressed -> name: {:?}, code: {}, modifier: {:?}",
+            key.name(),
+            keycode,
+            modifier
+        );
+        MODIFIER.store(QtCodeMapping::get_qt_modifier(modifier), Ordering::SeqCst);
+    }
+
+    pub fn react_key_released_event(&self, key: Key, keycode: u32, modifier: ModifierType) {
+        debug!(
+            "`NativeNode` key released -> name: {:?}, code: {}, modifier: {:?}",
+            key.name(),
+            keycode,
+            modifier
+        );
+        MODIFIER.store(0, Ordering::SeqCst);
+    }
+
+    pub fn react_mouse_pressed_event(&self, n_press: i32, x: f64, y: f64) {
+        debug!(
+            "`NativeNode` mouse pressed -> n_press: {}, x: {}, y: {}",
+            n_press, x, y
+        );
+    }
+
+    pub fn react_mouse_released_event(&self, n_press: i32, x: f64, y: f64) {
+        debug!(
+            "`NativeNode` mouse released -> n_press: {}, x: {}, y: {}",
+            n_press, x, y
+        );
+    }
+
+    pub fn react_mouse_motion_enter(&self, x: f64, y: f64) {
+        debug!("`NativeNode` motion enter, {} {}", x, y);
+    }
+
+    pub fn react_mouse_motion_move(&self, _x: f64, _y: f64) {}
+
+    pub fn react_mouse_motion_leave(&self) {
+        debug!("`NativeNode` motion leave");
+    }
+
+    pub fn react_mouse_wheel(&self, x: f64, y: f64) {
+        debug!("`NativeNode` mouse wheel: x: {}, y: {}", x, y);
+    }
 
     pub fn cairo_draw_area(&self, pixbuf: Pixbuf) {
         if let Some(ref area) = *self.imp().drawing_area.borrow() {
@@ -147,7 +195,7 @@ impl NativeNodeObject {
         //     Some(ref picture) => picture.height(),
         //     None => 0,
         // };
-        println!(
+        debug!(
             "picture cw:{}, ch:{}, w:{}, h:{}",
             current_w, current_h, picture_w, picture_h
         );
@@ -190,6 +238,7 @@ impl NativeNodeObject {
                 // drawing_area.queue_draw();
 
                 let picture = Picture::for_pixbuf(&pixbuf);
+                picture.set_can_focus(false);
                 picture.set_can_shrink(false);
                 picture.set_halign(gtk::Align::Start);
                 picture.set_valign(gtk::Align::Start);
@@ -214,7 +263,7 @@ impl NativeNodeObject {
             && height > 0
         {
             if imp.is_verbose.get() {
-                println!(
+                debug!(
                     "[{}]> requesting buffer resize W: {}, H: {}",
                     key, width, height
                 );
@@ -238,7 +287,7 @@ impl NativeNodeObject {
                 }
                 fps_average /= imp.num_values as f64;
                 imp.fps_counter.set(0);
-                println!("[{}]> fps: {}", key, fps_average);
+                debug!("[{}]> fps: {}", key, fps_average);
             }
             imp.fps_counter.set(imp.fps_counter.get() + 1);
             imp.frame_timestamp.set(current_timestamp);
@@ -257,8 +306,6 @@ impl ObjectSubclass for NativeNode {
     const NAME: &'static str = "NativeNode";
 
     type Type = NativeNodeObject;
-
-    type ParentType = gtk::Widget;
 }
 
 impl ObjectImpl for NativeNode {
@@ -280,14 +327,14 @@ impl ObjectImpl for NativeNode {
                     .get()
                     .expect("`NativeNode` width needs to be of type `i32`.");
                 self.width.set(width);
-                println!("Set node width: {}", width);
+                debug!("Set node width: {}", width);
             }
             "height" => {
                 let height = value
                     .get()
                     .expect("`NativeNode` height needs to be of type `i32`.");
                 self.height.set(height);
-                println!("Set node height: {}", height);
+                debug!("Set node height: {}", height);
             }
             _ => unimplemented!(),
         }
@@ -301,8 +348,6 @@ impl ObjectImpl for NativeNode {
         }
     }
 }
-
-impl WidgetImpl for NativeNode {}
 
 pub trait NativeNodeImpl {
     const CONNECTION_NAME: &'static str;

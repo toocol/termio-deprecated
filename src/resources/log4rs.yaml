@@ -9,12 +9,12 @@ appenders:
       pattern: "{l} {d(%Y-%m-%d %H:%M:%S %Z)} [{M}, {T}-{I}] - {m}{n}"
   file:
     kind: file
+    level: info
     path: "termio-community.log"
     encoder:
       pattern: "{l} {d(%Y-%m-%d %H:%M:%S %Z)} [{M}, {T}-{I}] - {m}{n}"
 # Global log settings
 root:
-  level: info
+  level: debug
   appenders:
     - stdout
-    - file
