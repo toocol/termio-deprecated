@@ -4,7 +4,7 @@
 #define REXPORT __declspec(dllexport)
 #define RCALL __stdcall
 
-typedef long i32;
+typedef int i32;
 typedef __int64 i64;
 typedef double f64;
 typedef const char* cstring;
