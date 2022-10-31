@@ -805,6 +805,7 @@ version = "0.1.0"
 dependencies = [
  "core",
  "gtk4",
+ "lazy_static",
  "log",
  "utilities",
 ]

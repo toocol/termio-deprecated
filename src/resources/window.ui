@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
     <template class="TermioCommunityWindow" parent="GtkApplicationWindow">
-        <property name="default-width">1280</property>
-        <property name="default-height">800</property>
         <property name="resizable">true</property>
         <property name="title" translatable="yes">Termio</property>
         <child>
             <object class="GtkScrolledWindow" id="gtk_scrolled_window">
                 <property name="hscrollbar-policy">GTK_POLICY_EXTERNAL</property>
                 <property name="vscrollbar-policy">GTK_POLICY_EXTERNAL</property>
+                <property name="width-request">1280</property>
+                <property name="height-request">800</property>
                 <child>
                     <object class="NativeTerminalEmulator" id="native_terminal_emulator"></object>
                 </child>

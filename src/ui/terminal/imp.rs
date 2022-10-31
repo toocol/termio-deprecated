@@ -48,11 +48,7 @@ impl ObjectImpl for NativeTerminalEmulator {
         self.set_verbose(true);
         self.set_hibpi_aware(true);
 
-        let allocation = self.instance().allocation();
-        println!("Constructed! w:{}, h:{}", allocation.width(), allocation.height());
         self.connect(
-            0,
-            0,
             clone!(@weak self as widget => move |picture, _area| {
                 unsafe {
                     let picture: &Picture = <Picture>::as_ref(&*picture);
@@ -99,9 +95,6 @@ impl WidgetImpl for NativeTerminalEmulator {
     fn snapshot(&self, snapshot: &gtk::Snapshot) {
         self.parent_snapshot(snapshot);
         self.native_node_object.borrow().draw_snapshot();
-
-        let allocation = self.instance().allocation();
-        println!("Snapshot! w:{}, h:{}", allocation.width(), allocation.height());
     }
 }
 

@@ -1,118 +1,118 @@
-use std::ffi::CString;
+use std::ffi::{CString, c_int, c_char, c_longlong};
 
 #[link(name = "native-adapter")]
 extern "C" {
-    fn next_key() -> i32;
-    fn connect_to(name: *const i8) -> i32;
-    fn terminate_at(key: i32) -> bool;
-    fn is_connected(key: i32) -> bool;
-    fn send_msg(key: i32, msg: *const i8, shared_string_type: i32) -> *const i8;
-    fn process_native_events(key: i32);
-    fn resize(key: i32, width: i32, height: i32);
-    fn is_dirty(key: i32) -> bool;
-    fn redraw(key: i32, x: i32, y: i32, w: i32, h: i32);
-    fn set_dirty(key: i32, value: bool);
-    fn set_buffer_ready(key: i32, is_buffer_ready: bool);
-    fn is_buffer_ready(key: i32) -> bool;
-    fn get_w(key: i32) -> i32;
-    fn get_h(key: i32) -> i32;
-    fn request_focus(key: i32, is_focus: bool, timestamp: i64) -> bool;
+    fn next_key() -> c_int;
+    fn connect_to(name: *const c_char) -> c_int;
+    fn terminate_at(key: c_int) -> bool;
+    fn is_connected(key: c_int) -> bool;
+    fn send_msg(key: c_int, msg: *const c_char, shared_string_type: c_int) -> *const c_char;
+    fn process_native_events(key: c_int);
+    fn resize(key: c_int, width: c_int, height: c_int);
+    fn is_dirty(key: c_int) -> bool;
+    fn redraw(key: c_int, x: c_int, y: c_int, w: c_int, h: c_int);
+    fn set_dirty(key: c_int, value: bool);
+    fn set_buffer_ready(key: c_int, is_buffer_ready: bool);
+    fn is_buffer_ready(key: c_int) -> bool;
+    fn get_w(key: c_int) -> c_int;
+    fn get_h(key: c_int) -> c_int;
+    fn request_focus(key: c_int, is_focus: bool, timestamp: c_longlong) -> bool;
     fn create_ssh_session(
-        key: i32,
-        session_id: i64,
-        host: *const i8,
-        user: *const i8,
-        password: *const i8,
-        timestamp: i64,
+        key: c_int,
+        session_id: c_longlong,
+        host: *const c_char,
+        user: *const c_char,
+        password: *const c_char,
+        timestamp: c_longlong,
     ) -> bool;
-    fn get_buffer(key: i32) -> *const u8;
-    fn lock(key: i32) -> bool;
-    fn lock_timeout(key: i32, timeout: i64) -> bool;
-    fn unlock(key: i32);
-    fn wait_for_buffer_changes(key: i32);
-    fn has_buffer_changes(key: i32) -> bool;
-    fn lock_buffer(key: i32);
-    fn unlock_buffer(key: i32);
+    fn get_buffer(key: c_int) -> *const u8;
+    fn lock(key: c_int) -> bool;
+    fn lock_timeout(key: c_int, timeout: c_longlong) -> bool;
+    fn unlock(key: c_int);
+    fn wait_for_buffer_changes(key: c_int);
+    fn has_buffer_changes(key: c_int) -> bool;
+    fn lock_buffer(key: c_int);
+    fn unlock_buffer(key: c_int);
     fn fire_mouse_pressed_event(
-        key: i32,
+        key: c_int,
         x: f64,
         y: f64,
-        buttons: i32,
-        modifiers: i32,
-        timestamp: i64,
+        buttons: c_int,
+        modifiers: c_int,
+        timestamp: c_longlong,
     ) -> bool;
     fn fire_mouse_released_event(
-        key: i32,
+        key: c_int,
         x: f64,
         y: f64,
-        buttons: i32,
-        modifiers: i32,
-        timestamp: i64,
+        buttons: c_int,
+        modifiers: c_int,
+        timestamp: c_longlong,
     ) -> bool;
     fn fire_mouse_clicked_event(
-        key: i32,
+        key: c_int,
         x: f64,
         y: f64,
-        buttons: i32,
-        modifiers: i32,
-        click_count: i32,
-        timestamp: i64,
+        buttons: c_int,
+        modifiers: c_int,
+        click_count: c_int,
+        timestamp: c_longlong,
     ) -> bool;
     fn fire_mouse_entered_event(
-        key: i32,
+        key: c_int,
         x: f64,
         y: f64,
-        buttons: i32,
-        modifiers: i32,
-        click_count: i32,
-        timestamp: i64,
+        buttons: c_int,
+        modifiers: c_int,
+        click_count: c_int,
+        timestamp: c_longlong,
     ) -> bool;
     fn fire_mouse_exited_event(
-        key: i32,
+        key: c_int,
         x: f64,
         y: f64,
-        buttons: i32,
-        modifiers: i32,
-        click_count: i32,
-        timestamp: i64,
+        buttons: c_int,
+        modifiers: c_int,
+        click_count: c_int,
+        timestamp: c_longlong,
     ) -> bool;
     fn fire_mouse_move_event(
-        key: i32,
+        key: c_int,
         x: f64,
         y: f64,
-        buttons: i32,
-        modifiers: i32,
-        timestamp: i64,
+        buttons: c_int,
+        modifiers: c_int,
+        timestamp: c_longlong,
     ) -> bool;
     fn fire_mouse_wheel_event(
-        key: i32,
+        key: c_int,
         x: f64,
         y: f64,
         amount: f64,
-        buttons: i32,
-        modifiers: i32,
-        timestamp: i64,
+        buttons: c_int,
+        modifiers: c_int,
+        timestamp: c_longlong,
     ) -> bool;
     fn fire_key_pressed_event(
-        key: i32,
-        characters: *const i8,
-        key_code: i32,
-        modifiers: i32,
-        timestamp: i64,
+        key: c_int,
+        characters: *const c_char,
+        key_code: c_int,
+        modifiers: c_int,
+        timestamp: c_longlong,
     ) -> bool;
     fn fire_key_released_event(
-        key: i32,
-        characters: *const i8,
-        key_code: i32,
-        modifiers: i32,
-        timestamp: i64,
+        key: c_int,
+        characters: *const c_char,
+        key_code: c_int,
+        modifiers: c_int,
+        timestamp: c_longlong,
     ) -> bool;
     fn fire_key_typed_event(
-        key: i32,
-        characters: *const i8,
-        key_code: i32,
-        modifiers: i32,
-        timestamp: i64,
+        key: c_int,
+        characters: *const c_char,
+        key_code: c_int,
+        modifiers: c_int,
+        timestamp: c_longlong,
     ) -> bool;
 }
 
@@ -150,7 +150,7 @@ pub fn native_send_msg(key: i32, msg: &str, shared_string_type: i32) -> String {
     unsafe {
         let c_str = CString::new(msg).unwrap();
         let res = send_msg(key, c_str.as_ptr(), shared_string_type);
-        let res = CString::from_raw(res as *mut i8)
+        let res = CString::from_raw(res as *mut c_char)
             .to_str()
             .unwrap()
             .to_string();

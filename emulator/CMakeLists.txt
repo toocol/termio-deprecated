@@ -19,7 +19,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core5Compat)
 
 include_directories("src/headers/")
 include_directories("src/cpp/")
-include_directories("../native/emu-adapter/src/")
+include_directories("../native/native-adapter/src/")
 include_directories("D:/download/boost_1_80_0/")
 include_directories("C:/Windows/System32/include")
 

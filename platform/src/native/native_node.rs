@@ -155,7 +155,7 @@ impl NativeNodeObject {
         if None == *imp.picture.borrow() || picture_w != current_w || picture_h != current_h {
             if imp.is_verbose.get() {
                 println!(
-                    "[{}]> -> new img instance, resize W: {}, H: {}",
+                    "[{}]> -> new image instance, resize W: {}, H: {}",
                     key, current_w, current_h
                 );
             }
@@ -193,7 +193,6 @@ impl NativeNodeObject {
                 picture.set_can_shrink(false);
                 picture.set_halign(gtk::Align::Start);
                 picture.set_valign(gtk::Align::Start);
-                picture.set_content_fit(gtk::ContentFit::Cover);
 
                 imp.picture.borrow_mut().replace(picture);
                 imp.pixel_buffer.borrow_mut().replace(pixbuf);
@@ -310,7 +309,7 @@ pub trait NativeNodeImpl {
 
     fn rc(&self) -> Rc<RefCell<NativeNodeObject>>;
 
-    fn connect<T>(&self, _width: i32, _height: i32, set_parent: T)
+    fn connect<T>(&self, set_parent: T)
     where
         T: Fn(*const Picture, *const DrawingArea) + 'static,
     {
