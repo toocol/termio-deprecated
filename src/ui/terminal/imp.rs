@@ -47,12 +47,10 @@ impl ObjectImpl for NativeTerminalEmulator {
 
         self.set_verbose(true);
         self.set_hibpi_aware(true);
-        self.connect(clone!(@weak self as widget => move |picture, _area| {
+        self.connect(clone!(@weak self as widget => move |picture| {
             unsafe {
                 let picture: &Picture = <Picture>::as_ref(&*picture);
                 picture.set_parent(&widget.instance().to_owned());
-                // let area: &DrawingArea = <DrawingArea>::as_ref(&*area);
-                // area.set_parent(&widget.instance().to_owned());
                 info!("Bind native buffered picture to NativeTerminalEmulator.");
             }
         }));

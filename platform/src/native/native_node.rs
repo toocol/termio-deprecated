@@ -16,8 +16,7 @@ use gtk::{
         ParamSpecInt,
     },
     prelude::*,
-    subclass::prelude::*,
-    DrawingArea, Picture,
+    subclass::prelude::*, Picture,
 };
 use utilities::TimeStamp;
 use log::debug;
@@ -30,7 +29,6 @@ static mut REC_BYTES: [u8; 1280 * 800 * 4] = [0u8; 1280 * 800 * 4];
 static MODIFIER: AtomicI32 = AtomicI32::new(0);
 
 pub struct NativeNode {
-    pub drawing_area: RefCell<Option<DrawingArea>>,
     pub picture: RefCell<Option<Picture>>,
     pub pixel_buffer: RefCell<Option<Pixbuf>>,
     pub key: Cell<i32>,
@@ -52,7 +50,6 @@ pub struct NativeNode {
 impl Default for NativeNode {
     fn default() -> Self {
         Self {
-            drawing_area: RefCell::new(None),
             picture: RefCell::new(None),
             pixel_buffer: RefCell::new(None),
             key: Cell::new(-1),
@@ -96,20 +93,22 @@ impl NativeNodeObject {
 
     pub fn react_key_pressed_event(&self, key: Key, keycode: u32, modifier: ModifierType) {
         debug!(
-            "`NativeNode` key pressed -> name: {:?}, code: {}, modifier: {:?}",
+            "`NativeNode` key pressed -> name: {:?}, code: {}, modifier: {:?}, qt_code: {}",
             key.name(),
             keycode,
-            modifier
+            modifier,
+            QtCodeMapping::get_qt_code(keycode)
         );
         MODIFIER.store(QtCodeMapping::get_qt_modifier(modifier), Ordering::SeqCst);
     }
 
     pub fn react_key_released_event(&self, key: Key, keycode: u32, modifier: ModifierType) {
         debug!(
-            "`NativeNode` key released -> name: {:?}, code: {}, modifier: {:?}",
+            "`NativeNode` key released -> name: {:?}, code: {}, modifier: {:?}, qt_code: {}",
             key.name(),
             keycode,
-            modifier
+            modifier,
+            QtCodeMapping::get_qt_code(keycode)
         );
         MODIFIER.store(0, Ordering::SeqCst);
     }
@@ -140,20 +139,6 @@ impl NativeNodeObject {
 
     pub fn react_mouse_wheel(&self, x: f64, y: f64) {
         debug!("`NativeNode` mouse wheel: x: {}, y: {}", x, y);
-    }
-
-    pub fn cairo_draw_area(&self, pixbuf: Pixbuf) {
-        if let Some(ref area) = *self.imp().drawing_area.borrow() {
-            area.set_draw_func(move |_, cr, _width, _height| {
-                GdkCairoContextExt::set_source_pixbuf(
-                    cr,
-                    &pixbuf,
-                    pixbuf.width() as f64,
-                    pixbuf.height() as f64,
-                );
-                cr.paint().expect("Invalid cario surface state.");
-            });
-        }
     }
 
     fn update_native_buffered_picture(&self) -> Option<&Self> {
@@ -187,14 +172,6 @@ impl NativeNodeObject {
             Some(ref picture) => picture.height(),
             None => 0,
         };
-        // let picture_w = match *imp.drawing_area.borrow() {
-        //     Some(ref picture) => picture.width(),
-        //     None => 0,
-        // };
-        // let picture_h = match *imp.drawing_area.borrow() {
-        //     Some(ref picture) => picture.height(),
-        //     None => 0,
-        // };
         debug!(
             "picture cw:{}, ch:{}, w:{}, h:{}",
             current_w, current_h, picture_w, picture_h
@@ -229,14 +206,6 @@ impl NativeNodeObject {
                     current_w * 4,
                 );
 
-                let drawing_area = DrawingArea::builder()
-                    .content_width(current_w)
-                    .content_height(current_h)
-                    .focus_on_click(true)
-                    .build();
-                // self.cairo_draw_area(pixbuf);
-                // drawing_area.queue_draw();
-
                 let picture = Picture::for_pixbuf(&pixbuf);
                 picture.set_can_focus(false);
                 picture.set_can_shrink(false);
@@ -245,7 +214,6 @@ impl NativeNodeObject {
 
                 imp.picture.borrow_mut().replace(picture);
                 imp.pixel_buffer.borrow_mut().replace(pixbuf);
-                imp.drawing_area.borrow_mut().replace(drawing_area);
                 flag = true;
             }
         } // Process if picture is None, or window size was changed.
@@ -356,7 +324,7 @@ pub trait NativeNodeImpl {
 
     fn connect<T>(&self, set_parent: T)
     where
-        T: Fn(*const Picture, *const DrawingArea) + 'static,
+        T: Fn(*const Picture) + 'static,
     {
         let node_rc = self.rc();
         let weak_node = node_rc.downgrade();
@@ -377,9 +345,7 @@ pub trait NativeNodeImpl {
             if let Some(node_ref) = weak_node.upgrade() {
                 if let Some(node) = node_ref.borrow().update_native_buffered_picture() {
                     if let Some(ref picture) = *node.imp().picture.borrow() {
-                        if let Some(ref area) = *node.imp().drawing_area.borrow() {
-                            set_parent(picture as *const Picture, area as *const DrawingArea);
-                        }
+                            set_parent(picture as *const Picture);
                     }
                 }
                 still_connect = node_ref.borrow().imp().still_connect.get();
