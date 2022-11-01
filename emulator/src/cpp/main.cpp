@@ -1,4 +1,5 @@
 #include <QApplication>
+
 #include "terminal_emulator.h"
 
 namespace nrs = nativers;
@@ -185,12 +186,13 @@ int main(int argc, char* argv[]) {
     }
   };
 
-  auto nativeRedrawCallback = [&canvas, &qtRedraw, &qtResized]() {
-    canvas->draw(qtRedraw, qtResized);
+  auto nativeRedrawCallback = [&canvas, &qtRedraw]() {
+    canvas->draw(qtRedraw);
   };
   emulator.setNativeRedrawCallback(nativeRedrawCallback);
 
-  auto nativeEvtCallback = [&canvas, &emulator, &evt]() {
+  auto nativeEvtCallback = [&canvas, &emulator, &evt, &qtResized]() {
+    canvas->resize(qtResized);
     canvas->processEvents(evt);
 
     std::string resp = "";

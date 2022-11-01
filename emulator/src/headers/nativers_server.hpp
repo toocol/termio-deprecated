@@ -315,6 +315,8 @@ class SharedCanvas final {
     std::size_t MAX_SIZE = max_event_message_size();
     void* evt_mq_msg_buff = malloc(MAX_SIZE);
 
+    info_data->buffer_ready = true;
+
     SharedCanvas* sc =
         new SharedCanvas(name, buffer_data, shm_info, info_data, evt_mq,
                          evt_mq_msg_buff, evt_mq_native, W, H, NRS_SUCCESS);
@@ -365,7 +367,7 @@ class SharedCanvas final {
     return result;
   }
 
-  int draw(redraw_callback redraw, redraw_callback resized) {
+  int draw(redraw_callback redraw) {
     // timed locking of resources
     boost::system_time const timeout =
         boost::get_system_time() +
@@ -374,7 +376,8 @@ class SharedCanvas final {
 
     if (!locking_success) {
       std::cerr << "[" + name + "] "
-                << "ERROR: cannot connect to '" << name << "':" << std::endl;
+                << "ERROR DRAW: cannot connect to '" << name
+                << "':" << std::endl;
       std::cerr << " -> But we are unable to lock the resources." << std::endl;
       std::cerr << " -> Client not running?." << std::endl;
       return NRS_ERROR | NRS_CONNECTION_ERROR;
@@ -392,28 +395,35 @@ class SharedCanvas final {
 
       info_data->dirty = true;
 
-      int new_W = info_data->w;
-      int new_H = info_data->h;
-
-      if (new_W != W || new_H != H) {
-        // trigger buffer resize
-
-        W = new_W;
-        H = new_H;
-
-        std::cout << "[" + name + "]"
-                  << "> resize to W: " << W << ", H: " << H << std::endl;
-
-        ipc::shared_memory_object::remove(buffer_name.c_str());
-        buffer_data = createSharedBuffer(buffer_name, W, H);
-        info_data->buffer_ready = true;
-
-        resized(name, buffer_data, W, H);
-      }
-
       info_data->mutex.unlock();
     }
 
+    return NRS_SUCCESS;
+  }
+
+  int resize(redraw_callback resized) {
+    if (info_data->buffer_ready) {
+      return NRS_SUCCESS;
+    }
+
+    int new_W = info_data->w;
+    int new_H = info_data->h;
+
+    if (new_W != W || new_H != H) {
+      W = new_W;
+      H = new_H;
+
+      std::cout << "[" + name + "]"
+                << "> resize to W: " << W << ", H: " << H << std::endl;
+
+      ipc::shared_memory_object::remove(buffer_name.c_str());
+      buffer_data = createSharedBuffer(buffer_name, W, H);
+      info_data->buffer_ready = true;
+
+      resized(name, buffer_data, W, H);
+    }
+
+    info_data->resize_semaphore.post();
     return NRS_SUCCESS;
   }
 

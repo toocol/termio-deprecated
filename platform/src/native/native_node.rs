@@ -12,8 +12,7 @@ use gtk::{
     gdk::{Key, ModifierType},
     gdk_pixbuf::Pixbuf,
     glib::{
-        self, clone::Downgrade, once_cell::sync::Lazy, timeout_add_local, Bytes, Object, ParamSpec,
-        ParamSpecInt,
+        self, clone::Downgrade, timeout_add_local, Bytes, Object,
     },
     prelude::*,
     subclass::prelude::*,
@@ -32,8 +31,6 @@ pub struct NativeNode {
     pub picture: RefCell<Picture>,
     pub native_buffer: RefCell<Option<&'static [u8]>>,
     pub key: Cell<i32>,
-    pub width: Cell<i32>,
-    pub height: Cell<i32>,
 
     still_connect: Cell<bool>,
     is_verbose: Cell<bool>,
@@ -53,8 +50,6 @@ impl Default for NativeNode {
             picture: RefCell::new(Picture::new()),
             native_buffer: RefCell::new(None),
             key: Cell::new(-1),
-            width: Cell::new(0),
-            height: Cell::new(0),
             still_connect: Cell::new(false),
             is_verbose: Cell::new(false),
             hibpi_aware: Cell::new(false),
@@ -129,6 +124,7 @@ impl NativeNodeObject {
         let imp = self.imp();
         let current_timestamp = TimeStamp::timestamp();
         let key = imp.key.get();
+
         imp.locking_error.set(!native_lock(key));
         if imp.locking_error.get() {
             debug!("[{}] -> locking error.", key);
@@ -150,14 +146,10 @@ impl NativeNodeObject {
 
         let picture_w = imp.picture.borrow().width();
         let picture_h = imp.picture.borrow().height();
-        debug!(
-            "picture cw:{}, ch:{}, w:{}, h:{}",
-            current_w, current_h, picture_w, picture_h
-        );
 
         if None == *imp.native_buffer.borrow() || picture_w != current_w || picture_h != current_h {
             if imp.is_verbose.get() {
-                println!(
+                debug!(
                     "[{}]> -> new image instance, resize W: {}, H: {}",
                     key, current_w, current_h
                 );
@@ -191,26 +183,6 @@ impl NativeNodeObject {
 
         // Have update the image, not dirty anymore
         native_set_dirty(key, false);
-        let width = imp.width.get();
-        let height = imp.height.get();
-        let scale_factor = 1.0;
-        if (width as f64 != native_get_w(key) as f64 / scale_factor
-            || height as f64 != native_get_h(key) as f64 / scale_factor)
-            && width > 0
-            && height > 0
-        {
-            if imp.is_verbose.get() {
-                debug!(
-                    "[{}] -> requesting buffer resize W: {}, H: {}",
-                    key, width, height
-                );
-            }
-            native_resize(
-                key,
-                width * scale_factor as i32,
-                height * scale_factor as i32,
-            );
-        }
         native_unlock(key);
 
         if imp.is_verbose.get() {
@@ -249,53 +221,30 @@ impl ObjectImpl for NativeNode {
         picture.set_halign(Align::Start);
         picture.set_valign(Align::Start);
     }
-
-    fn properties() -> &'static [ParamSpec] {
-        static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
-            vec![
-                ParamSpecInt::builder("width").build(),
-                ParamSpecInt::builder("height").build(),
-            ]
-        });
-
-        PROPERTIES.as_ref()
-    }
-
-    fn set_property(&self, _id: usize, value: &glib::Value, pspec: &ParamSpec) {
-        match pspec.name() {
-            "width" => {
-                let width = value
-                    .get()
-                    .expect("`NativeNode` width needs to be of type `i32`.");
-                self.width.set(width);
-                debug!("Set node width: {}", width);
-            }
-            "height" => {
-                let height = value
-                    .get()
-                    .expect("`NativeNode` height needs to be of type `i32`.");
-                self.height.set(height);
-                debug!("Set node height: {}", height);
-            }
-            _ => unimplemented!(),
-        }
-    }
-
-    fn property(&self, _id: usize, pspec: &ParamSpec) -> glib::Value {
-        match pspec.name() {
-            "width" => self.width.get().to_value(),
-            "height" => self.height.get().to_value(),
-            _ => unimplemented!(),
-        }
-    }
 }
 
 pub trait NativeNodeImpl {
     const CONNECTION_NAME: &'static str;
 
+    fn resize(node_rc: Rc<RefCell<NativeNodeObject>>, width: i32, height: i32) {
+        let key = node_rc.borrow().imp().key.get();
+        native_lock(key);
+        native_resize(key, width, height);
+        native_unlock(key);
+    }
+
+    fn terminate(node_rc: Rc<RefCell<NativeNodeObject>>,) {
+        if node_rc.borrow().imp().key.get() < 0 {
+            return;
+        }
+        native_terminate_at(node_rc.borrow().imp().key.get());
+        node_rc.borrow().imp().still_connect.set(false);
+    }
+
     fn rc(&self) -> Rc<RefCell<NativeNodeObject>>;
 
-    fn connect(node_rc: Rc<RefCell<NativeNodeObject>>) {
+    fn connect(&self) {
+        let node_rc = self.rc();
         let weak_node = node_rc.downgrade();
 
         if node_rc.borrow().imp().key.get() < 0
@@ -329,13 +278,5 @@ pub trait NativeNodeImpl {
 
     fn set_hibpi_aware(&self, hibpi_aware: bool) {
         self.rc().borrow().imp().hibpi_aware.set(hibpi_aware);
-    }
-
-    fn terminate(&self) {
-        if self.rc().borrow().imp().key.get() < 0 {
-            return;
-        }
-        native_terminate_at(self.rc().borrow().imp().key.get());
-        self.rc().borrow().imp().still_connect.set(false);
     }
 }

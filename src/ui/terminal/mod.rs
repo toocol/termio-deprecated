@@ -16,11 +16,6 @@ glib::wrapper! {
 }
 
 impl NativeTerminalEmulator {
-    /// Connect `NativeNode` to native shared memory server.
-    pub fn connect_native(&self, _width: i32, _height: i32) {
-       imp::NativeTerminalEmulator::connect(self.imp().native_node_object.clone());
-    }
-
     /// Initialize the keyboard/mouse events reaction of NativeTerminalEmulator
     pub fn initialize(&self) {
         self.set_focusable(true);
@@ -94,5 +89,22 @@ impl NativeTerminalEmulator {
             Inhibit(true)
         });
         self.add_controller(&wheel_controller);
+    }
+
+    /// Resize the `NativeNode`.
+    pub fn resize(&self, width: i32, height: i32) {
+        let imp = self.imp();
+        let old_w = imp.width.get();
+        let old_h = imp.height.get();
+        if width != old_w || height != old_h {
+            imp.width.set(width);
+            imp.height.set(height);
+            imp::NativeTerminalEmulator::resize(imp.native_node_object.clone(), width, height);
+        }
+    }
+
+    /// Terminate the native node.
+    pub fn terminate(&self) {
+        imp::NativeTerminalEmulator::terminate(self.imp().native_node_object.clone());
     }
 }

@@ -2,7 +2,7 @@ use gtk::glib::subclass::InitializingObject;
 use gtk::subclass::prelude::ObjectSubclass;
 
 use gtk::subclass::prelude::*;
-use gtk::{glib, CompositeTemplate, ScrolledWindow};
+use gtk::{glib, CompositeTemplate, ScrolledWindow, Inhibit};
 use gtk::prelude::*;
 
 use crate::ui::terminal::NativeTerminalEmulator;
@@ -37,30 +37,21 @@ impl ObjectSubclass for TermioCommunityWindow {
 impl ObjectImpl for TermioCommunityWindow {}
 
 impl WidgetImpl for TermioCommunityWindow {
-    fn realize(&self) {
-        self.parent_realize();
-
-        let allocation = self.instance().imp().gtk_scrolled_window.allocation();
-        debug!("Window realize! w:{}, h:{}", allocation.width(), allocation.height());
-    }
-
     fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
         self.parent_size_allocate(width, height, baseline);
-        debug!("Window size allocate! w: {}, h: {}, baseline: {}", width, height, baseline);
 
-        let window_allocation = self.gtk_scrolled_window.allocation();
-        self.native_terminal_emulator.connect_native(window_allocation.width(), window_allocation.height());
-    }
-
-    fn snapshot(&self, snapshot: &gtk::Snapshot) {
-        self.parent_snapshot(snapshot);
-        let window_allocation = self.gtk_scrolled_window.allocation();
-        let terminal_allocation = self.native_terminal_emulator.allocation();
-        debug!("Window snapshot! w:{}, h:{}", window_allocation.width(), window_allocation.height());
-        debug!("Terminal snapshot! w:{}, h:{}", terminal_allocation.width(), terminal_allocation.height());
+        let allocation = self.instance().imp().gtk_scrolled_window.allocation();
+        self.native_terminal_emulator.resize(allocation.width(), allocation.height());
+        debug!("Window size allocate! w: {}, h: {}, baseline: {}", allocation.width(), allocation.height(), baseline);
     }
 }
 
-impl WindowImpl for TermioCommunityWindow {}
+impl WindowImpl for TermioCommunityWindow {
+    fn close_request(&self) -> Inhibit {
+        self.parent_close_request();
+        debug!("Application closed.");
+        Inhibit(false)
+    }
+}
 
 impl ApplicationWindowImpl for TermioCommunityWindow {}

@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::{RefCell, Cell}, rc::Rc};
 
 use gtk::{glib, prelude::Cast, subclass::prelude::*, traits::WidgetExt};
 use platform::native_node::{NativeNodeImpl, NativeNodeObject};
@@ -6,6 +6,8 @@ use log::info;
 
 pub struct NativeTerminalEmulator {
     pub native_node_object: Rc<RefCell<NativeNodeObject>>,
+    pub width: Cell<i32>,
+    pub height: Cell<i32>,
 }
 
 impl NativeTerminalEmulator {
@@ -15,6 +17,8 @@ impl Default for NativeTerminalEmulator {
     fn default() -> Self {
         Self {
             native_node_object: Rc::new(RefCell::new(NativeNodeObject::new())),
+            width: Cell::new(0),
+            height: Cell::new(0),
         }
     }
 }
@@ -52,6 +56,7 @@ impl ObjectImpl for NativeTerminalEmulator {
             .picture
             .borrow()
             .set_parent(&self.instance().to_owned());
+        self.connect();
         info!("NativeTerminalEmulator constructed.")
     }
 
