@@ -1,5 +1,57 @@
-use gtk::gdk::{ffi::*, ModifierType};
-use log::debug;
+use gtk::gdk::ModifierType;
+
+const GTK_KEYCODE_ESCAPE: u32 = 27;
+const GTK_KEYCODE_TAB: u32 = 9;
+const GTK_KEYCODE_BACKSPACE: u32 = 8;
+const GTK_KEYCODE_ENTER: u32 = 13;
+const GTK_KEYCODE_INSERT: u32 = 45;
+const GTK_KEYCODE_DELETE: u32 = 46;
+const GTK_KEYCODE_PAUSE: u32 = 19;
+const GTK_KEYCODE_PRINT: u32 = 44;
+const GTK_KEYCODE_CLEAR: u32 = 0; // FIXME
+const GTK_KEYCODE_HOME: u32 = 36;
+const GTK_KEYCODE_END: u32 = 35;
+const GTK_KEYCODE_LEFT: u32 = 37;
+const GTK_KEYCODE_UP: u32 = 38;
+const GTK_KEYCODE_RIGHT: u32 = 39;
+const GTK_KEYCODE_DOWN: u32 = 40;
+const GTK_KEYCODE_PAGE_UP: u32 = 33;
+const GTK_KEYCODE_PAGE_DOWN: u32 = 34;
+const GTK_KEYCODE_SHIFT_L: u32 = 16;
+const GTK_KEYCODE_SHIFT_R: u32 = 161;
+const GTK_KEYCODE_CONTROL_L: u32 = 17;
+const GTK_KEYCODE_CONTROL_R: u32 = 163;
+const GTK_KEYCODE_META_L: u32 = 91;
+const GTK_KEYCODE_META_R: u32 = 92;
+const GTK_KEYCODE_ALT_L: u32 = 18;
+const GTK_KEYCODE_ALT_R: u32 = 165;
+const GTK_KEYCODE_CAPS_LOCK: u32 = 20;
+const GTK_KEYCODE_NUM_LOCK: u32 = 1; // FIXME
+const GTK_KEYCODE_SCROLL_LOCK: u32 = 145;
+const GTK_KEYCODE_F1: u32 = 112;
+const GTK_KEYCODE_F2: u32 = 113;
+const GTK_KEYCODE_F3: u32 = 114;
+const GTK_KEYCODE_F4: u32 = 115;
+const GTK_KEYCODE_F5: u32 = 116;
+const GTK_KEYCODE_F6: u32 = 117;
+const GTK_KEYCODE_F7: u32 = 118;
+const GTK_KEYCODE_F8: u32 = 119;
+const GTK_KEYCODE_F9: u32 = 120;
+const GTK_KEYCODE_F10: u32 = 121;
+const GTK_KEYCODE_F11: u32 = 122;
+const GTK_KEYCODE_F12: u32 = 123;
+const GTK_KEYCODE_F13: u32 = 124;
+const GTK_KEYCODE_F14: u32 = 125;
+const GTK_KEYCODE_F15: u32 = 126;
+const GTK_KEYCODE_F16: u32 = 127;
+const GTK_KEYCODE_F17: u32 = 128;
+const GTK_KEYCODE_F18: u32 = 129;
+const GTK_KEYCODE_F19: u32 = 130;
+const GTK_KEYCODE_F20: u32 = 131;
+const GTK_KEYCODE_F21: u32 = 132;
+const GTK_KEYCODE_F22: u32 = 133;
+const GTK_KEYCODE_F23: u32 = 134;
+const GTK_KEYCODE_F24: u32 = 135;
 
 pub struct QtCodeMapping;
 
@@ -7,10 +59,10 @@ pub struct QtCodeMapping;
 impl QtCodeMapping {
     pub fn get_qt_modifier(gtk_modifier: ModifierType) -> i32 {
         match gtk_modifier {
-            ModifierType::SHIFT_MASK => 0,
+            ModifierType::SHIFT_MASK => 0x02000000,
             ModifierType::LOCK_MASK => 0,
-            ModifierType::CONTROL_MASK => 0,
-            ModifierType::ALT_MASK => 0,
+            ModifierType::CONTROL_MASK => 0x04000000,
+            ModifierType::ALT_MASK => 0x08000000,
             ModifierType::BUTTON1_MASK => 0,
             ModifierType::BUTTON2_MASK => 0,
             ModifierType::BUTTON3_MASK => 0,
@@ -18,83 +70,66 @@ impl QtCodeMapping {
             ModifierType::BUTTON5_MASK => 0,
             ModifierType::SUPER_MASK => 0,
             ModifierType::HYPER_MASK => 0,
-            ModifierType::META_MASK => 0,
-            _ => {
-                debug!("Non match modfier.");
-                0
-            }
+            ModifierType::META_MASK => 0x10000000,
+            _ => 0,
         }
     }
 
-    pub fn get_qt_code(gtk_code: i32) -> i32 {
+    pub fn get_qt_code(gtk_code: u32) -> i32 {
         match gtk_code {
-            GDK_KEY_Escape => 0x01000000,
-            GDK_KEY_Tab => 0x01000001,
-            GDK_KEY_BackSpace => 0x01000003,
-            GDK_KEY_KP_Enter => 0x01000005,
-            GDK_KEY_ISO_Enter => 0x01000005,
-            GDK_KEY_3270_Enter => 0x01000005,
-            GDK_KEY_Insert => 0x01000006,
-            GDK_KEY_KP_Insert => 0x01000006,
-            GDK_KEY_Delete => 0x01000007,
-            GDK_KEY_KP_Delete => 0x01000007,
-            GDK_KEY_Pause => 0x01000008,
-            GDK_KEY_Print => 0x01000009,
-            GDK_KEY_Clear => 0x0100000b,
-            GDK_KEY_Home => 0x01000010,
-            GDK_KEY_KP_Home => 0x01000010,
-            GDK_KEY_End => 0x01000011,
-            GDK_KEY_Left => 0x01000012,
-            GDK_KEY_leftarrow => 0x01000012,
-            GDK_KEY_Up => 0x01000013,
-            GDK_KEY_uparrow => 0x01000013,
-            GDK_KEY_Right => 0x01000014,
-            GDK_KEY_rightarrow => 0x01000014,
-            GDK_KEY_Down => 0x01000015,
-            GDK_KEY_downarrow => 0x01000015,
-            GDK_KEY_Page_Up => 0x01000016,
-            GDK_KEY_KP_Page_Up => 0x01000016,
-            GDK_KEY_Page_Down => 0x01000017,
-            GDK_KEY_KP_Page_Down => 0x01000017,
-            GDK_KEY_Shift_L => 0x01000020,
-            GDK_KEY_Shift_R => 0x01000020,
-            GDK_KEY_Control_L => 0x01000021,
-            GDK_KEY_Control_R => 0x01000021,
-            GDK_KEY_Meta_L => 0x01000022,
-            GDK_KEY_Meta_R => 0x01000022,
-            GDK_KEY_Alt_L => 0x01000023,
-            GDK_KEY_Alt_R => 0x01000023,
-            GDK_KEY_Caps_Lock => 0x01000024,
-            GDK_KEY_Num_Lock => 0x01000025,
-            GDK_KEY_Scroll_Lock => 0x01000026,
-            GDK_KEY_F1 => 0x01000030,
-            GDK_KEY_F2 => 0x01000031,
-            GDK_KEY_F3 => 0x01000032,
-            GDK_KEY_F4 => 0x01000033,
-            GDK_KEY_F5 => 0x01000034,
-            GDK_KEY_F6 => 0x01000035,
-            GDK_KEY_F7 => 0x01000036,
-            GDK_KEY_F8 => 0x01000037,
-            GDK_KEY_F9 => 0x01000038,
-            GDK_KEY_F10 => 0x01000039,
-            GDK_KEY_F11 => 0x0100003a,
-            GDK_KEY_F12 => 0x0100003b,
-            GDK_KEY_F13 => 0x0100003c,
-            GDK_KEY_F14 => 0x0100003d,
-            GDK_KEY_F15 => 0x0100003e,
-            GDK_KEY_F16 => 0x0100003f,
-            GDK_KEY_F17 => 0x01000040,
-            GDK_KEY_F18 => 0x01000041,
-            GDK_KEY_F19 => 0x01000042,
-            GDK_KEY_F20 => 0x01000043,
-            GDK_KEY_F21 => 0x01000044,
-            GDK_KEY_F22 => 0x01000045,
-            GDK_KEY_F23 => 0x01000046,
-            GDK_KEY_F24 => 0x01000047,
-            _ => {
-                debug!("Non match key code.");
-                gtk_code
-            },
+            GTK_KEYCODE_ESCAPE => 0x01000000,
+            GTK_KEYCODE_TAB => 0x01000001,
+            GTK_KEYCODE_BACKSPACE => 0x01000003,
+            GTK_KEYCODE_ENTER => 0x01000005,
+            GTK_KEYCODE_INSERT => 0x01000006,
+            GTK_KEYCODE_DELETE => 0x01000007,
+            GTK_KEYCODE_PAUSE => 0x01000008,
+            GTK_KEYCODE_PRINT => 0x01000009,
+            GTK_KEYCODE_CLEAR => 0x0100000b,
+            GTK_KEYCODE_HOME => 0x01000010,
+            GTK_KEYCODE_END => 0x01000011,
+            GTK_KEYCODE_LEFT => 0x01000012,
+            GTK_KEYCODE_UP => 0x01000013,
+            GTK_KEYCODE_RIGHT => 0x01000014,
+            GTK_KEYCODE_DOWN => 0x01000015,
+            GTK_KEYCODE_PAGE_UP => 0x01000016,
+            GTK_KEYCODE_PAGE_DOWN => 0x01000017,
+            GTK_KEYCODE_SHIFT_L => 0x01000020,
+            GTK_KEYCODE_SHIFT_R => 0x01000020,
+            GTK_KEYCODE_CONTROL_L => 0x01000021,
+            GTK_KEYCODE_CONTROL_R => 0x01000021,
+            GTK_KEYCODE_META_L => 0x01000022,
+            GTK_KEYCODE_META_R => 0x01000022,
+            GTK_KEYCODE_ALT_L => 0x01000023,
+            GTK_KEYCODE_ALT_R => 0x01000023,
+            GTK_KEYCODE_CAPS_LOCK => 0x01000024,
+            GTK_KEYCODE_NUM_LOCK => 0x01000025,
+            GTK_KEYCODE_SCROLL_LOCK => 0x01000026,
+            GTK_KEYCODE_F1 => 0x01000030,
+            GTK_KEYCODE_F2 => 0x01000031,
+            GTK_KEYCODE_F3 => 0x01000032,
+            GTK_KEYCODE_F4 => 0x01000033,
+            GTK_KEYCODE_F5 => 0x01000034,
+            GTK_KEYCODE_F6 => 0x01000035,
+            GTK_KEYCODE_F7 => 0x01000036,
+            GTK_KEYCODE_F8 => 0x01000037,
+            GTK_KEYCODE_F9 => 0x01000038,
+            GTK_KEYCODE_F10 => 0x01000039,
+            GTK_KEYCODE_F11 => 0x0100003a,
+            GTK_KEYCODE_F12 => 0x0100003b,
+            GTK_KEYCODE_F13 => 0x0100003c,
+            GTK_KEYCODE_F14 => 0x0100003d,
+            GTK_KEYCODE_F15 => 0x0100003e,
+            GTK_KEYCODE_F16 => 0x0100003f,
+            GTK_KEYCODE_F17 => 0x01000040,
+            GTK_KEYCODE_F18 => 0x01000041,
+            GTK_KEYCODE_F19 => 0x01000042,
+            GTK_KEYCODE_F20 => 0x01000043,
+            GTK_KEYCODE_F21 => 0x01000044,
+            GTK_KEYCODE_F22 => 0x01000045,
+            GTK_KEYCODE_F23 => 0x01000046,
+            GTK_KEYCODE_F24 => 0x01000047,
+            _ => gtk_code as i32,
         }
     }
 }

@@ -1,21 +1,24 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::{RefCell, Cell}, rc::Rc};
 
-use glib::clone;
-use gtk::prelude::Cast;
-use gtk::subclass::prelude::*;
-use gtk::traits::WidgetExt;
-use gtk::{glib, Picture};
-use log::info;
+use gtk::{glib, prelude::Cast, subclass::prelude::*, traits::WidgetExt};
 use platform::native_node::{NativeNodeImpl, NativeNodeObject};
+use log::info;
 
 pub struct NativeTerminalEmulator {
     pub native_node_object: Rc<RefCell<NativeNodeObject>>,
+    pub width: Cell<i32>,
+    pub height: Cell<i32>,
+}
+
+impl NativeTerminalEmulator {
 }
 
 impl Default for NativeTerminalEmulator {
     fn default() -> Self {
         Self {
             native_node_object: Rc::new(RefCell::new(NativeNodeObject::new())),
+            width: Cell::new(0),
+            height: Cell::new(0),
         }
     }
 }
@@ -47,15 +50,13 @@ impl ObjectImpl for NativeTerminalEmulator {
 
         self.set_verbose(true);
         self.set_hibpi_aware(true);
-        self.connect(clone!(@weak self as widget => move |picture, _area| {
-            unsafe {
-                let picture: &Picture = <Picture>::as_ref(&*picture);
-                picture.set_parent(&widget.instance().to_owned());
-                // let area: &DrawingArea = <DrawingArea>::as_ref(&*area);
-                // area.set_parent(&widget.instance().to_owned());
-                info!("Bind native buffered picture to NativeTerminalEmulator.");
-            }
-        }));
+        self.native_node_object
+            .borrow()
+            .imp()
+            .picture
+            .borrow()
+            .set_parent(&self.instance().to_owned());
+        self.connect();
         info!("NativeTerminalEmulator constructed.")
     }
 
@@ -65,20 +66,8 @@ impl ObjectImpl for NativeTerminalEmulator {
 }
 
 impl WidgetImpl for NativeTerminalEmulator {
-    fn realize(&self) {
-        self.parent_realize();
-        let allocation = self.instance().allocation();
-        println!(
-            "Realize! w:{}, h:{}",
-            allocation.width(),
-            allocation.height()
-        );
-    }
-
-    fn show(&self) {
-        self.parent_show();
-        let allocation = self.instance().allocation();
-        println!("Show! w:{}, h:{}", allocation.width(), allocation.height());
+    fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
+        self.parent_size_allocate(width, height, baseline);
     }
 
     fn request_mode(&self) -> gtk::SizeRequestMode {

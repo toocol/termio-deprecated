@@ -4,8 +4,10 @@ use gtk::{
     glib::{self, clone::Downgrade},
     subclass::prelude::ObjectSubclassIsExt,
     traits::WidgetExt,
-    GestureClick, Inhibit, EventControllerMotion, EventControllerKey, EventControllerScroll, EventControllerScrollFlags,
+    EventControllerKey, EventControllerMotion, EventControllerScroll, EventControllerScrollFlags,
+    GestureClick, Inhibit,
 };
+use platform::native_node::NativeNodeImpl;
 
 glib::wrapper! {
     pub struct NativeTerminalEmulator(ObjectSubclass<imp::NativeTerminalEmulator>)
@@ -87,5 +89,22 @@ impl NativeTerminalEmulator {
             Inhibit(true)
         });
         self.add_controller(&wheel_controller);
+    }
+
+    /// Resize the `NativeNode`.
+    pub fn resize(&self, width: i32, height: i32) {
+        let imp = self.imp();
+        let old_w = imp.width.get();
+        let old_h = imp.height.get();
+        if width != old_w || height != old_h {
+            imp.width.set(width);
+            imp.height.set(height);
+            imp::NativeTerminalEmulator::resize(imp.native_node_object.clone(), width, height);
+        }
+    }
+
+    /// Terminate the native node.
+    pub fn terminate(&self) {
+        imp::NativeTerminalEmulator::terminate(self.imp().native_node_object.clone());
     }
 }

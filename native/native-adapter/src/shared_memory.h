@@ -59,7 +59,7 @@ typedef unsigned char uchar;
 #include <boost/interprocess/offset_ptr.hpp>
 #include <string>
 
-#define LOCK_TIMEOUT 1000  // milliseconds
+#define LOCK_TIMEOUT 100  // milliseconds
 
 namespace nativers {
 
@@ -243,6 +243,7 @@ inline std::string get_shared_string(char* str_to_store_to) {
 struct shared_memory_info {
   shared_memory_info()
       : buffer_semaphore(0),
+        resize_semaphore(0),
         client_to_server_msg_semaphore(0),
         client_to_server_res_semaphore(0),
         img_buffer_size(0),
@@ -257,6 +258,7 @@ struct shared_memory_info {
   boost::interprocess::interprocess_mutex mutex;
 
   boost::interprocess::interprocess_semaphore buffer_semaphore;
+  boost::interprocess::interprocess_semaphore resize_semaphore;
 
   boost::interprocess::interprocess_semaphore client_to_server_msg_semaphore;
   boost::interprocess::interprocess_semaphore client_to_server_res_semaphore;

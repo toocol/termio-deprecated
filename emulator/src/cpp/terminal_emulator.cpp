@@ -1,4 +1,5 @@
 #include "terminal_emulator.h"
+
 #include <QApplication>
 #include <QShortcut>
 
@@ -12,7 +13,7 @@
 
 #define STEP_ZOOM 1
 
-static const int nativeEvtInterval = 10;
+static const int nativeEvtInterval = 1;
 
 using namespace TConsole;
 

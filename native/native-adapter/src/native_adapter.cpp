@@ -4,9 +4,9 @@
 #include "native_adapter.h"
 #include <boost/thread/xtime.hpp>
 #include <iostream>
+#include <string>
 #include <vector>
 #include "shared_memory.h"
-#include <string>
 
 namespace ipc = boost::interprocess;
 
@@ -357,15 +357,19 @@ REXPORT void RCALL resize(i32 key, i32 w, i32 h) {
     return;
   }
 
+  shared_memory_info* info_data = connections[key];
+
   int prev_w = connections[key]->w;
   int prev_h = connections[key]->h;
 
-  connections[key]->w = w;
-  connections[key]->h = h;
+  info_data->w = w;
+  info_data->h = h;
 
   if (prev_w != w || prev_h != h) {
-    connections[key]->buffer_ready = false;
+    info_data->buffer_ready = false;
   }
+
+  info_data->resize_semaphore.wait();
 }
 
 REXPORT bool RCALL is_dirty(i32 key) {
