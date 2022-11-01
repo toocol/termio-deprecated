@@ -7,7 +7,7 @@ use std::{
     time::Duration,
 };
 
-use crate::{native::native_adapter::*, key_code_mapping::QtCodeMapping};
+use crate::{key_code_mapping::QtCodeMapping, native::native_adapter::*};
 use gtk::{
     gdk::{Key, ModifierType},
     gdk_pixbuf::Pixbuf,
@@ -16,21 +16,21 @@ use gtk::{
         ParamSpecInt,
     },
     prelude::*,
-    subclass::prelude::*, Picture,
+    subclass::prelude::*,
+    Align, Picture,
 };
+use log::{debug, error};
 use utilities::TimeStamp;
-use log::debug;
 
 glib::wrapper! {
     pub struct NativeNodeObject(ObjectSubclass<NativeNode>);
 }
 
-static mut REC_BYTES: [u8; 1280 * 800 * 4] = [0u8; 1280 * 800 * 4];
 static MODIFIER: AtomicI32 = AtomicI32::new(0);
 
 pub struct NativeNode {
-    pub picture: RefCell<Option<Picture>>,
-    pub pixel_buffer: RefCell<Option<Pixbuf>>,
+    pub picture: RefCell<Picture>,
+    pub native_buffer: RefCell<Option<&'static [u8]>>,
     pub key: Cell<i32>,
     pub width: Cell<i32>,
     pub height: Cell<i32>,
@@ -50,8 +50,8 @@ pub struct NativeNode {
 impl Default for NativeNode {
     fn default() -> Self {
         Self {
-            picture: RefCell::new(None),
-            pixel_buffer: RefCell::new(None),
+            picture: RefCell::new(Picture::new()),
+            native_buffer: RefCell::new(None),
             key: Cell::new(-1),
             width: Cell::new(0),
             height: Cell::new(0),
@@ -71,22 +71,6 @@ impl Default for NativeNode {
 impl NativeNodeObject {
     pub fn new() -> Self {
         Object::new(&[])
-    }
-
-    pub fn buffer_changed(&self) -> bool {
-        unsafe {
-            let imp = self.imp();
-            let mut flag = false;
-            if let Some(ref pb) = *imp.pixel_buffer.borrow() {
-                let bytes = pb.pixels();
-                for i in 0..1280 * 800 * 4 {
-                    if bytes[i] != REC_BYTES[i] {
-                        flag = true;
-                    }
-                }
-            }
-            flag
-        }
     }
 
     pub fn process_snapshot(&self) {}
@@ -141,14 +125,14 @@ impl NativeNodeObject {
         debug!("`NativeNode` mouse wheel: x: {}, y: {}", x, y);
     }
 
-    fn update_native_buffered_picture(&self) -> Option<&Self> {
+    fn update_native_buffered_picture(&self) {
         let imp = self.imp();
-        let mut flag = false;
         let current_timestamp = TimeStamp::timestamp();
         let key = imp.key.get();
         imp.locking_error.set(!native_lock(key));
         if imp.locking_error.get() {
-            return None;
+            debug!("[{}] -> locking error.", key);
+            return;
         }
 
         let dirty = native_is_dirty(key);
@@ -158,36 +142,25 @@ impl NativeNodeObject {
 
         if !dirty || !is_ready {
             native_unlock(key);
-            return None;
+            return;
         }
 
         let current_w = native_get_w(key);
         let current_h = native_get_h(key);
 
-        let picture_w = match *imp.picture.borrow() {
-            Some(ref picture) => picture.width(),
-            None => 0,
-        };
-        let picture_h = match *imp.picture.borrow() {
-            Some(ref picture) => picture.height(),
-            None => 0,
-        };
+        let picture_w = imp.picture.borrow().width();
+        let picture_h = imp.picture.borrow().height();
         debug!(
             "picture cw:{}, ch:{}, w:{}, h:{}",
             current_w, current_h, picture_w, picture_h
         );
 
-        if None == *imp.picture.borrow() || picture_w != current_w || picture_h != current_h {
+        if None == *imp.native_buffer.borrow() || picture_w != current_w || picture_h != current_h {
             if imp.is_verbose.get() {
                 println!(
                     "[{}]> -> new image instance, resize W: {}, H: {}",
                     key, current_w, current_h
                 );
-            }
-            // When resize, unparent the old picture.
-            if let Some(ref picture) = *imp.picture.borrow() {
-                println!("[{}] -> Unparent the old picture.", key);
-                picture.unparent();
             }
 
             unsafe {
@@ -195,30 +168,26 @@ impl NativeNodeObject {
                     native_get_buffer(key),
                     (current_w * current_h * 4) as usize,
                 );
-                REC_BYTES.copy_from_slice(buffer);
-                let pixbuf = Pixbuf::from_bytes(
-                    &Bytes::from_static(buffer),
-                    gtk::gdk_pixbuf::Colorspace::Rgb,
-                    true,
-                    8,
-                    current_w,
-                    current_h,
-                    current_w * 4,
-                );
 
-                let picture = Picture::for_pixbuf(&pixbuf);
-                picture.set_can_focus(false);
-                picture.set_can_shrink(false);
-                picture.set_halign(gtk::Align::Start);
-                picture.set_valign(gtk::Align::Start);
-
-                imp.picture.borrow_mut().replace(picture);
-                imp.pixel_buffer.borrow_mut().replace(pixbuf);
-                flag = true;
+                imp.native_buffer.borrow_mut().replace(buffer);
             }
-        } // Process if picture is None, or window size was changed.
+            // Process if native_buffer is None, or window size has changed.
+        }
 
-        // println!("Buffer changed: {}", self.buffer_changer());
+        if let Some(buffer) = *imp.native_buffer.borrow() {
+            let pixbuf = Pixbuf::from_bytes(
+                &Bytes::from_static(buffer),
+                gtk::gdk_pixbuf::Colorspace::Rgb,
+                true,
+                8,
+                current_w,
+                current_h,
+                current_w * 4,
+            );
+            imp.picture.borrow().set_pixbuf(Some(&pixbuf));
+        } else {
+            error!("Invalid `NativeNode` buffer.")
+        }
 
         // Have update the image, not dirty anymore
         native_set_dirty(key, false);
@@ -232,7 +201,7 @@ impl NativeNodeObject {
         {
             if imp.is_verbose.get() {
                 debug!(
-                    "[{}]> requesting buffer resize W: {}, H: {}",
+                    "[{}] -> requesting buffer resize W: {}, H: {}",
                     key, width, height
                 );
             }
@@ -255,16 +224,10 @@ impl NativeNodeObject {
                 }
                 fps_average /= imp.num_values as f64;
                 imp.fps_counter.set(0);
-                debug!("[{}]> fps: {}", key, fps_average);
+                debug!("[{}] -> fps: {}", key, fps_average);
             }
             imp.fps_counter.set(imp.fps_counter.get() + 1);
             imp.frame_timestamp.set(current_timestamp);
-        }
-
-        if flag {
-            Some(self)
-        } else {
-            None
         }
     }
 }
@@ -277,6 +240,16 @@ impl ObjectSubclass for NativeNode {
 }
 
 impl ObjectImpl for NativeNode {
+    fn constructed(&self) {
+        self.parent_constructed();
+
+        let picture = self.picture.borrow();
+        picture.set_can_shrink(false);
+        picture.set_focusable(true);
+        picture.set_halign(Align::Start);
+        picture.set_valign(Align::Start);
+    }
+
     fn properties() -> &'static [ParamSpec] {
         static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
             vec![
@@ -322,11 +295,7 @@ pub trait NativeNodeImpl {
 
     fn rc(&self) -> Rc<RefCell<NativeNodeObject>>;
 
-    fn connect<T>(&self, set_parent: T)
-    where
-        T: Fn(*const Picture) + 'static,
-    {
-        let node_rc = self.rc();
+    fn connect(node_rc: Rc<RefCell<NativeNodeObject>>) {
         let weak_node = node_rc.downgrade();
 
         if node_rc.borrow().imp().key.get() < 0
@@ -340,14 +309,10 @@ pub trait NativeNodeImpl {
         }
         node_rc.borrow().imp().still_connect.set(true);
 
-        timeout_add_local(Duration::from_millis(10), move || {
+        timeout_add_local(Duration::from_millis(1), move || {
             let mut still_connect = false;
             if let Some(node_ref) = weak_node.upgrade() {
-                if let Some(node) = node_ref.borrow().update_native_buffered_picture() {
-                    if let Some(ref picture) = *node.imp().picture.borrow() {
-                            set_parent(picture as *const Picture);
-                    }
-                }
+                node_ref.borrow().update_native_buffered_picture();
                 still_connect = node_ref.borrow().imp().still_connect.get();
             }
             Continue(still_connect)
@@ -355,9 +320,7 @@ pub trait NativeNodeImpl {
     }
 
     fn unparent(&self) {
-        if let Some(ref picture) = *self.rc().borrow().imp().picture.borrow() {
-            picture.unparent();
-        }
+        self.rc().borrow().imp().picture.borrow().unparent();
     }
 
     fn set_verbose(&self, verbose: bool) {

@@ -1,15 +1,14 @@
 use std::{cell::RefCell, rc::Rc};
 
-use glib::clone;
-use gtk::prelude::Cast;
-use gtk::subclass::prelude::*;
-use gtk::traits::WidgetExt;
-use gtk::{glib, Picture};
-use log::info;
+use gtk::{glib, prelude::Cast, subclass::prelude::*, traits::WidgetExt};
 use platform::native_node::{NativeNodeImpl, NativeNodeObject};
+use log::info;
 
 pub struct NativeTerminalEmulator {
     pub native_node_object: Rc<RefCell<NativeNodeObject>>,
+}
+
+impl NativeTerminalEmulator {
 }
 
 impl Default for NativeTerminalEmulator {
@@ -47,13 +46,12 @@ impl ObjectImpl for NativeTerminalEmulator {
 
         self.set_verbose(true);
         self.set_hibpi_aware(true);
-        self.connect(clone!(@weak self as widget => move |picture| {
-            unsafe {
-                let picture: &Picture = <Picture>::as_ref(&*picture);
-                picture.set_parent(&widget.instance().to_owned());
-                info!("Bind native buffered picture to NativeTerminalEmulator.");
-            }
-        }));
+        self.native_node_object
+            .borrow()
+            .imp()
+            .picture
+            .borrow()
+            .set_parent(&self.instance().to_owned());
         info!("NativeTerminalEmulator constructed.")
     }
 
@@ -63,20 +61,8 @@ impl ObjectImpl for NativeTerminalEmulator {
 }
 
 impl WidgetImpl for NativeTerminalEmulator {
-    fn realize(&self) {
-        self.parent_realize();
-        let allocation = self.instance().allocation();
-        println!(
-            "Realize! w:{}, h:{}",
-            allocation.width(),
-            allocation.height()
-        );
-    }
-
-    fn show(&self) {
-        self.parent_show();
-        let allocation = self.instance().allocation();
-        println!("Show! w:{}, h:{}", allocation.width(), allocation.height());
+    fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
+        self.parent_size_allocate(width, height, baseline);
     }
 
     fn request_mode(&self) -> gtk::SizeRequestMode {

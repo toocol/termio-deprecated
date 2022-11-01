@@ -4,8 +4,10 @@ use gtk::{
     glib::{self, clone::Downgrade},
     subclass::prelude::ObjectSubclassIsExt,
     traits::WidgetExt,
-    GestureClick, Inhibit, EventControllerMotion, EventControllerKey, EventControllerScroll, EventControllerScrollFlags,
+    EventControllerKey, EventControllerMotion, EventControllerScroll, EventControllerScrollFlags,
+    GestureClick, Inhibit,
 };
+use platform::native_node::NativeNodeImpl;
 
 glib::wrapper! {
     pub struct NativeTerminalEmulator(ObjectSubclass<imp::NativeTerminalEmulator>)
@@ -14,6 +16,11 @@ glib::wrapper! {
 }
 
 impl NativeTerminalEmulator {
+    /// Connect `NativeNode` to native shared memory server.
+    pub fn connect_native(&self, _width: i32, _height: i32) {
+       imp::NativeTerminalEmulator::connect(self.imp().native_node_object.clone());
+    }
+
     /// Initialize the keyboard/mouse events reaction of NativeTerminalEmulator
     pub fn initialize(&self) {
         self.set_focusable(true);
