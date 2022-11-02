@@ -233,7 +233,7 @@ pub trait NativeNodeImpl {
         native_unlock(key);
     }
 
-    fn terminate(node_rc: Rc<RefCell<NativeNodeObject>>,) {
+    fn terminate(node_rc: Rc<RefCell<NativeNodeObject>>) {
         if node_rc.borrow().imp().key.get() < 0 {
             return;
         }

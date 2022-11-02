@@ -31,3 +31,7 @@ windowcontrols>button.close:hover {
     background-color: #cd3333;
     color: white;
 }
+
+scrolledwindow#terminal-scrolled-window {
+    background-color: #151515;
+}
