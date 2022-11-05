@@ -1,3 +1,6 @@
+use core::SessionCredential;
+use std::fs::File;
+
 use gtk::glib::subclass::InitializingObject;
 use gtk::subclass::prelude::ObjectSubclass;
 
@@ -5,14 +8,16 @@ use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{glib, CompositeTemplate, Inhibit, ScrolledWindow};
 
+use crate::ui::SessionCredentialManagementTree;
 use crate::ui::terminal::NativeTerminalEmulator;
+use crate::util::data_path;
 use log::debug;
 
 #[derive(Default, CompositeTemplate)]
 #[template(resource = "/com/toocol/termio/community/window.ui")]
 pub struct TermioCommunityWindow {
     #[template_child]
-    pub workspace_left_side_bar_scrolled_window: TemplateChild<ScrolledWindow>,
+    pub session_credential_management: TemplateChild<SessionCredentialManagementTree>,
     #[template_child]
     pub workspace_terminal_scrolled_window: TemplateChild<ScrolledWindow>,
     #[template_child]
@@ -36,7 +41,15 @@ impl ObjectSubclass for TermioCommunityWindow {
     }
 }
 
-impl ObjectImpl for TermioCommunityWindow {}
+impl ObjectImpl for TermioCommunityWindow {
+    fn constructed(&self) {
+        self.parent_constructed();
+        
+        let obj = self.instance();
+        obj.initialize();
+        obj.setup_actions();
+    }
+}
 
 impl WidgetImpl for TermioCommunityWindow {
     fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
@@ -60,9 +73,16 @@ impl WidgetImpl for TermioCommunityWindow {
 
 impl WindowImpl for TermioCommunityWindow {
     fn close_request(&self) -> Inhibit {
-        self.parent_close_request();
         debug!("Application closed.");
-        Inhibit(false)
+        self.session_credential_management
+            .session_credentials();
+        
+        let backup_data: Vec<SessionCredential> = vec![];
+                // Save state to file
+        let file = File::create(data_path(".credential")).expect("Could not create json file.");
+        serde_json::to_writer(file, &backup_data).expect("Could not write data to json file.");
+
+        self.parent_close_request()
     }
 }
 

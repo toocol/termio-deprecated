@@ -10,15 +10,21 @@ impl AuthApi {
     pub fn delete_credential_group(_group_name: &'static str) {}
 
     pub fn add_credential(
-        host: &'static str,
-        user: &'static str,
-        password: &'static str,
-        group: &'static str,
+        host: &str,
+        user: &str,
+        password: &str,
+        group: &str,
         port: i32,
         credential_type: CredentialType,
     ) {
-        let _credential =
-            SessionCredential::new(host, user, password, group, port, credential_type);
+        let _session_credential = SessionCredential::new(
+            host.to_string(),
+            user.to_string(),
+            password.to_string(),
+            group.to_string(),
+            port,
+            credential_type,
+        );
     }
 
     pub fn delete_credential() {}

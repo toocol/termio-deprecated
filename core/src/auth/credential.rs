@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 pub const CREDENTIAL_TYPE_SSH: i8 = 1;
 pub const CREDENTIAL_TYPE_MOSH: i8 = 2;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum CredentialType {
     SSH,
     MOSH,
@@ -27,19 +27,19 @@ pub fn to_credential_type_const(credential_type: &CredentialType) -> i8 {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct SessionCredentialGroup {
-    pub name: &'static str,
-    pub credentials: Vec<SessionCredential>,
+    pub name: &'static str
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct SessionCredential {
     id: i32,
 
-    pub host: &'static str,
-    pub user: &'static str,
-    pub password: &'static str,
-    pub group: &'static str,
+    pub host: String,
+    pub user: String,
+    pub password: String,
+    pub group: String,
     pub port: i32,
     pub credential_type: CredentialType,
 }
@@ -47,18 +47,17 @@ pub struct SessionCredential {
 impl SessionCredentialGroup {
     pub fn new(name: &'static str) -> Self {
         SessionCredentialGroup {
-            name,
-            credentials: vec![],
+            name
         }
     }
 }
 
 impl SessionCredential {
     pub fn new(
-        host: &'static str,
-        user: &'static str,
-        password: &'static str,
-        group: &'static str,
+        host: String,
+        user: String,
+        password: String,
+        group: String,
         port: i32,
         credential_type: CredentialType,
     ) -> Self {

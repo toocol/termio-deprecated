@@ -6,7 +6,7 @@ use gtk::{
 
 #[derive(Default)]
 pub struct SessionCredentialManagementTree {
-    pub sessions: OnceCell<TreeStore>,
+    pub session_credentials: OnceCell<TreeStore>,
 }
 
 #[glib::object_subclass]
@@ -18,7 +18,14 @@ impl ObjectSubclass for SessionCredentialManagementTree {
     type ParentType = gtk::TreeView;
 }
 
-impl ObjectImpl for SessionCredentialManagementTree {}
+impl ObjectImpl for SessionCredentialManagementTree {
+    fn constructed(&self) {
+        self.parent_constructed();
+
+        let instance = self.instance();
+        instance.setup_model();
+    }
+}
 
 impl WidgetImpl for SessionCredentialManagementTree {}
 

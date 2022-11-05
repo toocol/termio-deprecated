@@ -1033,6 +1033,8 @@ dependencies = [
  "log",
  "log4rs",
  "platform",
+ "serde",
+ "serde_json",
  "utilities",
 ]
 

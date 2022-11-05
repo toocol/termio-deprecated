@@ -25,7 +25,7 @@
                             <object class="GtkBox" id="left_side_bar">
                                 <property name="orientation">horizontal</property>
                                 <style>
-                                    <class name="left-side-bar"/>
+                                    <class name="left-side-bar" />
                                 </style>
                                 <child>
                                     <object class="GtkBox" id="workspace_activity_bar_box">
@@ -43,15 +43,28 @@
                                     <object class="GtkSeparator"></object>
                                 </child>
                                 <child>
-                                    <object class="GtkScrolledWindow" id="workspace_left_side_bar_scrolled_window">
-                                        <property name="hscrollbar-policy">GTK_POLICY_AUTOMATIC</property>
-                                        <property name="vscrollbar-policy">GTK_POLICY_AUTOMATIC</property>
+                                    <object class="GtkBox" id="workspace_left_side_bar_box">
+                                        <property name="orientation">vertical</property>
                                         <property name="width-request">200</property>
                                         <property name="vexpand">true</property>
                                         <property name="hexpand">false</property>
                                         <style>
-                                            <class name="workspace-left-side-bar-window" />
+                                            <class name="workspace-left-side-bar-box" />
                                         </style>
+                                        <child>
+                                            <object class="GtkButton">
+                                                <property name="icon-name">list-add-symbolic</property>
+                                                <property name="tooltip-text" translatable="yes">Create new session</property>
+                                                <property name="action-name">win.new-session-credential</property>
+                                                <property name="width-request">20</property>
+                                                <property name="height-request">20</property>
+                                                <property name="vexpand">false</property>
+                                                <property name="hexpand">false</property>
+                                            </object>
+                                        </child>
+                                        <child>
+                                            <object class="SessionCredentialManagementTree" id="session_credential_management"></object>
+                                        </child>
                                     </object>
                                 </child>
                             </object>
