@@ -36,7 +36,6 @@ pub struct NativeNode {
     is_verbose: Cell<bool>,
     hibpi_aware: Cell<bool>,
     button_state: Cell<i32>,
-    locking_error: Cell<bool>,
 
     fps_counter: Cell<i32>,
     frame_timestamp: Cell<u64>,
@@ -56,7 +55,6 @@ impl Default for NativeNode {
             is_verbose: Cell::new(false),
             hibpi_aware: Cell::new(false),
             button_state: Cell::new(0),
-            locking_error: Cell::new(false),
             fps_counter: Cell::new(0),
             frame_timestamp: Cell::new(0),
             num_values: 10,
@@ -127,8 +125,7 @@ impl NativeNodeObject {
         let current_timestamp = TimeStamp::timestamp();
         let key = imp.key.get();
 
-        imp.locking_error.set(!native_lock(key));
-        if imp.locking_error.get() {
+        if !native_lock(key) {
             debug!("[{}] -> locking error.", key);
             return;
         }
@@ -152,7 +149,7 @@ impl NativeNodeObject {
         if None == *imp.native_buffer.borrow() || picture_w != current_w || picture_h != current_h {
             if imp.is_verbose.get() {
                 debug!(
-                    "[{}]> -> new image instance, resize W: {}, H: {}",
+                    "[{}]> -> new native buffer, resize W: {}, H: {}",
                     key, current_w, current_h
                 );
             }

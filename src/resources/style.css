@@ -32,6 +32,6 @@ windowcontrols>button.close:hover {
     color: white;
 }
 
-scrolledwindow#terminal-scrolled-window {
+.workspace-terminal-window {
     background-color: #151515;
 }

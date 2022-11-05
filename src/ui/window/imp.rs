@@ -1,9 +1,9 @@
 use gtk::glib::subclass::InitializingObject;
 use gtk::subclass::prelude::ObjectSubclass;
 
-use gtk::subclass::prelude::*;
-use gtk::{glib, CompositeTemplate, ScrolledWindow, Inhibit};
 use gtk::prelude::*;
+use gtk::subclass::prelude::*;
+use gtk::{glib, CompositeTemplate, Inhibit, ScrolledWindow};
 
 use crate::ui::terminal::NativeTerminalEmulator;
 use log::debug;
@@ -12,7 +12,9 @@ use log::debug;
 #[template(resource = "/com/toocol/termio/community/window.ui")]
 pub struct TermioCommunityWindow {
     #[template_child]
-    pub gtk_scrolled_window: TemplateChild<ScrolledWindow>,
+    pub workspace_left_side_bar_scrolled_window: TemplateChild<ScrolledWindow>,
+    #[template_child]
+    pub workspace_terminal_scrolled_window: TemplateChild<ScrolledWindow>,
     #[template_child]
     pub native_terminal_emulator: TemplateChild<NativeTerminalEmulator>,
 }
@@ -40,9 +42,19 @@ impl WidgetImpl for TermioCommunityWindow {
     fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
         self.parent_size_allocate(width, height, baseline);
 
-        let allocation = self.instance().imp().gtk_scrolled_window.allocation();
-        self.native_terminal_emulator.resize(allocation.width(), allocation.height());
-        debug!("Window size allocate! w: {}, h: {}, baseline: {}", allocation.width(), allocation.height(), baseline);
+        let allocation = self
+            .instance()
+            .imp()
+            .workspace_terminal_scrolled_window
+            .allocation();
+        self.native_terminal_emulator
+            .resize(allocation.width(), allocation.height());
+        debug!(
+            "Window size allocate! w: {}, h: {}, baseline: {}",
+            allocation.width(),
+            allocation.height(),
+            baseline
+        );
     }
 }
 
