@@ -11,9 +11,7 @@ use crate::{key_code_mapping::QtCodeMapping, native::native_adapter::*};
 use gtk::{
     gdk::{Key, ModifierType},
     gdk_pixbuf::Pixbuf,
-    glib::{
-        self, clone::Downgrade, timeout_add_local, Bytes, Object,
-    },
+    glib::{self, clone::Downgrade, timeout_add_local, Bytes, Object},
     prelude::*,
     subclass::prelude::*,
     Align, Picture,
@@ -31,12 +29,13 @@ pub struct NativeNode {
     pub picture: RefCell<Picture>,
     pub native_buffer: RefCell<Option<&'static [u8]>>,
     pub key: Cell<i32>,
+    pub width: Cell<i32>,
+    pub height: Cell<i32>,
 
     still_connect: Cell<bool>,
     is_verbose: Cell<bool>,
     hibpi_aware: Cell<bool>,
     button_state: Cell<i32>,
-    locking_error: Cell<bool>,
 
     fps_counter: Cell<i32>,
     frame_timestamp: Cell<u64>,
@@ -50,11 +49,12 @@ impl Default for NativeNode {
             picture: RefCell::new(Picture::new()),
             native_buffer: RefCell::new(None),
             key: Cell::new(-1),
+            width: Cell::new(0),
+            height: Cell::new(0),
             still_connect: Cell::new(false),
             is_verbose: Cell::new(false),
             hibpi_aware: Cell::new(false),
             button_state: Cell::new(0),
-            locking_error: Cell::new(false),
             fps_counter: Cell::new(0),
             frame_timestamp: Cell::new(0),
             num_values: 10,
@@ -125,8 +125,7 @@ impl NativeNodeObject {
         let current_timestamp = TimeStamp::timestamp();
         let key = imp.key.get();
 
-        imp.locking_error.set(!native_lock(key));
-        if imp.locking_error.get() {
+        if !native_lock(key) {
             debug!("[{}] -> locking error.", key);
             return;
         }
@@ -150,7 +149,7 @@ impl NativeNodeObject {
         if None == *imp.native_buffer.borrow() || picture_w != current_w || picture_h != current_h {
             if imp.is_verbose.get() {
                 debug!(
-                    "[{}]> -> new image instance, resize W: {}, H: {}",
+                    "[{}]> -> new native buffer, resize W: {}, H: {}",
                     key, current_w, current_h
                 );
             }
@@ -227,13 +226,20 @@ pub trait NativeNodeImpl {
     const CONNECTION_NAME: &'static str;
 
     fn resize(node_rc: Rc<RefCell<NativeNodeObject>>, width: i32, height: i32) {
-        let key = node_rc.borrow().imp().key.get();
-        native_lock(key);
-        native_resize(key, width, height);
-        native_unlock(key);
+        let old_w = node_rc.borrow().imp().width.get();
+        let old_h = node_rc.borrow().imp().height.get();
+        if old_w != width || old_h != height {
+            node_rc.borrow().imp().width.set(width);
+            node_rc.borrow().imp().height.set(height);
+            let key = node_rc.borrow().imp().key.get();
+            if native_lock(key) {
+                native_resize(key, width, height);
+                native_unlock(key);
+            }
+        }
     }
 
-    fn terminate(node_rc: Rc<RefCell<NativeNodeObject>>,) {
+    fn terminate(node_rc: Rc<RefCell<NativeNodeObject>>) {
         if node_rc.borrow().imp().key.get() < 0 {
             return;
         }

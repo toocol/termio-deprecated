@@ -31,3 +31,7 @@ windowcontrols>button.close:hover {
     background-color: #cd3333;
     color: white;
 }
+
+.workspace-terminal-window {
+    background-color: #151515;
+}

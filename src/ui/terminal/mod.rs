@@ -93,14 +93,7 @@ impl NativeTerminalEmulator {
 
     /// Resize the `NativeNode`.
     pub fn resize(&self, width: i32, height: i32) {
-        let imp = self.imp();
-        let old_w = imp.width.get();
-        let old_h = imp.height.get();
-        if width != old_w || height != old_h {
-            imp.width.set(width);
-            imp.height.set(height);
-            imp::NativeTerminalEmulator::resize(imp.native_node_object.clone(), width, height);
-        }
+        imp::NativeTerminalEmulator::resize(self.imp().native_node_object.clone(), width, height);
     }
 
     /// Terminate the native node.

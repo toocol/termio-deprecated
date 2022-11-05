@@ -6,13 +6,105 @@
         <property name="default-width">1280</property>
         <property name="default-height">800</property>
         <child>
-            <object class="GtkScrolledWindow" id="gtk_scrolled_window">
-                <property name="hscrollbar-policy">GTK_POLICY_EXTERNAL</property>
-                <property name="vscrollbar-policy">GTK_POLICY_EXTERNAL</property>
-                <property name="min-content-width">300</property>
-                <property name="min-content-height">200</property>
+            <object class="GtkBox" id="workbench_box">
+                <property name="orientation">vertical</property>
+                <property name="homogeneous">false</property>
+                <style>
+                    <class name="workbench-box" />
+                </style>
                 <child>
-                    <object class="NativeTerminalEmulator" id="native_terminal_emulator"></object>
+                    <object class="GtkBox" id="center_workspace_box">
+                        <property name="orientation">horizontal</property>
+                        <property name="homogeneous">false</property>
+                        <property name="vexpand">true</property>
+                        <property name="hexpand">true</property>
+                        <style>
+                            <class name="workspace-box" />
+                        </style>
+                        <child>
+                            <object class="GtkBox" id="left_side_bar">
+                                <property name="orientation">horizontal</property>
+                                <style>
+                                    <class name="left-side-bar" />
+                                </style>
+                                <child>
+                                    <object class="GtkBox" id="workspace_activity_bar_box">
+                                        <property name="orientation">vertical</property>
+                                        <property name="homogeneous">false</property>
+                                        <property name="vexpand">true</property>
+                                        <property name="hexpand">false</property>
+                                        <property name="width-request">30</property>
+                                        <style>
+                                            <class name="workspace-activity-bar-box" />
+                                        </style>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkSeparator"></object>
+                                </child>
+                                <child>
+                                    <object class="GtkBox" id="workspace_left_side_bar_box">
+                                        <property name="orientation">vertical</property>
+                                        <property name="width-request">200</property>
+                                        <property name="vexpand">true</property>
+                                        <property name="hexpand">false</property>
+                                        <style>
+                                            <class name="workspace-left-side-bar-box" />
+                                        </style>
+                                        <child>
+                                            <object class="GtkButton">
+                                                <property name="icon-name">list-add-symbolic</property>
+                                                <property name="tooltip-text" translatable="yes">Create new session</property>
+                                                <property name="action-name">win.new-session-credential</property>
+                                                <property name="width-request">20</property>
+                                                <property name="height-request">20</property>
+                                                <property name="vexpand">false</property>
+                                                <property name="hexpand">false</property>
+                                            </object>
+                                        </child>
+                                        <child>
+                                            <object class="SessionCredentialManagementTree" id="session_credential_management"></object>
+                                        </child>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSeparator"></object>
+                        </child>
+                        <child>
+                            <object class="GtkScrolledWindow" id="workspace_terminal_scrolled_window">
+                                <property name="name">terminal-scrolled-window</property>
+                                <property name="hscrollbar-policy">GTK_POLICY_EXTERNAL</property>
+                                <property name="vscrollbar-policy">GTK_POLICY_EXTERNAL</property>
+                                <property name="min-content-width">300</property>
+                                <property name="min-content-height">200</property>
+                                <property name="vexpand">true</property>
+                                <property name="hexpand">true</property>
+                                <style>
+                                    <class name="workspace-terminal-window" />
+                                </style>
+                                <child>
+                                    <object class="NativeTerminalEmulator" id="native_terminal_emulator"></object>
+                                </child>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSeparator"></object>
+                </child>
+                <child>
+                    <object class="GtkBox" id="bottom_status_bar_box">
+                        <property name="orientation">horizontal</property>
+                        <property name="homogeneous">false</property>
+                        <property name="vexpand">false</property>
+                        <property name="hexpand">true</property>
+                        <property name="height-request">15</property>
+                        <style>
+                            <class name="bottom-status-bar-box" />
+                        </style>
+                    </object>
                 </child>
             </object>
         </child>

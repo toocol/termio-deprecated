@@ -1,0 +1,99 @@
+use core::{match_credential_type, to_credential_type_const, CredentialType};
+use std::cell::{Cell, RefCell};
+
+use gtk::glib::once_cell::sync::{Lazy, OnceCell};
+use gtk::glib::{self, ParamSpec, ParamSpecInt, ParamSpecString, Value};
+use gtk::prelude::ToValue;
+use gtk::subclass::prelude::*;
+
+#[derive(Default)]
+pub struct SessionCredentialObject {
+    pub id: OnceCell<i32>,
+    pub host: RefCell<String>,
+    pub user: RefCell<String>,
+    pub password: RefCell<String>,
+    pub group: RefCell<String>,
+    pub port: Cell<i32>,
+    pub credential_type: OnceCell<CredentialType>,
+}
+
+#[glib::object_subclass]
+impl ObjectSubclass for SessionCredentialObject {
+    const NAME: &'static str = "SessionCredentialObject";
+
+    type Type = super::SessionCredentialObject;
+}
+
+impl ObjectImpl for SessionCredentialObject {
+    fn properties() -> &'static [ParamSpec] {
+        static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
+            vec![
+                ParamSpecString::builder("host").build(),
+                ParamSpecString::builder("user").build(),
+                ParamSpecString::builder("password").build(),
+                ParamSpecString::builder("group").build(),
+                ParamSpecInt::builder("port").build(),
+                ParamSpecInt::builder("credential-type").build(),
+            ]
+        });
+        PROPERTIES.as_ref()
+    }
+
+    fn set_property(&self, _id: usize, value: &Value, pspec: &ParamSpec) {
+        match pspec.name() {
+            "host" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                self.host.replace(input_value);
+            }
+            "user" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                self.user.replace(input_value);
+            }
+            "password" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                self.password.replace(input_value);
+            }
+            "group" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                self.group.replace(input_value);
+            }
+            "port" => {
+                let input_value = value.get().expect("The value needs to be of type `i32`.");
+                self.port.set(input_value);
+            }
+            "credential-type" => {
+                let input_value: i8 = value.get().expect("The value needs to be of type `i8`.");
+                let credential_type = match_credential_type(input_value);
+                self.credential_type
+                    .set(credential_type)
+                    .expect("`credential_type` of `SessionCredentialObject` can only set once.");
+            }
+            _ => unimplemented!(),
+        }
+    }
+
+    fn property(&self, _id: usize, pspec: &ParamSpec) -> Value {
+        match pspec.name() {
+            "host" => self.host.borrow().to_value(),
+            "user" => self.user.borrow().to_value(),
+            "password" => self.password.borrow().to_value(),
+            "group" => self.group.borrow().to_value(),
+            "port" => self.port.get().to_value(),
+            "credential-type" => to_credential_type_const(
+                self.credential_type
+                    .get()
+                    .expect("`credential_type` should initialize first before use."),
+            )
+            .to_value(),
+            _ => unimplemented!(),
+        }
+    }
+}
