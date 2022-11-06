@@ -27,6 +27,11 @@ windowcontrols>button {
     margin-right: 2px;
 }
 
+.new-session-button {
+    min-height: 20px;
+    min-width: 20px;
+}
+
 windowcontrols>button.close:hover {
     background-color: #cd3333;
     color: white;
