@@ -1,6 +1,7 @@
 use core::SessionCredential;
 use std::fs::File;
 
+use gtk::glib::once_cell::sync::OnceCell;
 use gtk::glib::subclass::InitializingObject;
 use gtk::subclass::prelude::ObjectSubclass;
 
@@ -8,8 +9,8 @@ use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{glib, CompositeTemplate, Inhibit, ScrolledWindow};
 
-use crate::ui::SessionCredentialManagementTree;
 use crate::ui::terminal::NativeTerminalEmulator;
+use crate::ui::{NewSessionDialog, SessionCredentialManagementTree};
 use crate::util::data_path;
 use log::debug;
 
@@ -22,6 +23,8 @@ pub struct TermioCommunityWindow {
     pub workspace_terminal_scrolled_window: TemplateChild<ScrolledWindow>,
     #[template_child]
     pub native_terminal_emulator: TemplateChild<NativeTerminalEmulator>,
+
+    pub new_session_dialog: OnceCell<NewSessionDialog>,
 }
 
 #[glib::object_subclass]
@@ -44,7 +47,7 @@ impl ObjectSubclass for TermioCommunityWindow {
 impl ObjectImpl for TermioCommunityWindow {
     fn constructed(&self) {
         self.parent_constructed();
-        
+
         let obj = self.instance();
         obj.initialize();
         obj.setup_actions();
@@ -62,23 +65,17 @@ impl WidgetImpl for TermioCommunityWindow {
             .allocation();
         self.native_terminal_emulator
             .resize(allocation.width(), allocation.height());
-        debug!(
-            "Window size allocate! w: {}, h: {}, baseline: {}",
-            allocation.width(),
-            allocation.height(),
-            baseline
-        );
+        // debug!("Window size allocate! w: {}, h: {}, baseline: {}", allocation.width(), allocation.height(), baseline);
     }
 }
 
 impl WindowImpl for TermioCommunityWindow {
     fn close_request(&self) -> Inhibit {
         debug!("Application closed.");
-        self.session_credential_management
-            .session_credentials();
-        
+        self.session_credential_management.session_credentials();
+
         let backup_data: Vec<SessionCredential> = vec![];
-                // Save state to file
+        // Save state to file
         let file = File::create(data_path(".credential")).expect("Could not create json file.");
         serde_json::to_writer(file, &backup_data).expect("Could not write data to json file.");
 

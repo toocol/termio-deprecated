@@ -9,6 +9,7 @@ use gtk::subclass::prelude::*;
 #[derive(Default)]
 pub struct SessionCredentialObject {
     pub id: OnceCell<i32>,
+    pub shown_name: RefCell<String>,
     pub host: RefCell<String>,
     pub user: RefCell<String>,
     pub password: RefCell<String>,
@@ -28,6 +29,7 @@ impl ObjectImpl for SessionCredentialObject {
     fn properties() -> &'static [ParamSpec] {
         static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
             vec![
+                ParamSpecString::builder("shown-name").build(),
                 ParamSpecString::builder("host").build(),
                 ParamSpecString::builder("user").build(),
                 ParamSpecString::builder("password").build(),
@@ -41,6 +43,12 @@ impl ObjectImpl for SessionCredentialObject {
 
     fn set_property(&self, _id: usize, value: &Value, pspec: &ParamSpec) {
         match pspec.name() {
+            "shown-name" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                self.shown_name.replace(input_value);
+            }
             "host" => {
                 let input_value = value
                     .get()
@@ -70,7 +78,7 @@ impl ObjectImpl for SessionCredentialObject {
                 self.port.set(input_value);
             }
             "credential-type" => {
-                let input_value: i8 = value.get().expect("The value needs to be of type `i8`.");
+                let input_value: i32 = value.get().expect("The value needs to be of type `i8`.");
                 let credential_type = match_credential_type(input_value);
                 self.credential_type
                     .set(credential_type)
@@ -82,6 +90,7 @@ impl ObjectImpl for SessionCredentialObject {
 
     fn property(&self, _id: usize, pspec: &ParamSpec) -> Value {
         match pspec.name() {
+            "shown-name" => self.shown_name.borrow().to_value(),
             "host" => self.host.borrow().to_value(),
             "user" => self.user.borrow().to_value(),
             "password" => self.password.borrow().to_value(),

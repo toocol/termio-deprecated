@@ -12,6 +12,7 @@ glib::wrapper! {
 
 impl SessionCredentialObject {
     pub fn new(
+        shown_name: &str,
         host: &str,
         user: &str,
         password: &str,
@@ -20,6 +21,7 @@ impl SessionCredentialObject {
         credential_type: CredentialType,
     ) -> Self {
         Object::builder()
+            .property("shown-name", shown_name)
             .property("host", host)
             .property("user", user)
             .property("password", password)
@@ -34,6 +36,7 @@ impl SessionCredentialObject {
 
     pub fn from_session_credential(session_credential: SessionCredential) -> Self {
         SessionCredentialObject::new(
+            &session_credential.shown_name,
             &session_credential.host,
             &session_credential.user,
             &session_credential.password,
@@ -43,9 +46,18 @@ impl SessionCredentialObject {
         )
     }
 
+    pub fn group(&self) -> String {
+        self.imp().group.borrow().clone()
+    }
+
+    pub fn shown_name(&self) -> String {
+        self.imp().shown_name.borrow().clone()
+    }
+
     pub fn to_session_credetial(&self) -> SessionCredential {
         let obj = self.imp();
         SessionCredential::new(
+            obj.shown_name.borrow().clone(),
             obj.host.borrow().clone(),
             obj.user.borrow().clone(),
             obj.password.borrow().clone(),
@@ -56,5 +68,10 @@ impl SessionCredentialObject {
                 .expect("`credential_type` should initialize first before use.")
                 .clone(),
         )
+    }
+    pub fn to_shown_string(&self) -> String {
+        let mut shown_string = String::new();
+        shown_string.push_str(&self.shown_name());
+        shown_string
     }
 }

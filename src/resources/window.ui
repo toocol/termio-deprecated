@@ -48,6 +48,11 @@
                                         <property name="width-request">200</property>
                                         <property name="vexpand">true</property>
                                         <property name="hexpand">false</property>
+                                        <property name="margin-top">10</property>
+                                        <property name="margin-bottom">10</property>
+                                        <property name="margin-start">10</property>
+                                        <property name="margin-end">10</property>
+                                        <property name="spacing">5</property>
                                         <style>
                                             <class name="workspace-left-side-bar-box" />
                                         </style>
@@ -60,10 +65,24 @@
                                                 <property name="height-request">20</property>
                                                 <property name="vexpand">false</property>
                                                 <property name="hexpand">false</property>
+                                                <style>
+                                                    <class name="new-session-button" />
+                                                </style>
                                             </object>
                                         </child>
                                         <child>
-                                            <object class="SessionCredentialManagementTree" id="session_credential_management"></object>
+                                            <object class="GtkScrolledWindow" id="session_management_scrolled_window">
+                                                <property name="name">session_management_scrolled_window</property>
+                                                <property name="hscrollbar-policy">GTK_POLICY_EXTERNAL</property>
+                                                <property name="vscrollbar-policy">GTK_POLICY_AUTOMATIC</property>
+                                                <property name="vexpand">true</property>
+                                                <property name="hexpand">false</property>
+                                                <child>
+                                                    <object class="SessionCredentialManagementTree" id="session_credential_management">
+                                                        <property name="hexpand">false</property>
+                                                    </object>
+                                                </child>
+                                            </object>
                                         </child>
                                     </object>
                                 </child>
