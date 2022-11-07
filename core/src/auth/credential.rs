@@ -41,7 +41,7 @@ pub struct SessionCredential {
     pub user: String,
     pub password: String,
     pub group: String,
-    pub port: i32,
+    pub port: u32,
     pub credential_type: CredentialType,
 }
 
@@ -60,7 +60,7 @@ impl SessionCredential {
         user: String,
         password: String,
         group: String,
-        port: i32,
+        port: u32,
         credential_type: CredentialType,
     ) -> Self {
         SessionCredential {

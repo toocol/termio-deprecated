@@ -1,5 +1,8 @@
 mod imp;
 
+use core::SessionCredential;
+use std::fs::File;
+
 use gtk::{
     gio::{self, SimpleAction},
     glib::{self, clone, Object},
@@ -8,6 +11,8 @@ use gtk::{
     Application,
 };
 use platform::SessionCredentialObject;
+
+use crate::util::data_path;
 
 use super::NewSessionDialog;
 
@@ -45,6 +50,14 @@ impl TermioCommunityWindow {
         self.add_action(&action_new_session_credential);
     }
 
+    pub fn resotre_data(&self) {
+        if let Ok(file) = File::open(data_path(".credential")) {
+            let backup_data: Vec<SessionCredential> = serde_json::from_reader(file)
+                .expect("Read backup data from json file `.credential` error.");
+            self.imp().session_credential_management.restore_session_credentials(backup_data);
+        }
+    }
+
     pub fn new_session_credential(
         &self,
         shown_name: &str,
@@ -52,7 +65,7 @@ impl TermioCommunityWindow {
         username: &str,
         password: &str,
         group: &str,
-        port: i32,
+        port: u32,
     ) {
         let session_credential = SessionCredentialObject::new(
             shown_name,

@@ -1,14 +1,17 @@
-use std::{collections::HashMap, cell::RefCell};
+use std::{cell::RefCell, collections::HashMap};
 
 use gtk::{
     glib::{self, once_cell::sync::OnceCell},
     subclass::prelude::*,
-    TreeStore, TreeIter, traits::TreeViewExt,
+    traits::TreeViewExt,
+    TreeIter, TreeStore,
 };
+use platform::SessionCredentialObject;
 
 #[derive(Default)]
 pub struct SessionCredentialManagementTree {
-    pub session_credentials: OnceCell<TreeStore>,
+    pub tree_store: OnceCell<TreeStore>,
+    pub session_credentials: RefCell<Vec<SessionCredentialObject>>,
     pub group_map: RefCell<HashMap<String, TreeIter>>,
 }
 
@@ -30,6 +33,7 @@ impl ObjectImpl for SessionCredentialManagementTree {
         instance.setup_columns();
         instance.setup_model();
         instance.setup_default_group();
+        instance.setup_callbacks();
     }
 }
 

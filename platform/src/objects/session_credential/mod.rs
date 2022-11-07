@@ -17,7 +17,7 @@ impl SessionCredentialObject {
         user: &str,
         password: &str,
         group: &str,
-        port: i32,
+        port: u32,
         credential_type: CredentialType,
     ) -> Self {
         Object::builder()
@@ -46,14 +46,6 @@ impl SessionCredentialObject {
         )
     }
 
-    pub fn group(&self) -> String {
-        self.imp().group.borrow().clone()
-    }
-
-    pub fn shown_name(&self) -> String {
-        self.imp().shown_name.borrow().clone()
-    }
-
     pub fn to_session_credetial(&self) -> SessionCredential {
         let obj = self.imp();
         SessionCredential::new(
@@ -69,6 +61,31 @@ impl SessionCredentialObject {
                 .clone(),
         )
     }
+
+    pub fn host(&self) -> String {
+        self.imp().host.borrow().clone()
+    }
+
+    pub fn username(&self) -> String {
+        self.imp().user.borrow().clone()
+    }
+
+    pub fn password(&self) -> String {
+        self.imp().password.borrow().clone()
+    }
+
+    pub fn port(&self) -> u32 {
+        self.imp().port.get()
+    }
+
+    pub fn group(&self) -> String {
+        self.imp().group.borrow().clone()
+    }
+
+    pub fn shown_name(&self) -> String {
+        self.imp().shown_name.borrow().clone()
+    }
+
     pub fn to_shown_string(&self) -> String {
         let mut shown_string = String::new();
         shown_string.push_str(&self.shown_name());

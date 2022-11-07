@@ -2,7 +2,7 @@ use core::{match_credential_type, to_credential_type_const, CredentialType};
 use std::cell::{Cell, RefCell};
 
 use gtk::glib::once_cell::sync::{Lazy, OnceCell};
-use gtk::glib::{self, ParamSpec, ParamSpecInt, ParamSpecString, Value};
+use gtk::glib::{self, ParamSpec, ParamSpecInt, ParamSpecString, Value, ParamSpecUInt};
 use gtk::prelude::ToValue;
 use gtk::subclass::prelude::*;
 
@@ -14,7 +14,7 @@ pub struct SessionCredentialObject {
     pub user: RefCell<String>,
     pub password: RefCell<String>,
     pub group: RefCell<String>,
-    pub port: Cell<i32>,
+    pub port: Cell<u32>,
     pub credential_type: OnceCell<CredentialType>,
 }
 
@@ -34,7 +34,7 @@ impl ObjectImpl for SessionCredentialObject {
                 ParamSpecString::builder("user").build(),
                 ParamSpecString::builder("password").build(),
                 ParamSpecString::builder("group").build(),
-                ParamSpecInt::builder("port").build(),
+                ParamSpecUInt::builder("port").build(),
                 ParamSpecInt::builder("credential-type").build(),
             ]
         });
@@ -74,7 +74,7 @@ impl ObjectImpl for SessionCredentialObject {
                 self.group.replace(input_value);
             }
             "port" => {
-                let input_value = value.get().expect("The value needs to be of type `i32`.");
+                let input_value = value.get().expect("The value needs to be of type `u32`.");
                 self.port.set(input_value);
             }
             "credential-type" => {
