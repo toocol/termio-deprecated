@@ -3,7 +3,7 @@ use std::{collections::HashMap, cell::RefCell};
 use gtk::{
     glib::{self, once_cell::sync::OnceCell},
     subclass::prelude::*,
-    TreeStore, TreeIter,
+    TreeStore, TreeIter, traits::TreeViewExt,
 };
 
 #[derive(Default)]
@@ -26,6 +26,7 @@ impl ObjectImpl for SessionCredentialManagementTree {
         self.parent_constructed();
 
         let instance = self.instance();
+        instance.set_headers_visible(false);
         instance.setup_columns();
         instance.setup_model();
         instance.setup_default_group();

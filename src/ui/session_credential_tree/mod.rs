@@ -35,8 +35,8 @@ impl SessionCredentialManagementTree {
         let column = TreeViewColumn::builder()
             .cell_area(&cell_area)
             .expand(false)
-            .visible(false)
             .build();
+        column.add_attribute(&cell_renderer, "text", 0);
 
         self.append_column(&column);
     }
@@ -79,7 +79,11 @@ impl SessionCredentialManagementTree {
             .get(&session_credential.group())
         {
             let child_iter = tree_store.append(Some(parent_iter));
-            tree_store.set_value(&child_iter, 0, &session_credential.to_shown_string().to_value());
+            tree_store.set_value(
+                &child_iter,
+                0,
+                &session_credential.to_shown_string().to_value(),
+            );
             debug!(
                 "Insert tree_iter success, shown_string: {}",
                 &session_credential.to_shown_string()
@@ -87,7 +91,5 @@ impl SessionCredentialManagementTree {
         }
     }
 
-    pub fn restore_session_credentials(&self) {
-
-    }
+    pub fn restore_session_credentials(&self) {}
 }

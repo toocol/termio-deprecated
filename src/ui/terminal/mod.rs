@@ -1,13 +1,15 @@
 mod imp;
 
 use gtk::{
-    glib::{self, clone::Downgrade},
+    glib::{self},
+    prelude::*,
     subclass::prelude::ObjectSubclassIsExt,
     traits::WidgetExt,
     EventControllerKey, EventControllerMotion, EventControllerScroll, EventControllerScrollFlags,
     GestureClick, Inhibit,
 };
 use platform::native_node::NativeNodeImpl;
+use crate::constant::GtkMouseButton;
 
 glib::wrapper! {
     pub struct NativeTerminalEmulator(ObjectSubclass<imp::NativeTerminalEmulator>)
@@ -43,6 +45,7 @@ impl NativeTerminalEmulator {
 
         //// Mouse click events
         let gesture_click = GestureClick::new();
+        gesture_click.set_button(GtkMouseButton::LEFT as u32);
         let native_node_weak = self.imp().native_node_object.borrow().downgrade();
         gesture_click.connect_pressed(move |_gesture, n_press, x, y| {
             if let Some(native_node) = native_node_weak.upgrade() {
