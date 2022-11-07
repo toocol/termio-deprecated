@@ -48,22 +48,6 @@ impl SessionCredentialManagementTree {
             .build();
         column.add_attribute(&cell_renderer, "text", Columns::ShownName as i32);
         self.append_column(&column);
-
-        // Column 1: host
-        let column = TreeViewColumn::builder().visible(false).build();
-        self.append_column(&column);
-
-        // Column 2: Username
-        let column = TreeViewColumn::builder().visible(false).build();
-        self.append_column(&column);
-
-        // Column 3: Password
-        let column = TreeViewColumn::builder().visible(false).build();
-        self.append_column(&column);
-
-        // Column 4: Port
-        let column = TreeViewColumn::builder().visible(false).build();
-        self.append_column(&column);
     }
 
     pub fn setup_model(&self) {

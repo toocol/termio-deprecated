@@ -28,11 +28,6 @@ pub fn to_credential_type_const(credential_type: &CredentialType) -> i32 {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct SessionCredentialGroup {
-    pub name: &'static str
-}
-
-#[derive(Serialize, Deserialize)]
 pub struct SessionCredential {
     id: i32,
 
@@ -43,14 +38,6 @@ pub struct SessionCredential {
     pub group: String,
     pub port: u32,
     pub credential_type: CredentialType,
-}
-
-impl SessionCredentialGroup {
-    pub fn new(name: &'static str) -> Self {
-        SessionCredentialGroup {
-            name
-        }
-    }
 }
 
 impl SessionCredential {
