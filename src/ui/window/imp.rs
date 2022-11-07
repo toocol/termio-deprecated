@@ -8,6 +8,7 @@ use gtk::subclass::prelude::ObjectSubclass;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{glib, CompositeTemplate, Inhibit, ScrolledWindow};
+use platform::SessionCredentialObject;
 
 use crate::ui::terminal::NativeTerminalEmulator;
 use crate::ui::{NewSessionDialog, SessionCredentialManagementTree};
@@ -51,6 +52,7 @@ impl ObjectImpl for TermioCommunityWindow {
         let obj = self.instance();
         obj.initialize();
         obj.setup_actions();
+        obj.resotre_data();
     }
 }
 
@@ -72,9 +74,13 @@ impl WidgetImpl for TermioCommunityWindow {
 impl WindowImpl for TermioCommunityWindow {
     fn close_request(&self) -> Inhibit {
         debug!("Application closed.");
-        self.session_credential_management.session_credentials();
 
-        let backup_data: Vec<SessionCredential> = vec![];
+        let backup_data: Vec<SessionCredential> = self
+            .session_credential_management
+            .session_credentials()
+            .iter()
+            .map(SessionCredentialObject::to_session_credetial)
+            .collect();
         // Save state to file
         let file = File::create(data_path(".credential")).expect("Could not create json file.");
         serde_json::to_writer(file, &backup_data).expect("Could not write data to json file.");
