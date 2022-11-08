@@ -1,6 +1,6 @@
 mod imp;
 
-use core::{to_credential_type_const, CredentialType, SessionCredential};
+use core::{ProtocolType, SessionCredential};
 
 use glib::Object;
 use gtk::glib;
@@ -18,7 +18,7 @@ impl SessionCredentialObject {
         password: &str,
         group: &str,
         port: u32,
-        credential_type: CredentialType,
+        credential_type: ProtocolType,
     ) -> Self {
         Object::builder()
             .property("shown-name", shown_name)
@@ -27,10 +27,7 @@ impl SessionCredentialObject {
             .property("password", password)
             .property("group", group)
             .property("port", port)
-            .property(
-                "credential-type",
-                to_credential_type_const(&credential_type),
-            )
+            .property("credential-type", credential_type.to_int())
             .build()
     }
 

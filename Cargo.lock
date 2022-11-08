@@ -116,8 +116,11 @@ dependencies = [
 name = "core"
 version = "0.1.0"
 dependencies = [
+ "lazy_static",
+ "log",
  "serde",
  "serde_json",
+ "utilities",
 ]
 
 [[package]]
