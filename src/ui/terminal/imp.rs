@@ -1,15 +1,14 @@
 use std::{cell::RefCell, rc::Rc};
 
 use gtk::{glib, prelude::Cast, subclass::prelude::*, traits::WidgetExt};
-use platform::native_node::{NativeNodeImpl, NativeNodeObject};
 use log::info;
+use platform::native_node::{NativeNodeImpl, NativeNodeObject};
 
 pub struct NativeTerminalEmulator {
     pub native_node_object: Rc<RefCell<NativeNodeObject>>,
 }
 
-impl NativeTerminalEmulator {
-}
+impl NativeTerminalEmulator {}
 
 impl Default for NativeTerminalEmulator {
     fn default() -> Self {
@@ -36,6 +35,7 @@ impl ObjectSubclass for NativeTerminalEmulator {
 impl ObjectImpl for NativeTerminalEmulator {
     fn constructed(&self) {
         self.parent_constructed();
+        self.instance().setup_callbakcs();
 
         let _layout = self
             .instance()

@@ -1,8 +1,8 @@
-use core::{match_credential_type, to_credential_type_const, CredentialType};
+use core::ProtocolType;
 use std::cell::{Cell, RefCell};
 
 use gtk::glib::once_cell::sync::{Lazy, OnceCell};
-use gtk::glib::{self, ParamSpec, ParamSpecInt, ParamSpecString, Value, ParamSpecUInt};
+use gtk::glib::{self, ParamSpec, ParamSpecInt, ParamSpecString, ParamSpecUInt, Value};
 use gtk::prelude::ToValue;
 use gtk::subclass::prelude::*;
 
@@ -15,7 +15,7 @@ pub struct SessionCredentialObject {
     pub password: RefCell<String>,
     pub group: RefCell<String>,
     pub port: Cell<u32>,
-    pub credential_type: OnceCell<CredentialType>,
+    pub credential_type: OnceCell<ProtocolType>,
 }
 
 #[glib::object_subclass]
@@ -79,7 +79,7 @@ impl ObjectImpl for SessionCredentialObject {
             }
             "credential-type" => {
                 let input_value: i32 = value.get().expect("The value needs to be of type `i8`.");
-                let credential_type = match_credential_type(input_value);
+                let credential_type = ProtocolType::from_int(input_value);
                 self.credential_type
                     .set(credential_type)
                     .expect("`credential_type` of `SessionCredentialObject` can only set once.");
@@ -96,12 +96,12 @@ impl ObjectImpl for SessionCredentialObject {
             "password" => self.password.borrow().to_value(),
             "group" => self.group.borrow().to_value(),
             "port" => self.port.get().to_value(),
-            "credential-type" => to_credential_type_const(
-                self.credential_type
-                    .get()
-                    .expect("`credential_type` should initialize first before use."),
-            )
-            .to_value(),
+            "credential-type" => self
+                .credential_type
+                .get()
+                .expect("`credential_type` should initialize first before use.")
+                .to_int()
+                .to_value(),
             _ => unimplemented!(),
         }
     }

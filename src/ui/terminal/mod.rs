@@ -1,7 +1,7 @@
 mod imp;
 
 use gtk::{
-    glib::{self},
+    glib::{self, clone},
     prelude::*,
     subclass::prelude::ObjectSubclassIsExt,
     traits::WidgetExt,
@@ -18,7 +18,8 @@ glib::wrapper! {
 
 impl NativeTerminalEmulator {
     /// Initialize the keyboard/mouse events reaction of NativeTerminalEmulator
-    pub fn initialize(&self) {
+    pub fn setup_callbakcs(&self) {
+        self.set_can_focus(true);
         self.set_focusable(true);
         self.set_focus_on_click(true);
 
@@ -46,11 +47,13 @@ impl NativeTerminalEmulator {
         let gesture_click = GestureClick::new();
         gesture_click.set_button(GtkMouseButton::LEFT as u32);
         let native_node_weak = self.imp().native_node_object.borrow().downgrade();
-        gesture_click.connect_pressed(move |_gesture, n_press, x, y| {
+        gesture_click.connect_pressed(clone!(@weak self as terminal => move |_gesture, n_press, x, y| {
+            terminal.grab_focus();
             if let Some(native_node) = native_node_weak.upgrade() {
+                native_node.request_focus(true);
                 native_node.react_mouse_pressed_event(n_press, x, y);
             }
-        });
+        }));
         let native_node_weak = self.imp().native_node_object.borrow().downgrade();
         gesture_click.connect_released(move |_gesture, n_press, x, y| {
             if let Some(native_node) = native_node_weak.upgrade() {
@@ -91,6 +94,20 @@ impl NativeTerminalEmulator {
             Inhibit(true)
         });
         self.add_controller(&wheel_controller);
+    }
+
+    pub fn create_ssh_session(
+        &self,
+        session_id: u64,
+        host: &str,
+        user: &str,
+        password: &str,
+        timestmap: u64,
+    ) {
+        self.imp()
+            .native_node_object
+            .borrow()
+            .create_ssh_session(session_id, host, user, password, timestmap);
     }
 
     /// Resize the `NativeNode`.

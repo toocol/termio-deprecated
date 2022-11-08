@@ -1,18 +1,18 @@
 use core::SessionCredential;
 use std::fs::File;
 
-use gtk::glib::once_cell::sync::OnceCell;
-use gtk::glib::subclass::InitializingObject;
-use gtk::subclass::prelude::ObjectSubclass;
+use gtk::{
+    glib::{self, once_cell::sync::OnceCell, subclass::InitializingObject},
+    prelude::*,
+    subclass::prelude::{ObjectSubclass, *},
+    CompositeTemplate, Inhibit, ScrolledWindow,
+};
 
-use gtk::prelude::*;
-use gtk::subclass::prelude::*;
-use gtk::{glib, CompositeTemplate, Inhibit, ScrolledWindow};
 use platform::SessionCredentialObject;
-
-use crate::ui::terminal::NativeTerminalEmulator;
-use crate::ui::{NewSessionDialog, SessionCredentialManagementTree};
-use crate::util::data_path;
+use crate::{
+    ui::{terminal::NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree},
+    util::data_path,
+};
 use log::debug;
 
 #[derive(Default, CompositeTemplate)]
@@ -53,6 +53,8 @@ impl ObjectImpl for TermioCommunityWindow {
         obj.initialize();
         obj.setup_actions();
         obj.resotre_data();
+
+        self.session_credential_management.setup_callbacks(obj.as_ref());
     }
 }
 

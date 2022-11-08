@@ -33,7 +33,6 @@ impl ObjectImpl for SessionCredentialManagementTree {
         instance.setup_columns();
         instance.setup_model();
         instance.setup_default_group();
-        instance.setup_callbacks();
     }
 }
 

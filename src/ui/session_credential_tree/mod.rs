@@ -1,9 +1,9 @@
 mod imp;
 
-use core::SessionCredential;
+use core::{create_session, SessionCredential};
 
 use gtk::{
-    glib::{self, Type},
+    glib::{self, clone, Type},
     prelude::*,
     subclass::prelude::*,
     traits::TreeViewExt,
@@ -11,6 +11,9 @@ use gtk::{
 };
 use log::debug;
 use platform::SessionCredentialObject;
+use utilities::TimeStamp;
+
+use super::TermioCommunityWindow;
 
 glib::wrapper! {
     pub struct SessionCredentialManagementTree(ObjectSubclass<imp::SessionCredentialManagementTree>)
@@ -94,8 +97,8 @@ impl SessionCredentialManagementTree {
             .insert("default".to_string(), default_group);
     }
 
-    pub fn setup_callbacks(&self) {
-        self.connect_row_activated(|tree_view, _, _| {
+    pub fn setup_callbacks(&self, window: &TermioCommunityWindow) {
+        self.connect_row_activated(clone!(@weak window => move |tree_view, _, _| {
             let selection = tree_view.selection();
             if let Some((model, iter)) = selection.selected() {
                 let node_type = model
@@ -119,13 +122,15 @@ impl SessionCredentialManagementTree {
                         .get_value(&iter, Columns::Port as i32)
                         .get::<u32>()
                         .expect("`SessionCredentialManagementTree` get `password` value error.");
+                    let session_id = create_session(core::ProtocolType::Ssh);
+                    window.imp().native_terminal_emulator.create_ssh_session(session_id, host.as_str(), username.as_str(), password.as_str(), TimeStamp::timestamp());
                     debug!(
-                        "Try to connect ssh session, host={}, username={}, password={}, port={}",
-                        host, username, password, port
+                        "Try to connect ssh session, session_id={}, host={}, username={}, password={}, port={}",
+                        session_id, host, username, password, port
                     );
                 }
             }
-        });
+        }));
     }
 
     pub fn add_session_credential(&self, session_credential: SessionCredentialObject) {

@@ -1,31 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const CREDENTIAL_TYPE_SSH: i32 = 1;
-pub const CREDENTIAL_TYPE_MOSH: i32 = 2;
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum CredentialType {
-    SSH,
-    MOSH,
-}
-
-pub fn match_credential_type(ctype: i32) -> CredentialType {
-    match ctype {
-        CREDENTIAL_TYPE_SSH => CredentialType::SSH,
-        CREDENTIAL_TYPE_MOSH => CredentialType::MOSH,
-        _ => panic!(
-            "Credential type only support 1=[SSH], 2=[MOSH]. Get {}",
-            ctype
-        ),
-    }
-}
-
-pub fn to_credential_type_const(credential_type: &CredentialType) -> i32 {
-    match credential_type {
-        CredentialType::SSH => CREDENTIAL_TYPE_SSH,
-        CredentialType::MOSH => CREDENTIAL_TYPE_MOSH,
-    }
-}
+use crate::ProtocolType;
 
 #[derive(Serialize, Deserialize)]
 pub struct SessionCredential {
@@ -37,7 +12,7 @@ pub struct SessionCredential {
     pub password: String,
     pub group: String,
     pub port: u32,
-    pub credential_type: CredentialType,
+    pub credential_type: ProtocolType,
 }
 
 impl SessionCredential {
@@ -48,7 +23,7 @@ impl SessionCredential {
         password: String,
         group: String,
         port: u32,
-        credential_type: CredentialType,
+        credential_type: ProtocolType,
     ) -> Self {
         SessionCredential {
             id: 0,

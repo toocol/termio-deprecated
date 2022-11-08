@@ -43,6 +43,10 @@ pub struct NativeNode {
     fps_values: RefCell<[f64; 10]>,
 }
 
+unsafe impl Sync for NativeNode {}
+
+unsafe impl Send for NativeNode {}
+
 impl Default for NativeNode {
     fn default() -> Self {
         Self {
@@ -70,15 +74,53 @@ impl NativeNodeObject {
 
     pub fn process_snapshot(&self) {}
 
+    pub fn create_ssh_session(
+        &self,
+        session_id: u64,
+        host: &str,
+        user: &str,
+        password: &str,
+        timestmap: u64,
+    ) {
+        native_create_ssh_session(
+            self.imp().key.get(),
+            session_id as i64,
+            host,
+            user,
+            password,
+            timestmap as i64,
+        );
+    }
+
+    pub fn request_focus(&self, is_focus: bool) {
+        native_request_focus(
+            self.imp().key.get(),
+            is_focus,
+            TimeStamp::timestamp() as i64,
+        );
+    }
+
     pub fn react_key_pressed_event(&self, key: Key, keycode: u32, modifier: ModifierType) {
         debug!(
-            "`NativeNode` key pressed -> name: {:?}, code: {}, modifier: {:?}, qt_code: {}",
+            "`NativeNode` key pressed -> key: {:?}, name: {:?}, code: {}, modifier: {:?}, qt_code: {}",
+            key,
             key.name(),
             keycode,
             modifier,
             QtCodeMapping::get_qt_code(keycode)
         );
         MODIFIER.store(QtCodeMapping::get_qt_modifier(modifier), Ordering::SeqCst);
+        let character = match key.to_unicode() {
+            Some(c) => c.to_string(),
+            None => "".to_string(),
+        };
+        native_fire_key_pressed_event(
+            self.imp().key.get(),
+            character.as_str(),
+            QtCodeMapping::get_qt_code(keycode),
+            MODIFIER.load(Ordering::SeqCst),
+            TimeStamp::timestamp() as i64,
+        );
     }
 
     pub fn react_key_released_event(&self, key: Key, keycode: u32, modifier: ModifierType) {

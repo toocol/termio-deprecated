@@ -29,7 +29,6 @@ impl TermioCommunityWindow {
     }
 
     pub fn initialize(&self) {
-        self.imp().native_terminal_emulator.initialize();
         self.imp()
             .new_session_dialog
             .set(NewSessionDialog::new(self))
@@ -54,7 +53,9 @@ impl TermioCommunityWindow {
         if let Ok(file) = File::open(data_path(".credential")) {
             let backup_data: Vec<SessionCredential> = serde_json::from_reader(file)
                 .expect("Read backup data from json file `.credential` error.");
-            self.imp().session_credential_management.restore_session_credentials(backup_data);
+            self.imp()
+                .session_credential_management
+                .restore_session_credentials(backup_data);
         }
     }
 
@@ -74,7 +75,7 @@ impl TermioCommunityWindow {
             password,
             group,
             port,
-            core::CredentialType::SSH,
+            core::ProtocolType::Ssh,
         );
         self.imp()
             .session_credential_management
