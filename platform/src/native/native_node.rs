@@ -2,7 +2,6 @@
 use std::{
     cell::{Cell, RefCell},
     rc::Rc,
-    slice,
     sync::atomic::{AtomicI32, Ordering},
     time::Duration,
 };
@@ -10,13 +9,12 @@ use std::{
 use crate::{key_code_mapping::QtCodeMapping, native::native_adapter::*};
 use gtk::{
     gdk::{Key, ModifierType},
-    gdk_pixbuf::Pixbuf,
-    glib::{self, clone::Downgrade, timeout_add_local, Bytes, Object},
+    glib::{self, clone::Downgrade, timeout_add_local, Object, bitflags::_core::slice, Bytes},
     prelude::*,
     subclass::prelude::*,
-    Align, Picture,
+    Align, DrawingArea, gdk_pixbuf::Pixbuf,
 };
-use log::{debug, error};
+use log::debug;
 use utilities::TimeStamp;
 
 glib::wrapper! {
@@ -26,11 +24,12 @@ glib::wrapper! {
 static MODIFIER: AtomicI32 = AtomicI32::new(0);
 
 pub struct NativeNode {
-    pub picture: RefCell<Picture>,
-    pub native_buffer: RefCell<Option<&'static [u8]>>,
+    pub drawing_area: RefCell<DrawingArea>,
     pub key: Cell<i32>,
     pub width: Cell<i32>,
     pub height: Cell<i32>,
+    pub image_width: Cell<i32>,
+    pub image_height: Cell<i32>,
 
     still_connect: Cell<bool>,
     is_verbose: Cell<bool>,
@@ -43,18 +42,15 @@ pub struct NativeNode {
     fps_values: RefCell<[f64; 10]>,
 }
 
-unsafe impl Sync for NativeNode {}
-
-unsafe impl Send for NativeNode {}
-
 impl Default for NativeNode {
     fn default() -> Self {
         Self {
-            picture: RefCell::new(Picture::new()),
-            native_buffer: RefCell::new(None),
+            drawing_area: RefCell::new(DrawingArea::new()),
             key: Cell::new(-1),
             width: Cell::new(0),
             height: Cell::new(0),
+            image_width: Cell::new(0),
+            image_height: Cell::new(0),
             still_connect: Cell::new(false),
             is_verbose: Cell::new(false),
             hibpi_aware: Cell::new(false),
@@ -71,8 +67,6 @@ impl NativeNodeObject {
     pub fn new() -> Self {
         Object::new(&[])
     }
-
-    pub fn process_snapshot(&self) {}
 
     pub fn create_ssh_session(
         &self,
@@ -185,42 +179,60 @@ impl NativeNodeObject {
         let current_w = native_get_w(key);
         let current_h = native_get_h(key);
 
-        let picture_w = imp.picture.borrow().width();
-        let picture_h = imp.picture.borrow().height();
+        let image_w = imp.image_width.get();
+        let image_h = imp.image_height.get();
 
-        if None == *imp.native_buffer.borrow() || picture_w != current_w || picture_h != current_h {
+        if image_w != current_w || image_h != current_h {
             if imp.is_verbose.get() {
                 debug!(
                     "[{}]> -> new native buffer, resize W: {}, H: {}",
                     key, current_w, current_h
                 );
             }
+            imp.image_width.set(current_w);
+            imp.image_height.set(current_h);
 
             unsafe {
                 let buffer = slice::from_raw_parts(
                     native_get_buffer(key),
                     (current_w * current_h * 4) as usize,
                 );
-
-                imp.native_buffer.borrow_mut().replace(buffer);
+                // let surface = ImageSurface::create_for_data_unsafe(
+                //     native_get_buffer(key),
+                //     gtk::cairo::Format::ARgb32,
+                //     current_w,
+                //     current_h,
+                //     current_w * 4,
+                // )
+                // .expect("Create `ImageSurface` failed.");
+                imp.drawing_area.borrow().set_content_width(current_w);
+                imp.drawing_area.borrow().set_content_height(current_h);
+                imp.drawing_area
+                    .borrow()
+                    .set_draw_func(move |_drawing_area, cr, _, _| {
+                        let pixbuf = Pixbuf::from_bytes(
+                            &Bytes::from_static(buffer),
+                            gtk::gdk_pixbuf::Colorspace::Rgb,
+                            true,
+                            8,
+                            current_w,
+                            current_h,
+                            current_w * 4,
+                        );
+                        cr.set_source_pixbuf(&pixbuf, 0., 0.);
+                        // cr.set_source_surface(&surface, 0., 0.)
+                        //     .expect("Context set source surface failed.");
+                        cr.paint().expect("Invalid pixbuf.");
+                        cr.set_source_rgba(0., 0., 0., 0.);
+                        // drawing_area.set_content_width(current_w);
+                        // drawing_area.set_content_height(current_h);
+                    });
             }
+
             // Process if native_buffer is None, or window size has changed.
         }
 
-        if let Some(buffer) = *imp.native_buffer.borrow() {
-            let pixbuf = Pixbuf::from_bytes(
-                &Bytes::from_static(buffer),
-                gtk::gdk_pixbuf::Colorspace::Rgb,
-                true,
-                8,
-                current_w,
-                current_h,
-                current_w * 4,
-            );
-            imp.picture.borrow().set_pixbuf(Some(&pixbuf));
-        } else {
-            error!("Invalid `NativeNode` buffer.")
-        }
+        imp.drawing_area.borrow().queue_draw();
 
         // Have update the image, not dirty anymore
         native_set_dirty(key, false);
@@ -243,6 +255,41 @@ impl NativeNodeObject {
             imp.frame_timestamp.set(current_timestamp);
         }
     }
+
+    pub fn resize(&self, width: i32, height: i32) {
+        let old_w = self.imp().width.get();
+        let old_h = self.imp().height.get();
+        if old_w != width || old_h != height {
+            self.imp().width.set(width);
+            self.imp().height.set(height);
+            let key = self.imp().key.get();
+            if native_lock(key) {
+                native_resize(key, width, height);
+                native_unlock(key);
+            }
+        }
+    }
+
+    pub fn terminate(&self) {
+        if self.imp().key.get() < 0 {
+            return;
+        }
+        native_terminate_at(self.imp().key.get());
+        self.imp().still_connect.set(false);
+    }
+
+
+    pub fn unparent(&self) {
+        self.imp().drawing_area.borrow().unparent();
+    }
+
+    pub fn set_verbose(&self, verbose: bool) {
+        self.imp().is_verbose.set(verbose);
+    }
+
+    pub fn set_hibpi_aware(&self, hibpi_aware: bool) {
+        self.imp().hibpi_aware.set(hibpi_aware);
+    }
 }
 
 #[glib::object_subclass]
@@ -256,38 +303,15 @@ impl ObjectImpl for NativeNode {
     fn constructed(&self) {
         self.parent_constructed();
 
-        let picture = self.picture.borrow();
-        picture.set_can_shrink(false);
-        picture.set_focusable(true);
-        picture.set_halign(Align::Start);
-        picture.set_valign(Align::Start);
+        let drawing_area = self.drawing_area.borrow();
+        drawing_area.set_focusable(true);
+        drawing_area.set_halign(Align::Start);
+        drawing_area.set_valign(Align::Start);
     }
 }
 
 pub trait NativeNodeImpl {
     const CONNECTION_NAME: &'static str;
-
-    fn resize(node_rc: Rc<RefCell<NativeNodeObject>>, width: i32, height: i32) {
-        let old_w = node_rc.borrow().imp().width.get();
-        let old_h = node_rc.borrow().imp().height.get();
-        if old_w != width || old_h != height {
-            node_rc.borrow().imp().width.set(width);
-            node_rc.borrow().imp().height.set(height);
-            let key = node_rc.borrow().imp().key.get();
-            if native_lock(key) {
-                native_resize(key, width, height);
-                native_unlock(key);
-            }
-        }
-    }
-
-    fn terminate(node_rc: Rc<RefCell<NativeNodeObject>>) {
-        if node_rc.borrow().imp().key.get() < 0 {
-            return;
-        }
-        native_terminate_at(node_rc.borrow().imp().key.get());
-        node_rc.borrow().imp().still_connect.set(false);
-    }
 
     fn rc(&self) -> Rc<RefCell<NativeNodeObject>>;
 
@@ -314,17 +338,5 @@ pub trait NativeNodeImpl {
             }
             Continue(still_connect)
         });
-    }
-
-    fn unparent(&self) {
-        self.rc().borrow().imp().picture.borrow().unparent();
-    }
-
-    fn set_verbose(&self, verbose: bool) {
-        self.rc().borrow().imp().is_verbose.set(verbose);
-    }
-
-    fn set_hibpi_aware(&self, hibpi_aware: bool) {
-        self.rc().borrow().imp().hibpi_aware.set(hibpi_aware);
     }
 }

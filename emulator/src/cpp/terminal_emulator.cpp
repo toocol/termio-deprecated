@@ -143,6 +143,8 @@ bool TerminalEmulator::eventFilter(QObject* obj, QEvent* ev) {
   if (ev->type() == QEvent::UpdateRequest) {
     if (_nativeImage != nullptr) {
       QPainter painter(_nativeImage);
+      painter.setRenderHints(QPainter::SmoothPixmapTransform |
+                             QPainter::Antialiasing | QPainter::TextAntialiasing);
       this->render(&painter);
       painter.end();
     }

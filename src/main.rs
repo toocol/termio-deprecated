@@ -17,6 +17,7 @@ const APP_ID: &str = "termio.community";
 fn main() {
     // Set the enviroment variable.
     std::env::set_var("GSK_RENDERER", "cairo");
+    std::env::set_var("GTK_IM_MODULE", "ibus");
 
     // Initialize log system.
     initialize_log_system();
@@ -66,6 +67,6 @@ fn prelude_settings() {
 
 fn build_ui(app: &Application) {
     let window = TermioCommunityWindow::new(app);
-    window.present();
+    window.show();
     info!("Startup application termio-community success.");
 }
