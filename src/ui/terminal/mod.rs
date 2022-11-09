@@ -8,7 +8,7 @@ use gtk::{
     EventControllerKey, EventControllerMotion, EventControllerScroll, EventControllerScrollFlags,
     GestureClick, Inhibit,
 };
-use platform::{constant::GtkMouseButton, native_node::NativeNodeImpl};
+use platform::constant::GtkMouseButton;
 
 glib::wrapper! {
     pub struct NativeTerminalEmulator(ObjectSubclass<imp::NativeTerminalEmulator>)
@@ -47,13 +47,15 @@ impl NativeTerminalEmulator {
         let gesture_click = GestureClick::new();
         gesture_click.set_button(GtkMouseButton::LEFT as u32);
         let native_node_weak = self.imp().native_node_object.borrow().downgrade();
-        gesture_click.connect_pressed(clone!(@weak self as terminal => move |_gesture, n_press, x, y| {
-            terminal.grab_focus();
-            if let Some(native_node) = native_node_weak.upgrade() {
-                native_node.request_focus(true);
-                native_node.react_mouse_pressed_event(n_press, x, y);
-            }
-        }));
+        gesture_click.connect_pressed(
+            clone!(@weak self as terminal => move |_gesture, n_press, x, y| {
+                terminal.grab_focus();
+                if let Some(native_node) = native_node_weak.upgrade() {
+                    native_node.request_focus(true);
+                    native_node.react_mouse_pressed_event(n_press, x, y);
+                }
+            }),
+        );
         let native_node_weak = self.imp().native_node_object.borrow().downgrade();
         gesture_click.connect_released(move |_gesture, n_press, x, y| {
             if let Some(native_node) = native_node_weak.upgrade() {
@@ -112,11 +114,11 @@ impl NativeTerminalEmulator {
 
     /// Resize the `NativeNode`.
     pub fn resize(&self, width: i32, height: i32) {
-        imp::NativeTerminalEmulator::resize(self.imp().native_node_object.clone(), width, height);
+        self.imp().native_node_object.borrow().resize(width, height);
     }
 
     /// Terminate the native node.
     pub fn terminate(&self) {
-        imp::NativeTerminalEmulator::terminate(self.imp().native_node_object.clone());
+        self.imp().native_node_object.borrow().terminate();
     }
 }

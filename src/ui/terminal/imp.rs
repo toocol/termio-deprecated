@@ -44,45 +44,24 @@ impl ObjectImpl for NativeTerminalEmulator {
             .downcast::<gtk::BinLayout>()
             .unwrap();
 
-        self.set_verbose(true);
-        self.set_hibpi_aware(true);
+        self.native_node_object.borrow().set_verbose(true);
+        self.native_node_object.borrow().set_hibpi_aware(true);
         self.native_node_object
             .borrow()
             .imp()
-            .picture
+            .drawing_area
             .borrow()
-            .set_parent(&self.instance().to_owned());
+            .set_parent(self.instance().as_ref());
         self.connect();
         info!("NativeTerminalEmulator constructed.")
     }
 
     fn dispose(&self) {
-        self.unparent();
+        self.native_node_object.borrow().unparent();
     }
 }
 
-impl WidgetImpl for NativeTerminalEmulator {
-    fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
-        self.parent_size_allocate(width, height, baseline);
-    }
-
-    fn request_mode(&self) -> gtk::SizeRequestMode {
-        gtk::SizeRequestMode::HeightForWidth
-    }
-
-    fn measure(&self, orientation: gtk::Orientation, _for_size: i32) -> (i32, i32, i32, i32) {
-        if orientation == gtk::Orientation::Vertical {
-            (50, 50, -1, -1)
-        } else {
-            (50, 50, -1, -1)
-        }
-    }
-
-    fn snapshot(&self, snapshot: &gtk::Snapshot) {
-        self.parent_snapshot(snapshot);
-        self.native_node_object.borrow().process_snapshot();
-    }
-}
+impl WidgetImpl for NativeTerminalEmulator {}
 
 impl NativeNodeImpl for NativeTerminalEmulator {
     const CONNECTION_NAME: &'static str = "_emulator_mem";

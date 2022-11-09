@@ -1573,6 +1573,8 @@ bool TerminalView::event(QEvent* event) {
 
 void TerminalView::paintEvent(QPaintEvent* event) {
   QPainter paint(this);
+  paint.setRenderHints(QPainter::SmoothPixmapTransform |
+                         QPainter::Antialiasing | QPainter::TextAntialiasing);
   QRect cr = contentsRect();
 
   if (!_backgroundImage.isNull()) {

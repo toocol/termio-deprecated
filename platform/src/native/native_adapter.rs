@@ -25,7 +25,7 @@ extern "C" {
         password: *const c_char,
         timestamp: c_longlong,
     ) -> bool;
-    fn get_buffer(key: c_int) -> *const u8;
+    fn get_buffer(key: c_int) -> *mut u8;
     fn lock(key: c_int) -> bool;
     fn lock_timeout(key: c_int, timeout: c_longlong) -> bool;
     fn unlock(key: c_int);
@@ -243,7 +243,7 @@ pub fn native_create_ssh_session(
 }
 
 /// Get the native image buffer.
-pub fn native_get_buffer(key: i32) -> *const u8 {
+pub fn native_get_buffer(key: i32) -> *mut u8 {
     unsafe { get_buffer(key) }
 }
 
