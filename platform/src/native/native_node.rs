@@ -2,17 +2,18 @@
 use std::{
     cell::{Cell, RefCell},
     rc::Rc,
-    sync::atomic::{AtomicI32, Ordering},
+    sync::{atomic::{AtomicI32, Ordering}},
     time::Duration,
 };
 
-use crate::{key_code_mapping::QtCodeMapping, native::native_adapter::*};
+use crate::{key_code_mapping::QtCodeMapping, native::native_adapter::*, };
 use gtk::{
     gdk::{Key, ModifierType},
-    glib::{self, clone::Downgrade, timeout_add_local, Object, bitflags::_core::slice, Bytes},
+    gdk_pixbuf::Pixbuf,
+    glib::{self, bitflags::_core::slice, clone::Downgrade, timeout_add_local, Bytes, Object},
     prelude::*,
     subclass::prelude::*,
-    Align, DrawingArea, gdk_pixbuf::Pixbuf,
+    Align, DrawingArea,
 };
 use log::debug;
 use utilities::TimeStamp;
@@ -197,35 +198,26 @@ impl NativeNodeObject {
                     native_get_buffer(key),
                     (current_w * current_h * 4) as usize,
                 );
-                // let surface = ImageSurface::create_for_data_unsafe(
-                //     native_get_buffer(key),
-                //     gtk::cairo::Format::ARgb32,
-                //     current_w,
-                //     current_h,
-                //     current_w * 4,
-                // )
-                // .expect("Create `ImageSurface` failed.");
                 imp.drawing_area.borrow().set_content_width(current_w);
                 imp.drawing_area.borrow().set_content_height(current_h);
                 imp.drawing_area
                     .borrow()
                     .set_draw_func(move |_drawing_area, cr, _, _| {
-                        let pixbuf = Pixbuf::from_bytes(
-                            &Bytes::from_static(buffer),
-                            gtk::gdk_pixbuf::Colorspace::Rgb,
-                            true,
-                            8,
-                            current_w,
-                            current_h,
-                            current_w * 4,
-                        );
-                        cr.set_source_pixbuf(&pixbuf, 0., 0.);
-                        // cr.set_source_surface(&surface, 0., 0.)
-                        //     .expect("Context set source surface failed.");
-                        cr.paint().expect("Invalid pixbuf.");
-                        cr.set_source_rgba(0., 0., 0., 0.);
-                        // drawing_area.set_content_width(current_w);
-                        // drawing_area.set_content_height(current_h);
+                        if native_lock(key) {
+                            let pixbuf = Pixbuf::from_bytes(
+                                &Bytes::from_static(buffer),
+                                gtk::gdk_pixbuf::Colorspace::Rgb,
+                                true,
+                                8,
+                                current_w,
+                                current_h,
+                                current_w * 4,
+                            );
+                            cr.set_source_pixbuf(&pixbuf, 0., 0.);
+                            cr.paint().expect("Invalid pixbuf.");
+                            cr.set_source_rgba(0., 0., 0., 0.);
+                            native_unlock(key);
+                        }
                     });
             }
 
@@ -277,7 +269,6 @@ impl NativeNodeObject {
         native_terminate_at(self.imp().key.get());
         self.imp().still_connect.set(false);
     }
-
 
     pub fn unparent(&self) {
         self.imp().drawing_area.borrow().unparent();
