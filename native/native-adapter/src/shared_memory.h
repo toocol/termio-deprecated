@@ -49,6 +49,8 @@
 #define IPC_BUFF_NAME "_buff_"
 #define IPC_EVT_MQ_NAME "_evt_mq_"
 #define IPC_EVT_MQ_NATIVE_NAME "_evt_mq_native_"
+#define IPC_PRIMARY_BUFFER_NAME "_primary_"
+#define IPC_SECONDARY_BUFFER_NAME "_secondary_"
 
 // instead of Qt stuff, we use plain c++ & boost
 // for the client lib

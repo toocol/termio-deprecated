@@ -83,35 +83,8 @@ struct NATIVE_EVENT {
 
 namespace ipc = boost::interprocess;
 
-inline ipc::shared_memory_object shm_buffer;
-inline ipc::mapped_region buffer_region;
-inline ipc::message_queue* evt_mq;
-inline ipc::message_queue* evt_mq_native;
-
-// deprecated
-inline uchar* createSharedBuffer(std::string buffer_name, int w, int h) {
-  // create the shared memory buffer object.
-  shm_buffer = ipc::shared_memory_object(ipc::create_only, buffer_name.c_str(),
-                                         ipc::read_write);
-
-  // set the size of the shared image buffer (w*h*#channels*sizeof(uchar))
-  shm_buffer.truncate(w * h  // TODO properly resize shared memory
-                      * /*#channels*/ 4 * /*channel size*/ sizeof(uchar));
-
-  // map the shared memory buffer object in this process
-  buffer_region = ipc::mapped_region(shm_buffer, ipc::read_write);
-
-  // get the address of the shared image buffer
-  void* buffer_addr = buffer_region.get_address();
-
-  // cast shared memory pointer to correct uchar type
-  uchar* buffer_data = (uchar*)buffer_addr;
-
-  return buffer_data;
-}
-
-typedef std::function<void(std::string const& name, uchar* buffer_data, int W,
-                           int H)>
+typedef std::function<void(std::string const& name, uchar* primary_buffer,
+                           int W, int H)>
     redraw_callback;
 typedef std::function<void(std::string const& name, event* evt)> event_callback;
 
@@ -149,6 +122,29 @@ inline int deleteSharedMem(std::string const& name) {
   return NRS_SUCCESS;
 }
 
+inline uchar* createSharedBuffer(std::string buffer_name, int w, int h) {
+  ipc::shared_memory_object* shm_buffer;
+  ipc::mapped_region* buffer_region;
+  // create the shared memory buffer object.
+  shm_buffer = new ipc::shared_memory_object(
+      ipc::create_only, buffer_name.c_str(), ipc::read_write);
+
+  // set the size of the shared image buffer (w*h*#channels*sizeof(uchar))
+  shm_buffer->truncate(w * h * /*#channels*/ 4 *
+                       /*channel size*/ sizeof(uchar));
+
+  // map the shared memory buffer object in this process
+  buffer_region = new ipc::mapped_region(*shm_buffer, ipc::read_write);
+
+  // get the address of the shared image buffer
+  void* buffer_addr = buffer_region->get_address();
+
+  // cast shared memory pointer to correct uchar type
+  uchar* buffer_data = new (buffer_addr) uchar;
+
+  return buffer_data;
+}
+
 struct SshPropery {
   std::string host;
   std::string user;
@@ -157,14 +153,19 @@ struct SshPropery {
 
 class SharedCanvas final {
  private:
+  std::size_t MAX_SIZE;
+
   std::string name;
 
   std::string info_name;
   std::string buffer_name;
+  std::string primary_buffer_name;
+  std::string secondary_buffer_name;
   std::string evt_mq_name;
   std::string evt_mq_native_name;
 
-  uchar* buffer_data;
+  uchar* primary_buffer;
+  uchar* secondary_buffer;
   shared_memory_info* info_data;
   ipc::shared_memory_object* shm_info;
   ipc::message_queue* evt_mq;
@@ -174,17 +175,16 @@ class SharedCanvas final {
   int W;
   int H;
 
-  std::size_t MAX_SIZE;
-
   std::queue<NATIVE_EVENT*> event_queue;
 
-  SharedCanvas(std::string const& name, uchar* buffer_data,
-               ipc::shared_memory_object* shm_info,
+  SharedCanvas(std::string const& name, uchar* primary_buffer,
+               uchar* secondary_buffer, ipc::shared_memory_object* shm_info,
                shared_memory_info* info_data, ipc::message_queue* evt_mq,
                void* evt_mq_msg_buff, ipc::message_queue* evt_mq_native, int w,
                int h, STATUS status) {
     this->name = name;
-    this->buffer_data = buffer_data;
+    this->primary_buffer = primary_buffer;
+    this->secondary_buffer = secondary_buffer;
     this->shm_info = shm_info;
     this->info_data = info_data;
     this->evt_mq = evt_mq;
@@ -198,6 +198,8 @@ class SharedCanvas final {
 
     this->info_name = name + IPC_INFO_NAME;
     this->buffer_name = name + IPC_BUFF_NAME;
+    this->primary_buffer_name = this->buffer_name + IPC_PRIMARY_BUFFER_NAME;
+    this->secondary_buffer_name = this->buffer_name + IPC_SECONDARY_BUFFER_NAME;
     this->evt_mq_name = name + IPC_EVT_MQ_NAME;
     this->evt_mq_native_name = name + IPC_EVT_MQ_NAME;
 
@@ -249,6 +251,8 @@ class SharedCanvas final {
     std::string buffer_name = name + IPC_BUFF_NAME;
     std::string evt_mq_name = name + IPC_EVT_MQ_NAME;
     std::string evt_mq_native_name = name + IPC_EVT_MQ_NATIVE_NAME;
+    std::string primary_buffer_name = buffer_name + IPC_PRIMARY_BUFFER_NAME;
+    std::string secondary_buffer_name = buffer_name + IPC_SECONDARY_BUFFER_NAME;
 
     std::cout << "> creating shared-mem" << std::endl;
     std::cout << "  -> name:   " << name << std::endl;
@@ -268,6 +272,8 @@ class SharedCanvas final {
       // remove shared memory objects
       ipc::shared_memory_object::remove(info_name.c_str());
       ipc::shared_memory_object::remove(buffer_name.c_str());
+      ipc::shared_memory_object::remove(primary_buffer_name.c_str());
+      ipc::shared_memory_object::remove(secondary_buffer_name.c_str());
       ipc::message_queue::remove(evt_mq_name.c_str());
       ipc::message_queue::remove(evt_mq_native_name.c_str());
 
@@ -310,16 +316,17 @@ class SharedCanvas final {
     int W = info_data->w;
     int H = info_data->h;
 
-    uchar* buffer_data = createSharedBuffer(buffer_name, W, H);
+    uchar* primary_buffer = createSharedBuffer(primary_buffer_name, W, H);
+    uchar* secondary_buffer = createSharedBuffer(secondary_buffer_name, W, H);
 
     std::size_t MAX_SIZE = max_event_message_size();
     void* evt_mq_msg_buff = malloc(MAX_SIZE);
 
     info_data->buffer_ready = true;
 
-    SharedCanvas* sc =
-        new SharedCanvas(name, buffer_data, shm_info, info_data, evt_mq,
-                         evt_mq_msg_buff, evt_mq_native, W, H, NRS_SUCCESS);
+    SharedCanvas* sc = new SharedCanvas(
+        name, primary_buffer, secondary_buffer, shm_info, info_data, evt_mq,
+        evt_mq_msg_buff, evt_mq_native, W, H, NRS_SUCCESS);
     sc->detachNativeEventThread();
     return sc;
   }
@@ -385,9 +392,7 @@ class SharedCanvas final {
     return locking_success;
   }
 
-  void unlock() {
-      info_data->mutex.unlock();
-  }
+  void unlock() { info_data->mutex.unlock(); }
 
   int draw(redraw_callback redraw) {
     bool is_dirty = info_data->dirty;
@@ -397,7 +402,7 @@ class SharedCanvas final {
     if (is_dirty) {
       // continue; we still might want to process events
     } else {
-      redraw(name, buffer_data, W, H);
+      redraw(name, primary_buffer, W, H);
 
       info_data->dirty = true;
     }
@@ -420,11 +425,11 @@ class SharedCanvas final {
       std::cout << "[" + name + "]"
                 << "> resize to W: " << W << ", H: " << H << std::endl;
 
-      ipc::shared_memory_object::remove(buffer_name.c_str());
-      buffer_data = createSharedBuffer(buffer_name, W, H);
+      ipc::shared_memory_object::remove(primary_buffer_name.c_str());
+      primary_buffer = createSharedBuffer(primary_buffer_name, W, H);
       info_data->buffer_ready = true;
 
-      resized(name, buffer_data, W, H);
+      resized(name, primary_buffer, W, H);
     }
 
     info_data->resize_semaphore.post();
@@ -471,240 +476,5 @@ class SharedCanvas final {
 
   bool is_valid() { return this->status == NRS_SUCCESS; }
 };
-
-/**
- * Starts a NativeFX server.
- *
- * @param name name of the shared memory object to delete
- * @param redraw should contain the draw commands (is called repetitively)
- * @param events should contain the event handling (is called repetitively
- * whenever events are to be processed)
- * @return status of this operation
- */
-inline int startServer(std::string const& name, redraw_callback redraw,
-                       event_callback events) {
-  std::string info_name = name + IPC_INFO_NAME;
-  std::string buffer_name = name + IPC_BUFF_NAME;
-  std::string evt_mq_name = name + IPC_EVT_MQ_NAME;
-  std::string evt_mq_native_name = name + IPC_EVT_MQ_NATIVE_NAME;
-
-  std::cout << "> creating shared-mem" << std::endl;
-  std::cout << "  -> name:   " << name << std::endl;
-
-  ipc::shared_memory_object shm_info;
-
-  try {
-    // create the shared memory info object.
-    shm_info = ipc::shared_memory_object(ipc::create_only, info_name.c_str(),
-                                         ipc::read_write);
-
-    evt_mq = create_evt_mq(evt_mq_name);
-    evt_mq_native = create_evt_mq_native(evt_mq_native_name);
-  } catch (ipc::interprocess_exception const&) {
-    // remove shared memory objects
-    ipc::shared_memory_object::remove(info_name.c_str());
-    ipc::shared_memory_object::remove(buffer_name.c_str());
-    ipc::message_queue::remove(evt_mq_name.c_str());
-    ipc::message_queue::remove(evt_mq_native_name.c_str());
-
-    std::cout << "> deleted pre-existing shared-mem" << std::endl;
-    std::cout << "  -> name:   " << name << std::endl;
-
-    // create the shared memory info object.
-    shm_info = ipc::shared_memory_object(ipc::create_only, info_name.c_str(),
-                                         ipc::read_write);
-    evt_mq = create_evt_mq(evt_mq_name);
-    evt_mq_native = create_evt_mq_native(evt_mq_native_name);
-
-    std::cout << "> created shared-mem" << std::endl;
-    std::cout << "  -> name:   " << name << std::endl;
-  }
-
-  // set the shm size
-  shm_info.truncate(sizeof(struct shared_memory_info));
-
-  // map the shared memory info object in this process
-  ipc::mapped_region info_region(shm_info, ipc::read_write);
-
-  // get the adress of the info object
-  void* info_addr = info_region.get_address();
-
-  // construct the shared structure in memory
-  shared_memory_info* info_data = new (info_addr) shared_memory_info;
-
-  // init c-strings of info_data struct
-#ifdef _MSVC_LANG
-  strcpy_s(info_data->client_to_server_msg, "");
-  strcpy_s(info_data->client_to_server_res, "");
-#else
-  strcpy(info_data->client_to_server_msg, "");
-  strcpy(info_data->client_to_server_res, "");
-#endif
-
-  int W = info_data->w;
-  int H = info_data->h;
-
-  uchar* buffer_data = createSharedBuffer(buffer_name, W, H);
-
-  std::size_t MAX_SIZE = max_event_message_size();
-  void* evt_mq_msg_buff = malloc(MAX_SIZE);
-
-  while (true) {
-    // timed locking of resources
-    boost::system_time const timeout =
-        boost::get_system_time() +
-        boost::posix_time::milliseconds(LOCK_TIMEOUT);
-    bool locking_success = info_data->mutex.timed_lock(timeout);
-
-    if (!locking_success) {
-      std::cerr << "[" + info_name + "] "
-                << "ERROR: cannot connect to '" << info_name
-                << "':" << std::endl;
-      std::cerr << " -> But we are unable to lock the resources." << std::endl;
-      std::cerr << " -> Client not running?." << std::endl;
-      return NRS_ERROR | NRS_CONNECTION_ERROR;
-    }
-
-    bool is_dirty = info_data->dirty;
-    // if still is dirty it means that the client hasn't drawn the previous
-    // frame. in this case we just wait with updating the buffer until the
-    // client draws the content.
-    if (is_dirty) {
-      info_data->mutex.unlock();
-      // continue; we still might want to process events
-    } else {
-      redraw(name, buffer_data, W, H);
-
-      info_data->dirty = true;
-
-      int new_W = info_data->w;
-      int new_H = info_data->h;
-
-      if (new_W != W || new_H != H) {
-        // trigger buffer resize
-
-        W = new_W;
-        H = new_H;
-
-        std::cout << "[" + info_name + "]"
-                  << "> resize to W: " << W << ", H: " << H << std::endl;
-
-        ipc::shared_memory_object::remove(buffer_name.c_str());
-        buffer_data = createSharedBuffer(buffer_name, W, H);
-        info_data->buffer_ready = true;
-      }
-
-      info_data->mutex.unlock();
-    }
-
-    // process events
-    ipc::message_queue::size_type recvd_size;
-    unsigned int priority;
-
-    while (evt_mq->get_num_msg() > 0) {
-      // timed locking of resources
-      boost::system_time const timeout =
-          boost::get_system_time() +
-          boost::posix_time::milliseconds(LOCK_TIMEOUT);
-
-      bool result = evt_mq->timed_receive(evt_mq_msg_buff, MAX_SIZE, recvd_size,
-                                          priority, timeout);
-
-      if (!result) {
-        std::cerr
-            << "[" + info_name +
-                   "] ERROR: can't read messages, message queue not accessible."
-            << std::endl;
-      }
-
-      event* evt = static_cast<event*>(evt_mq_msg_buff);
-
-      // terminate if termination event was sent
-      if (evt->type == NRS_TERMINATION_EVENT) {
-        std::cerr << "[" + name + "] termination requested." << std::endl;
-        deleteSharedMem(name);
-        std::cerr << "[" + name + "] done." << std::endl;
-        std::exit(0);
-      }
-
-      events(name, evt);
-
-    }  // end while has event messages
-
-  }  // end while true
-
-  // remove shared memory objects
-  ipc::shared_memory_object::remove(info_name.c_str());
-  ipc::shared_memory_object::remove(buffer_name.c_str());
-  ipc::message_queue::remove(evt_mq_name.c_str());
-  ipc::message_queue::remove(evt_mq_native_name.c_str());
-
-  free(evt_mq_msg_buff);
-
-  return NRS_SUCCESS;
-}
-
-/**
- * Starts a NativeFX server. It parses the specified CLI arguments and performs
- * the requested commands.
- *
- * @param name name of the shared memory object to delete
- * @param argc number of CLI arguments
- * @param argv CLI arguments
- * @param redraw should contain the draw commands (is called repetitively)
- * @param events should contain the event handling (is called repetitively
- * whenever events are to be processed)
- * @return status of this operation
- */
-inline int startServer(int argc, char* argv[], redraw_callback redraw,
-                       event_callback events) {
-  args::ArgumentParser parser("This is a NativeFX server program.", "---");
-  args::HelpFlag helpArg(parser, "help", "Display this help menu",
-                         {'h', "help"});
-  args::ValueFlag<std::string> nameArg(parser, "name",
-                                       "Defines the name of the shared memory "
-                                       "objects to be created by this program",
-                                       {'n', "name"});
-  args::Flag deleteSharedMemFlag(
-      parser, "delete",
-      "Indicates that existing shared memory with the "
-      "specified name should be deleted",
-      {'d', "delete"});
-
-  try {
-    parser.ParseCLI(argc, argv);
-  } catch (const args::Completion& e) {
-    std::cout << e.what();
-    return NRS_SUCCESS;
-  } catch (const args::Help&) {
-    std::cerr << parser;
-    return NRS_ERROR | NRS_ARGS_ERROR;
-  } catch (const args::ParseError& e) {
-    std::cerr << e.what() << std::endl;
-    std::cerr << parser;
-    return NRS_ERROR | NRS_ARGS_ERROR;
-  }
-
-  std::string name = args::get(nameArg);
-
-  if (name.size() == 0) {
-    std::cerr
-        << std::endl
-        << std::endl
-        << "ERROR: 'name' must be specified to create or delete shared memory!"
-        << std::endl
-        << std::endl;
-    std::cerr << parser;
-    return NRS_ERROR | NRS_ARGS_ERROR;
-  }
-
-  if (deleteSharedMemFlag) {
-    // remove shared memory objects
-    return deleteSharedMem(name);
-  }
-
-  return startServer(name, redraw, events);
-}
-
 }  // end namespace nativers
 #endif
