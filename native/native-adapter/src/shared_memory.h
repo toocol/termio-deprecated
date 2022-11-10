@@ -59,7 +59,8 @@ typedef unsigned char uchar;
 #include <boost/interprocess/offset_ptr.hpp>
 #include <string>
 
-#define LOCK_TIMEOUT 20  // milliseconds
+#define LOCK_TIMEOUT 25  // milliseconds
+#define EVENT_TIMEOUT 5  // milliseconds 
 
 namespace nativers {
 

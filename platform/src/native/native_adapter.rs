@@ -62,25 +62,18 @@ extern "C" {
         key: c_int,
         x: f64,
         y: f64,
-        buttons: c_int,
         modifiers: c_int,
-        click_count: c_int,
         timestamp: c_longlong,
     ) -> bool;
     fn fire_mouse_exited_event(
         key: c_int,
-        x: f64,
-        y: f64,
-        buttons: c_int,
         modifiers: c_int,
-        click_count: c_int,
         timestamp: c_longlong,
     ) -> bool;
     fn fire_mouse_move_event(
         key: c_int,
         x: f64,
         y: f64,
-        buttons: c_int,
         modifiers: c_int,
         timestamp: c_longlong,
     ) -> bool;
@@ -89,7 +82,6 @@ extern "C" {
         x: f64,
         y: f64,
         amount: f64,
-        buttons: c_int,
         modifiers: c_int,
         timestamp: c_longlong,
     ) -> bool;
@@ -324,35 +316,28 @@ pub fn native_fire_mouse_entered_event(
     key: i32,
     x: f64,
     y: f64,
-    buttons: i32,
     modifiers: i32,
-    click_count: i32,
     timestamp: i64,
 ) -> bool {
-    unsafe { fire_mouse_entered_event(key, x, y, buttons, modifiers, click_count, timestamp) }
+    unsafe { fire_mouse_entered_event(key, x, y, modifiers, timestamp) }
 }
 
 pub fn native_fire_mouse_exited_event(
     key: i32,
-    x: f64,
-    y: f64,
-    buttons: i32,
     modifiers: i32,
-    click_count: i32,
     timestamp: i64,
 ) -> bool {
-    unsafe { fire_mouse_exited_event(key, x, y, buttons, modifiers, click_count, timestamp) }
+    unsafe { fire_mouse_exited_event(key, modifiers, timestamp) }
 }
 
 pub fn native_fire_mouse_move_event(
     key: i32,
     x: f64,
     y: f64,
-    buttons: i32,
     modifiers: i32,
     timestamp: i64,
 ) -> bool {
-    unsafe { fire_mouse_move_event(key, x, y, buttons, modifiers, timestamp) }
+    unsafe { fire_mouse_move_event(key, x, y, modifiers, timestamp) }
 }
 
 pub fn native_fire_mouse_wheel_event(
@@ -360,11 +345,10 @@ pub fn native_fire_mouse_wheel_event(
     x: f64,
     y: f64,
     amount: f64,
-    buttons: i32,
     modifiers: i32,
     timestamp: i64,
 ) -> bool {
-    unsafe { fire_mouse_wheel_event(key, x, y, amount, buttons, modifiers, timestamp) }
+    unsafe { fire_mouse_wheel_event(key, x, y, amount, modifiers, timestamp) }
 }
 
 pub fn native_fire_key_pressed_event(

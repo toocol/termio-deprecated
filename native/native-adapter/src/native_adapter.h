@@ -71,7 +71,7 @@ REXPORT bool RCALL is_dirty(i32);
 
 /**
  * Client request redraw the native image buffer.
- * 
+ *
  * @param key
  * @param x
  * @param y
@@ -82,7 +82,7 @@ REXPORT void RCALL redraw(i32, i32, i32, i32, i32);
 
 /**
  * Set the native image buffer was dirty.
- * 
+ *
  * @param key
  * @param value
  */
@@ -206,20 +206,17 @@ REXPORT bool RCALL fire_mouse_clicked_event(i32 key, f64 x, f64 y, i32 buttons,
                                             i32 modifiers, i32 click_count,
                                             i64 timestamp);
 
-REXPORT bool RCALL fire_mouse_entered_event(i32 key, f64 x, f64 y, i32 buttons,
-                                            i32 modifiers, i32 click_count,
-                                            i64 timestamp);
+REXPORT bool RCALL fire_mouse_entered_event(i32 key, f64 x, f64 y,
+                                            i32 modifiers, i64 timestamp);
 
-REXPORT bool RCALL fire_mouse_exited_event(i32 key, f64 x, f64 y, i32 buttons,
-                                           i32 modifiers, i32 click_count,
+REXPORT bool RCALL fire_mouse_exited_event(i32 key, i32 modifiers,
                                            i64 timestamp);
 
-REXPORT bool RCALL fire_mouse_move_event(i32 key, f64 x, f64 y, i32 buttons,
-                                         i32 modifiers, i64 timestamp);
+REXPORT bool RCALL fire_mouse_move_event(i32 key, f64 x, f64 y, i32 modifiers,
+                                         i64 timestamp);
 
 REXPORT bool RCALL fire_mouse_wheel_event(i32 key, f64 x, f64 y, f64 amount,
-                                          i32 buttons, i32 modifiers,
-                                          i64 timestamp);
+                                          i32 modifiers, i64 timestamp);
 
 REXPORT bool RCALL fire_key_pressed_event(i32 key, cstring characters,
                                           i32 key_code, i32 modifiers,

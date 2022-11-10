@@ -46,7 +46,7 @@ bool fire_mouse_event(i32 key, i32 evt_type, f64 x, f64 y, f64 amount,
 
   // timed locking of resources
   boost::system_time const timeout =
-      boost::get_system_time() + boost::posix_time::milliseconds(LOCK_TIMEOUT);
+      boost::get_system_time() + boost::posix_time::milliseconds(EVENT_TIMEOUT);
 
   bool result = evt_msg_queues[key]->timed_send(
       &evt,         // data to send
@@ -74,7 +74,7 @@ bool fire_key_event(i32 key, i32 evt_type, const string& chars, i32 key_code,
 
   // timed locking of resources
   boost::system_time const timeout =
-      boost::get_system_time() + boost::posix_time::milliseconds(LOCK_TIMEOUT);
+      boost::get_system_time() + boost::posix_time::milliseconds(EVENT_TIMEOUT);
 
   bool result = evt_msg_queues[key]->timed_send(
       &evt,         // data to send
@@ -570,31 +570,28 @@ REXPORT bool RCALL fire_mouse_clicked_event(i32 key, f64 x, f64 y, i32 buttons,
                           click_count, (long)timestamp);
 }
 
-REXPORT bool RCALL fire_mouse_entered_event(i32 key, f64 x, f64 y, i32 buttons,
-                                            i32 modifiers, i32 click_count,
-                                            i64 timestamp) {
-  return fire_mouse_event(key, NRS_MOUSE_ENTERED, x, y, 0.0, buttons, modifiers,
-                          0, (long)timestamp);
+REXPORT bool RCALL fire_mouse_entered_event(i32 key, f64 x, f64 y,
+                                            i32 modifiers, i64 timestamp) {
+  return fire_mouse_event(key, NRS_MOUSE_ENTERED, x, y, 0.0, 0, modifiers, 0,
+                          (long)timestamp);
 }
 
-REXPORT bool RCALL fire_mouse_exited_event(i32 key, f64 x, f64 y, i32 buttons,
-                                           i32 modifiers, i32 click_count,
+REXPORT bool RCALL fire_mouse_exited_event(i32 key, i32 modifiers,
                                            i64 timestamp) {
-  return fire_mouse_event(key, NRS_MOUSE_EXITED, x, y, 0.0, buttons, modifiers,
-                          0, (long)timestamp);
+  return fire_mouse_event(key, NRS_MOUSE_EXITED, 0.0, 0.0, 0.0, 0, modifiers, 0,
+                          (long)timestamp);
 }
 
-REXPORT bool RCALL fire_mouse_move_event(i32 key, f64 x, f64 y, i32 buttons,
-                                         i32 modifiers, i64 timestamp) {
-  return fire_mouse_event(key, NRS_MOUSE_MOVED, x, y, 0.0, buttons, modifiers,
-                          0, (long)timestamp);
+REXPORT bool RCALL fire_mouse_move_event(i32 key, f64 x, f64 y, i32 modifiers,
+                                         i64 timestamp) {
+  return fire_mouse_event(key, NRS_MOUSE_MOVED, x, y, 0.0, 0, modifiers, 0,
+                          (long)timestamp);
 }
 
 REXPORT bool RCALL fire_mouse_wheel_event(i32 key, f64 x, f64 y, f64 amount,
-                                          i32 buttons, i32 modifiers,
-                                          i64 timestamp) {
-  return fire_mouse_event(key, NRS_MOUSE_WHEEL, x, y, amount, buttons,
-                          modifiers, 0, (long)timestamp);
+                                          i32 modifiers, i64 timestamp) {
+  return fire_mouse_event(key, NRS_MOUSE_WHEEL, x, y, amount, 0, modifiers, 0,
+                          (long)timestamp);
 }
 
 REXPORT bool RCALL fire_key_pressed_event(i32 key, cstring characters,
