@@ -1,5 +1,4 @@
 #include "terminal_emulator.h"
-
 #include <QApplication>
 #include <QShortcut>
 
@@ -141,14 +140,17 @@ bool TerminalEmulator::eventFilter(QObject* obj, QEvent* ev) {
     QWidget::paintEvent(pe);
   }
   if (ev->type() == QEvent::UpdateRequest) {
+    _terminalView->nativeCanvas()->lock();
     if (_nativeImage != nullptr) {
       QPainter painter(_nativeImage);
       painter.setRenderHints(QPainter::SmoothPixmapTransform |
-                             QPainter::Antialiasing | QPainter::TextAntialiasing);
+                             QPainter::Antialiasing |
+                             QPainter::TextAntialiasing);
       this->render(&painter);
       painter.end();
     }
     nativeRedrawCallback();
+    _terminalView->nativeCanvas()->unlock();
     _terminalView->nativeCanvas()->pushNativeEvent("Paint",
                                                    "Terminal View Paint");
   }

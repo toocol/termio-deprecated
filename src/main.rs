@@ -17,7 +17,6 @@ const APP_ID: &str = "termio.community";
 fn main() {
     // Set the enviroment variable.
     std::env::set_var("GSK_RENDERER", "cairo");
-    std::env::set_var("GTK_IM_MODULE", "ibus");
 
     // Initialize log system.
     initialize_log_system();

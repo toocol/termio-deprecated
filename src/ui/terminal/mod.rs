@@ -52,14 +52,14 @@ impl NativeTerminalEmulator {
                 terminal.grab_focus();
                 if let Some(native_node) = native_node_weak.upgrade() {
                     native_node.request_focus(true);
-                    native_node.react_mouse_pressed_event(n_press, x, y);
+                    native_node.react_mouse_pressed_event(n_press, x, y, GtkMouseButton::LEFT);
                 }
             }),
         );
         let native_node_weak = self.imp().native_node_object.borrow().downgrade();
         gesture_click.connect_released(move |_gesture, n_press, x, y| {
             if let Some(native_node) = native_node_weak.upgrade() {
-                native_node.react_mouse_released_event(n_press, x, y);
+                native_node.react_mouse_released_event(n_press, x, y, GtkMouseButton::LEFT);
             }
         });
         self.add_controller(&gesture_click);

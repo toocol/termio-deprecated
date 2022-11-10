@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
 
   // don't show the native window
   // we could reuse this to offer optional fullscreen mode
-  emulator.setAttribute(Qt::WA_DontShowOnScreen, true);
+  emulator.setAttribute(Qt::WA_DontShowOnScreen, false);
 
   emulator.installEventFilter(&emulator);
   emulator.show();

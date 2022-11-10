@@ -367,7 +367,7 @@ class SharedCanvas final {
     return result;
   }
 
-  int draw(redraw_callback redraw) {
+  bool lock() {
     // timed locking of resources
     boost::system_time const timeout =
         boost::get_system_time() +
@@ -382,20 +382,24 @@ class SharedCanvas final {
       std::cerr << " -> Client not running?." << std::endl;
       return NRS_ERROR | NRS_CONNECTION_ERROR;
     }
+    return locking_success;
+  }
 
+  void unlock() {
+      info_data->mutex.unlock();
+  }
+
+  int draw(redraw_callback redraw) {
     bool is_dirty = info_data->dirty;
     // if still is dirty it means that the client hasn't drawn the previous
     // frame. in this case we just wait with updating the buffer until the
     // client draws the content.
     if (is_dirty) {
-      info_data->mutex.unlock();
       // continue; we still might want to process events
     } else {
       redraw(name, buffer_data, W, H);
 
       info_data->dirty = true;
-
-      info_data->mutex.unlock();
     }
 
     return NRS_SUCCESS;
