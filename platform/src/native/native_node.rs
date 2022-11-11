@@ -272,7 +272,7 @@ impl NativeNodeObject {
 
             unsafe {
                 let buffer = slice::from_raw_parts(
-                    native_get_buffer(key),
+                    native_get_primary_buffer(key),
                     (current_w * current_h * 4) as usize,
                 );
                 imp.drawing_area.borrow().set_content_width(current_w);

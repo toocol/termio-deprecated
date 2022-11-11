@@ -140,11 +140,18 @@ REXPORT bool RCALL request_focus(i32, bool, i64);
 REXPORT bool RCALL create_ssh_session(i32, i64, cstring, cstring, cstring, i64);
 
 /**
- * Get the native image buffer.
+ * Get the primary native image buffer.
  *
  * @param key
  */
-REXPORT void* RCALL get_buffer(i32);
+REXPORT void* RCALL get_primary_buffer(i32);
+
+/**
+ * Get the secondary native image buffer.
+ *
+ * @param key
+ */
+REXPORT void* RCALL get_secondary_buffer(i32);
 
 /**
  * Thread lock the common resource.
@@ -183,18 +190,32 @@ REXPORT void RCALL wait_for_buffer_changes(i32);
 REXPORT bool RCALL has_buffer_changes(i32);
 
 /**
- * Thread lock the native image buffer.
+ * Thread lock the primary native image buffer.
  *
  * @param key
  */
-REXPORT void RCALL lock_buffer(i32);
+REXPORT void RCALL lock_primary_buffer(i32);
 
 /**
- * Thread unlock the native image buffer.
+ * Thread unlock the primary native image buffer.
  *
  * @param key
  */
-REXPORT void RCALL unlock_buffer(i32);
+REXPORT void RCALL unlock_primary_buffer(i32);
+
+/**
+ * Thread lock the secondary native image buffer.
+ *
+ * @param key
+ */
+REXPORT void RCALL lock_secondary_buffer(i32);
+
+/**
+ * Thread unlock the secondary native image buffer.
+ *
+ * @param key
+ */
+REXPORT void RCALL unlock_secondary_buffer(i32);
 
 REXPORT bool RCALL fire_mouse_pressed_event(i32 key, f64 x, f64 y, i32 buttons,
                                             i32 modifiers, i64 timestamp);

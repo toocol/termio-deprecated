@@ -19,12 +19,16 @@ std::vector<shared_memory_info*> connections;
 std::vector<ipc::message_queue*> evt_msg_queues;
 // for native server events sent to the java clinet
 std::vector<ipc::message_queue*> evt_msg_queues_native;
-std::vector<void*> buffers;
+
+std::vector<void*> primary_buffers;
+std::vector<void*> secondary_buffers;
 
 std::vector<ipc::shared_memory_object*> shm_infos;
 std::vector<ipc::mapped_region*> info_regions;
-std::vector<ipc::shared_memory_object*> shm_buffers;
-std::vector<ipc::mapped_region*> buffer_regions;
+std::vector<ipc::shared_memory_object*> primary_buffer_objects;
+std::vector<ipc::mapped_region*> primary_buffer_regions;
+std::vector<ipc::shared_memory_object*> secondary_buffer_objects;
+std::vector<ipc::mapped_region*> secondary_buffer_regions;
 
 bool fire_mouse_event(i32 key, i32 evt_type, f64 x, f64 y, f64 amount,
                       i32 buttons, i32 modifiers, i32 click_count,
@@ -95,37 +99,61 @@ void update_buffer_connection(int key) {
   string name = names[key];
   string info_name = get_info_name(key, name);
   string buffer_name = get_buffer_name(key, name);
+  string primary_buffer_name = buffer_name + IPC_PRIMARY_BUFFER_NAME;
+  string secondary_buffer_name = buffer_name + IPC_SECONDARY_BUFFER_NAME;
 
   try {
+    /*
+    * Create shared primary buffer
+    */
     // create a shared memory object.
-    ipc::shared_memory_object* shm_buffer =
-        new ipc::shared_memory_object(ipc::open_only,       // only open
-                                      buffer_name.c_str(),  // name
-                                      ipc::read_write       // read-write mode
+    ipc::shared_memory_object* pm_buffer =
+        new ipc::shared_memory_object(ipc::open_only,               // only open
+                                      primary_buffer_name.c_str(),  // name
+                                      ipc::read_write  // read-write mode
         );
-
-    if (shm_buffers[key] != NULL) {
-      delete shm_buffers[key];
+    if (primary_buffer_objects[key] != NULL) {
+      delete primary_buffer_objects[key];
     }
-
-    shm_buffers[key] = shm_buffer;
-
+    primary_buffer_objects[key] = pm_buffer;
     // map the whole shared memory in this process
-    ipc::mapped_region* buffer_region =
-        new ipc::mapped_region(*shm_buffer,     // what to map
+    ipc::mapped_region* pm_buffer_region =
+        new ipc::mapped_region(*pm_buffer,      // what to map
                                ipc::read_write  // map it as read-write
         );
-
-    if (buffer_regions[key] != NULL) {
-      delete buffer_regions[key];
+    if (primary_buffer_regions[key] != NULL) {
+      delete primary_buffer_regions[key];
     }
-
-    buffer_regions[key] = buffer_region;
-
+    primary_buffer_regions[key] = pm_buffer_region;
     // get the address of the mapped region
-    void* buffer_addr = buffer_region->get_address();
+    void* pm_buffer_addr = pm_buffer_region->get_address();
+    primary_buffers[key] = pm_buffer_addr;
 
-    buffers[key] = buffer_addr;
+    /*
+    * Create shared secondary buffer
+    */
+    // create a shared memory object.
+    ipc::shared_memory_object* sec_buffer =
+        new ipc::shared_memory_object(ipc::open_only,               // only open
+                                      secondary_buffer_name.c_str(),  // name
+                                      ipc::read_write  // read-write mode
+        );
+    if (secondary_buffer_objects[key] != NULL) {
+      delete secondary_buffer_objects[key];
+    }
+    secondary_buffer_objects[key] = sec_buffer;
+    // map the whole shared memory in this process
+    ipc::mapped_region* sec_buffer_region =
+        new ipc::mapped_region(*sec_buffer,     // what to map
+                               ipc::read_write  // map it as read-write
+        );
+    if (secondary_buffer_regions[key] != NULL) {
+      delete secondary_buffer_regions[key];
+    }
+    secondary_buffer_regions[key] = sec_buffer_region;
+    // get the address of the mapped region
+    void* sec_buffer_addr = sec_buffer_region->get_address();
+    secondary_buffers[key] = sec_buffer_addr;
 
   } catch (...) {
     std::cerr << "ERROR: cannot connect to '" << info_name
@@ -167,6 +195,8 @@ REXPORT i32 RCALL connect_to(cstring cname) {
   std::string evt_msg_queue_native_name =
       get_evt_msg_queue_native_name(key, name);
   std::string buffer_name = get_buffer_name(key, name);
+  std::string primary_buffer_name = buffer_name + IPC_PRIMARY_BUFFER_NAME;
+  std::string secondary_buffer_name = buffer_name + IPC_SECONDARY_BUFFER_NAME;
   names.push_back(name);
 
   try {
@@ -218,27 +248,46 @@ REXPORT i32 RCALL connect_to(cstring cname) {
       return -1;
     }
 
+
+    /*
+    * Create primary buffer.
+    */
     // create a shared memory object.
-    shared_memory_object* shm_buffer =
-        new shared_memory_object(open_only,            // only open
-                                 buffer_name.c_str(),  // name
-                                 read_write            // read-write mode
+    shared_memory_object* pm_buffer =
+        new shared_memory_object(open_only,                    // only open
+                                 primary_buffer_name.c_str(),  // name
+                                 read_write  // read-write mode
         );
-
-    shm_buffers.push_back(shm_buffer);
-
+    primary_buffer_objects.push_back(pm_buffer);
     // map the whole shared memory in this process
-    mapped_region* buffer_region =
-        new mapped_region(*shm_buffer,  // What to map
+    mapped_region* pm_buffer_region =
+        new mapped_region(*pm_buffer,  // What to map
+                          read_write   // Map it as read-write
+        );
+    primary_buffer_regions.push_back(pm_buffer_region);
+    // get the address of the mapped region
+    void* pm_buffer_addr = pm_buffer_region->get_address();
+    primary_buffers.push_back(pm_buffer_addr);
+
+    /*
+    * Create secondary buffer.
+    */
+    // create a shared memory object.
+    shared_memory_object* sec_buffer =
+        new shared_memory_object(open_only,                    // only open
+                                 secondary_buffer_name.c_str(),  // name
+                                 read_write  // read-write mode
+        );
+    secondary_buffer_objects.push_back(sec_buffer);
+    // map the whole shared memory in this process
+    mapped_region* sec_buffer_region =
+        new mapped_region(*sec_buffer,  // What to map
                           read_write    // Map it as read-write
         );
-
-    buffer_regions.push_back(buffer_region);
-
+    secondary_buffer_regions.push_back(sec_buffer_region);
     // get the address of the mapped region
-    void* buffer_addr = buffer_region->get_address();
-
-    buffers.push_back(buffer_addr);
+    void* sec_buffer_addr = sec_buffer_region->get_address();
+    secondary_buffers.push_back(sec_buffer_addr);
 
     info_data->mutex.unlock();
   } catch (...) {
@@ -287,17 +336,22 @@ REXPORT bool RCALL terminate_at(i32 key) {
 
   delete shm_infos[key];
   delete info_regions[key];
-  delete shm_buffers[key];
-  delete buffer_regions[key];
+  delete primary_buffer_objects[key];
+  delete primary_buffer_regions[key];
+  delete secondary_buffer_objects[key];
+  delete secondary_buffer_regions[key];
   delete evt_msg_queues[key];
   delete evt_msg_queues_native[key];
 
   connections[key] = NULL;
-  buffers[key] = NULL;
+  primary_buffers[key] = NULL;
+  secondary_buffers[key] = NULL;
   shm_infos[key] = NULL;
   info_regions[key] = NULL;
-  shm_buffers[key] = NULL;
-  buffer_regions[key] = NULL;
+  primary_buffer_objects[key] = NULL;
+  primary_buffer_regions[key] = NULL;
+  secondary_buffer_objects[key] = NULL;
+  secondary_buffer_regions[key] = NULL;
   evt_msg_queues[key] = NULL;
   evt_msg_queues_native[key] = NULL;
 
@@ -376,7 +430,7 @@ REXPORT bool RCALL is_dirty(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
-    return connections[key]->dirty;
+    return connections[key]->primary_dirty;
   }
 
   return false;
@@ -388,7 +442,7 @@ REXPORT void RCALL set_dirty(i32 key, bool dirty) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
   } else {
-    connections[key]->dirty = dirty;
+    connections[key]->primary_dirty = dirty;
   }
 }
 
@@ -482,7 +536,7 @@ REXPORT bool RCALL create_ssh_session(i32 key, i64 session_id, cstring host,
   );
 }
 
-REXPORT void* RCALL get_buffer(i32 key) {
+REXPORT void* RCALL get_primary_buffer(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return NULL;
@@ -490,7 +544,18 @@ REXPORT void* RCALL get_buffer(i32 key) {
 
   update_buffer_connection(key);
 
-  return buffers[key];
+  return primary_buffers[key];
+}
+
+REXPORT void* RCALL get_secondary_buffer(i32 key) {
+  if (key >= connections.size() || connections[key] == NULL) {
+    std::cerr << "ERROR: key not available: " << key << std::endl;
+    return NULL;
+  }
+
+  update_buffer_connection(key);
+
+  return secondary_buffers[key];
 }
 
 REXPORT bool RCALL lock(i32 key) {
@@ -547,9 +612,13 @@ REXPORT bool RCALL has_buffer_changes(i32 key) {
   return false;
 }
 
-REXPORT void RCALL lock_buffer(i32 key) {}
+REXPORT void RCALL lock_primary_buffer(i32 key) {}
 
-REXPORT void RCALL unlock_buffer(i32 key) {}
+REXPORT void RCALL unlock_primary_buffer(i32 key) {}
+
+REXPORT void RCALL lock_secondary_buffer(i32 key) {}
+
+REXPORT void RCALL unlock_secondary_buffer(i32) {}
 
 REXPORT bool RCALL fire_mouse_pressed_event(i32 key, f64 x, f64 y, i32 buttons,
                                             i32 modifiers, i64 timestamp) {

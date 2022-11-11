@@ -62,7 +62,10 @@ typedef unsigned char uchar;
 #include <string>
 
 #define LOCK_TIMEOUT 25  // milliseconds
-#define EVENT_TIMEOUT 5  // milliseconds 
+#define EVENT_TIMEOUT 5  // milliseconds
+
+#define PRIMARY_BUFFER 1
+#define SECONDARY_BUFFER 2
 
 namespace nativers {
 
@@ -253,12 +256,18 @@ struct shared_memory_info {
         shared_string_type(NRS_SHARED_DEFAULT),
         w(1280),
         h(800),
-        dirty(false),
+        focus(false),
+        primary_dirty(false),
+        secondary_dirty(false),
         buffer_ready(true),
-        focus(false) {}
+        renderer_side_buffer_status(PRIMARY_BUFFER),
+        consume_side_buffer_status(PRIMARY_BUFFER) {}
 
   // mutex to protect access
   boost::interprocess::interprocess_mutex mutex;
+
+  boost::interprocess::interprocess_mutex primary_buffer_mutex;
+  boost::interprocess::interprocess_mutex secondary_buffer_mutex;
 
   boost::interprocess::interprocess_semaphore buffer_semaphore;
   boost::interprocess::interprocess_semaphore resize_semaphore;
@@ -271,9 +280,12 @@ struct shared_memory_info {
 
   int w;
   int h;
-  bool dirty;
-  bool buffer_ready;
   bool focus;
+  bool primary_dirty;
+  bool secondary_dirty;
+  bool buffer_ready;
+  int renderer_side_buffer_status;
+  int consume_side_buffer_status;
 
   char client_to_server_msg[IPC_MSG_SIZE +
                             1];  // not initialized since it is not allowed

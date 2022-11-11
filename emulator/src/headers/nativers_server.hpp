@@ -83,10 +83,10 @@ struct NATIVE_EVENT {
 
 namespace ipc = boost::interprocess;
 
-typedef std::function<void(std::string const& name, uchar* primary_buffer,
+typedef std::function<void(const std::string& name, uchar* primary_buffer,
                            int W, int H)>
     redraw_callback;
-typedef std::function<void(std::string const& name, event* evt)> event_callback;
+typedef std::function<void(const std::string& name, event* evt)> event_callback;
 
 /**
  * Test function to verify buffer data functionality.
@@ -105,7 +105,7 @@ inline void setRgba(uchar* buffer_data, int buffer_w, int buffer_h, int x,
  * @param name name of the shared memory object to delete
  * @return status of this operation
  */
-inline int deleteSharedMem(std::string const& name) {
+inline int deleteSharedMem(const std::string& name) {
   std::string info_name = name + IPC_INFO_NAME;
   std::string buffer_name = name + IPC_BUFF_NAME;
   std::string evt_mq_name = name + IPC_EVT_MQ_NAME;
@@ -177,7 +177,7 @@ class SharedCanvas final {
 
   std::queue<NATIVE_EVENT*> event_queue;
 
-  SharedCanvas(std::string const& name, uchar* primary_buffer,
+  SharedCanvas(const std::string& name, uchar* primary_buffer,
                uchar* secondary_buffer, ipc::shared_memory_object* shm_info,
                shared_memory_info* info_data, ipc::message_queue* evt_mq,
                void* evt_mq_msg_buff, ipc::message_queue* evt_mq_native, int w,
@@ -246,7 +246,7 @@ class SharedCanvas final {
   }
 
  public:
-  static SharedCanvas* create(std::string const& name) {
+  static SharedCanvas* create(const std::string& name) {
     std::string info_name = name + IPC_INFO_NAME;
     std::string buffer_name = name + IPC_BUFF_NAME;
     std::string evt_mq_name = name + IPC_EVT_MQ_NAME;
@@ -268,7 +268,7 @@ class SharedCanvas final {
 
       evt_mq = create_evt_mq(evt_mq_name);
       evt_mq_native = create_evt_mq_native(evt_mq_native_name);
-    } catch (ipc::interprocess_exception const&) {
+    } catch (const ipc::interprocess_exception&) {
       // remove shared memory objects
       ipc::shared_memory_object::remove(info_name.c_str());
       ipc::shared_memory_object::remove(buffer_name.c_str());
@@ -395,7 +395,7 @@ class SharedCanvas final {
   void unlock() { info_data->mutex.unlock(); }
 
   int draw(redraw_callback redraw) {
-    bool is_dirty = info_data->dirty;
+    bool is_dirty = info_data->primary_dirty;
     // if still is dirty it means that the client hasn't drawn the previous
     // frame. in this case we just wait with updating the buffer until the
     // client draws the content.
@@ -404,7 +404,7 @@ class SharedCanvas final {
     } else {
       redraw(name, primary_buffer, W, H);
 
-      info_data->dirty = true;
+      info_data->primary_dirty = true;
     }
 
     return NRS_SUCCESS;
