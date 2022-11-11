@@ -25,6 +25,9 @@ use gtk::{
 use log::{debug, error};
 use utilities::TimeStamp;
 
+const PRIMARY_BUFFER: i32 = 1;
+const SECONDARY_BUFFER: i32 = -1;
+
 glib::wrapper! {
     pub struct NativeNodeObject(ObjectSubclass<NativeNode>);
 }
@@ -239,8 +242,8 @@ impl NativeNodeObject {
         let current_timestamp = TimeStamp::timestamp();
         let key = imp.key.get();
 
-        if !native_lock(key) {
-            debug!("[{}] -> locking error.", key);
+        if !native_lock_buffer(key) {
+            error!("[{}] -> locking error.", key);
             return;
         }
 
@@ -250,7 +253,7 @@ impl NativeNodeObject {
         native_process_native_events(key);
 
         if !dirty || !is_ready {
-            native_unlock(key);
+            native_unlock_buffer(key);
             return;
         }
 
@@ -271,8 +274,12 @@ impl NativeNodeObject {
             imp.image_height.set(current_h);
 
             unsafe {
-                let buffer = slice::from_raw_parts(
+                let primary_buffer = slice::from_raw_parts(
                     native_get_primary_buffer(key),
+                    (current_w * current_h * 4) as usize,
+                );
+                let secondary_buffer = slice::from_raw_parts(
+                    native_get_secondary_buffer(key),
                     (current_w * current_h * 4) as usize,
                 );
                 imp.drawing_area.borrow().set_content_width(current_w);
@@ -280,22 +287,40 @@ impl NativeNodeObject {
                 imp.drawing_area
                     .borrow()
                     .set_draw_func(move |_drawing_area, cr, _, _| {
-                        if native_lock(key) {
-                            let pixbuf = Pixbuf::from_bytes(
-                                &Bytes::from_static(buffer),
-                                gtk::gdk_pixbuf::Colorspace::Rgb,
-                                true,
-                                8,
-                                current_w,
-                                current_h,
-                                current_w * 4,
-                            );
+                        if native_lock_buffer(key) {
+                            let pixbuf;
+                            match native_buffer_status(key) {
+                                PRIMARY_BUFFER => {
+                                    pixbuf = Pixbuf::from_bytes(
+                                        &Bytes::from_static(primary_buffer),
+                                        gtk::gdk_pixbuf::Colorspace::Rgb,
+                                        true,
+                                        8,
+                                        current_w,
+                                        current_h,
+                                        current_w * 4,
+                                    );
+                                }
+                                SECONDARY_BUFFER => {
+                                    pixbuf = Pixbuf::from_bytes(
+                                        &Bytes::from_static(secondary_buffer),
+                                        gtk::gdk_pixbuf::Colorspace::Rgb,
+                                        true,
+                                        8,
+                                        current_w,
+                                        current_h,
+                                        current_w * 4,
+                                    );
+                                }
+                                _ => unimplemented!(),
+                            }
                             cr.set_source_pixbuf(&pixbuf, 0., 0.);
                             cr.paint().expect("Invalid pixbuf.");
                             cr.set_source_rgba(0., 0., 0., 0.);
-                            // Have update the image, not dirty anymore
+                            // Have update the image, not dirty anymore, toggle the buffer status
                             native_set_dirty(key, false);
-                            native_unlock(key);
+                            native_unlock_buffer(key);
+                            native_toggle_buffer(key);
                         }
                     });
             }
@@ -305,7 +330,7 @@ impl NativeNodeObject {
 
         imp.drawing_area.borrow().queue_draw();
 
-        native_unlock(key);
+        native_unlock_buffer(key);
 
         if imp.is_verbose.get() {
             let duration = current_timestamp - imp.frame_timestamp.get();
@@ -332,9 +357,9 @@ impl NativeNodeObject {
             self.imp().width.set(width);
             self.imp().height.set(height);
             let key = self.imp().key.get();
-            if native_lock(key) {
+            if native_lock_buffer(key) {
                 native_resize(key, width, height);
-                native_unlock(key);
+                native_unlock_buffer(key);
             }
         }
     }

@@ -65,7 +65,7 @@ typedef unsigned char uchar;
 #define EVENT_TIMEOUT 5  // milliseconds
 
 #define PRIMARY_BUFFER 1
-#define SECONDARY_BUFFER 2
+#define SECONDARY_BUFFER -1
 
 namespace nativers {
 
@@ -295,19 +295,19 @@ struct shared_memory_info {
 
 struct shared_memory_buffer {};
 
-inline std::string get_info_name(int key, std::string name) {
+inline std::string get_info_name(std::string name) {
   return name + IPC_INFO_NAME;
 }
 
-inline std::string get_evt_msg_queue_name(int key, std::string name) {
+inline std::string get_evt_msg_queue_name(std::string name) {
   return name + IPC_EVT_MQ_NAME;
 }
 
-inline std::string get_evt_msg_queue_native_name(int key, std::string name) {
+inline std::string get_evt_msg_queue_native_name(std::string name) {
   return name + IPC_EVT_MQ_NATIVE_NAME;
 }
 
-inline std::string get_buffer_name(int key, std::string name) {
+inline std::string get_buffer_name(std::string name) {
   return name + IPC_BUFF_NAME;
 }
 

@@ -63,6 +63,13 @@ REXPORT void RCALL process_native_events(i32);
 REXPORT void RCALL resize(i32, i32, i32);
 
 /**
+ * Toggle current consume side buffer status
+ *
+ * @param key
+ */
+REXPORT void RCALL toggle_buffer(i32);
+
+/**
  * When the native image buffer was changed, the property of dirty was true.
  *
  * @param key
@@ -190,32 +197,25 @@ REXPORT void RCALL wait_for_buffer_changes(i32);
 REXPORT bool RCALL has_buffer_changes(i32);
 
 /**
- * Thread lock the primary native image buffer.
+ * Get current buffer status.
  *
  * @param key
  */
-REXPORT void RCALL lock_primary_buffer(i32);
+REXPORT i32 RCALL buffer_status(i32);
 
 /**
- * Thread unlock the primary native image buffer.
+ * Thread lock the native image buffer.
  *
  * @param key
  */
-REXPORT void RCALL unlock_primary_buffer(i32);
+REXPORT bool RCALL lock_buffer(i32);
 
 /**
- * Thread lock the secondary native image buffer.
+ * Thread unlock the native image buffer.
  *
  * @param key
  */
-REXPORT void RCALL lock_secondary_buffer(i32);
-
-/**
- * Thread unlock the secondary native image buffer.
- *
- * @param key
- */
-REXPORT void RCALL unlock_secondary_buffer(i32);
+REXPORT void RCALL unlock_buffer(i32);
 
 REXPORT bool RCALL fire_mouse_pressed_event(i32 key, f64 x, f64 y, i32 buttons,
                                             i32 modifiers, i64 timestamp);

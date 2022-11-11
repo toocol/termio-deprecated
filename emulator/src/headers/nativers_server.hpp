@@ -84,7 +84,7 @@ struct NATIVE_EVENT {
 namespace ipc = boost::interprocess;
 
 typedef std::function<void(const std::string& name, uchar* primary_buffer,
-                           int W, int H)>
+                           uchar* secondary_buffer, int W, int H)>
     redraw_callback;
 typedef std::function<void(const std::string& name, event* evt)> event_callback;
 
@@ -374,15 +374,60 @@ class SharedCanvas final {
     return result;
   }
 
+  int bufferStatus() { return info_data->renderer_side_buffer_status; }
+
+  void toggleBuffer() {
+    info_data->renderer_side_buffer_status =
+        -info_data->renderer_side_buffer_status;
+  }
+
+  bool isDirty() {
+    int buffer_status = SharedCanvas::bufferStatus();
+    bool is_dirty = false;
+    if (buffer_status == PRIMARY_BUFFER) {
+      is_dirty = info_data->primary_dirty;
+    } else if (buffer_status == SECONDARY_BUFFER) {
+      is_dirty = info_data->secondary_dirty;
+    } else {
+      std::cerr << "[isDirty] Invalid buffer status: " << buffer_status
+                << std::endl;
+      return false;
+    }
+    return is_dirty;
+  }
+
+  void setDirty(bool dirty) {
+    int buffer_status = SharedCanvas::bufferStatus();
+    if (buffer_status == PRIMARY_BUFFER) {
+      info_data->primary_dirty = dirty;
+    } else if (buffer_status == SECONDARY_BUFFER) {
+      info_data->secondary_dirty = dirty;
+    } else {
+      std::cerr << "[setDirty] Invalid buffer status: " << buffer_status
+                << std::endl;
+      return;
+    }
+  }
+
   bool lock() {
     // timed locking of resources
     boost::system_time const timeout =
         boost::get_system_time() +
         boost::posix_time::milliseconds(LOCK_TIMEOUT);
-    bool locking_success = info_data->mutex.timed_lock(timeout);
+
+    int buffer_status = SharedCanvas::bufferStatus();
+    bool locking_success = false;
+    if (buffer_status == PRIMARY_BUFFER) {
+      locking_success = info_data->primary_buffer_mutex.timed_lock(timeout);
+    } else if (buffer_status == SECONDARY_BUFFER) {
+      locking_success = info_data->secondary_buffer_mutex.timed_lock(timeout);
+    } else {
+      std::cerr << "[lock] Invalid buffer status: " << buffer_status
+                << std::endl;
+    }
 
     if (!locking_success) {
-      std::cerr << "[" + name + "] "
+      std::cerr << "[" + name + "] -> " << buffer_status
                 << "ERROR DRAW: cannot connect to '" << name
                 << "':" << std::endl;
       std::cerr << " -> But we are unable to lock the resources." << std::endl;
@@ -392,20 +437,30 @@ class SharedCanvas final {
     return locking_success;
   }
 
-  void unlock() { info_data->mutex.unlock(); }
+  void unlock() {
+    int buffer_status = SharedCanvas::bufferStatus();
+    if (buffer_status == PRIMARY_BUFFER) {
+      info_data->primary_buffer_mutex.unlock();
+    } else if (buffer_status == SECONDARY_BUFFER) {
+      info_data->secondary_buffer_mutex.unlock();
+    } else {
+      std::cerr << "[unlock] Invalid buffer status: " << buffer_status
+                << std::endl;
+    }
+  }
 
   int draw(redraw_callback redraw) {
-    bool is_dirty = info_data->primary_dirty;
+    bool is_dirty = SharedCanvas::isDirty();
+
     // if still is dirty it means that the client hasn't drawn the previous
     // frame. in this case we just wait with updating the buffer until the
     // client draws the content.
     if (is_dirty) {
-      // continue; we still might want to process events
-    } else {
-      redraw(name, primary_buffer, W, H);
-
-      info_data->primary_dirty = true;
+      return NRS_SUCCESS;
     }
+    redraw(name, primary_buffer, secondary_buffer, W, H);
+
+    SharedCanvas::setDirty(true);
 
     return NRS_SUCCESS;
   }
@@ -427,9 +482,13 @@ class SharedCanvas final {
 
       ipc::shared_memory_object::remove(primary_buffer_name.c_str());
       primary_buffer = createSharedBuffer(primary_buffer_name, W, H);
+
+      ipc::shared_memory_object::remove(secondary_buffer_name.c_str());
+      secondary_buffer = createSharedBuffer(secondary_buffer_name, W, H);
+
       info_data->buffer_ready = true;
 
-      resized(name, primary_buffer, W, H);
+      resized(name, primary_buffer, secondary_buffer, W, H);
     }
 
     info_data->resize_semaphore.post();

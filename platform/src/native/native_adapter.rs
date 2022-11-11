@@ -9,6 +9,7 @@ extern "C" {
     fn send_msg(key: c_int, msg: *const c_char, shared_string_type: c_int) -> *const c_char;
     fn process_native_events(key: c_int);
     fn resize(key: c_int, width: c_int, height: c_int);
+    fn toggle_buffer(key: c_int);
     fn is_dirty(key: c_int) -> bool;
     fn redraw(key: c_int, x: c_int, y: c_int, w: c_int, h: c_int);
     fn set_dirty(key: c_int, value: bool);
@@ -32,10 +33,9 @@ extern "C" {
     fn unlock(key: c_int);
     fn wait_for_buffer_changes(key: c_int);
     fn has_buffer_changes(key: c_int) -> bool;
-    fn lock_primary_buffer(key: c_int);
-    fn unlock_primary_buffer(key: c_int);
-    fn lock_secondary_buffer(key: c_int);
-    fn unlock_secondary_buffer(key: c_int);
+    fn buffer_status(key: c_int) -> i32;
+    fn lock_buffer(key: c_int) -> bool;
+    fn unlock_buffer(key: c_int);
     fn fire_mouse_pressed_event(
         key: c_int,
         x: f64,
@@ -163,6 +163,10 @@ pub fn native_resize(key: i32, width: i32, height: i32) {
     }
 }
 
+pub fn native_toggle_buffer(key: c_int) {
+    unsafe { toggle_buffer(key) }
+}
+
 /// When the native image buffer was changed, the property of dirty was true.
 pub fn native_is_dirty(key: i32) -> bool {
     unsafe { is_dirty(key) }
@@ -268,31 +272,24 @@ pub fn native_has_buffer_changes(key: i32) -> bool {
     unsafe { has_buffer_changes(key) }
 }
 
-/// Thread lock the primary native image buffer.
-pub fn native_lock_primary_buffer(key: i32) {
+/// Get current native image buffer status
+pub fn native_buffer_status(key: i32) -> i32 {
     unsafe {
-        lock_primary_buffer(key);
+        buffer_status(key)
+    }
+}
+
+/// Thread lock the primary native image buffer.
+pub fn native_lock_buffer(key: i32) -> bool {
+    unsafe { 
+        lock_buffer(key) 
     }
 }
 
 /// Thread unlock the primary native image buffer.
-pub fn native_unlock_primary_buffer(key: i32) {
+pub fn native_unlock_buffer(key: i32) {
     unsafe {
-        unlock_primary_buffer(key);
-    }
-}
-
-/// Thread lock the secondary native image buffer.
-pub fn native_lock_secondary_buffer(key: i32) {
-    unsafe {
-        lock_secondary_buffer(key);
-    }
-}
-
-/// Thread unlock the secondary native image buffer.
-pub fn native_unlock_secondary_buffer(key: i32) {
-    unsafe {
-        unlock_secondary_buffer(key);
+        unlock_buffer(key);
     }
 }
 
