@@ -9,33 +9,20 @@
 
 <div align="center">
 
-<big>***A light and handy ssh/mosh client.***</big>  
+<big>***Terminal for modern time.***</big>  
 
 </div>
 
 
 <div align="center" >
 
-![Purely java project](https://img.shields.io/badge/Language-Java/Kotlin-orange) ![License](https://img.shields.io/badge/License-Apache--2.0-red) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux-%2320B2AA) 
+![Language](https://img.shields.io/badge/Language-Rust/C++-FFF7E9) ![License](https://img.shields.io/badge/License-AGPL--3.0-B9E0FF) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux%2FMacos-E97777) 
 
 </div>
 
 ### About Termio
-Termio it's a lightweight `SSH/Mosh` connection tool operated based on some simple commands in terminal, it contains two different versions: Console and Desktop; 
-
-Provide SSH/Mosh `credential storage`, `async sftp`, `quick session switch`, `advanced history command`, `function plugin extension` etc.
-
-### Build with source code 
-```
-1. Download the Oracle OpenJDK 17, and add it's home path to System Variable "JAVA_HOME";
-
-2. Execute maven command 'mvn package' to generate .jar file;
-
-3. Execute the batch file: 
-        /starter/run.bat (For Windows, running it with 'Windows Terminal' to get better performance)
-        /starter/run.sh  (For Unix/Linux)
-        /starter/winpty_run.sh (If you use Cygwin or Git-Bash which terminals base on mintty)
-```
+Provide `remote session management`, `async sftp`, `custom commands`, `custom workflow`, `advanced history command`, `plugin extensions` etc.  
+Support various local shell startup, also remote protocol of Ssh/Mosh/Telnet/Rsh...   
 
 ### Commands
 ```
@@ -44,11 +31,10 @@ Provide SSH/Mosh `credential storage`, `async sftp`, `quick session switch`, `ad
  flush                  Flush the screen.
  exit                   Exit Termio.
  theme                  Change the Termio's color theme.
- add                    Add new ssh connection property.
- delete                 Delete ssh connection property.
- numbers                Select the connection properties.
- active                 Active the ssh connect session without enter the Shell.
- mosh                   Use mosh to connect remote device.
+ add                    Add new ssh session property.
+ delete                 Delete ssh session property.
+ numbers                Select the session to active.
+ active                 Active the mutiple session.
 
  Shell commands:        [param] means optional param
  exit                   Exit current shell, close ssh connection and destroy connect channel.

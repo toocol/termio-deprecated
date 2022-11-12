@@ -58,3 +58,6 @@ node/lib
 native-adapter/include
 native-adapter/bin
 native-adapter/lib
+native-fontconfig/include
+native-fontconfig/bin
+native-fontconfig/lib
