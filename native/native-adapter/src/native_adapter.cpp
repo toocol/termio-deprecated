@@ -90,7 +90,7 @@ bool fire_key_event(i32 key, i32 evt_type, const string& chars, i32 key_code,
   return result;
 }
 
-void update_buffer_connection(int key) {
+void update_primary_buffer_connection(int key) {
   if (key >= connections.size()) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
     return;
@@ -100,7 +100,6 @@ void update_buffer_connection(int key) {
   string info_name = get_info_name(name);
   string buffer_name = get_buffer_name(name);
   string primary_buffer_name = buffer_name + IPC_PRIMARY_BUFFER_NAME;
-  string secondary_buffer_name = buffer_name + IPC_SECONDARY_BUFFER_NAME;
 
   try {
     /*
@@ -128,7 +127,24 @@ void update_buffer_connection(int key) {
     // get the address of the mapped region
     void* pm_buffer_addr = pm_buffer_region->get_address();
     primary_buffers[key] = pm_buffer_addr;
+  } catch (...) {
+    std::cerr << "ERROR: cannot connect to '" << info_name
+              << "'. Server probably not running." << std::endl;
+  }
+}
 
+void update_secondary_buffer_connection(int key) {
+  if (key >= connections.size()) {
+    std::cerr << "ERROR: key not available: " << key << std::endl;
+    return;
+  }
+
+  string name = names[key];
+  string info_name = get_info_name(name);
+  string buffer_name = get_buffer_name(name);
+  string secondary_buffer_name = buffer_name + IPC_SECONDARY_BUFFER_NAME;
+
+  try {
     /*
      * Create shared secondary buffer
      */
@@ -565,7 +581,7 @@ REXPORT void* RCALL get_primary_buffer(i32 key) {
     return NULL;
   }
 
-  update_buffer_connection(key);
+  update_primary_buffer_connection(key);
 
   return primary_buffers[key];
 }
@@ -576,7 +592,7 @@ REXPORT void* RCALL get_secondary_buffer(i32 key) {
     return NULL;
   }
 
-  update_buffer_connection(key);
+  update_secondary_buffer_connection(key);
 
   return secondary_buffers[key];
 }

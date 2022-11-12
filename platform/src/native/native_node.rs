@@ -288,6 +288,9 @@ impl NativeNodeObject {
                     .borrow()
                     .set_draw_func(move |_drawing_area, cr, _, _| {
                         if native_lock_buffer(key) {
+                            if !native_is_dirty(key) {
+                                return;
+                            }
                             let pixbuf;
                             match native_buffer_status(key) {
                                 PRIMARY_BUFFER => {
@@ -357,9 +360,9 @@ impl NativeNodeObject {
             self.imp().width.set(width);
             self.imp().height.set(height);
             let key = self.imp().key.get();
-            if native_lock_buffer(key) {
+            if native_lock(key) {
                 native_resize(key, width, height);
-                native_unlock_buffer(key);
+                native_unlock(key);
             }
         }
     }
