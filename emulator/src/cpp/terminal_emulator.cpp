@@ -1,4 +1,5 @@
 #include "terminal_emulator.h"
+
 #include <QApplication>
 #include <QShortcut>
 
@@ -17,7 +18,7 @@ static const int nativeEvtInterval = 1;
 using namespace TConsole;
 
 TerminalEmulator::TerminalEmulator(QWidget* parent)
-    : QWidget(parent), _nativeImage(nullptr) {
+    : QWidget(parent), _primaryImage(nullptr) {
   _nativeEvtTimer = new QTimer(this);
   connect(_nativeEvtTimer, &QTimer::timeout, this,
           &TerminalEmulator::nativeEventCallback);
@@ -130,8 +131,10 @@ void TerminalEmulator::clear() {
   _emulation->clearHistory();
 }
 
-void TerminalEmulator::requestRedrawImage(QImage* image) {
-  this->_nativeImage = image;
+void TerminalEmulator::requestRedrawImage(QImage* primaryImage,
+                                          QImage* secondaryImage) {
+  this->_primaryImage = primaryImage;
+  this->_secondaryImage = secondaryImage;
 }
 
 bool TerminalEmulator::eventFilter(QObject* obj, QEvent* ev) {
@@ -141,16 +144,36 @@ bool TerminalEmulator::eventFilter(QObject* obj, QEvent* ev) {
   }
   if (ev->type() == QEvent::UpdateRequest) {
     _terminalView->nativeCanvas()->lock();
-    if (_nativeImage != nullptr) {
-      QPainter painter(_nativeImage);
+    bool renderered = false;
+    int bufferStatus = _terminalView->nativeCanvas()->bufferStatus();
+    if (bufferStatus == PRIMARY_BUFFER && _primaryImage != nullptr) {
+      QPainter painter(_primaryImage);
       painter.setRenderHints(QPainter::SmoothPixmapTransform |
                              QPainter::Antialiasing |
                              QPainter::TextAntialiasing);
       this->render(&painter);
       painter.end();
+      renderered = true;
+    } else if (bufferStatus == SECONDARY_BUFFER && _secondaryImage != nullptr) {
+      QPainter painter(_secondaryImage);
+      painter.setRenderHints(QPainter::SmoothPixmapTransform |
+                             QPainter::Antialiasing |
+                             QPainter::TextAntialiasing);
+      this->render(&painter);
+      painter.end();
+      renderered = true;
+    } else {
+      if (bufferStatus != PRIMARY_BUFFER && bufferStatus != SECONDARY_BUFFER) {
+        std::cerr << "[eventFilter] Invalid buffer status: " << bufferStatus
+                  << std::endl;
+        _terminalView->nativeCanvas()->unlock();
+        return QWidget::eventFilter(obj, ev);
+      }
     }
-    nativeRedrawCallback();
+
+    if (renderered) nativeRedrawCallback();
     _terminalView->nativeCanvas()->unlock();
+    if (renderered) _terminalView->nativeCanvas()->toggleBuffer();
     _terminalView->nativeCanvas()->pushNativeEvent("Paint",
                                                    "Terminal View Paint");
   }

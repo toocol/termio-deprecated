@@ -14,7 +14,8 @@ int main(int argc, char* argv[]) {
   }
 
   QApplication app(argc, argv, false);
-  QImage* image = NULL;
+  QImage* primary_image = NULL;
+  QImage* secondary_image = NULL;
 
   TConsole::TerminalEmulator emulator;
   emulator.resize(1280, 800);
@@ -23,26 +24,34 @@ int main(int argc, char* argv[]) {
   emulator.setForegroundColor(QColor(0xE1, 0xE1, 0xE1));
   emulator.setBlinkingCursor(true);
 
-  auto qtRedraw = [&image, &emulator](const std::string& name,
-                                      uchar* bufferData, int w, int h) {
-    if (image == NULL) {
-      image = new QImage(bufferData, w, h, w * 4,
-                         QImage::Format_RGBA8888_Premultiplied);
+  auto qtRedraw = [&primary_image, &secondary_image, &emulator](
+                      const std::string& name, uchar* primaryBufferData,
+                      uchar* secondaryBufferData, int w, int h) {
+    if (primary_image == NULL || secondary_image == NULL) {
+      primary_image = new QImage(primaryBufferData, w, h, w * 4,
+                                 QImage::Format_RGBA8888_Premultiplied);
+      secondary_image = new QImage(secondaryBufferData, w, h, w * 4,
+                                   QImage::Format_RGBA8888_Premultiplied);
       emulator.resize(w, h);
-      emulator.requestRedrawImage(image);
+      emulator.requestRedrawImage(primary_image, secondary_image);
     }
   };
 
   nrs::SharedCanvas* canvas = nrs::SharedCanvas::create("_emulator_mem");
 
-  auto qtResized = [&image, &emulator](const std::string& name,
-                                       uchar* bufferData, int w, int h) {
-    if (image == NULL || emulator.width() != w || emulator.height() != h) {
-      delete image;
-      image = new QImage(bufferData, w, h, w * 4,
-                         QImage::Format_RGBA8888_Premultiplied);
+  auto qtResized = [&primary_image, &secondary_image, &emulator](
+                       const std::string& name, uchar* primaryBufferData,
+                       uchar* secondaryBufferData, int w, int h) {
+    if (primary_image == NULL || secondary_image == NULL ||
+        emulator.width() != w || emulator.height() != h) {
+      delete primary_image;
+      delete secondary_image;
+      primary_image = new QImage(primaryBufferData, w, h, w * 4,
+                                 QImage::Format_RGBA8888_Premultiplied);
+      secondary_image = new QImage(secondaryBufferData, w, h, w * 4,
+                                   QImage::Format_RGBA8888_Premultiplied);
       emulator.resize(w, h);
-      emulator.requestRedrawImage(image);
+      emulator.requestRedrawImage(primary_image, secondary_image);
     }
   };
 

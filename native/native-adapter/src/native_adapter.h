@@ -63,6 +63,13 @@ REXPORT void RCALL process_native_events(i32);
 REXPORT void RCALL resize(i32, i32, i32);
 
 /**
+ * Toggle current consume side buffer status
+ *
+ * @param key
+ */
+REXPORT void RCALL toggle_buffer(i32);
+
+/**
  * When the native image buffer was changed, the property of dirty was true.
  *
  * @param key
@@ -140,11 +147,18 @@ REXPORT bool RCALL request_focus(i32, bool, i64);
 REXPORT bool RCALL create_ssh_session(i32, i64, cstring, cstring, cstring, i64);
 
 /**
- * Get the native image buffer.
+ * Get the primary native image buffer.
  *
  * @param key
  */
-REXPORT void* RCALL get_buffer(i32);
+REXPORT void* RCALL get_primary_buffer(i32);
+
+/**
+ * Get the secondary native image buffer.
+ *
+ * @param key
+ */
+REXPORT void* RCALL get_secondary_buffer(i32);
 
 /**
  * Thread lock the common resource.
@@ -183,11 +197,18 @@ REXPORT void RCALL wait_for_buffer_changes(i32);
 REXPORT bool RCALL has_buffer_changes(i32);
 
 /**
+ * Get current buffer status.
+ *
+ * @param key
+ */
+REXPORT i32 RCALL buffer_status(i32);
+
+/**
  * Thread lock the native image buffer.
  *
  * @param key
  */
-REXPORT void RCALL lock_buffer(i32);
+REXPORT bool RCALL lock_buffer(i32);
 
 /**
  * Thread unlock the native image buffer.

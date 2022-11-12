@@ -49,6 +49,8 @@
 #define IPC_BUFF_NAME "_buff_"
 #define IPC_EVT_MQ_NAME "_evt_mq_"
 #define IPC_EVT_MQ_NATIVE_NAME "_evt_mq_native_"
+#define IPC_PRIMARY_BUFFER_NAME "_primary_"
+#define IPC_SECONDARY_BUFFER_NAME "_secondary_"
 
 // instead of Qt stuff, we use plain c++ & boost
 // for the client lib
@@ -60,7 +62,10 @@ typedef unsigned char uchar;
 #include <string>
 
 #define LOCK_TIMEOUT 25  // milliseconds
-#define EVENT_TIMEOUT 5  // milliseconds 
+#define EVENT_TIMEOUT 5  // milliseconds
+
+#define PRIMARY_BUFFER 1
+#define SECONDARY_BUFFER -1
 
 namespace nativers {
 
@@ -251,12 +256,18 @@ struct shared_memory_info {
         shared_string_type(NRS_SHARED_DEFAULT),
         w(1280),
         h(800),
-        dirty(false),
+        focus(false),
+        primary_dirty(false),
+        secondary_dirty(false),
         buffer_ready(true),
-        focus(false) {}
+        renderer_side_buffer_status(PRIMARY_BUFFER),
+        consume_side_buffer_status(PRIMARY_BUFFER) {}
 
   // mutex to protect access
   boost::interprocess::interprocess_mutex mutex;
+
+  boost::interprocess::interprocess_mutex primary_buffer_mutex;
+  boost::interprocess::interprocess_mutex secondary_buffer_mutex;
 
   boost::interprocess::interprocess_semaphore buffer_semaphore;
   boost::interprocess::interprocess_semaphore resize_semaphore;
@@ -269,9 +280,12 @@ struct shared_memory_info {
 
   int w;
   int h;
-  bool dirty;
-  bool buffer_ready;
   bool focus;
+  bool primary_dirty;
+  bool secondary_dirty;
+  bool buffer_ready;
+  int renderer_side_buffer_status;
+  int consume_side_buffer_status;
 
   char client_to_server_msg[IPC_MSG_SIZE +
                             1];  // not initialized since it is not allowed
@@ -281,19 +295,19 @@ struct shared_memory_info {
 
 struct shared_memory_buffer {};
 
-inline std::string get_info_name(int key, std::string name) {
+inline std::string get_info_name(std::string name) {
   return name + IPC_INFO_NAME;
 }
 
-inline std::string get_evt_msg_queue_name(int key, std::string name) {
+inline std::string get_evt_msg_queue_name(std::string name) {
   return name + IPC_EVT_MQ_NAME;
 }
 
-inline std::string get_evt_msg_queue_native_name(int key, std::string name) {
+inline std::string get_evt_msg_queue_native_name(std::string name) {
   return name + IPC_EVT_MQ_NATIVE_NAME;
 }
 
-inline std::string get_buffer_name(int key, std::string name) {
+inline std::string get_buffer_name(std::string name) {
   return name + IPC_BUFF_NAME;
 }
 

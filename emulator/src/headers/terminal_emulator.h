@@ -41,7 +41,7 @@ class TerminalEmulator : public QWidget {
 
   void clear();
 
-  void requestRedrawImage(QImage *);
+  void requestRedrawImage(QImage *, QImage *);
 
   void setNativeRedrawCallback(
       const std::function<void()> &newNativeRedrawCallback);
@@ -63,7 +63,8 @@ class TerminalEmulator : public QWidget {
 
   std::function<void()> nativeRedrawCallback;
   std::function<void()> nativeEvtCallback;
-  QImage *_nativeImage;
+  QImage *_primaryImage;
+  QImage *_secondaryImage;
   QTimer *_nativeEvtTimer;
 
   TerminalView *_terminalView;

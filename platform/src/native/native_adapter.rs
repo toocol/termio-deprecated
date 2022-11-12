@@ -1,4 +1,4 @@
-use std::ffi::{CString, c_int, c_char, c_longlong};
+use std::ffi::{c_char, c_int, c_longlong, CString};
 
 #[link(name = "native-adapter")]
 extern "C" {
@@ -9,6 +9,7 @@ extern "C" {
     fn send_msg(key: c_int, msg: *const c_char, shared_string_type: c_int) -> *const c_char;
     fn process_native_events(key: c_int);
     fn resize(key: c_int, width: c_int, height: c_int);
+    fn toggle_buffer(key: c_int);
     fn is_dirty(key: c_int) -> bool;
     fn redraw(key: c_int, x: c_int, y: c_int, w: c_int, h: c_int);
     fn set_dirty(key: c_int, value: bool);
@@ -25,13 +26,15 @@ extern "C" {
         password: *const c_char,
         timestamp: c_longlong,
     ) -> bool;
-    fn get_buffer(key: c_int) -> *mut u8;
+    fn get_primary_buffer(key: c_int) -> *mut u8;
+    fn get_secondary_buffer(key: c_int) -> *mut u8;
     fn lock(key: c_int) -> bool;
     fn lock_timeout(key: c_int, timeout: c_longlong) -> bool;
     fn unlock(key: c_int);
     fn wait_for_buffer_changes(key: c_int);
     fn has_buffer_changes(key: c_int) -> bool;
-    fn lock_buffer(key: c_int);
+    fn buffer_status(key: c_int) -> i32;
+    fn lock_buffer(key: c_int) -> bool;
     fn unlock_buffer(key: c_int);
     fn fire_mouse_pressed_event(
         key: c_int,
@@ -65,11 +68,7 @@ extern "C" {
         modifiers: c_int,
         timestamp: c_longlong,
     ) -> bool;
-    fn fire_mouse_exited_event(
-        key: c_int,
-        modifiers: c_int,
-        timestamp: c_longlong,
-    ) -> bool;
+    fn fire_mouse_exited_event(key: c_int, modifiers: c_int, timestamp: c_longlong) -> bool;
     fn fire_mouse_move_event(
         key: c_int,
         x: f64,
@@ -164,6 +163,10 @@ pub fn native_resize(key: i32, width: i32, height: i32) {
     }
 }
 
+pub fn native_toggle_buffer(key: c_int) {
+    unsafe { toggle_buffer(key) }
+}
+
 /// When the native image buffer was changed, the property of dirty was true.
 pub fn native_is_dirty(key: i32) -> bool {
     unsafe { is_dirty(key) }
@@ -234,9 +237,14 @@ pub fn native_create_ssh_session(
     }
 }
 
-/// Get the native image buffer.
-pub fn native_get_buffer(key: i32) -> *mut u8 {
-    unsafe { get_buffer(key) }
+/// Get the primary native image buffer.
+pub fn native_get_primary_buffer(key: i32) -> *mut u8 {
+    unsafe { get_primary_buffer(key) }
+}
+
+/// Get the secondary native image buffer.
+pub fn native_get_secondary_buffer(key: i32) -> *mut u8 {
+    unsafe { get_secondary_buffer(key) }
 }
 
 /// Thread lock the common resource.
@@ -264,14 +272,21 @@ pub fn native_has_buffer_changes(key: i32) -> bool {
     unsafe { has_buffer_changes(key) }
 }
 
-/// Thread lock the native image buffer.
-pub fn native_lock_buffer(key: i32) {
+/// Get current native image buffer status
+pub fn native_buffer_status(key: i32) -> i32 {
     unsafe {
-        lock_buffer(key);
+        buffer_status(key)
     }
 }
 
-/// Thread unlock the native image buffer.
+/// Thread lock the primary native image buffer.
+pub fn native_lock_buffer(key: i32) -> bool {
+    unsafe { 
+        lock_buffer(key) 
+    }
+}
+
+/// Thread unlock the primary native image buffer.
 pub fn native_unlock_buffer(key: i32) {
     unsafe {
         unlock_buffer(key);
@@ -322,11 +337,7 @@ pub fn native_fire_mouse_entered_event(
     unsafe { fire_mouse_entered_event(key, x, y, modifiers, timestamp) }
 }
 
-pub fn native_fire_mouse_exited_event(
-    key: i32,
-    modifiers: i32,
-    timestamp: i64,
-) -> bool {
+pub fn native_fire_mouse_exited_event(key: i32, modifiers: i32, timestamp: i64) -> bool {
     unsafe { fire_mouse_exited_event(key, modifiers, timestamp) }
 }
 
