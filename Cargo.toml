@@ -4,7 +4,7 @@ members = ["utilities", "core", "platform", "mosh"]
 [package]
 name = "termio"
 version = "0.0.1"
-edition = "2018"
+edition = "2021"
 
 [[bin]]
 name = "termio"

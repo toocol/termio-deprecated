@@ -7,6 +7,7 @@ use gtk::{
     gio, prelude::*, CssProvider, Settings, StyleContext, STYLE_PROVIDER_PRIORITY_APPLICATION,
 };
 use log::info;
+use platform::load_font;
 
 use crate::ui::TermioCommunityWindow;
 
@@ -24,6 +25,13 @@ fn main() {
     // Load ui layout resources.
     gio::resources_register_include!("temio_community.gresource")
         .expect("Initialize application failed: failed to register resources.");
+
+    // Load font file.
+    load_font!(
+        "Font-Awesome-6-Brands-Regular-400.otf",
+        "Font-Awesome-6-Free-Regular-400.otf",
+        "Font-Awesome-6-Free-Solid-900.otf"
+    );
 
     // Create a new application.
     let app = Application::builder().application_id(APP_ID).build();
