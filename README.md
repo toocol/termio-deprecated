@@ -16,7 +16,7 @@
 
 <div align="center" >
 
-![Language](https://img.shields.io/badge/Language-Rust/C++-FFF7E9) ![License](https://img.shields.io/badge/License-AGPL--3.0-B9E0FF) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux%2FMacos-E97777) 
+![Language](https://img.shields.io/badge/Language-Rust/C++-FFF7E9) ![License](https://img.shields.io/badge/License-AGPL--3.0-B9E0FF) ![Support](https://img.shields.io/badge/Support-Windows%2FLinux%2FMacos-CD97F9) 
 
 </div>
 

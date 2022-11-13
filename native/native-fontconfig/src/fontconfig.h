@@ -15,6 +15,8 @@ typedef const char* cstring;
 
 extern "C" {
 REXPORT void RCALL load_font(cstring);
+REXPORT void RCALL load_font_private(cstring);
+REXPORT void RCALL remove_font(cstring);
 }
 
 #endif
