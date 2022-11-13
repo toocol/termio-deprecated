@@ -80,8 +80,12 @@
                                                 <property name="vexpand">true</property>
                                                 <property name="hexpand">false</property>
                                                 <child>
-                                                    <object class="SessionCredentialManagementTree" id="session_credential_management">
-                                                        <property name="hexpand">false</property>
+                                                    <object class="GtkOverlay" id="terminal_emulator_overlay">
+                                                        <child>
+                                                            <object class="SessionCredentialManagementTree" id="session_credential_management">
+                                                                <property name="hexpand">false</property>
+                                                            </object>
+                                                        </child>
                                                     </object>
                                                 </child>
                                             </object>

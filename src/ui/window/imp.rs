@@ -5,7 +5,7 @@ use gtk::{
     glib::{self, once_cell::sync::OnceCell, subclass::InitializingObject},
     prelude::*,
     subclass::prelude::{ObjectSubclass, *},
-    CompositeTemplate, Inhibit, ScrolledWindow,
+    CompositeTemplate, Inhibit, ScrolledWindow, Overlay,
 };
 
 use platform::SessionCredentialObject;
@@ -22,6 +22,8 @@ pub struct TermioCommunityWindow {
     pub session_credential_management: TemplateChild<SessionCredentialManagementTree>,
     #[template_child]
     pub workspace_terminal_scrolled_window: TemplateChild<ScrolledWindow>,
+    #[template_child]
+    pub terminal_emulator_overlay: TemplateChild<Overlay>,
     #[template_child]
     pub native_terminal_emulator: TemplateChild<NativeTerminalEmulator>,
 
