@@ -33,7 +33,7 @@ impl NativeTerminalEmulator {
             if let Some(native_node) = native_node_weak.upgrade() {
                 native_node.react_key_pressed_event(key, keycode, modifier);
             }
-            Inhibit(false)
+            Inhibit(true)
         });
         let native_node_weak = self.imp().native_node_object.borrow().downgrade();
         key_controller.connect_key_released(move |_controller, key, keycode, modifier| {

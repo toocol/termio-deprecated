@@ -13,8 +13,6 @@ set(CMAKE_CXX_FLAGS_RELEASE -Ofast)
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O3  -Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3  -Wall")
 
-add_definitions(-DUNICODE)
-
 include_directories("src/")
 
 set(HEADERS 
