@@ -15,9 +15,9 @@ use crate::{
     CrossProcessEvent, GtkMouseButton, QtMouseButton,
 };
 use gtk::{
+    cairo::{ffi::cairo_surface_destroy, ImageSurface},
     gdk::{Key, ModifierType},
-    gdk_pixbuf::Pixbuf,
-    glib::{self, bitflags::_core::slice, clone::Downgrade, timeout_add_local, Bytes, Object},
+    glib::{self, clone::Downgrade, timeout_add_local, Object},
     prelude::*,
     subclass::prelude::*,
     Align, DrawingArea,
@@ -274,52 +274,51 @@ impl NativeNodeObject {
             imp.image_height.set(current_h);
 
             unsafe {
-                let primary_buffer = slice::from_raw_parts(
-                    native_get_primary_buffer(key),
-                    (current_w * current_h * 4) as usize,
-                );
-                let secondary_buffer = slice::from_raw_parts(
-                    native_get_secondary_buffer(key),
-                    (current_w * current_h * 4) as usize,
-                );
+                let primary_buffer = native_get_primary_buffer(key);
+                let secondary_buffer = native_get_secondary_buffer(key);
+
                 imp.drawing_area.borrow().set_content_width(current_w);
                 imp.drawing_area.borrow().set_content_height(current_h);
                 imp.drawing_area
                     .borrow()
                     .set_draw_func(move |_drawing_area, cr, _, _| {
                         if native_lock_buffer(key) {
-                            if !native_is_dirty(key) {
+                            if !native_is_dirty(key) || !native_is_buffer_ready(key) {
                                 return;
                             }
-                            let pixbuf;
                             match native_buffer_status(key) {
                                 PRIMARY_BUFFER => {
-                                    pixbuf = Pixbuf::from_bytes(
-                                        &Bytes::from_static(primary_buffer),
-                                        gtk::gdk_pixbuf::Colorspace::Rgb,
-                                        true,
-                                        8,
+                                    let primary_surface = ImageSurface::create_for_data_unsafe(
+                                        primary_buffer,
+                                        gtk::cairo::Format::ARgb32,
                                         current_w,
                                         current_h,
                                         current_w * 4,
-                                    );
+                                    )
+                                    .expect("Create `ImageSurface` failed.");
+                                    cr.set_source_surface(&primary_surface, 0., 0.)
+                                        .expect("Context set source surface failed.");
+                                    cr.paint().expect("Invalid pixbuf.");
+                                    cr.set_source_rgba(0., 0., 0., 0.);
+                                    cairo_surface_destroy(primary_surface.to_raw_none());
                                 }
                                 SECONDARY_BUFFER => {
-                                    pixbuf = Pixbuf::from_bytes(
-                                        &Bytes::from_static(secondary_buffer),
-                                        gtk::gdk_pixbuf::Colorspace::Rgb,
-                                        true,
-                                        8,
+                                    let secodnary_surface = ImageSurface::create_for_data_unsafe(
+                                        secondary_buffer,
+                                        gtk::cairo::Format::ARgb32,
                                         current_w,
                                         current_h,
                                         current_w * 4,
-                                    );
+                                    )
+                                    .expect("Create `ImageSurface` failed.");
+                                    cr.set_source_surface(&secodnary_surface, 0., 0.)
+                                        .expect("Context set source surface failed.");
+                                    cr.paint().expect("Invalid pixbuf.");
+                                    cr.set_source_rgba(0., 0., 0., 0.);
+                                    cairo_surface_destroy(secodnary_surface.to_raw_none());
                                 }
                                 _ => unimplemented!(),
                             }
-                            cr.set_source_pixbuf(&pixbuf, 0., 0.);
-                            cr.paint().expect("Invalid pixbuf.");
-                            cr.set_source_rgba(0., 0., 0., 0.);
                             // Have update the image, not dirty anymore, toggle the buffer status
                             native_set_dirty(key, false);
                             native_unlock_buffer(key);

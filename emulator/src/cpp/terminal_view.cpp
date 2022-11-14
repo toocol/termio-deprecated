@@ -1574,7 +1574,7 @@ bool TerminalView::event(QEvent* event) {
 void TerminalView::paintEvent(QPaintEvent* event) {
   QPainter paint(this);
   paint.setRenderHints(QPainter::SmoothPixmapTransform |
-                         QPainter::Antialiasing | QPainter::TextAntialiasing);
+                       QPainter::Antialiasing | QPainter::TextAntialiasing);
   QRect cr = contentsRect();
 
   if (!_backgroundImage.isNull()) {
@@ -2804,6 +2804,8 @@ TerminalView::TerminalView(QWidget* parent)
     _scrollBar->setAutoFillBackground(true);
   setScroll(0, 0);
   _scrollBar->setCursor(Qt::ArrowCursor);
+  _scrollBar->setAttribute(Qt::WA_Hover, true);
+  _scrollBar->setMouseTracking(true);
   connect(_scrollBar, SIGNAL(valueChanged(int)), this,
           SLOT(scrollBarPositionChanged(int)));
   _scrollBar->hide();

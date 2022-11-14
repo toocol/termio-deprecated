@@ -1,5 +1,4 @@
 #include <QApplication>
-
 #include "terminal_emulator.h"
 
 namespace nrs = nativers;
@@ -29,9 +28,9 @@ int main(int argc, char* argv[]) {
                       uchar* secondaryBufferData, int w, int h) {
     if (primary_image == NULL || secondary_image == NULL) {
       primary_image = new QImage(primaryBufferData, w, h, w * 4,
-                                 QImage::Format_RGBA8888_Premultiplied);
+                                 QImage::Format_ARGB32_Premultiplied);
       secondary_image = new QImage(secondaryBufferData, w, h, w * 4,
-                                   QImage::Format_RGBA8888_Premultiplied);
+                                   QImage::Format_ARGB32_Premultiplied);
       emulator.resize(w, h);
       emulator.requestRedrawImage(primary_image, secondary_image);
     }
@@ -47,9 +46,9 @@ int main(int argc, char* argv[]) {
       delete primary_image;
       delete secondary_image;
       primary_image = new QImage(primaryBufferData, w, h, w * 4,
-                                 QImage::Format_RGBA8888_Premultiplied);
+                                 QImage::Format_ARGB32_Premultiplied);
       secondary_image = new QImage(secondaryBufferData, w, h, w * 4,
-                                   QImage::Format_RGBA8888_Premultiplied);
+                                   QImage::Format_ARGB32_Premultiplied);
       emulator.resize(w, h);
       emulator.requestRedrawImage(primary_image, secondary_image);
     }
