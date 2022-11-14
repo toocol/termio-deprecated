@@ -5,7 +5,7 @@ use gtk::{
     glib::{self, once_cell::sync::OnceCell, subclass::InitializingObject},
     prelude::*,
     subclass::prelude::{ObjectSubclass, *},
-    CompositeTemplate, Inhibit, ScrolledWindow, Overlay,
+    CompositeTemplate, Inhibit, ScrolledWindow, Overlay, Paned,
 };
 
 use platform::SessionCredentialObject;
@@ -18,6 +18,8 @@ use log::debug;
 #[derive(Default, CompositeTemplate)]
 #[template(resource = "/com/toocol/termio/community/window.ui")]
 pub struct TermioCommunityWindow {
+    #[template_child]
+    pub workspace_paned: TemplateChild<Paned>,
     #[template_child]
     pub session_credential_management: TemplateChild<SessionCredentialManagementTree>,
     #[template_child]

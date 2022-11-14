@@ -14,14 +14,13 @@
                     <class name="workbench-box" />
                 </style>
                 <child>
-                    <object class="GtkBox" id="center_workspace_box">
+                    <object class="GtkPaned" id="workspace_paned">
                         <property name="orientation">horizontal</property>
-                        <property name="homogeneous">false</property>
                         <property name="vexpand">true</property>
                         <property name="hexpand">true</property>
                         <property name="focusable">true</property>
                         <style>
-                            <class name="workspace-box" />
+                            <class name="workspace-paned" />
                         </style>
                         <child>
                             <object class="GtkBox" id="left_side_bar">
@@ -93,9 +92,6 @@
                                     </object>
                                 </child>
                             </object>
-                        </child>
-                        <child>
-                            <object class="GtkSeparator"></object>
                         </child>
                         <child>
                             <object class="GtkScrolledWindow" id="workspace_terminal_scrolled_window">

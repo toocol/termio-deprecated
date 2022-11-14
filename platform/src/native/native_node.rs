@@ -15,7 +15,7 @@ use crate::{
     CrossProcessEvent, GtkMouseButton, QtMouseButton,
 };
 use gtk::{
-    cairo::{ffi::cairo_surface_destroy, ImageSurface},
+    cairo::{ffi::{cairo_surface_destroy}, ImageSurface},
     gdk::{Key, ModifierType},
     glib::{self, clone::Downgrade, timeout_add_local, Object},
     prelude::*,
@@ -294,8 +294,8 @@ impl NativeNodeObject {
                                         current_w,
                                         current_h,
                                         current_w * 4,
-                                    )
-                                    .expect("Create `ImageSurface` failed.");
+                                    ).expect("Create `ImageSurface` failed.");
+
                                     cr.set_source_surface(&primary_surface, 0., 0.)
                                         .expect("Context set source surface failed.");
                                     cr.paint().expect("Invalid pixbuf.");
@@ -309,8 +309,8 @@ impl NativeNodeObject {
                                         current_w,
                                         current_h,
                                         current_w * 4,
-                                    )
-                                    .expect("Create `ImageSurface` failed.");
+                                    ).expect("Create `ImageSurface` failed.");
+
                                     cr.set_source_surface(&secodnary_surface, 0., 0.)
                                         .expect("Context set source surface failed.");
                                     cr.paint().expect("Invalid pixbuf.");
