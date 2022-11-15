@@ -133,7 +133,24 @@ impl SessionCredentialManagementTree {
         }));
     }
 
-    pub fn add_session_credential(&self, session_credential: SessionCredentialObject) {
+    pub fn add_session_credential(
+        &self,
+        shown_name: &str,
+        host: &str,
+        username: &str,
+        password: &str,
+        group: &str,
+        port: u32,
+    ) {
+        let session_credential = SessionCredentialObject::new(
+            shown_name,
+            host,
+            username,
+            password,
+            group,
+            port,
+            core::ProtocolType::Ssh,
+        );
         let tree_store = self.imp().tree_store.get().expect(
             "`tree_store` of `SessionCredentialManagementTree` must initialize before use.",
         );

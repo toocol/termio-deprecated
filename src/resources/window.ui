@@ -31,6 +31,7 @@
                                 <style>
                                     <class name="left-side-bar" />
                                 </style>
+                                <!-- <GtkBox> Workspace activity bar box -->
                                 <child>
                                     <object class="GtkBox" id="workspace_activity_bar_box">
                                         <property name="orientation">vertical</property>
@@ -43,9 +44,11 @@
                                         </style>
                                     </object>
                                 </child>
+                                <!-- <GtkSeparator> -->
                                 <child>
                                     <object class="GtkSeparator"></object>
                                 </child>
+                                <!-- <GtkBox> Workspace left side bar box -->
                                 <child>
                                     <object class="GtkBox" id="workspace_left_side_bar_box">
                                         <property name="orientation">vertical</property>
@@ -60,6 +63,7 @@
                                         <style>
                                             <class name="workspace-left-side-bar-box" />
                                         </style>
+                                        <!-- <GtkButton> Create new session button -->
                                         <child>
                                             <object class="GtkButton" id="create_new_session_button">
                                                 <property name="icon-name">list-add-symbolic</property>
@@ -74,6 +78,7 @@
                                                 </style>
                                             </object>
                                         </child>
+                                        <!-- <GtkScrolledWindow> Session management scrolled window -->
                                         <child>
                                             <object class="GtkScrolledWindow" id="session_management_scrolled_window">
                                                 <property name="name">session_management_scrolled_window</property>
@@ -117,6 +122,7 @@
                         </child>
                     </object>
                 </child>
+                <!-- <GtkSeparator> -->
                 <child>
                     <object class="GtkSeparator"></object>
                 </child>

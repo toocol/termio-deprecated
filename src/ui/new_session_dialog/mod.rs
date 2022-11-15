@@ -147,7 +147,16 @@ impl NewSessionDialog {
                 shown_name.push_str(host.as_str());
                 shown_name.push_str("@");
                 shown_name.push_str(username.as_str());
-                window.new_session_credential(shown_name.as_str(), host.as_str(), username.as_str(), password.as_str(), "default", port as u32);
+                window.with_session_credential_management(|manager| {
+                    manager.add_session_credential(
+                        shown_name.as_str(), 
+                        host.as_str(), 
+                        username.as_str(), 
+                        password.as_str(), 
+                        "default", 
+                        port as u32
+                    );
+                });
                 info!("Create new session credential: host={}, username={}, password={}, prot={}", host, username, password, port);
         }));
 

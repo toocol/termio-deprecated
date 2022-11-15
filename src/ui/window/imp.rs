@@ -11,7 +11,6 @@ use gtk::{
 use crate::{
     ui::{
         terminal::NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree,
-        UIHolder, UI,
     },
     util::data_path,
 };
@@ -71,13 +70,6 @@ impl ObjectImpl for TermioCommunityWindow {
 
         self.session_credential_management
             .setup_callbacks(obj.as_ref());
-
-        UI._holder
-            .set(UIHolder::create(
-                self.instance().clone(),
-                self.session_credential_management.clone(),
-            ))
-            .expect("`_holder` of UI should noly set once.");
     }
 }
 
