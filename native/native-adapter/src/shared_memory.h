@@ -256,6 +256,8 @@ struct shared_memory_info {
         shared_string_type(NRS_SHARED_DEFAULT),
         w(1280),
         h(800),
+        max_width(0),
+        max_height(0),
         focus(false),
         primary_dirty(false),
         secondary_dirty(false),
@@ -280,12 +282,15 @@ struct shared_memory_info {
 
   int w;
   int h;
+  int max_width;
+  int max_height;
+  int renderer_side_buffer_status;
+  int consume_side_buffer_status;
+
   bool focus;
   bool primary_dirty;
   bool secondary_dirty;
   bool buffer_ready;
-  int renderer_side_buffer_status;
-  int consume_side_buffer_status;
 
   char client_to_server_msg[IPC_MSG_SIZE +
                             1];  // not initialized since it is not allowed

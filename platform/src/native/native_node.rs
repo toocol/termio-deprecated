@@ -15,9 +15,9 @@ use crate::{
     CrossProcessEvent, GtkMouseButton, QtMouseButton,
 };
 use gtk::{
-    cairo::{ffi::{cairo_surface_destroy}, ImageSurface},
+    cairo::{ffi::cairo_surface_destroy, ImageSurface},
     gdk::{Key, ModifierType},
-    glib::{self, clone::Downgrade, timeout_add_local, Object},
+    glib::{self, clone, clone::Downgrade, timeout_add_local, Object},
     prelude::*,
     subclass::prelude::*,
     Align, DrawingArea,
@@ -37,6 +37,8 @@ static MODIFIER: AtomicI32 = AtomicI32::new(0);
 pub struct NativeNode {
     pub drawing_area: RefCell<DrawingArea>,
     pub event_sender: RefCell<Option<Sender<CrossProcessEvent>>>,
+    pub primary_buffer: RefCell<Option<*mut u8>>,
+    pub secondary_buffer: RefCell<Option<*mut u8>>,
     pub key: Cell<i32>,
     pub width: Cell<i32>,
     pub height: Cell<i32>,
@@ -59,6 +61,8 @@ impl Default for NativeNode {
         Self {
             drawing_area: RefCell::new(DrawingArea::new()),
             event_sender: RefCell::new(None),
+            primary_buffer: RefCell::new(None),
+            secondary_buffer: RefCell::new(None),
             key: Cell::new(-1),
             width: Cell::new(0),
             height: Cell::new(0),
@@ -237,7 +241,7 @@ impl NativeNodeObject {
         self.dispatch(evt);
     }
 
-    fn update_native_buffered_image(&self) {
+    fn rendering_native_buffer(&self) {
         let imp = self.imp();
         let current_timestamp = TimeStamp::timestamp();
         let key = imp.key.get();
@@ -273,61 +277,8 @@ impl NativeNodeObject {
             imp.image_width.set(current_w);
             imp.image_height.set(current_h);
 
-            unsafe {
-                let primary_buffer = native_get_primary_buffer(key);
-                let secondary_buffer = native_get_secondary_buffer(key);
-
-                imp.drawing_area.borrow().set_content_width(current_w);
-                imp.drawing_area.borrow().set_content_height(current_h);
-                imp.drawing_area
-                    .borrow()
-                    .set_draw_func(move |_drawing_area, cr, _, _| {
-                        if native_lock_buffer(key) {
-                            if !native_is_dirty(key) || !native_is_buffer_ready(key) {
-                                return;
-                            }
-                            match native_buffer_status(key) {
-                                PRIMARY_BUFFER => {
-                                    let primary_surface = ImageSurface::create_for_data_unsafe(
-                                        primary_buffer,
-                                        gtk::cairo::Format::ARgb32,
-                                        current_w,
-                                        current_h,
-                                        current_w * 4,
-                                    ).expect("Create `ImageSurface` failed.");
-
-                                    cr.set_source_surface(&primary_surface, 0., 0.)
-                                        .expect("Context set source surface failed.");
-                                    cr.paint().expect("Invalid pixbuf.");
-                                    cr.set_source_rgba(0., 0., 0., 0.);
-                                    cairo_surface_destroy(primary_surface.to_raw_none());
-                                }
-                                SECONDARY_BUFFER => {
-                                    let secodnary_surface = ImageSurface::create_for_data_unsafe(
-                                        secondary_buffer,
-                                        gtk::cairo::Format::ARgb32,
-                                        current_w,
-                                        current_h,
-                                        current_w * 4,
-                                    ).expect("Create `ImageSurface` failed.");
-
-                                    cr.set_source_surface(&secodnary_surface, 0., 0.)
-                                        .expect("Context set source surface failed.");
-                                    cr.paint().expect("Invalid pixbuf.");
-                                    cr.set_source_rgba(0., 0., 0., 0.);
-                                    cairo_surface_destroy(secodnary_surface.to_raw_none());
-                                }
-                                _ => unimplemented!(),
-                            }
-                            // Have update the image, not dirty anymore, toggle the buffer status
-                            native_set_dirty(key, false);
-                            native_unlock_buffer(key);
-                            native_toggle_buffer(key);
-                        }
-                    });
-            }
-
-            // Process if native_buffer is None, or window size has changed.
+            imp.drawing_area.borrow().set_content_width(current_w);
+            imp.drawing_area.borrow().set_content_height(current_h);
         }
 
         imp.drawing_area.borrow().queue_draw();
@@ -434,10 +385,72 @@ pub trait NativeNodeImpl {
         }
         node_rc.borrow().imp().still_connect.set(true);
 
+        let node = node_rc.borrow();
+        let imp = node.imp();
+        let key = imp.key.get();
+
+        unsafe {
+            imp.primary_buffer
+                .borrow_mut()
+                .replace(native_get_primary_buffer(key));
+            imp.secondary_buffer
+                .borrow_mut()
+                .replace(native_get_secondary_buffer(key));
+
+            imp.drawing_area
+                    .borrow()
+                    .set_draw_func(clone!(@weak imp as node => move |_drawing_area, cr, _, _| {
+                        if native_lock_buffer(key) {
+                            if !native_is_dirty(key) || !native_is_buffer_ready(key) {
+                                return;
+                            }
+                            match native_buffer_status(key) {
+                                PRIMARY_BUFFER => {
+                                    let primary_surface = ImageSurface::create_for_data_unsafe(
+                                        node.primary_buffer.borrow().as_ref().expect("`primary_buffer` was None.").clone(),
+                                        gtk::cairo::Format::ARgb32,
+                                        node.image_width.get(),
+                                        node.image_height.get(),
+                                        node.image_width.get() * 4,
+                                    )
+                                    .expect("Create `ImageSurface` failed.");
+
+                                    cr.set_source_surface(&primary_surface, 0., 0.)
+                                        .expect("Context set source surface failed.");
+                                    cr.paint().expect("Invalid pixbuf.");
+                                    cr.set_source_rgba(0., 0., 0., 0.);
+                                    cairo_surface_destroy(primary_surface.to_raw_none());
+                                }
+                                SECONDARY_BUFFER => {
+                                    let secodnary_surface = ImageSurface::create_for_data_unsafe(
+                                        node.secondary_buffer.borrow().as_ref().expect("`primary_buffer` was None.").clone(),
+                                        gtk::cairo::Format::ARgb32,
+                                        node.image_width.get(),
+                                        node.image_height.get(),
+                                        node.image_width.get() * 4,
+                                    )
+                                    .expect("Create `ImageSurface` failed.");
+
+                                    cr.set_source_surface(&secodnary_surface, 0., 0.)
+                                        .expect("Context set source surface failed.");
+                                    cr.paint().expect("Invalid pixbuf.");
+                                    cr.set_source_rgba(0., 0., 0., 0.);
+                                    cairo_surface_destroy(secodnary_surface.to_raw_none());
+                                }
+                                _ => unimplemented!(),
+                            }
+                            // Have update the image, not dirty anymore, toggle the buffer status
+                            native_set_dirty(key, false);
+                            native_unlock_buffer(key);
+                            native_toggle_buffer(key);
+                        }
+                    }));
+        }
+
         timeout_add_local(Duration::from_millis(1), move || {
             let mut still_connect = false;
             if let Some(node_ref) = weak_node.upgrade() {
-                node_ref.borrow().update_native_buffered_image();
+                node_ref.borrow().rendering_native_buffer();
                 still_connect = node_ref.borrow().imp().still_connect.get();
             }
             Continue(still_connect)

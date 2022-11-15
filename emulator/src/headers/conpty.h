@@ -145,8 +145,8 @@ class ConPty : public QObject, public VirtualPty {
   int fd;
   bool _running;
   bool _flag;
-  QProcess::ExitStatus _exitStatus;
   QString _workingDirectory;
+  QProcess::ExitStatus _exitStatus;
 };
 
 }  // namespace TConsole

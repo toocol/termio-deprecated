@@ -246,7 +246,8 @@ class SharedCanvas final {
   }
 
  public:
-  static SharedCanvas* create(const std::string& name) {
+  static SharedCanvas* create(const std::string& name, const int maxWidth,
+                              const int maxHeight) {
     std::string info_name = name + IPC_INFO_NAME;
     std::string buffer_name = name + IPC_BUFF_NAME;
     std::string evt_mq_name = name + IPC_EVT_MQ_NAME;
@@ -315,9 +316,13 @@ class SharedCanvas final {
 
     int W = info_data->w;
     int H = info_data->h;
+    info_data->max_width = maxWidth;
+    info_data->max_height = maxHeight;
 
-    uchar* primary_buffer = createSharedBuffer(primary_buffer_name, W, H);
-    uchar* secondary_buffer = createSharedBuffer(secondary_buffer_name, W, H);
+    uchar* primary_buffer =
+        createSharedBuffer(primary_buffer_name, maxWidth, maxHeight);
+    uchar* secondary_buffer =
+        createSharedBuffer(secondary_buffer_name, maxWidth, maxHeight);
 
     std::size_t MAX_SIZE = max_event_message_size();
     void* evt_mq_msg_buff = malloc(MAX_SIZE);
@@ -479,12 +484,6 @@ class SharedCanvas final {
 
       std::cout << "[" + name + "]"
                 << "> resize to W: " << W << ", H: " << H << std::endl;
-
-      ipc::shared_memory_object::remove(primary_buffer_name.c_str());
-      primary_buffer = createSharedBuffer(primary_buffer_name, W, H);
-
-      ipc::shared_memory_object::remove(secondary_buffer_name.c_str());
-      secondary_buffer = createSharedBuffer(secondary_buffer_name, W, H);
 
       info_data->buffer_ready = true;
 

@@ -5,6 +5,7 @@
         <property name="title" translatable="yes">Termio</property>
         <property name="default-width">1280</property>
         <property name="default-height">800</property>
+        <!-- <GtkBox> workbench box -->
         <child>
             <object class="GtkBox" id="workbench_box">
                 <property name="orientation">vertical</property>
@@ -13,6 +14,7 @@
                 <style>
                     <class name="workbench-box" />
                 </style>
+                <!-- <GtkPaned> workspace paned -->
                 <child>
                     <object class="GtkPaned" id="workspace_paned">
                         <property name="orientation">horizontal</property>
@@ -22,6 +24,7 @@
                         <style>
                             <class name="workspace-paned" />
                         </style>
+                        <!-- <GtkBox> Left side bar -->
                         <child>
                             <object class="GtkBox" id="left_side_bar">
                                 <property name="orientation">horizontal</property>
@@ -58,7 +61,7 @@
                                             <class name="workspace-left-side-bar-box" />
                                         </style>
                                         <child>
-                                            <object class="GtkButton">
+                                            <object class="GtkButton" id="create_new_session_button">
                                                 <property name="icon-name">list-add-symbolic</property>
                                                 <property name="tooltip-text" translatable="yes">Create new session</property>
                                                 <property name="action-name">win.new-session-credential</property>
@@ -77,7 +80,7 @@
                                                 <property name="hscrollbar-policy">GTK_POLICY_EXTERNAL</property>
                                                 <property name="vscrollbar-policy">GTK_POLICY_AUTOMATIC</property>
                                                 <property name="vexpand">true</property>
-                                                <property name="hexpand">false</property>
+                                                <property name="hexpand">true</property>
                                                 <child>
                                                     <object class="GtkOverlay" id="terminal_emulator_overlay">
                                                         <child>
@@ -93,6 +96,7 @@
                                 </child>
                             </object>
                         </child>
+                        <!-- <GtkScrolledWindow> Terminal scrolled window -->
                         <child>
                             <object class="GtkScrolledWindow" id="workspace_terminal_scrolled_window">
                                 <property name="name">terminal-scrolled-window</property>
@@ -116,6 +120,7 @@
                 <child>
                     <object class="GtkSeparator"></object>
                 </child>
+                <!-- <GtkBox> Bottom status bar -->
                 <child>
                     <object class="GtkBox" id="bottom_status_bar_box">
                         <property name="orientation">horizontal</property>

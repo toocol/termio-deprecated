@@ -5,21 +5,26 @@ use gtk::{
     glib::{self, once_cell::sync::OnceCell, subclass::InitializingObject},
     prelude::*,
     subclass::prelude::{ObjectSubclass, *},
-    CompositeTemplate, Inhibit, ScrolledWindow, Overlay, Paned,
+    Button, CompositeTemplate, Inhibit, Overlay, Paned, ScrolledWindow,
 };
 
-use platform::SessionCredentialObject;
 use crate::{
-    ui::{terminal::NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree},
+    ui::{
+        terminal::NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree,
+        UIHolder, UI,
+    },
     util::data_path,
 };
 use log::debug;
+use platform::SessionCredentialObject;
 
 #[derive(Default, CompositeTemplate)]
 #[template(resource = "/com/toocol/termio/community/window.ui")]
 pub struct TermioCommunityWindow {
     #[template_child]
     pub workspace_paned: TemplateChild<Paned>,
+    #[template_child]
+    pub create_new_session_button: TemplateChild<Button>,
     #[template_child]
     pub session_credential_management: TemplateChild<SessionCredentialManagementTree>,
     #[template_child]
@@ -58,7 +63,21 @@ impl ObjectImpl for TermioCommunityWindow {
         obj.setup_actions();
         obj.resotre_data();
 
-        self.session_credential_management.setup_callbacks(obj.as_ref());
+        self.workspace_paned.set_shrink_start_child(false);
+        self.workspace_paned.set_shrink_end_child(false);
+        self.workspace_paned.set_resize_start_child(true);
+        self.workspace_paned.set_resize_end_child(true);
+        self.workspace_paned.set_position(230);
+
+        self.session_credential_management
+            .setup_callbacks(obj.as_ref());
+
+        UI._holder
+            .set(UIHolder::create(
+                self.instance().clone(),
+                self.session_credential_management.clone(),
+            ))
+            .expect("`_holder` of UI should noly set once.");
     }
 }
 
