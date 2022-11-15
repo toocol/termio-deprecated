@@ -35,6 +35,7 @@ class QShowEvent;
 class QHideEvent;
 class QTimerEvent;
 class QWidget;
+class QOpenGLWidget;
 
 namespace TConsole {
 

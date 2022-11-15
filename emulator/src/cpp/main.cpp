@@ -1,5 +1,5 @@
 #include <QApplication>
-
+#include <QList>
 #include "terminal_emulator.h"
 
 namespace nrs = nativers;
@@ -29,15 +29,24 @@ int main(int argc, char* argv[]) {
                       uchar* secondaryBufferData, int w, int h) {
     if (primary_image == NULL || secondary_image == NULL) {
       primary_image = new QImage(primaryBufferData, w, h, w * 4,
-                                 QImage::Format_RGBA8888_Premultiplied);
+                                 QImage::Format_ARGB32_Premultiplied);
       secondary_image = new QImage(secondaryBufferData, w, h, w * 4,
-                                   QImage::Format_RGBA8888_Premultiplied);
+                                   QImage::Format_ARGB32_Premultiplied);
       emulator.resize(w, h);
       emulator.requestRedrawImage(primary_image, secondary_image);
     }
   };
 
-  nrs::SharedCanvas* canvas = nrs::SharedCanvas::create("_emulator_mem");
+  QList<QScreen*> screens = QApplication::screens();
+  QList<QScreen*>::iterator i;
+  int maxWidth = 0, maxHeight = 0;
+  for (i = screens.begin(); i != screens.end(); i++) {
+    QRect rect = (*i)->geometry();
+    maxWidth = max(maxWidth, rect.width());
+    maxHeight = max(maxHeight, rect.height());
+  }
+  nrs::SharedCanvas* canvas =
+      nrs::SharedCanvas::create("_emulator_mem", maxWidth, maxHeight);
 
   auto qtResized = [&primary_image, &secondary_image, &emulator](
                        const std::string& name, uchar* primaryBufferData,
@@ -47,9 +56,9 @@ int main(int argc, char* argv[]) {
       delete primary_image;
       delete secondary_image;
       primary_image = new QImage(primaryBufferData, w, h, w * 4,
-                                 QImage::Format_RGBA8888_Premultiplied);
+                                 QImage::Format_ARGB32_Premultiplied);
       secondary_image = new QImage(secondaryBufferData, w, h, w * 4,
-                                   QImage::Format_RGBA8888_Premultiplied);
+                                   QImage::Format_ARGB32_Premultiplied);
       emulator.resize(w, h);
       emulator.requestRedrawImage(primary_image, secondary_image);
     }
@@ -116,13 +125,8 @@ int main(int argc, char* argv[]) {
 
       Qt::MouseButton btn = Qt::NoButton;
 
-      QWidget* widget = QApplication::widgetAt(p);
       QWidget* receiver = NULL;
-      if (widget == NULL) {
-        receiver = emulator.childAt(p);
-      } else {
-        receiver = widget->childAt(p);
-      }
+      receiver = emulator.childAt(p);
 
       if (receiver == NULL) {
         qDebug() << "Get receiver failed";

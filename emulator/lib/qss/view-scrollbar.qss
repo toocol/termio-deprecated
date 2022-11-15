@@ -1,41 +1,48 @@
 QScrollBar:vertical {
-    margin: 13px 0px 13px 0px;
-    background-color:rgba(255, 255, 255, 100);
+    margin: 3px 0px 3px 0px;
+    background-color: transparent;
     border: 0px;
-    width: 12px;
+    width: 8px;
 }
 
-.QScrollBar::handle:vertical {
-    background-color: purple;
-    width: 12px;
+QScrollBar::handle:vertical {
+    background-color: rgba(125, 125, 125, 100);
+    border-radius: 4px;
+    width: 5px;
 }
 
+QScrollBar::handle:vertical:hover,
+QScrollBar::handle:vertical:pressed {
+    background-color: rgba(175, 175, 175, 100);
+}
+
+QScrollBar::sub-line:vertical {
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+    background-color: transparent;
+    border: 1px solid transparent;
+    height: 0px;
+}
+
+QScrollBar::add-line:vertical {
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+    background-color: transparent;
+    border: 1px solid transparent;
+    height: 0px;
+}
+
+QScrollBar::up-arrow:vertical {
+    width: 6px;
+    height: 0px;
+}
+
+QScrollBar::down-arrow:vertical {
+    width: 6px;
+    height: 0px;
+}
+
+QScrollBar::sub-page:vertical,
 QScrollBar::add-page:vertical {
-    background-color: pink;
-}
-
-QScrollBar::sub-page:vertical {
-    background-color: orange;
-}
-
-.QScrollBar::sub-line:vertical {
-    subcontrol-origin: margin;
-    border: 1px solid red;
-    height:13px;
-}
-
-.QScrollBar::up-arrow:vertical {
-    subcontrol-origin: margin;
-    background-color: blue;
-    height:13px;
-}
-
-.QScrollBar::down-arrow:vertical {
-    background-color: yellow;
-}
-
-.QScrollBar::add-line:vertical {
-    subcontrol-origin: margin;
-    border: 1px solid green;
-    height:13px;
+    background-color: transparent;
 }
