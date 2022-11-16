@@ -2,18 +2,21 @@ use core::SessionCredential;
 use std::fs::File;
 
 use gtk::{
-    glib::{self, once_cell::sync::OnceCell, subclass::InitializingObject, clone},
+    glib::{self, clone, once_cell::sync::OnceCell, subclass::InitializingObject},
     prelude::*,
     subclass::prelude::{ObjectSubclass, *},
-    Button, CompositeTemplate, Inhibit, Overlay, Paned, ScrolledWindow,
+    CompositeTemplate, Inhibit, Overlay, Paned, ScrolledWindow,
 };
 
 use crate::{
-    ui::{terminal::NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree},
+    ui::{
+        terminal::NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree,
+        WidgetTitleBar,
+    },
     util::data_path,
 };
 use log::debug;
-use platform::SessionCredentialObject;
+use platform::{remove_font, IconButton, SessionCredentialObject};
 
 #[derive(Default, CompositeTemplate)]
 #[template(resource = "/com/toocol/termio/community/window.ui")]
@@ -21,7 +24,9 @@ pub struct TermioCommunityWindow {
     #[template_child]
     pub workspace_paned: TemplateChild<Paned>,
     #[template_child]
-    pub create_new_session_button: TemplateChild<Button>,
+    pub session_management_title_bar: TemplateChild<WidgetTitleBar>,
+    #[template_child]
+    pub icon_button: TemplateChild<IconButton>,
     #[template_child]
     pub session_credential_management: TemplateChild<SessionCredentialManagementTree>,
     #[template_child]
@@ -68,11 +73,12 @@ impl ObjectImpl for TermioCommunityWindow {
 
         let terminal_window = &*self.workspace_terminal_scrolled_window;
         let terminal_emulator = &*self.native_terminal_emulator;
-        self.workspace_paned
-            .connect_position_notify(clone!(@weak terminal_window, @weak terminal_emulator => move |_| {
+        self.workspace_paned.connect_position_notify(
+            clone!(@weak terminal_window, @weak terminal_emulator => move |_| {
                 let allocation = terminal_window.allocation();
                 terminal_emulator.resize(allocation.width(), allocation.height());
-            }));
+            }),
+        );
 
         self.session_credential_management
             .setup_callbacks(obj.as_ref());
@@ -83,9 +89,7 @@ impl WidgetImpl for TermioCommunityWindow {
     fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
         self.parent_size_allocate(width, height, baseline);
 
-        let allocation = self
-            .workspace_terminal_scrolled_window
-            .allocation();
+        let allocation = self.workspace_terminal_scrolled_window.allocation();
         self.native_terminal_emulator
             .resize(allocation.width(), allocation.height());
     }
@@ -104,6 +108,12 @@ impl WindowImpl for TermioCommunityWindow {
         // Save state to file
         let file = File::create(data_path(".credential")).expect("Could not create json file.");
         serde_json::to_writer(file, &backup_data).expect("Could not write data to json file.");
+
+        remove_font!(
+            "Font-Awesome-6-Brands-Regular-400.otf",
+            "Font-Awesome-6-Free-Regular-400.otf",
+            "Font-Awesome-6-Free-Solid-900.otf"
+        );
 
         self.parent_close_request()
     }
