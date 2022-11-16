@@ -28,8 +28,8 @@ windowcontrols>button {
 }
 
 .new-session-button {
-    min-height: 20px;
-    min-width: 20px;
+    min-height: 10px;
+    min-width: 10px;
 }
 
 windowcontrols>button.close:hover {
@@ -39,4 +39,23 @@ windowcontrols>button.close:hover {
 
 .workspace-terminal-window {
     background-color: #151515;
+}
+
+.widget-title-bar {
+    border-width: 0 0 1px 0;
+    border-color: #dedede;
+    border-style: solid;
+}
+
+.widget-title-bar .widget-title-control-button {
+    min-height: 10px;
+    min-width: 10px;
+    border-color: transparent;
+    padding: 2px 2px 2px 2px;
+}
+
+.widget-title-bar .left-box {
+    border-width: 0 1px 0 0;
+    border-color: #dedede;
+    border-style: solid;
 }

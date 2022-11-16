@@ -10,7 +10,6 @@ use gtk::{
     subclass::prelude::ObjectSubclassIsExt,
     Application,
 };
-use platform::SessionCredentialObject;
 
 use crate::util::data_path;
 
@@ -59,26 +58,24 @@ impl TermioCommunityWindow {
         }
     }
 
-    pub fn new_session_credential(
-        &self,
-        shown_name: &str,
-        host: &str,
-        username: &str,
-        password: &str,
-        group: &str,
-        port: u32,
-    ) {
-        let session_credential = SessionCredentialObject::new(
-            shown_name,
-            host,
-            username,
-            password,
-            group,
-            port,
-            core::ProtocolType::Ssh,
-        );
-        self.imp()
-            .session_credential_management
-            .add_session_credential(session_credential);
+    pub fn with_new_session_dialog<T>(&self, f: T)
+    where
+        T: FnOnce(&super::new_session_dialog::NewSessionDialog),
+    {
+        f(self.imp().new_session_dialog.get().expect(""))
+    }
+
+    pub fn with_session_credential_management<T>(&self, f: T)
+    where
+        T: FnOnce(&super::session_credential_tree::SessionCredentialManagementTree),
+    {
+        f(self.imp().session_credential_management.as_ref())
+    }
+
+    pub fn with_terminal_emulator<T>(&self, f: T)
+    where
+        T: FnOnce(&super::terminal::NativeTerminalEmulator),
+    {
+        f(self.imp().native_terminal_emulator.as_ref())
     }
 }

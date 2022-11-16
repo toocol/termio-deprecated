@@ -83,6 +83,7 @@ impl FontAwesomeIcon {
             .get()
             .expect("`font_type` of FontAwesomeIcon must be set in `code` mode.");
         let style = STYLE_LIST[style_enum.to_usize()];
+        println!("{}", style);
 
         let size = self.size.get();
 
@@ -96,6 +97,12 @@ impl FontAwesomeIcon {
 }
 
 impl ObjectImpl for FontAwesomeIcon {
+    fn constructed(&self) {
+        self.parent_constructed();
+        // Set the default size
+        self.size.set(10);
+    }
+
     fn properties() -> &'static [ParamSpec] {
         static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
             vec![

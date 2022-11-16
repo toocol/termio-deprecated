@@ -44,6 +44,7 @@ macro_rules! load_font {
      };
 }
 
+#[macro_export]
 macro_rules! remove_font {
     () => {};
     ( $($x:expr),* ) => {
