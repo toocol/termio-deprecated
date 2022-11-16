@@ -147,8 +147,8 @@ impl NewSessionDialog {
                 shown_name.push_str(host.as_str());
                 shown_name.push_str("@");
                 shown_name.push_str(username.as_str());
-                window.with_session_credential_management(|manager| {
-                    manager.add_session_credential(
+                window.with_session_credential_management(|management| {
+                    management.add_session_credential(
                         shown_name.as_str(), 
                         host.as_str(), 
                         username.as_str(), 

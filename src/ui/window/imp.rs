@@ -2,16 +2,14 @@ use core::SessionCredential;
 use std::fs::File;
 
 use gtk::{
-    glib::{self, once_cell::sync::OnceCell, subclass::InitializingObject},
+    glib::{self, once_cell::sync::OnceCell, subclass::InitializingObject, clone},
     prelude::*,
     subclass::prelude::{ObjectSubclass, *},
     Button, CompositeTemplate, Inhibit, Overlay, Paned, ScrolledWindow,
 };
 
 use crate::{
-    ui::{
-        terminal::NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree,
-    },
+    ui::{terminal::NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree},
     util::data_path,
 };
 use log::debug;
@@ -64,9 +62,17 @@ impl ObjectImpl for TermioCommunityWindow {
 
         self.workspace_paned.set_shrink_start_child(false);
         self.workspace_paned.set_shrink_end_child(false);
-        self.workspace_paned.set_resize_start_child(true);
+        self.workspace_paned.set_resize_start_child(false);
         self.workspace_paned.set_resize_end_child(true);
         self.workspace_paned.set_position(230);
+
+        let terminal_window = &*self.workspace_terminal_scrolled_window;
+        let terminal_emulator = &*self.native_terminal_emulator;
+        self.workspace_paned
+            .connect_position_notify(clone!(@weak terminal_window, @weak terminal_emulator => move |_| {
+                let allocation = terminal_window.allocation();
+                terminal_emulator.resize(allocation.width(), allocation.height());
+            }));
 
         self.session_credential_management
             .setup_callbacks(obj.as_ref());
@@ -78,13 +84,10 @@ impl WidgetImpl for TermioCommunityWindow {
         self.parent_size_allocate(width, height, baseline);
 
         let allocation = self
-            .instance()
-            .imp()
             .workspace_terminal_scrolled_window
             .allocation();
         self.native_terminal_emulator
             .resize(allocation.width(), allocation.height());
-        // debug!("Window size allocate! w: {}, h: {}, baseline: {}", allocation.width(), allocation.height(), baseline);
     }
 }
 

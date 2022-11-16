@@ -28,8 +28,8 @@ windowcontrols>button {
 }
 
 .new-session-button {
-    min-height: 20px;
-    min-width: 20px;
+    min-height: 10px;
+    min-width: 10px;
 }
 
 windowcontrols>button.close:hover {
