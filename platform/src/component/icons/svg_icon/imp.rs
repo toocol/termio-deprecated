@@ -8,7 +8,7 @@ use gtk::{
     Image,
 };
 
-const PATH_PREFIX: &str = "svg/";
+const PATH_PREFIX: &str = "svg";
 
 #[derive(Default)]
 pub struct SvgIcon {
@@ -18,17 +18,25 @@ pub struct SvgIcon {
 
 impl SvgIcon {
     pub fn initialize_image(&self) {
-        let mut path_prefix = PATH_PREFIX.to_string();
-        path_prefix.push_str(
+        let mut abs_path =
+            std::env::current_dir().expect("`initialize_image` get current .exe directory failed.");
+        abs_path.push("target");
+        abs_path.push("debug");
+        abs_path.push(PATH_PREFIX);
+        abs_path.push(
             self.svg
                 .borrow()
                 .as_ref()
-                .expect("`svg` of SvgIcon is None.")
-                .as_str(),
+                .expect("`svg` of SvgIcon is None."),
         );
-        path_prefix.push_str(".svg");
-        let pixbuf = Pixbuf::from_file(path_prefix.as_str())
-            .expect(format!("load svg file failed, {}", path_prefix).as_str());
+
+        let pixbuf = Pixbuf::from_file(abs_path.as_path()).expect(
+            format!(
+                "load svg file failed, {}",
+                abs_path.to_str().expect("`abs_path` format error.")
+            )
+            .as_str(),
+        );
         let image = Image::from_pixbuf(Some(&pixbuf));
         self.image.borrow_mut().replace(image);
     }
@@ -51,9 +59,10 @@ impl ObjectImpl for SvgIcon {
     fn set_property(&self, _id: usize, value: &Value, pspec: &ParamSpec) {
         match pspec.name() {
             "svg" => {
-                let input_value = value
+                let mut input_value: String = value
                     .get()
                     .expect("The value needs to be of type `String`.");
+                input_value.push_str(".svg");
                 self.svg.borrow_mut().replace(input_value);
             }
             _ => unimplemented!(),
