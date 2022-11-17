@@ -59,6 +59,7 @@
                                         <style>
                                             <class name="workspace-left-side-bar-box" />
                                         </style>
+                                        <!-- <GtkBox> Wrap box of reate new session button -->
                                         <child>
                                             <object class="GtkBox" id="create_new_session_button_wrap_box">
                                                 <property name="width-request">10</property>
@@ -87,7 +88,16 @@
                                             </object>
                                         </child>
                                         <child>
-                                            <object class="IconButton" id="icon_button"></object>
+                                            <object class="IconButton" id="font_icon_button">
+                                                <property name="code">E72E</property>
+                                                <property name="icon-type">Segoe MDL2</property>
+                                            </object>
+                                        </child>
+                                        <child>
+                                            <object class="IconButton" id="svg_icon_button">
+                                                <property name="svg">comments-regular</property>
+                                                <property name="icon-type">Svg</property>
+                                            </object>
                                         </child>
                                         <!-- <GtkScrolledWindow> Session management scrolled window -->
                                         <child>
