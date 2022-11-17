@@ -30,7 +30,9 @@ fn main() {
     load_font!(
         "Font-Awesome-6-Brands-Regular-400.otf",
         "Font-Awesome-6-Free-Regular-400.otf",
-        "Font-Awesome-6-Free-Solid-900.otf"
+        "Font-Awesome-6-Free-Solid-900.otf",
+        "SegMDL2.ttf",
+        "Segoe-Fluent-Icons.ttf"
     );
 
     // Create a new application.

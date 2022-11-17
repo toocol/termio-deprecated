@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use gtk::{glib, prelude::Cast, subclass::prelude::*, traits::WidgetExt};
+use gtk::{glib, subclass::prelude::*, traits::WidgetExt};
 use log::info;
 use platform::native_node::{NativeNodeImpl, NativeNodeObject};
 
@@ -27,7 +27,7 @@ impl ObjectSubclass for NativeTerminalEmulator {
     type ParentType = gtk::Widget;
 
     fn class_init(klass: &mut Self::Class) {
-        // klass.set_layout_manager_type::<gtk::BoxLayout>();
+        // klass.set_layout_manager_type::<gtk::BinLayout>();
         klass.set_layout_manager_type::<gtk::BinLayout>();
     }
 }
@@ -36,13 +36,6 @@ impl ObjectImpl for NativeTerminalEmulator {
     fn constructed(&self) {
         self.parent_constructed();
         self.instance().setup_callbakcs();
-
-        let _layout = self
-            .instance()
-            .layout_manager()
-            .unwrap()
-            .downcast::<gtk::BinLayout>()
-            .unwrap();
 
         self.native_node_object.borrow().set_verbose(true);
         self.native_node_object.borrow().set_hibpi_aware(true);

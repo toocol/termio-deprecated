@@ -16,7 +16,7 @@ use crate::{
     util::data_path,
 };
 use log::debug;
-use platform::{remove_font, IconButton, SessionCredentialObject};
+use platform::{IconButton, SessionCredentialObject};
 
 #[derive(Default, CompositeTemplate)]
 #[template(resource = "/com/toocol/termio/community/window.ui")]
@@ -26,7 +26,9 @@ pub struct TermioCommunityWindow {
     #[template_child]
     pub session_management_title_bar: TemplateChild<WidgetTitleBar>,
     #[template_child]
-    pub icon_button: TemplateChild<IconButton>,
+    pub svg_icon_button: TemplateChild<IconButton>,
+    #[template_child]
+    pub font_icon_button: TemplateChild<IconButton>,
     #[template_child]
     pub session_credential_management: TemplateChild<SessionCredentialManagementTree>,
     #[template_child]
@@ -108,12 +110,6 @@ impl WindowImpl for TermioCommunityWindow {
         // Save state to file
         let file = File::create(data_path(".credential")).expect("Could not create json file.");
         serde_json::to_writer(file, &backup_data).expect("Could not write data to json file.");
-
-        remove_font!(
-            "Font-Awesome-6-Brands-Regular-400.otf",
-            "Font-Awesome-6-Free-Regular-400.otf",
-            "Font-Awesome-6-Free-Solid-900.otf"
-        );
 
         self.parent_close_request()
     }
