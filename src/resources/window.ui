@@ -83,20 +83,28 @@
                                                 <child>
                                                     <object class="WidgetTitleBar" id="session_management_title_bar">
                                                         <property name="hexpand">true</property>
+                                                        <property name="label">SESSION MANAGEMENT</property>
+                                                        <property name="label-font-desc">Consolas</property>
                                                     </object>
                                                 </child>
                                             </object>
                                         </child>
                                         <child>
                                             <object class="IconButton" id="font_icon_button">
-                                                <property name="code">E72E</property>
                                                 <property name="icon-type">Segoe MDL2</property>
+                                                <property name="code">E72E</property>
+                                            </object>
+                                        </child>
+                                        <child>
+                                            <object class="IconButton" id="gtk_icon_button">
+                                                <property name="icon-type">Gtk</property>
+                                                <property name="icon-name">list-add-symbolic</property>
                                             </object>
                                         </child>
                                         <child>
                                             <object class="IconButton" id="svg_icon_button">
-                                                <property name="svg">comments-regular</property>
                                                 <property name="icon-type">Svg</property>
+                                                <property name="icon-name">comments-regular</property>
                                             </object>
                                         </child>
                                         <!-- <GtkScrolledWindow> Session management scrolled window -->

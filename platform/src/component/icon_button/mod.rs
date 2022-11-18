@@ -9,6 +9,7 @@ pub const ICON_TYPE_FONT_AWESOME_FREE_REGULAR: &str = "Font Awesome Free Regular
 pub const ICON_TYPE_FONT_AWESOME_FREE_SOLID: &str = "Font Awesome Free Solid";
 pub const ICON_TYPE_FONT_AWESOME_BRANDS: &str = "Font Awesome Brands";
 pub const ICON_TYPE_SVG: &str = "Svg";
+pub const ICON_TYPE_GTK: &str = "Gtk";
 
 glib::wrapper! {
     pub struct IconButton(ObjectSubclass<imp::IconButton>)
@@ -32,6 +33,7 @@ pub enum IconType {
     FontAwesomeFreeSolid,
     FontAwesomeBrands,
     Svg,
+    Gtk,
 }
 
 impl IconType {
@@ -43,6 +45,7 @@ impl IconType {
             ICON_TYPE_FONT_AWESOME_FREE_SOLID => Self::FontAwesomeFreeSolid,
             ICON_TYPE_FONT_AWESOME_BRANDS => Self::FontAwesomeBrands,
             ICON_TYPE_SVG => Self::Svg,
+            ICON_TYPE_GTK => Self::Gtk,
             _ => panic!("Unrecorderlize icon type: {}", icon_type),
         }
     }
@@ -55,6 +58,7 @@ impl IconType {
             Self::FontAwesomeFreeSolid => ICON_TYPE_FONT_AWESOME_FREE_SOLID,
             Self::FontAwesomeBrands => ICON_TYPE_FONT_AWESOME_BRANDS,
             Self::Svg => ICON_TYPE_SVG,
+            Self::Gtk => ICON_TYPE_SVG,
         }
     }
 
@@ -66,6 +70,7 @@ impl IconType {
             Self::FontAwesomeFreeSolid => 3,
             Self::FontAwesomeBrands => 4,
             Self::Svg => 5,
+            Self::Gtk => 6,
         }
     }
 }

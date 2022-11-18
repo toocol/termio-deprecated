@@ -9,14 +9,11 @@ use gtk::{
 };
 
 use crate::{
-    ui::{
-        terminal::NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree,
-        WidgetTitleBar,
-    },
+    ui::{terminal::NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree},
     util::data_path,
 };
 use log::debug;
-use platform::{IconButton, SessionCredentialObject};
+use platform::{SessionCredentialObject, WidgetTitleBar, IconButton};
 
 #[derive(Default, CompositeTemplate)]
 #[template(resource = "/com/toocol/termio/community/window.ui")]
@@ -26,10 +23,6 @@ pub struct TermioCommunityWindow {
     #[template_child]
     pub session_management_title_bar: TemplateChild<WidgetTitleBar>,
     #[template_child]
-    pub svg_icon_button: TemplateChild<IconButton>,
-    #[template_child]
-    pub font_icon_button: TemplateChild<IconButton>,
-    #[template_child]
     pub session_credential_management: TemplateChild<SessionCredentialManagementTree>,
     #[template_child]
     pub workspace_terminal_scrolled_window: TemplateChild<ScrolledWindow>,
@@ -37,6 +30,13 @@ pub struct TermioCommunityWindow {
     pub terminal_emulator_overlay: TemplateChild<Overlay>,
     #[template_child]
     pub native_terminal_emulator: TemplateChild<NativeTerminalEmulator>,
+
+    #[template_child]
+    pub font_icon_button: TemplateChild<IconButton>,
+    #[template_child]
+    pub gtk_icon_button: TemplateChild<IconButton>,
+    #[template_child]
+    pub svg_icon_button: TemplateChild<IconButton>,
 
     pub new_session_dialog: OnceCell<NewSessionDialog>,
 }
