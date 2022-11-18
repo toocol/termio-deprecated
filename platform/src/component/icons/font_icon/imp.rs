@@ -6,7 +6,7 @@ use gtk::{
     },
     prelude::*,
     subclass::prelude::*,
-    Label,
+    Label, Align,
 };
 use std::cell::{Cell, RefCell};
 
@@ -81,6 +81,8 @@ impl ObjectImpl for FontIcon {
         self.parent_constructed();
         // Set the default size
         self.size.set(10);
+        self.label.borrow().set_halign(Align::Center);
+        self.label.borrow().set_valign(Align::Center);
     }
 
     fn properties() -> &'static [ParamSpec] {

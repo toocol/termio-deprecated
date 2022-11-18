@@ -4,13 +4,14 @@ use gtk::{
     glib::{
         self,
         once_cell::sync::{Lazy, OnceCell},
-        ParamSpec, ParamSpecString, Value,
+        ParamSpec, ParamSpecString, Value, clone
     },
     prelude::*,
-    subclass::prelude::*, Image,
+    subclass::prelude::*,
+    Align, Image,
 };
 
-use crate::{FontIcon, FontType, IconType, SvgIcon};
+use crate::{FontIcon, FontType, IconType, SvgIcon, GtkMouseButton};
 
 #[derive(Default)]
 pub struct IconButton {
@@ -98,7 +99,11 @@ impl IconButton {
             }
             Some(IconType::Gtk) => {
                 if let Some(icon_name) = self.icon_name.borrow().as_ref() {
-                    let icon = Image::builder().icon_name(icon_name).build();
+                    let icon = Image::builder()
+                        .halign(Align::Center)
+                        .valign(Align::Center)
+                        .icon_name(icon_name)
+                        .build();
                     icon.set_parent(&*self.instance());
                     self.gtk_icon.borrow_mut().replace(icon);
                     generated = true;
@@ -149,6 +154,19 @@ impl IconButton {
             Some(IconType::Svg) => {},
             Some(IconType::Gtk) => {},
         }
+    }
+
+    pub fn bind_action(&self, action_name: &str) {
+        let left_click_gesture = gtk::GestureClick::new();
+        left_click_gesture.set_button(GtkMouseButton::LEFT as u32);
+        let action_name = action_name.to_string();
+        left_click_gesture.connect_released(clone!(@weak self as button, @strong action_name => move |gesture, _, _, _| {
+            gesture.set_state(gtk::EventSequenceState::Claimed);
+            button.instance()
+                .activate_action(action_name.as_str(), None)
+                .expect(format!("Activate action `{}` failed.", action_name).as_str());
+        }));
+        self.instance().add_controller(&left_click_gesture);
     }
 }
 

@@ -34,17 +34,11 @@ impl FontIcon {
     }
 
     pub fn set_parent<T: IsA<Widget>>(&self, parent: &T) {
-        self.imp()
-            .label
-            .borrow()
-            .set_parent(parent)
+        self.imp().label.borrow().set_parent(parent)
     }
 
     pub fn unparent(&self) {
-        self.imp()
-            .label
-            .borrow()
-            .unparent()
+        self.imp().label.borrow().unparent()
     }
 }
 

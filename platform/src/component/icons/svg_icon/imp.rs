@@ -5,7 +5,7 @@ use gtk::{
     glib::{self, once_cell::sync::Lazy, ParamSpec, ParamSpecString, Value},
     prelude::*,
     subclass::prelude::*,
-    Image,
+    Image, Align,
 };
 
 const PATH_PREFIX: &str = "svg";
@@ -38,6 +38,8 @@ impl SvgIcon {
             .as_str(),
         );
         let image = Image::from_pixbuf(Some(&pixbuf));
+        image.set_halign(Align::Center);
+        image.set_valign(Align::Center);
         self.image.borrow_mut().replace(image);
     }
 }

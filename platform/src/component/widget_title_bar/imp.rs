@@ -7,6 +7,8 @@ use gtk::{
     Align, Label,
 };
 
+use crate::{ControlIconButton, IconButton};
+
 #[derive(Default)]
 pub struct WidgetTitleBar {
     left_box: RefCell<gtk::Box>,
@@ -104,26 +106,6 @@ impl ObjectImpl for WidgetTitleBar {
             .build();
         left_box.append(&label);
         self.label.borrow_mut().replace(label);
-
-        let button_add_box = gtk::Box::builder()
-            .width_request(5)
-            .height_request(5)
-            .build();
-        let button_add = gtk::Button::builder()
-            .icon_name("list-add-symbolic")
-            .tooltip_text("Button add Tooltip")
-            .halign(Align::Center)
-            .build();
-        let button_minus = gtk::Button::builder()
-            .icon_name("list-remove-symbolic")
-            .tooltip_text("Button add Tooltip")
-            .halign(Align::Center)
-            .build();
-        button_add.add_css_class("widget-title-control-button");
-        button_minus.add_css_class("widget-title-control-button");
-        button_add_box.append(&button_add);
-        button_add_box.append(&button_minus);
-        right_box.append(&button_add_box);
     }
 
     fn dispose(&self) {
@@ -173,6 +155,28 @@ impl ObjectImpl for WidgetTitleBar {
                     .expect("The value needs to be of type `String`.");
                 self.label_italic.set(input_value);
                 self.label_change();
+            }
+            "control-icon-buttons" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+
+                let control_icon_buttos: Vec<ControlIconButton> = serde_json::from_str(input_value)
+                    .expect("Serialize `control-icon-buttons` json config failed, please check the .ui template");
+
+                let icon_buttons: Vec<IconButton> = control_icon_buttos.iter()
+                    .map(ControlIconButton::to_icon_button)
+                    .collect();
+
+                icon_buttons.iter().for_each(|icon_button| {
+                    let wrap_box = gtk::Box::builder()
+                        .width_request(5)
+                        .height_request(5)
+                        .build();
+                    icon_button.add_css_class("widget-title-control-button");
+                    wrap_box.append(icon_button);
+                    self.right_box.borrow().append(&wrap_box);
+                })
             }
             _ => unimplemented!(),
         }

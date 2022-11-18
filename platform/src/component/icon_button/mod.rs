@@ -1,7 +1,7 @@
 mod imp;
 
 use glib::Object;
-use gtk::glib;
+use gtk::{glib, prelude::*, subclass::prelude::*};
 
 pub const ICON_TYPE_SEGOE_MDL2: &str = "Segoe MDL2";
 pub const ICON_TYPE_SEGOE_FLUENT: &str = "Segoe Fluent";
@@ -18,8 +18,42 @@ glib::wrapper! {
 }
 
 impl IconButton {
-    pub fn new() -> Self {
-        Object::builder().build()
+    pub fn new(
+        icon_type: &str,
+        code: &Option<String>,
+        icon_name: &Option<String>,
+        tooltip: &Option<String>,
+        action_name: &Option<String>,
+    ) -> Self {
+        let mut has_tooltip = false;
+        let mut builder = Object::builder();
+        builder = builder.property("icon-type", icon_type);
+
+        if let Some(code) = code.as_deref() {
+            builder = builder.property("code", code);
+        }
+
+        if let Some(icon_name) = icon_name.as_deref() {
+            builder = builder.property("icon-name", icon_name);
+        }
+
+        if let Some(_) = tooltip.as_deref() {
+            builder = builder.property("has-tooltip", true);
+            has_tooltip = true;
+        }
+
+        let icon_button: IconButton = builder.build();
+
+        if let Some(action_name) = action_name.as_deref() {
+            icon_button.imp().bind_action(action_name);
+        }
+
+        if has_tooltip {
+            icon_button.update_property(&[gtk::accessible::Property::Placeholder(
+                tooltip.as_deref().unwrap(),
+            )]);
+        }
+        icon_button
     }
 }
 

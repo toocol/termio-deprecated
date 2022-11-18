@@ -66,25 +66,28 @@
                                                 <property name="height-request">10</property>
                                                 <property name="vexpand">false</property>
                                                 <property name="hexpand">false</property>
-                                                <!-- <GtkButton> Create new session button -->
-                                                <!-- <child>
-                                                    <object class="GtkButton" id="create_new_session_button">
-                                                        <property name="icon-name">list-add-symbolic</property>
-                                                        <property name="tooltip-text" translatable="yes">Create new session</property>
-                                                        <property name="action-name">win.new-session-credential</property>
-                                                        <property name="margin-top">5</property>
-                                                        <property name="margin-start">10</property>
-                                                        <property name="margin-end">10</property>
-                                                        <style>
-                                                            <class name="new-session-button" />
-                                                        </style>
-                                                    </object>
-                                                </child> -->
+                                                <!-- <WidgetTitleBar> Session management title bar -->
                                                 <child>
                                                     <object class="WidgetTitleBar" id="session_management_title_bar">
                                                         <property name="hexpand">true</property>
                                                         <property name="label">SESSION MANAGEMENT</property>
                                                         <property name="label-font-desc">Consolas</property>
+                                                        <property name="control-icon-buttons">
+                                                            [
+                                                                {
+                                                                    "icon_type": "Gtk",
+                                                                    "icon_name": "list-add-symbolic",
+                                                                    "tooltip": "Create a new remote session.",
+                                                                    "action_name": "win.new-session-credential"
+                                                                },
+                                                                {
+                                                                    "icon_type": "Gtk",
+                                                                    "icon_name": "list-remove-symbolic",
+                                                                    "tooltip": "Minimize session management panel.",
+                                                                    "action_name": "win.hide-session-management"
+                                                                }
+                                                            ]
+                                                        </property>
                                                     </object>
                                                 </child>
                                             </object>
