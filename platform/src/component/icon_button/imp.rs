@@ -4,20 +4,22 @@ use gtk::{
     glib::{
         self,
         once_cell::sync::{Lazy, OnceCell},
-        ParamSpec, ParamSpecString, Value,
+        ParamSpec, ParamSpecString, Value, clone
     },
     prelude::*,
     subclass::prelude::*,
+    Align, Image,
 };
 
-use crate::{FontIcon, FontType, IconType, SvgIcon};
+use crate::{FontIcon, FontType, IconType, SvgIcon, GtkMouseButton};
 
 #[derive(Default)]
 pub struct IconButton {
     pub font_icon: RefCell<Option<FontIcon>>,
     pub svg_icon: RefCell<Option<SvgIcon>>,
+    pub gtk_icon: RefCell<Option<Image>>,
     pub code: RefCell<Option<String>>,
-    pub svg: RefCell<Option<String>>,
+    pub icon_name: RefCell<Option<String>>,
     pub icon_size: Cell<i32>,
     pub icon_type: OnceCell<IconType>,
 }
@@ -44,6 +46,7 @@ impl ObjectSubclass for IconButton {
 
 impl IconButton {
     pub fn property_change(&self) {
+        let mut generated = false;
         match self.icon_type.get() {
             None => return,
             Some(IconType::SegoeMDL2) => {
@@ -51,6 +54,7 @@ impl IconButton {
                     let icon = FontIcon::new(code, FontType::SegoeMDL2);
                     icon.set_parent(&*self.instance());
                     self.font_icon.borrow_mut().replace(icon);
+                    generated = true;
                 }
             }
             Some(IconType::SegoeFluent) => {
@@ -58,6 +62,7 @@ impl IconButton {
                     let icon = FontIcon::new(code, FontType::SegoeFluent);
                     icon.set_parent(&*self.instance());
                     self.font_icon.borrow_mut().replace(icon);
+                    generated = true;
                 }
             }
             Some(IconType::FontAwesomeFreeRegular) => {
@@ -65,6 +70,7 @@ impl IconButton {
                     let icon = FontIcon::new(code, FontType::FontAwesomeFreeRegular);
                     icon.set_parent(&*self.instance());
                     self.font_icon.borrow_mut().replace(icon);
+                    generated = true;
                 }
             }
             Some(IconType::FontAwesomeFreeSolid) => {
@@ -72,6 +78,7 @@ impl IconButton {
                     let icon = FontIcon::new(code, FontType::FontAwesomeFreeSolid);
                     icon.set_parent(&*self.instance());
                     self.font_icon.borrow_mut().replace(icon);
+                    generated = true;
                 }
             }
             Some(IconType::FontAwesomeBrands) => {
@@ -79,17 +86,33 @@ impl IconButton {
                     let icon = FontIcon::new(code, FontType::FontAwesomeBrands);
                     icon.set_parent(&*self.instance());
                     self.font_icon.borrow_mut().replace(icon);
+                    generated = true;
                 }
             }
             Some(IconType::Svg) => {
-                if let Some(svg) = self.svg.borrow().as_ref() {
-                    let icon = SvgIcon::new(svg);
+                if let Some(icon_name) = self.icon_name.borrow().as_ref() {
+                    let icon = SvgIcon::new(icon_name);
                     icon.set_parent(&*self.instance());
                     self.svg_icon.borrow_mut().replace(icon);
+                    generated = true;
+                }
+            }
+            Some(IconType::Gtk) => {
+                if let Some(icon_name) = self.icon_name.borrow().as_ref() {
+                    let icon = Image::builder()
+                        .halign(Align::Center)
+                        .valign(Align::Center)
+                        .icon_name(icon_name)
+                        .build();
+                    icon.set_parent(&*self.instance());
+                    self.gtk_icon.borrow_mut().replace(icon);
+                    generated = true;
                 }
             }
         }
-        self.size_change();
+        if generated {
+            self.size_change()
+        }
     }
 
     pub fn size_change(&self) {
@@ -128,8 +151,22 @@ impl IconButton {
                 .as_ref()
                 .expect("`font_awesome_icon` should not be None when IconButton icon type is `FontAwesomeBrands`")
                 .set_size(size),
-            Some(IconType::Svg) => {}
+            Some(IconType::Svg) => {},
+            Some(IconType::Gtk) => {},
         }
+    }
+
+    pub fn bind_action(&self, action_name: &str) {
+        let left_click_gesture = gtk::GestureClick::new();
+        left_click_gesture.set_button(GtkMouseButton::LEFT as u32);
+        let action_name = action_name.to_string();
+        left_click_gesture.connect_released(clone!(@weak self as button, @strong action_name => move |gesture, _, _, _| {
+            gesture.set_state(gtk::EventSequenceState::Claimed);
+            button.instance()
+                .activate_action(action_name.as_str(), None)
+                .expect(format!("Activate action `{}` failed.", action_name).as_str());
+        }));
+        self.instance().add_controller(&left_click_gesture);
     }
 }
 
@@ -147,13 +184,16 @@ impl ObjectImpl for IconButton {
         if let Some(icon) = self.svg_icon.take() {
             icon.unparent();
         }
+        if let Some(icon) = self.gtk_icon.take() {
+            icon.unparent();
+        }
     }
 
     fn properties() -> &'static [ParamSpec] {
         static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
             vec![
                 ParamSpecString::builder("code").build(),
-                ParamSpecString::builder("svg").build(),
+                ParamSpecString::builder("icon-name").build(),
                 ParamSpecString::builder("icon-type").build(),
                 ParamSpecString::builder("icon-size").build(),
             ]
@@ -170,11 +210,11 @@ impl ObjectImpl for IconButton {
                 self.code.borrow_mut().replace(input_value);
                 self.property_change();
             }
-            "svg" => {
+            "icon-name" => {
                 let input_value = value
                     .get()
                     .expect("The value needs to be of type `String`.");
-                self.svg.borrow_mut().replace(input_value);
+                self.icon_name.borrow_mut().replace(input_value);
                 self.property_change();
             }
             "icon-type" => {
@@ -197,7 +237,7 @@ impl ObjectImpl for IconButton {
                 Some(code) => code.to_value(),
                 None => "".to_value(),
             },
-            "svg" => match self.svg.borrow().as_deref() {
+            "icon-name" => match self.icon_name.borrow().as_deref() {
                 Some(svg) => svg.to_value(),
                 None => "".to_value(),
             },
