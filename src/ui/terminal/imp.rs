@@ -1,7 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
 use gtk::{glib, subclass::prelude::*, traits::WidgetExt};
-use log::info;
 use platform::native_node::{NativeNodeImpl, NativeNodeObject};
 
 pub struct NativeTerminalEmulator {
@@ -46,7 +45,6 @@ impl ObjectImpl for NativeTerminalEmulator {
             .borrow()
             .set_parent(self.instance().as_ref());
         self.connect();
-        info!("NativeTerminalEmulator constructed.")
     }
 
     fn dispose(&self) {

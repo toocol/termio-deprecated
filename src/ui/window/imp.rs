@@ -9,7 +9,7 @@ use gtk::{
 };
 
 use crate::{
-    ui::{terminal::NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree},
+    ui::{terminal::NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree, WorkspaceActivityBar},
     util::data_path,
 };
 use log::debug;
@@ -22,7 +22,7 @@ pub struct TermioCommunityWindow {
     #[template_child]
     pub workspace_paned: TemplateChild<Paned>,
     #[template_child]
-    pub workspace_activity_bar: TemplateChild<gtk::Box>,
+    pub workspace_activity_bar: TemplateChild<WorkspaceActivityBar>,
     #[template_child]
     pub workspace_left_side_bar: TemplateChild<Stack>,
 

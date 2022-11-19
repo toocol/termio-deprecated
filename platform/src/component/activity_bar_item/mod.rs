@@ -19,3 +19,25 @@ impl ActivityBarItem {
         item
     }
 }
+
+#[repr(u8)]
+#[derive(Default, Debug, Clone, Copy)]
+pub enum ItemStatus {
+    #[default]
+    Off = 0,
+    On 
+}
+
+impl ItemStatus {
+    pub fn to_u8(self) -> u8 {
+        self as u8
+    }
+
+    pub fn from_u8(u: u8) -> ItemStatus {
+        match u {
+            0 => Self::Off,
+            1 => Self::On,
+            _ => unimplemented!()
+        }
+    }
+}

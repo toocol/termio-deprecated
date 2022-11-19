@@ -20,11 +20,26 @@
                         <property name="orientation">horizontal</property>
                         <!-- <GtkBox> workspace activity bar -->
                         <child>
-                            <object class="GtkBox" id="workspace_activity_bar">
-                                <property name="orientation">vertical</property>
+                            <object class="WorkspaceActivityBar" id="workspace_activity_bar">
                                 <property name="vexpand">true</property>
                                 <property name="hexpand">false</property>
                                 <property name="width-request">30</property>
+                                <property name="top-box">
+                                    [
+                                        {
+                                            "icon_name": "compass-regular",
+                                            "action_name": "win.toggle-session-management-panel"
+                                        }
+                                    ]
+                                </property>
+                                <property name="bottom-box">
+                                    [
+                                        {
+                                            "icon_name": "gear-solid",
+                                            "action_name": "win.toggle-setting-panel"
+                                        }
+                                    ]
+                                </property>
                             </object>
                         </child>
                         <child>
@@ -55,6 +70,7 @@
                                                 <property name="vexpand">true</property>
                                                 <property name="hexpand">true</property>
                                                 <property name="spacing">5</property>
+                                                <property name="visible">true</property>
                                                 <!-- <WidgetTitleBar> Session management title bar -->
                                                 <child>
                                                     <object class="WidgetTitleBar" id="session_management_title_bar">

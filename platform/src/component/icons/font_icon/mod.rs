@@ -13,7 +13,7 @@ impl FontIcon {
         icon.imp()
             .font_type
             .set(font_type)
-            .expect("`font_type` of SegoeFontIcon can only set once.");
+            .expect("`font_type` of FontIcon can only set once.");
         icon.imp().attribute_change();
         icon
     }
