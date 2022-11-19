@@ -5,7 +5,7 @@ use gtk::{
     glib::{self, clone, once_cell::sync::OnceCell, subclass::InitializingObject},
     prelude::*,
     subclass::prelude::{ObjectSubclass, *},
-    CompositeTemplate, Inhibit, Overlay, Paned, ScrolledWindow,
+    CompositeTemplate, Inhibit, Overlay, Paned, ScrolledWindow, Stack,
 };
 
 use crate::{
@@ -13,30 +13,34 @@ use crate::{
     util::data_path,
 };
 use log::debug;
-use platform::{SessionCredentialObject, WidgetTitleBar, IconButton};
+use platform::{SessionCredentialObject, WidgetTitleBar};
 
 #[derive(Default, CompositeTemplate)]
 #[template(resource = "/com/toocol/termio/community/window.ui")]
 pub struct TermioCommunityWindow {
+    //// Main layout
     #[template_child]
     pub workspace_paned: TemplateChild<Paned>,
+    #[template_child]
+    pub workspace_activity_bar: TemplateChild<gtk::Box>,
+    #[template_child]
+    pub workspace_left_side_bar: TemplateChild<Stack>,
+
+    //// Session credential management
+    #[template_child]
+    pub session_manageent_wrap_box: TemplateChild<gtk::Box>,
     #[template_child]
     pub session_management_title_bar: TemplateChild<WidgetTitleBar>,
     #[template_child]
     pub session_credential_management: TemplateChild<SessionCredentialManagementTree>,
+
+    //// Native teminal emulator
     #[template_child]
     pub workspace_terminal_scrolled_window: TemplateChild<ScrolledWindow>,
     #[template_child]
     pub terminal_emulator_overlay: TemplateChild<Overlay>,
     #[template_child]
     pub native_terminal_emulator: TemplateChild<NativeTerminalEmulator>,
-
-    #[template_child]
-    pub font_icon_button: TemplateChild<IconButton>,
-    #[template_child]
-    pub gtk_icon_button: TemplateChild<IconButton>,
-    #[template_child]
-    pub svg_icon_button: TemplateChild<IconButton>,
 
     pub new_session_dialog: OnceCell<NewSessionDialog>,
 }

@@ -37,15 +37,26 @@ impl TermioCommunityWindow {
     pub fn setup_actions(&self) {
         // Create `new-session-credential` action.
         let action_new_session_credential = SimpleAction::new("new-session-credential", None);
-        action_new_session_credential.connect_activate(clone!(@weak self as scmt => move |_, _| {
-            scmt
-                .imp()
+        action_new_session_credential.connect_activate(clone!(@weak self as window => move |_, _| {
+            window.imp()
                 .new_session_dialog
                 .get()
                 .expect("`new_session_dialog` of `TermioCommunityWindow` must initialized first before use.")
                 .show_dialog();
         }));
         self.add_action(&action_new_session_credential);
+
+        let action_hide_left_side_bar = SimpleAction::new("hide-left-side-bar", None);
+        action_hide_left_side_bar.connect_activate(clone!(@weak self as window => move |_, _| {
+            window.imp().workspace_left_side_bar.hide();
+            let allocation = window.imp()
+                .workspace_terminal_scrolled_window
+                .allocation();
+            window.imp()
+                .native_terminal_emulator
+                .resize(allocation.width(), allocation.height());
+        }));
+        self.add_action(&action_hide_left_side_bar);
     }
 
     pub fn resotre_data(&self) {

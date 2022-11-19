@@ -7,7 +7,7 @@ use gtk::{
     Align, Label,
 };
 
-use crate::{ControlIconButton, IconButton};
+use crate::{IconButton, IconButtonJsonObject};
 
 #[derive(Default)]
 pub struct WidgetTitleBar {
@@ -86,16 +86,19 @@ impl ObjectImpl for WidgetTitleBar {
 
         let left_box = self.left_box.borrow();
         let right_box = self.right_box.borrow();
-        left_box.add_css_class("left-box");
-        right_box.add_css_class("right-box");
 
         left_box.set_parent(&*obj);
         right_box.set_parent(&*obj);
 
+        left_box.add_css_class("left-box");
+        right_box.add_css_class("right-box");
+
         left_box.set_halign(Align::Start);
         right_box.set_halign(Align::End);
+
         left_box.set_orientation(gtk::Orientation::Horizontal);
         right_box.set_orientation(gtk::Orientation::Horizontal);
+
         left_box.set_hexpand(false);
         right_box.set_hexpand(false);
 
@@ -161,11 +164,12 @@ impl ObjectImpl for WidgetTitleBar {
                     .get()
                     .expect("The value needs to be of type `String`.");
 
-                let control_icon_buttos: Vec<ControlIconButton> = serde_json::from_str(input_value)
+                let icon_button_json_objects: Vec<IconButtonJsonObject> = serde_json::from_str(input_value)
                     .expect("Serialize `control-icon-buttons` json config failed, please check the .ui template");
 
-                let icon_buttons: Vec<IconButton> = control_icon_buttos.iter()
-                    .map(ControlIconButton::to_icon_button)
+                let icon_buttons: Vec<IconButton> = icon_button_json_objects
+                    .iter()
+                    .map(IconButtonJsonObject::to_icon_button)
                     .collect();
 
                 icon_buttons.iter().for_each(|icon_button| {
