@@ -19,7 +19,7 @@ impl WidgetTitleBar {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct ControlIconButton {
+pub struct IconButtonJsonObject {
     pub icon_type: String,
     pub code: Option<String>,
     pub icon_name: Option<String>,
@@ -27,7 +27,7 @@ pub struct ControlIconButton {
     pub action_name: Option<String>,
 }
 
-impl ControlIconButton {
+impl IconButtonJsonObject {
     pub fn to_icon_button(&self) -> IconButton {
         IconButton::new(
             &self.icon_type,

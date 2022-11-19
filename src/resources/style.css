@@ -1,3 +1,4 @@
+/* App title bar */
 headerbar entry,
 headerbar spinbutton,
 headerbar button,
@@ -6,7 +7,6 @@ headerbar separator {
     /* same as headerbar side padding for nicer proportions */
     margin-bottom: 0px;
 }
-
 headerbar {
     min-height: 15px;
     padding-left: 2px;
@@ -17,7 +17,6 @@ headerbar {
     padding: 0px;
     font-size: 9pt;
 }
-
 windowcontrols>button {
     min-height: 15px;
     min-width: 15px;
@@ -26,36 +25,41 @@ windowcontrols>button {
     margin-bottom: 2px;
     margin-right: 2px;
 }
-
-.new-session-button {
-    min-height: 10px;
-    min-width: 10px;
-}
-
 windowcontrols>button.close:hover {
     background-color: #cd3333;
     color: white;
 }
 
+/* Native terminal emulator */
 .workspace-terminal-window {
     background-color: #151515;
 }
 
+/* Widget title bar */
 .widget-title-bar {
     border-width: 0 0 1px 0;
     border-color: #dedede;
     border-style: solid;
 }
-
 .widget-title-bar .widget-title-control-button {
     min-height: 10px;
     min-width: 10px;
     border-color: transparent;
     padding: 2px 2px 2px 2px;
 }
-
 .widget-title-bar .left-box {
     border-width: 0 1px 0 0;
     border-color: #dedede;
     border-style: solid;
+}
+
+/* Activity bar */
+.activity-bar-item-on{
+    border-width: 0 0 0 2px;
+    border-color: #b9e0ff;
+    border-style: solid;
+    border-width: 2px;
+}
+.activity-bar-item-off{
+    border-width: 0 0 0 0;
 }

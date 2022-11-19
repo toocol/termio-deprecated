@@ -14,62 +14,68 @@
                 <style>
                     <class name="workbench-box" />
                 </style>
-                <!-- <GtkPaned> workspace paned -->
+                <!-- <GtkBox> workspace box -->
                 <child>
-                    <object class="GtkPaned" id="workspace_paned">
+                    <object class="GtkBox" id="workspace_box">
                         <property name="orientation">horizontal</property>
-                        <property name="vexpand">true</property>
-                        <property name="hexpand">true</property>
-                        <property name="focusable">true</property>
-                        <style>
-                            <class name="workspace-paned" />
-                        </style>
-                        <!-- <GtkBox> Left side bar -->
+                        <!-- <GtkBox> workspace activity bar -->
                         <child>
-                            <object class="GtkBox" id="left_side_bar">
+                            <object class="WorkspaceActivityBar" id="workspace_activity_bar">
+                                <property name="vexpand">true</property>
+                                <property name="hexpand">false</property>
+                                <property name="width-request">30</property>
+                                <property name="top-box">
+                                    [
+                                        {
+                                            "icon_name": "compass-regular",
+                                            "action_name": "win.toggle-session-management-panel"
+                                        }
+                                    ]
+                                </property>
+                                <property name="bottom-box">
+                                    [
+                                        {
+                                            "icon_name": "gear-solid",
+                                            "action_name": "win.toggle-setting-panel"
+                                        }
+                                    ]
+                                </property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSeparator"></object>
+                        </child>
+                        <!-- <GtkPaned> workspace paned -->
+                        <child>
+                            <object class="GtkPaned" id="workspace_paned">
                                 <property name="orientation">horizontal</property>
+                                <property name="vexpand">true</property>
+                                <property name="hexpand">true</property>
+                                <property name="focusable">true</property>
                                 <style>
-                                    <class name="left-side-bar" />
+                                    <class name="workspace-paned" />
                                 </style>
-                                <!-- <GtkBox> Workspace activity bar box -->
-                                <child>
-                                    <object class="GtkBox" id="workspace_activity_bar_box">
-                                        <property name="orientation">vertical</property>
-                                        <property name="homogeneous">false</property>
-                                        <property name="vexpand">true</property>
-                                        <property name="hexpand">false</property>
-                                        <property name="width-request">30</property>
-                                        <style>
-                                            <class name="workspace-activity-bar-box" />
-                                        </style>
-                                    </object>
-                                </child>
-                                <!-- <GtkSeparator> -->
-                                <child>
-                                    <object class="GtkSeparator"></object>
-                                </child>
                                 <!-- <GtkBox> Workspace left side bar box -->
                                 <child>
-                                    <object class="GtkBox" id="workspace_left_side_bar_box">
-                                        <property name="orientation">vertical</property>
+                                    <object class="GtkStack" id="workspace_left_side_bar">
                                         <property name="width-request">200</property>
                                         <property name="vexpand">true</property>
                                         <property name="hexpand">true</property>
-                                        <property name="spacing">5</property>
                                         <style>
-                                            <class name="workspace-left-side-bar-box" />
+                                            <class name="workspace-left-side-bar" />
                                         </style>
-                                        <!-- <GtkBox> Wrap box of reate new session button -->
                                         <child>
-                                            <object class="GtkBox" id="create_new_session_button_wrap_box">
-                                                <property name="width-request">10</property>
-                                                <property name="height-request">10</property>
-                                                <property name="vexpand">false</property>
-                                                <property name="hexpand">false</property>
+                                            <object class="GtkBox" id="session_manageent_wrap_box">
+                                                <property name="orientation">vertical</property>
+                                                <property name="vexpand">true</property>
+                                                <property name="hexpand">true</property>
+                                                <property name="spacing">5</property>
+                                                <property name="visible">true</property>
                                                 <!-- <WidgetTitleBar> Session management title bar -->
                                                 <child>
                                                     <object class="WidgetTitleBar" id="session_management_title_bar">
                                                         <property name="hexpand">true</property>
+                                                        <property name="vexpand">false</property>
                                                         <property name="label">SESSION MANAGEMENT</property>
                                                         <property name="label-font-desc">Consolas</property>
                                                         <property name="control-icon-buttons">
@@ -84,49 +90,31 @@
                                                                     "icon_type": "Gtk",
                                                                     "icon_name": "list-remove-symbolic",
                                                                     "tooltip": "Minimize session management panel.",
-                                                                    "action_name": "win.hide-session-management"
+                                                                    "action_name": "win.hide-left-side-bar"
                                                                 }
                                                             ]
                                                         </property>
                                                     </object>
                                                 </child>
-                                            </object>
-                                        </child>
-                                        <child>
-                                            <object class="IconButton" id="font_icon_button">
-                                                <property name="icon-type">Segoe MDL2</property>
-                                                <property name="code">E72E</property>
-                                            </object>
-                                        </child>
-                                        <child>
-                                            <object class="IconButton" id="gtk_icon_button">
-                                                <property name="icon-type">Gtk</property>
-                                                <property name="icon-name">list-add-symbolic</property>
-                                            </object>
-                                        </child>
-                                        <child>
-                                            <object class="IconButton" id="svg_icon_button">
-                                                <property name="icon-type">Svg</property>
-                                                <property name="icon-name">comments-regular</property>
-                                            </object>
-                                        </child>
-                                        <!-- <GtkScrolledWindow> Session management scrolled window -->
-                                        <child>
-                                            <object class="GtkScrolledWindow" id="session_management_scrolled_window">
-                                                <property name="name">session_management_scrolled_window</property>
-                                                <property name="hscrollbar-policy">GTK_POLICY_EXTERNAL</property>
-                                                <property name="vscrollbar-policy">GTK_POLICY_AUTOMATIC</property>
-                                                <property name="margin-top">10</property>
-                                                <property name="margin-bottom">10</property>
-                                                <property name="margin-start">5</property>
-                                                <property name="margin-end">5</property>
-                                                <property name="vexpand">true</property>
-                                                <property name="hexpand">true</property>
+                                                <!-- <GtkScrolledWindow> Session management scrolled window -->
                                                 <child>
-                                                    <object class="GtkOverlay" id="terminal_emulator_overlay">
+                                                    <object class="GtkScrolledWindow" id="session_management_scrolled_window">
+                                                        <property name="name">session_management_scrolled_window</property>
+                                                        <property name="hscrollbar-policy">GTK_POLICY_EXTERNAL</property>
+                                                        <property name="vscrollbar-policy">GTK_POLICY_AUTOMATIC</property>
+                                                        <property name="margin-top">10</property>
+                                                        <property name="margin-bottom">10</property>
+                                                        <property name="margin-start">5</property>
+                                                        <property name="margin-end">5</property>
+                                                        <property name="vexpand">true</property>
+                                                        <property name="hexpand">true</property>
                                                         <child>
-                                                            <object class="SessionCredentialManagementTree" id="session_credential_management">
-                                                                <property name="hexpand">false</property>
+                                                            <object class="GtkOverlay" id="terminal_emulator_overlay">
+                                                                <child>
+                                                                    <object class="SessionCredentialManagementTree" id="session_credential_management">
+                                                                        <property name="hexpand">false</property>
+                                                                    </object>
+                                                                </child>
                                                             </object>
                                                         </child>
                                                     </object>
@@ -135,24 +123,24 @@
                                         </child>
                                     </object>
                                 </child>
-                            </object>
-                        </child>
-                        <!-- <GtkScrolledWindow> Terminal scrolled window -->
-                        <child>
-                            <object class="GtkScrolledWindow" id="workspace_terminal_scrolled_window">
-                                <property name="name">terminal-scrolled-window</property>
-                                <property name="hscrollbar-policy">GTK_POLICY_EXTERNAL</property>
-                                <property name="vscrollbar-policy">GTK_POLICY_EXTERNAL</property>
-                                <property name="min-content-width">300</property>
-                                <property name="min-content-height">200</property>
-                                <property name="vexpand">true</property>
-                                <property name="hexpand">true</property>
-                                <property name="focusable">true</property>
-                                <style>
-                                    <class name="workspace-terminal-window" />
-                                </style>
+                                <!-- <GtkScrolledWindow> Terminal scrolled window -->
                                 <child>
-                                    <object class="NativeTerminalEmulator" id="native_terminal_emulator"></object>
+                                    <object class="GtkScrolledWindow" id="workspace_terminal_scrolled_window">
+                                        <property name="name">terminal-scrolled-window</property>
+                                        <property name="hscrollbar-policy">GTK_POLICY_EXTERNAL</property>
+                                        <property name="vscrollbar-policy">GTK_POLICY_EXTERNAL</property>
+                                        <property name="min-content-width">300</property>
+                                        <property name="min-content-height">200</property>
+                                        <property name="vexpand">true</property>
+                                        <property name="hexpand">true</property>
+                                        <property name="focusable">true</property>
+                                        <style>
+                                            <class name="workspace-terminal-window" />
+                                        </style>
+                                        <child>
+                                            <object class="NativeTerminalEmulator" id="native_terminal_emulator"></object>
+                                        </child>
+                                    </object>
                                 </child>
                             </object>
                         </child>

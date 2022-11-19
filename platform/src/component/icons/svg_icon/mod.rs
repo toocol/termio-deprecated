@@ -8,10 +8,8 @@ glib::wrapper! {
 }
 
 impl SvgIcon {
-    pub fn new(svg_path: &str) -> Self {
-        let icon: SvgIcon = Object::builder().property("svg", svg_path).build();
-        icon.imp().initialize_image();
-        icon
+    pub fn new(icon_name: &str) -> Self {
+        Object::builder().property("icon-name", icon_name).build()
     }
 
     pub fn set_parent<T: IsA<Widget>>(&self, parent: &T) {
@@ -19,7 +17,7 @@ impl SvgIcon {
             .image
             .borrow()
             .as_ref()
-            .expect("`image` of FontAwesomeIcon is None.")
+            .expect("`image` of SvgIcon is None.")
             .set_parent(parent)
     }
 
@@ -28,7 +26,7 @@ impl SvgIcon {
             .image
             .borrow()
             .as_ref()
-            .expect("`image` of FontAwesomeIcon is None.")
+            .expect("`image` of SvgIcon is None.")
             .unparent()
     }
 }
