@@ -2,18 +2,15 @@ mod imp;
 
 use core::{create_session, SessionCredential};
 
+use crate::{SessionCredentialObject, ACTION_CREATE_SSH_SESSION};
 use gtk::{
-    glib::{self, clone, Type},
+    glib::{self, Type},
     prelude::*,
     subclass::prelude::*,
     traits::TreeViewExt,
     CellAreaBox, CellRendererText, TreeStore, TreeViewColumn,
 };
 use log::debug;
-use platform::SessionCredentialObject;
-use utilities::TimeStamp;
-
-use super::TermioCommunityWindow;
 
 glib::wrapper! {
     pub struct SessionCredentialManagementTree(ObjectSubclass<imp::SessionCredentialManagementTree>)
@@ -97,8 +94,8 @@ impl SessionCredentialManagementTree {
             .insert("default".to_string(), default_group);
     }
 
-    pub fn setup_callbacks(&self, window: &TermioCommunityWindow) {
-        self.connect_row_activated(clone!(@weak window => move |tree_view, _, _| {
+    pub fn setup_callbacks(&self) {
+        self.connect_row_activated(|tree_view, _, _| {
             let selection = tree_view.selection();
             if let Some((model, iter)) = selection.selected() {
                 let node_type = model
@@ -123,14 +120,24 @@ impl SessionCredentialManagementTree {
                         .get::<u32>()
                         .expect("`SessionCredentialManagementTree` get `password` value error.");
                     let session_id = create_session(core::ProtocolType::Ssh);
-                    window.imp().native_terminal_emulator.create_ssh_session(session_id, host.as_str(), username.as_str(), password.as_str(), TimeStamp::timestamp());
+                    tree_view.activate_action(
+                        &ACTION_CREATE_SSH_SESSION.activate(), 
+                        Some(
+                            &(
+                                session_id, 
+                                host.as_str(), 
+                                username.as_str(), 
+                                password.as_str()
+                            ).to_variant()
+                        )
+                    ).expect(format!("Action `{}` activate failed.", ACTION_CREATE_SSH_SESSION.activate()).as_str());
                     debug!(
                         "Try to connect ssh session, session_id={}, host={}, username={}, password={}, port={}",
                         session_id, host, username, password, port
                     );
                 }
             }
-        }));
+        });
     }
 
     pub fn add_session_credential(

@@ -1,5 +1,4 @@
-mod ui;
-mod util;
+mod window;
 
 use gtk::gdk::Display;
 use gtk::Application;
@@ -7,11 +6,9 @@ use gtk::{
     gio, prelude::*, CssProvider, Settings, StyleContext, STYLE_PROVIDER_PRIORITY_APPLICATION,
 };
 use log::info;
-use platform::load_font;
+use platform::{load_font, APP_COMMUNITY_ID};
 
-use crate::ui::TermioCommunityWindow;
-
-const APP_ID: &str = "termio.community";
+use window::TermioCommunityWindow;
 
 //  gsettings set org.gtk.Settings.Debug enable-inspector-keybinding false
 /// Application entry of Termio Community.
@@ -36,7 +33,7 @@ fn main() {
     );
 
     // Create a new application.
-    let app = Application::builder().application_id(APP_ID).build();
+    let app = Application::builder().application_id(APP_COMMUNITY_ID).build();
 
     // Load css style sheet
     app.connect_startup(|_| load_css());

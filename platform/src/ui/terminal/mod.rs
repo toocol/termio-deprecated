@@ -8,7 +8,7 @@ use gtk::{
     EventControllerKey, EventControllerMotion, EventControllerScroll, EventControllerScrollFlags,
     GestureClick, Inhibit,
 };
-use platform::constant::GtkMouseButton;
+use crate::constant::GtkMouseButton;
 
 glib::wrapper! {
     pub struct NativeTerminalEmulator(ObjectSubclass<imp::NativeTerminalEmulator>)

@@ -1,23 +1,17 @@
 mod imp;
 
-use glib::clone;
-use glib::Object;
-use gtk::Adjustment;
-use gtk::Frame;
-use gtk::Label;
-use gtk::PasswordEntry;
-use gtk::SpinButton;
-use gtk::{glib, prelude::*, subclass::prelude::*, Dialog, DialogFlags, Entry, ResponseType};
+use gtk::{Adjustment, Frame, Label, PasswordEntry, SpinButton, Window, glib, prelude::*, subclass::prelude::*, Dialog, DialogFlags, Entry, ResponseType};
+use glib::{clone, Object};
 use log::info;
 
-use super::TermioCommunityWindow;
+use crate::ACTION_ADD_SESSION_CREDENTIAL;
 
 glib::wrapper! {
     pub struct NewSessionDialog(ObjectSubclass<imp::NewSessionDialog>);
 }
 
 impl NewSessionDialog {
-    pub fn new(parent: &TermioCommunityWindow) -> Self {
+    pub fn new<T: IsA<Window>>(parent: &T) -> Self {
         let obj: NewSessionDialog = Object::new(&[]);
         let dialog = Dialog::with_buttons(
             Some("New Session"),
@@ -132,7 +126,7 @@ impl NewSessionDialog {
 
         // Connect response to dialog
         dialog.connect_response(
-            clone!(@weak parent as window, @weak host_entry, @weak username_entry, @weak password_entry, @weak port_button => move |dialog, response| {
+            clone!(@weak host_entry, @weak username_entry, @weak password_entry, @weak port_button => move |dialog, response| {
                 dialog.hide();
 
                 if response != ResponseType::Accept {
@@ -147,16 +141,16 @@ impl NewSessionDialog {
                 shown_name.push_str(host.as_str());
                 shown_name.push_str("@");
                 shown_name.push_str(username.as_str());
-                window.with_session_credential_management(|management| {
-                    management.add_session_credential(
-                        shown_name.as_str(), 
-                        host.as_str(), 
-                        username.as_str(), 
-                        password.as_str(), 
-                        "default", 
-                        port as u32
-                    );
-                });
+
+                dialog.activate_action(&ACTION_ADD_SESSION_CREDENTIAL.activate(), Some(&(
+                    shown_name.as_str(), 
+                    host.as_str(), 
+                    username.as_str(), 
+                    password.as_str(), 
+                    "default", 
+                    port as u32
+                ).to_variant())).expect(format!("Action `{}` activate failed.", ACTION_ADD_SESSION_CREDENTIAL.activate()).as_str());
+
                 info!("Create new session credential: host={}, username={}, password={}, prot={}", host, username, password, port);
         }));
 

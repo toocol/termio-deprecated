@@ -23,12 +23,13 @@
                             <object class="WorkspaceActivityBar" id="workspace_activity_bar">
                                 <property name="vexpand">true</property>
                                 <property name="hexpand">false</property>
-                                <property name="width-request">30</property>
+                                <property name="width-request">35</property>
                                 <property name="top-box">
                                     [
                                         {
                                             "icon_name": "compass-regular",
-                                            "action_name": "win.toggle-session-management-panel"
+                                            "action_name": "win.toggle-session-management-panel",
+                                            "initial_on": true
                                         }
                                     ]
                                 </property>
@@ -36,7 +37,8 @@
                                     [
                                         {
                                             "icon_name": "gear-solid",
-                                            "action_name": "win.toggle-setting-panel"
+                                            "action_name": "win.toggle-setting-panel",
+                                            "initial_on": false
                                         }
                                     ]
                                 </property>
@@ -84,7 +86,7 @@
                                                                     "icon_type": "Gtk",
                                                                     "icon_name": "list-add-symbolic",
                                                                     "tooltip": "Create a new remote session.",
-                                                                    "action_name": "win.new-session-credential"
+                                                                    "action_name": "win.new-session-credential-dialog"
                                                                 },
                                                                 {
                                                                     "icon_type": "Gtk",
@@ -104,17 +106,19 @@
                                                         <property name="vscrollbar-policy">GTK_POLICY_AUTOMATIC</property>
                                                         <property name="margin-top">10</property>
                                                         <property name="margin-bottom">10</property>
-                                                        <property name="margin-start">5</property>
-                                                        <property name="margin-end">5</property>
+                                                        <property name="margin-start">4</property>
+                                                        <property name="margin-end">4</property>
                                                         <property name="vexpand">true</property>
                                                         <property name="hexpand">true</property>
+                                                        <style>
+                                                            <class name="session-management-scrolled-window" />
+                                                        </style>
                                                         <child>
-                                                            <object class="GtkOverlay" id="terminal_emulator_overlay">
-                                                                <child>
-                                                                    <object class="SessionCredentialManagementTree" id="session_credential_management">
-                                                                        <property name="hexpand">false</property>
-                                                                    </object>
-                                                                </child>
+                                                            <object class="SessionCredentialManagementTree" id="session_credential_management">
+                                                                <property name="hexpand">false</property>
+                                                                <style>
+                                                                    <class name="session-credential-management-tree"/>
+                                                                </style>
                                                             </object>
                                                         </child>
                                                     </object>
@@ -138,7 +142,11 @@
                                             <class name="workspace-terminal-window" />
                                         </style>
                                         <child>
-                                            <object class="NativeTerminalEmulator" id="native_terminal_emulator"></object>
+                                            <object class="GtkOverlay" id="terminal_emulator_overlay">
+                                                <child>
+                                                    <object class="NativeTerminalEmulator" id="native_terminal_emulator"></object>
+                                                </child>
+                                            </object>
                                         </child>
                                     </object>
                                 </child>

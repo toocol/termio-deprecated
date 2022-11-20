@@ -13,6 +13,7 @@ use gtk::{
 };
 
 const PATH_PREFIX: &str = "svg";
+const CSS_CLASS: &str = "svg-icon";
 
 #[derive(Default)]
 pub struct SvgIcon {
@@ -55,6 +56,7 @@ impl ObjectImpl for SvgIcon {
                     .as_str(),
                 );
                 let image = Image::from_pixbuf(Some(&pixbuf));
+                image.add_css_class(CSS_CLASS);
                 self.image.borrow_mut().replace(image);
             }
             _ => unimplemented!(),

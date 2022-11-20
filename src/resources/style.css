@@ -16,6 +16,7 @@ headerbar {
     /* same as headerbar side padding for nicer proportions */
     padding: 0px;
     font-size: 9pt;
+    background: #F6F5F4;
 }
 windowcontrols>button {
     min-height: 15px;
@@ -55,11 +56,26 @@ windowcontrols>button.close:hover {
 
 /* Activity bar */
 .activity-bar-item-on{
-    border-width: 0 0 0 2px;
-    border-color: #b9e0ff;
+    border-width: 0 0 0 3px;
+    border-color: #8689AD;
     border-style: solid;
-    border-width: 2px;
+    border-radius: 1px;
 }
 .activity-bar-item-off{
-    border-width: 0 0 0 0;
+    border-width: 0 0 0 3px;
+    border-color: transparent;
+    border-style: solid;
+}
+.activity-bar-item .svg-icon {
+    padding: 4px 4px 4px 4px;
+}
+
+/* Session credential management */
+.session-credential-management-tree {
+    background: #F6F5F4;
+    color: black;
+}
+.session-credential-management-tree:selected {
+    background: #CED2FF;
+    color: black;
 }
