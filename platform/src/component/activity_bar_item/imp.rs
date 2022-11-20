@@ -12,6 +12,7 @@ use gtk::{
 
 use crate::{GtkMouseButton, ItemStatus, SvgIcon};
 
+const CSS_CLASS: &str = "activity-bar-item";
 const STATUS_ON_CSS: &str = "activity-bar-item-on";
 const STATUS_OFF_CSS: &str = "activity-bar-item-off";
 
@@ -42,13 +43,19 @@ impl ActivityBarItem {
                 self.status.set(ItemStatus::On);
                 self.instance().remove_css_class(STATUS_OFF_CSS);
                 self.instance().add_css_class(STATUS_ON_CSS);
-            },
+            }
             ItemStatus::On => {
                 self.status.set(ItemStatus::Off);
                 self.instance().remove_css_class(STATUS_ON_CSS);
                 self.instance().add_css_class(STATUS_OFF_CSS);
-            },
+            }
         }
+    }
+
+    pub fn activate(&self) {
+        self.status.set(ItemStatus::On);
+        self.instance().remove_css_class(STATUS_OFF_CSS);
+        self.instance().add_css_class(STATUS_ON_CSS);
     }
 }
 
@@ -74,7 +81,7 @@ impl ObjectImpl for ActivityBarItem {
     fn constructed(&self) {
         self.parent_constructed();
 
-        self.instance().add_css_class("activity-bar-item");
+        self.instance().add_css_class(CSS_CLASS);
         self.instance().add_css_class(STATUS_OFF_CSS);
     }
 

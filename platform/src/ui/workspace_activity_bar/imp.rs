@@ -4,8 +4,9 @@ use gtk::{
     subclass::prelude::*,
     traits::{BoxExt, WidgetExt}, Align,
 };
-use platform::ActivityBarItem;
 use std::cell::RefCell;
+
+use crate::ActivityBarItem;
 
 use super::ActivityBarItemJsonObject;
 
@@ -74,9 +75,6 @@ impl ObjectImpl for WorkspaceActivityBar {
 
         top_box.set_hexpand(false);
         bottom_box.set_hexpand(false);
-
-        top_box.set_margin_top(10);
-        bottom_box.set_margin_bottom(10);
     }
 
     fn properties() -> &'static [ParamSpec] {
@@ -99,8 +97,8 @@ impl ObjectImpl for WorkspaceActivityBar {
                 let activity_bar_items: Vec<ActivityBarItem> = self.parse_json_item(&input_value);
 
                 activity_bar_items.iter().for_each(|item| {
-                    item.set_width_request(20);
-                    item.set_height_request(20);
+                    item.set_width_request(35);
+                    item.set_height_request(35);
                     self.top_box.borrow().append(item);
                 })
             }
@@ -112,8 +110,8 @@ impl ObjectImpl for WorkspaceActivityBar {
                 let activity_bar_items: Vec<ActivityBarItem> = self.parse_json_item(&input_value);
 
                 activity_bar_items.iter().for_each(|item| {
-                    item.set_width_request(20);
-                    item.set_height_request(20);
+                    item.set_width_request(35);
+                    item.set_height_request(35);
                     self.bottom_box.borrow().append(item);
                 })
             }

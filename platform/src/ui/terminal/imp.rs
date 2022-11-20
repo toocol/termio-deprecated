@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use gtk::{glib, subclass::prelude::*, traits::WidgetExt};
-use platform::native_node::{NativeNodeImpl, NativeNodeObject};
+use crate::native_node::{NativeNodeImpl, NativeNodeObject};
 
 pub struct NativeTerminalEmulator {
     pub native_node_object: Rc<RefCell<NativeNodeObject>>,

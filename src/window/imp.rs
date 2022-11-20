@@ -8,12 +8,11 @@ use gtk::{
     CompositeTemplate, Inhibit, Overlay, Paned, ScrolledWindow, Stack,
 };
 
-use crate::{
-    ui::{terminal::NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree, WorkspaceActivityBar},
-    util::data_path,
-};
 use log::debug;
-use platform::{SessionCredentialObject, WidgetTitleBar};
+use platform::{termio::data_path, SessionCredentialObject, Termio, WidgetTitleBar, BottomStatusBar};
+use platform::{
+    NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree, WorkspaceActivityBar,
+};
 
 #[derive(Default, CompositeTemplate)]
 #[template(resource = "/com/toocol/termio/community/window.ui")]
@@ -42,6 +41,11 @@ pub struct TermioCommunityWindow {
     #[template_child]
     pub native_terminal_emulator: TemplateChild<NativeTerminalEmulator>,
 
+    /// Bottom status bar
+    #[template_child]
+    pub bottom_status_bar: TemplateChild<BottomStatusBar>,
+
+    pub termio: OnceCell<Termio>,
     pub new_session_dialog: OnceCell<NewSessionDialog>,
 }
 
@@ -65,6 +69,9 @@ impl ObjectSubclass for TermioCommunityWindow {
 impl ObjectImpl for TermioCommunityWindow {
     fn constructed(&self) {
         self.parent_constructed();
+        self.termio
+            .set(Termio::TermioCommunity)
+            .expect("`termio` of TermioCommunityWindow can only set once.");
 
         let obj = self.instance();
         obj.initialize();
@@ -85,9 +92,6 @@ impl ObjectImpl for TermioCommunityWindow {
                 terminal_emulator.resize(allocation.width(), allocation.height());
             }),
         );
-
-        self.session_credential_management
-            .setup_callbacks(obj.as_ref());
     }
 }
 
@@ -112,7 +116,13 @@ impl WindowImpl for TermioCommunityWindow {
             .map(SessionCredentialObject::to_session_credetial)
             .collect();
         // Save state to file
-        let file = File::create(data_path(".credential")).expect("Could not create json file.");
+        let file = File::create(data_path(
+            ".credential",
+            self.termio
+                .get()
+                .expect("`termio` of TermioCommunityWindow should set first before use."),
+        ))
+        .expect("Could not create json file.");
         serde_json::to_writer(file, &backup_data).expect("Could not write data to json file.");
 
         self.parent_close_request()

@@ -4,6 +4,8 @@ use glib::Object;
 use gtk::glib;
 use gtk::subclass::prelude::*;
 
+use crate::IsActivityBarItem;
+
 glib::wrapper! {
     pub struct ActivityBarItem(ObjectSubclass<imp::ActivityBarItem>)
         @extends gtk::Widget,
@@ -11,12 +13,23 @@ glib::wrapper! {
 }
 
 impl ActivityBarItem {
-    pub fn new(icon_name: &str, _tooltip: &Option<String>, action_name: &Option<String>) -> Self {
+    pub fn new(icon_name: &str, _tooltip: &Option<String>, action_name: &Option<String>, initial_on: bool) -> Self {
         let item: ActivityBarItem = Object::builder().property("icon-name", icon_name).build();
         if let Some(action_name) = action_name.as_deref() {
             item.imp().bind_action(action_name);
         }
+        if initial_on {
+            item.imp().activate();
+        }
         item
+    }
+}
+
+impl IsActivityBarItem for ActivityBarItem {
+    type Type = super::ActivityBarItem;
+
+    fn to_widget(&self) -> &Self::Type {
+        self
     }
 }
 

@@ -6,7 +6,7 @@ use gtk::{
     traits::TreeViewExt,
     TreeIter, TreeStore,
 };
-use platform::SessionCredentialObject;
+use crate::SessionCredentialObject;
 
 #[derive(Default)]
 pub struct SessionCredentialManagementTree {
@@ -33,6 +33,7 @@ impl ObjectImpl for SessionCredentialManagementTree {
         instance.setup_columns();
         instance.setup_model();
         instance.setup_default_group();
+        instance.setup_callbacks();
     }
 }
 

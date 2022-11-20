@@ -37,6 +37,15 @@ impl FontIcon {
         self.imp().label.borrow().set_parent(parent)
     }
 
+    pub fn get_code(&self) -> String {
+        self.imp()
+            .code
+            .borrow()
+            .as_deref()
+            .expect("`code` of FontIcon should set first before use.")
+            .to_string()
+    }
+
     pub fn unparent(&self) {
         self.imp().label.borrow().unparent()
     }
