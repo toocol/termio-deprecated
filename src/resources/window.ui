@@ -160,14 +160,12 @@
                 </child>
                 <!-- <GtkBox> Bottom status bar -->
                 <child>
-                    <object class="GtkBox" id="bottom_status_bar_box">
-                        <property name="orientation">horizontal</property>
-                        <property name="homogeneous">false</property>
+                    <object class="BottomStatusBar" id="bottom_status_bar">
                         <property name="vexpand">false</property>
                         <property name="hexpand">true</property>
-                        <property name="height-request">15</property>
+                        <property name="height-request">16</property>
                         <style>
-                            <class name="bottom-status-bar-box" />
+                            <class name="bottom-status-bar" />
                         </style>
                     </object>
                 </child>

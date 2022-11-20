@@ -80,7 +80,7 @@ impl SessionCredentialManagementTree {
         tree_store.set_value(
             &default_group,
             Columns::ShownName as u32,
-            &"Default".to_value(),
+            &"DEFAULT".to_value(),
         );
         tree_store.set_value(
             &default_group,

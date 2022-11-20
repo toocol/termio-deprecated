@@ -9,7 +9,7 @@ use gtk::{
 };
 
 use log::debug;
-use platform::{termio::data_path, SessionCredentialObject, Termio, WidgetTitleBar};
+use platform::{termio::data_path, SessionCredentialObject, Termio, WidgetTitleBar, BottomStatusBar};
 use platform::{
     NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree, WorkspaceActivityBar,
 };
@@ -40,6 +40,10 @@ pub struct TermioCommunityWindow {
     pub terminal_emulator_overlay: TemplateChild<Overlay>,
     #[template_child]
     pub native_terminal_emulator: TemplateChild<NativeTerminalEmulator>,
+
+    /// Bottom status bar
+    #[template_child]
+    pub bottom_status_bar: TemplateChild<BottomStatusBar>,
 
     pub termio: OnceCell<Termio>,
     pub new_session_dialog: OnceCell<NewSessionDialog>,

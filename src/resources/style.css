@@ -67,7 +67,7 @@ windowcontrols>button.close:hover {
     border-style: solid;
 }
 .activity-bar-item .svg-icon {
-    padding: 4px 4px 4px 4px;
+    padding: 5px 5px 5px 5px;
 }
 
 /* Session credential management */
