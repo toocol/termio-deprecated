@@ -9,9 +9,7 @@ impl BoundleMessage {
         todo!()
     }
 
-    pub fn get(&self, key: &str) -> String {
+    pub fn get(&self, key: &str) -> Option<&String> {
         self.message_map.get(key)
-            .expect(format!("Key `{}` of Boundle message is not exist, please check the properties bundles.", key).as_str())
-            .clone()
     }
 }

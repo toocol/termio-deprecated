@@ -9,9 +9,10 @@ use gtk::{
 };
 
 use log::debug;
-use platform::{termio::data_path, SessionCredentialObject, Termio, WidgetTitleBar, BottomStatusBar};
 use platform::{
-    NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree, WorkspaceActivityBar,
+    termio::data_path, BottomStatusBar, NativeTerminalEmulator, NewSessionDialog,
+    SessionCredentialManagementTree, SessionCredentialObject, Termio, WidgetTitleBar,
+    WorkspaceActivityBar,
 };
 
 #[derive(Default, CompositeTemplate)]

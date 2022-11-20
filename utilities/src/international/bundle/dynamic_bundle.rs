@@ -1,10 +1,19 @@
 #![allow(dead_code)]
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Mutex};
 
 use crate::{bundle_message::BoundleMessage, with_locale, Locale};
+use lazy_static::lazy_static;
+
+const PROPERTIES_PATH_PREFIX: &str = "/resources/bundle/";
+
+lazy_static! {
+    pub static ref BUNDLES: Mutex<DynamicBundle> = Mutex::new(DynamicBundle {
+        bundle_message: HashMap::new()
+    });
+}
 
 pub struct DynamicBundle {
-    bundle_message: HashMap<&'static Locale, BoundleMessage>,
+    bundle_message: HashMap<&'static str, HashMap<Locale, BoundleMessage>>,
 }
 
 pub trait IsDynamicBundle: 'static {
@@ -12,28 +21,50 @@ pub trait IsDynamicBundle: 'static {
     const PROPERTY: &'static str;
     /// The locales of this bundle should have.
     const LOCALES: Vec<Locale>;
-    /// The object of DynamicBundle
-    const BUNDLE: DynamicBundle;
 
-    fn initialize_bundle(&self) {}
+    fn initialize_bundle(&self) {
+        let mut file_path = PROPERTIES_PATH_PREFIX.to_string();
+        file_path.push_str(Self::PROPERTY);
+
+        Self::LOCALES.iter().for_each(|locale| {
+            let mut file_path = file_path.clone();
+            file_path.push_str(locale.suffix());
+            file_path.push_str(".properties");
+
+            let bundle_message = BoundleMessage::generate(&file_path);
+
+            BUNDLES
+                .lock()
+                .expect("Lock static field `BUNDLE` error.")
+                .bundle_message
+                .entry(Self::PROPERTY)
+                .or_insert(HashMap::new())
+                .insert(locale.clone(), bundle_message);
+        });
+    }
 
     fn message<T>(&self, key: &str, params: T) -> String
     where
         T: PartialEq + Clone + 'static,
     {
         let _message: String = with_locale(move |locale| {
-            Self::BUNDLE
+            match BUNDLES
+                .lock()
+                .expect("Lock static field `BUNDLE` error.")
                 .bundle_message
-                .get(&*locale)
-                .expect(
-                    format!(
-                        "BoundleMessage of locale `{}` does not exist",
-                        locale.name()
-                    )
-                    .as_str(),
-                )
-                .get(key)
+                .get(Self::PROPERTY)
+            {
+                Some(map_bundle) => match map_bundle.get(&locale) {
+                    Some(bundle_message) => match bundle_message.get(key) {
+                        Some(message) => message.clone(),
+                        None => key.to_string(),
+                    },
+                    None => key.to_string(),
+                },
+                None => key.to_string(),
+            }
         });
+
         self._message("".to_string(), params, |_| "".to_string())
     }
 

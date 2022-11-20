@@ -19,7 +19,7 @@ pub fn change_locale(locale: Locale) {
     *LOCALE.lock().expect("Lock `LOCALE` error.").borrow_mut() = locale;
 }
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Locale {
     name: &'static str,
     suffix: &'static str,
