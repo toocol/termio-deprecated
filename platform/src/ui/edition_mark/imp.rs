@@ -14,6 +14,7 @@ use crate::FontIcon;
 
 #[derive(Default)]
 pub struct EditionMark {
+    // Has to be SegoeFluent font icon
     pub icon: OnceCell<FontIcon>,
     pub label: OnceCell<Label>,
 }
@@ -44,9 +45,12 @@ impl ObjectImpl for EditionMark {
             .downcast::<gtk::BoxLayout>()
             .unwrap();
         layout.set_orientation(gtk::Orientation::Horizontal);
-        layout.set_homogeneous(true);
-        layout.set_spacing(3);
+        layout.set_spacing(5);
+        layout.set_homogeneous(false);
 
+        obj.set_margin_start(5);
+        obj.set_vexpand(false);
+        obj.set_hexpand(false);
         obj.set_height_request(16);
     }
 
@@ -82,11 +86,15 @@ impl ObjectImpl for EditionMark {
                     .expect("`code` of EditionMark can only set once.");
             }
             "label" => {
-                let input_value = value
+                let input_value: &str = value
                     .get()
                     .expect("The value needs to be of type `String`.");
-                let label = Label::new(Some(input_value));
+
+                let label = Label::new(None);
+                label.set_use_markup(true);
+                label.set_markup(format!("<span font_desc=\"8\">{}</span>", input_value).as_str());
                 label.set_parent(&*self.instance());
+
                 self.label
                     .set(label)
                     .expect("`label` of EditionMark should only set once.")

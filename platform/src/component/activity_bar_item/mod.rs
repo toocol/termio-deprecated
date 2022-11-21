@@ -4,8 +4,6 @@ use glib::Object;
 use gtk::glib;
 use gtk::subclass::prelude::*;
 
-use crate::IsActivityBarItem;
-
 glib::wrapper! {
     pub struct ActivityBarItem(ObjectSubclass<imp::ActivityBarItem>)
         @extends gtk::Widget,
@@ -22,14 +20,6 @@ impl ActivityBarItem {
             item.imp().activate();
         }
         item
-    }
-}
-
-impl IsActivityBarItem for ActivityBarItem {
-    type Type = super::ActivityBarItem;
-
-    fn to_widget(&self) -> &Self::Type {
-        self
     }
 }
 

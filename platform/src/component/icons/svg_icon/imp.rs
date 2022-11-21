@@ -1,18 +1,15 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, io::BufReader, slice};
 
 use gtk::{
     gdk_pixbuf::Pixbuf,
-    glib::{
-        self,
-        once_cell::sync::Lazy,
-        ParamSpec, ParamSpecString, Value,
-    },
+    glib::{self, once_cell::sync::Lazy, ParamSpec, ParamSpecString, Value},
     prelude::*,
     subclass::prelude::*,
     Image,
 };
+use utilities::Asset;
 
-const PATH_PREFIX: &str = "svg";
+const PATH_PREFIX: &str = "svg/";
 const CSS_CLASS: &str = "svg-icon";
 
 #[derive(Default)]
@@ -42,22 +39,25 @@ impl ObjectImpl for SvgIcon {
                     .expect("The value needs to be of type `String`.");
                 input_value.push_str(".svg");
 
-                let mut abs_path = std::env::current_dir().expect("Getting current dir failed.");
-                abs_path.push("target");
-                abs_path.push("debug");
-                abs_path.push(PATH_PREFIX);
-                abs_path.push(input_value);
+                let mut path = PATH_PREFIX.to_string();
+                path.push_str(input_value.as_str());
 
-                let pixbuf = Pixbuf::from_file(abs_path.as_path()).expect(
-                    format!(
-                        "load svg file failed, {}",
-                        abs_path.to_str().expect("`abs_path` format error.")
-                    )
-                    .as_str(),
-                );
-                let image = Image::from_pixbuf(Some(&pixbuf));
-                image.add_css_class(CSS_CLASS);
-                self.image.borrow_mut().replace(image);
+                let asset = Asset::get(path.as_str())
+                    .expect(format!("Get embed asset `{}` failed.", path).as_str());
+
+                let length = asset.data.len();
+                let data = asset.data.as_ptr();
+
+                unsafe {
+                    let data = slice::from_raw_parts(data, length);
+
+                    let pixbuf = Pixbuf::from_read(BufReader::new(data))
+                        .expect(format!("Load svg file {} failed.", path).as_str());
+
+                    let image = Image::from_pixbuf(Some(&pixbuf));
+                    image.add_css_class(CSS_CLASS);
+                    self.image.borrow_mut().replace(image);
+                }
             }
             _ => unimplemented!(),
         }

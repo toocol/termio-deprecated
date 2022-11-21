@@ -34,7 +34,7 @@ impl WorkspaceActivityBar {
         let activity_bar_item_json_objects: Vec<ActivityBarItemJsonObject> = serde_json::from_str(
             json_data,
         )
-        .expect("Serialize `activity-bar-items` json config failed, please check the .ui template");
+            .expect("Serialize `activity-bar-items` json config failed, please check the .ui template");
 
         activity_bar_item_json_objects
             .iter()
