@@ -164,6 +164,12 @@
                         <property name="vexpand">false</property>
                         <property name="hexpand">true</property>
                         <property name="height-request">16</property>
+                        <property name="edition-mark">
+                            {
+                                "code": "e81e",
+                                "label": "Community Edition"
+                            }
+                        </property>
                         <style>
                             <class name="bottom-status-bar" />
                         </style>

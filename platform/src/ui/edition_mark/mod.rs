@@ -1,8 +1,8 @@
 mod imp;
 
+use glib::Object;
 use gtk::glib;
-
-use crate::IsBottomStatusBarItem;
+use serde::{Deserialize, Serialize};
 
 glib::wrapper! {
     pub struct EditionMark(ObjectSubclass<imp::EditionMark>)
@@ -10,10 +10,23 @@ glib::wrapper! {
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl IsBottomStatusBarItem for EditionMark {
-    type Type = super::EditionMark;
+impl EditionMark {
+    pub fn new(code: &str, label: &str) -> Self {
+        Object::builder()
+            .property("code", code)
+            .property("label", label)
+            .build()
+    }
+}
 
-    fn to_widget(&self) -> &Self::Type {
-        self
+#[derive(Serialize, Deserialize)]
+pub struct EditionMarkJsonObject {
+    pub code: String,
+    pub label: String,
+}
+
+impl EditionMarkJsonObject {
+    pub fn to_bottom_status_bar_item(&self) -> EditionMark {
+        EditionMark::new(&self.code, &self.label)
     }
 }

@@ -3,9 +3,10 @@ mod imp;
 use crate::ActivityBarItem;
 use gtk::{
     glib,
-    prelude::{ObjectType},
+    prelude::IsA,
     subclass::prelude::ObjectSubclassIsExt,
     traits::WidgetExt,
+    Widget,
 };
 use serde::{Deserialize, Serialize};
 
@@ -16,21 +17,13 @@ glib::wrapper! {
 }
 
 impl WorkspaceActivityBar {
-    pub fn register_to_top<T: IsActivityBarItem>(&self, widget: &T) {
-        widget.to_widget().set_parent(&*self.imp().top_box.borrow())
+    pub fn register_to_top<T: IsA<Widget>>(&self, widget: &T) {
+        widget.set_parent(&*self.imp().top_box.borrow())
     }
 
-    pub fn register_to_bottom<T: IsActivityBarItem>(&self, widget: &T) {
-        widget
-            .to_widget()
-            .set_parent(&*self.imp().bottom_box.borrow())
+    pub fn register_to_bottom<T: IsA<Widget>>(&self, widget: &T) {
+        widget.set_parent(&*self.imp().bottom_box.borrow())
     }
-}
-
-pub trait IsActivityBarItem: 'static {
-    type Type: ObjectType + WidgetExt;
-
-    fn to_widget(&self) -> &Self::Type;
 }
 
 #[derive(Serialize, Deserialize)]
