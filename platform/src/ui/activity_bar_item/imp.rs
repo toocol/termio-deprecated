@@ -4,7 +4,7 @@ use gtk::{
     glib::{
         self, clone,
         once_cell::sync::{Lazy, OnceCell},
-        ParamSpec, ParamSpecString, Value,
+        ParamSpec, ParamSpecBoolean, ParamSpecString, Value,
     },
     prelude::*,
     subclass::prelude::*,
@@ -86,8 +86,13 @@ impl ObjectImpl for ActivityBarItem {
     }
 
     fn properties() -> &'static [ParamSpec] {
-        static PROPERTIES: Lazy<Vec<ParamSpec>> =
-            Lazy::new(|| vec![ParamSpecString::builder("icon-name").build()]);
+        static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
+            vec![
+                ParamSpecString::builder("icon-name").build(),
+                ParamSpecString::builder("action-name").build(),
+                ParamSpecBoolean::builder("initial-on").build(),
+            ]
+        });
         PROPERTIES.as_ref()
     }
 
@@ -105,6 +110,18 @@ impl ObjectImpl for ActivityBarItem {
                 self.icon_name
                     .set(input_value)
                     .expect("`icon_name` of ActivityBarItem can only set once.");
+            }
+            "action-name" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                self.bind_action(input_value);
+            }
+            "initial-on" => {
+                let initial_on: bool = value.get().expect("The value needs to be of type `bool`.");
+                if initial_on {
+                    self.activate()
+                }
             }
             _ => unimplemented!(),
         }

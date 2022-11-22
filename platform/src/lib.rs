@@ -5,6 +5,7 @@ pub mod constant;
 pub mod font;
 pub mod termio;
 pub mod ui;
+pub mod prelude;
 
 pub use crate::component::*;
 pub use crate::native::*;

@@ -1,10 +1,20 @@
 use std::path::PathBuf;
 use gtk::glib;
+use utilities::{DynamicBundle, Locale};
 
 pub const APP_COMMUNITY_ID: &str = "termio.community";
 pub const APP_PERSONAL_ID: &str = "termio.personal";
 pub const APP_PROFESSIONAL_ID: &str = "termio.professional";
 pub const APP_ULTIMATE_ID: &str = "termio.ultimate";
+
+pub struct LanguageBundle;
+impl DynamicBundle for LanguageBundle {
+    const PROPERTY: &'static str = "language";
+
+    fn locales() -> Vec<utilities::Locale> {
+        Locale::all()
+    }
+}
 
 #[derive(Debug)]
 pub enum Termio {

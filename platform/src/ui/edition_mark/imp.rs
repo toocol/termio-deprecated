@@ -9,6 +9,7 @@ use gtk::{
     traits::WidgetExt,
     Label,
 };
+use log::debug;
 
 use crate::FontIcon;
 
@@ -79,11 +80,14 @@ impl ObjectImpl for EditionMark {
                 let input_value = value
                     .get()
                     .expect("The value needs to be of type `String`.");
+
                 let icon = FontIcon::new(input_value, crate::FontType::SegoeFluent);
                 icon.set_parent(&*self.instance());
+
                 self.icon
                     .set(icon)
                     .expect("`code` of EditionMark can only set once.");
+                debug!("`EditionMark` create font icon.");
             }
             "label" => {
                 let input_value: &str = value
@@ -97,7 +101,8 @@ impl ObjectImpl for EditionMark {
 
                 self.label
                     .set(label)
-                    .expect("`label` of EditionMark should only set once.")
+                    .expect("`label` of EditionMark should only set once.");
+                debug!("`EditionMark` create label.");
             }
             _ => unimplemented!(),
         }

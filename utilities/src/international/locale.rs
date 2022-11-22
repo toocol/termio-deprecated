@@ -14,6 +14,10 @@ impl Locale {
     pub const LOCALE_CH: Locale = Locale { name: "Chinese.ch", suffix: ".ch" };
     pub const LOCALE_EN: Locale = Locale { name: "English.en", suffix: ".en" };
 
+    pub fn all() -> Vec<Self> {
+        vec![Self::LOCALE_CH, Self::LOCALE_EN]
+    }
+
     pub fn name(&self) -> &str {
         self.name
     }
