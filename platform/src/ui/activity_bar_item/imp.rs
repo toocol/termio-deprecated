@@ -4,13 +4,13 @@ use gtk::{
     glib::{
         self, clone,
         once_cell::sync::{Lazy, OnceCell},
-        ParamSpec, ParamSpecBoolean, ParamSpecString, Value,
+        ParamSpec, ParamSpecBoolean, ParamSpecInt, ParamSpecString, Value,
     },
     prelude::*,
     subclass::prelude::*,
 };
 
-use crate::{GtkMouseButton, ItemStatus, SvgIcon};
+use crate::{FontIcon, GtkMouseButton, ItemStatus};
 
 const CSS_CLASS: &str = "activity-bar-item";
 const STATUS_ON_CSS: &str = "activity-bar-item-on";
@@ -18,8 +18,8 @@ const STATUS_OFF_CSS: &str = "activity-bar-item-off";
 
 #[derive(Default)]
 pub struct ActivityBarItem {
-    pub svg_icon: RefCell<Option<SvgIcon>>,
-    pub icon_name: OnceCell<String>,
+    pub font_icon: RefCell<Option<FontIcon>>,
+    pub code: OnceCell<String>,
     pub status: Cell<ItemStatus>,
 }
 
@@ -88,9 +88,11 @@ impl ObjectImpl for ActivityBarItem {
     fn properties() -> &'static [ParamSpec] {
         static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
             vec![
-                ParamSpecString::builder("icon-name").build(),
+                ParamSpecString::builder("code").build(),
                 ParamSpecString::builder("action-name").build(),
                 ParamSpecBoolean::builder("initial-on").build(),
+                ParamSpecInt::builder("icon-size").build(),
+                ParamSpecString::builder("tooltip").build(),
             ]
         });
         PROPERTIES.as_ref()
@@ -98,16 +100,16 @@ impl ObjectImpl for ActivityBarItem {
 
     fn set_property(&self, _id: usize, value: &Value, pspec: &ParamSpec) {
         match pspec.name() {
-            "icon-name" => {
+            "code" => {
                 let input_value: String = value
                     .get()
                     .expect("The value needs to be of type `String`.");
 
-                let svg_icon = SvgIcon::new(&input_value);
-                svg_icon.set_parent(&*self.instance());
-                self.svg_icon.borrow_mut().replace(svg_icon);
+                let font_icon = FontIcon::new(&input_value, crate::FontType::SegoeFluent);
+                font_icon.set_parent(&*self.instance());
+                self.font_icon.borrow_mut().replace(font_icon);
 
-                self.icon_name
+                self.code
                     .set(input_value)
                     .expect("`icon_name` of ActivityBarItem can only set once.");
             }
@@ -123,14 +125,29 @@ impl ObjectImpl for ActivityBarItem {
                     self.activate()
                 }
             }
+            "icon-size" => {
+                let input_value = value.get().expect("The value needs to be of type `i32`.");
+                self.font_icon
+                    .borrow()
+                    .as_ref()
+                    .expect("`font_icon` of ActivityBarItem is None.")
+                    .set_size(input_value);
+            }
+            "tooltip" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                self.instance().set_has_tooltip(true);
+                self.instance().set_tooltip_text(Some(input_value));
+            }
             _ => unimplemented!(),
         }
     }
 
     fn property(&self, _id: usize, pspec: &ParamSpec) -> Value {
         match pspec.name() {
-            "icon-name" => self
-                .icon_name
+            "code" => self
+                .code
                 .get()
                 .expect("`icon_name` of ActivityBarItem is None")
                 .to_value(),
@@ -139,7 +156,7 @@ impl ObjectImpl for ActivityBarItem {
     }
 
     fn dispose(&self) {
-        if let Some(icon) = self.svg_icon.borrow().as_ref() {
+        if let Some(icon) = self.font_icon.borrow().as_ref() {
             icon.unparent();
         }
     }

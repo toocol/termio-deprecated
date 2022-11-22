@@ -5,13 +5,13 @@ use gtk::{
     glib::{self, clone, once_cell::sync::OnceCell, subclass::InitializingObject},
     prelude::*,
     subclass::prelude::{ObjectSubclass, *},
-    CompositeTemplate, Inhibit, Overlay, Paned, ScrolledWindow, Stack,
+    CompositeTemplate, Inhibit, Overlay, Paned, ScrolledWindow, Stack, HeaderBar,
 };
 
 use log::debug;
 use platform::{
     termio::data_path, NativeTerminalEmulator, NewSessionDialog,
-    SessionCredentialManagementTree, SessionCredentialObject, Termio, WidgetTitleBar, EditionMark, ActivityBarItem,
+    SessionCredentialManagementTree, SessionCredentialObject, Termio, WidgetTitleBar, EditionMark, ActivityBarItem, IconButton, ActivityBar,
 };
 
 #[derive(Default, CompositeTemplate)]
@@ -27,20 +27,30 @@ pub struct TermioCommunityWindow {
     #[template_child]
     pub workspace_paned: TemplateChild<Paned>,
 
+    ///////////////// Header bar
+    #[template_child]
+    pub window_header_bar: TemplateChild<HeaderBar>,
+    #[template_child]
+    pub toggle_left_area_button: TemplateChild<IconButton>,
+    #[template_child]
+    pub toggle_bottom_area_button: TemplateChild<IconButton>,
+
     ///////////////// Activity bar
     #[template_child]
-    pub workspace_activity_bar: TemplateChild<gtk::Box>,
+    pub workspace_activity_bar: TemplateChild<ActivityBar>,
 
     #[template_child]
     pub workspace_activity_bar_top_box: TemplateChild<gtk::Box>,
     #[template_child]
     pub toggle_session_management_item: TemplateChild<ActivityBarItem>,
+    #[template_child]
+    pub toggle_plugin_extensions_item: TemplateChild<ActivityBarItem>,
 
     #[template_child]
     pub workspace_activity_bar_bottom_box: TemplateChild<gtk::Box>,
     #[template_child]
     pub toggle_setting_item: TemplateChild<ActivityBarItem>,
-    
+
     ///////////////// Left side bar
     #[template_child]
     pub workspace_left_side_bar: TemplateChild<Stack>,
@@ -118,6 +128,13 @@ impl ObjectImpl for TermioCommunityWindow {
                 terminal_emulator.resize(allocation.width(), allocation.height());
             }),
         );
+
+        self.instance().set_titlebar(Some(&*self.window_header_bar));
+    }
+
+    fn dispose(&self) {
+        self.workspace_activity_bar_top_box.unparent();
+        self.workspace_activity_bar_bottom_box.unparent();
     }
 }
 

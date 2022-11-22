@@ -5,6 +5,42 @@
         <property name="resizable">true</property>
         <property name="default-width">1280</property>
         <property name="default-height">800</property>
+        <!-- <GtkHeaderBar> Main window header bar -->
+        <child>
+            <object class="GtkHeaderBar" id="window_header_bar">
+                <child type="end">
+                    <object class="IconButton" id="toggle_bottom_area_button">
+                        <property name="icon-type">Segoe Fluent</property>
+                        <!-- e90c e90d e90e ea4b ea61 -->
+                        <property name="code">e745</property>
+                        <property name="icon-size">12</property>
+                        <property name="icon-color">#2E2E2E</property>
+                        <property name="width-request">12</property>
+                        <property name="height-request">12</property>
+                        <property name="tooltip">Toggle bottom status bar (Alt+2)</property>
+                        <property name="action-name">win.toggle-bottom-area</property>
+                        <style>
+                            <class name="header-bar-icon-button"/>
+                        </style>
+                    </object>
+                </child>
+                <child type="end">
+                    <object class="IconButton" id="toggle_left_area_button">
+                        <property name="icon-type">Segoe Fluent</property>
+                        <property name="code">e746</property>
+                        <property name="icon-size">12</property>
+                        <property name="icon-color">#2E2E2E</property>
+                        <property name="width-request">12</property>
+                        <property name="height-request">12</property>
+                        <property name="tooltip">Toggle left side bar (Alt+1)</property>
+                        <property name="action-name">win.toggle-left-area</property>
+                        <style>
+                            <class name="header-bar-icon-button"/>
+                        </style>
+                    </object>
+                </child>
+            </object>
+        </child>
         <!-- <GtkOverlay> Global overlay -->
         <child>
             <object class="GtkOverlay" id="global_overlay">
@@ -28,12 +64,10 @@
                                 </style>
                                 <!-- <GtkBox> workspace activity bar -->
                                 <child>
-                                    <object class="GtkBox" id="workspace_activity_bar">
+                                    <object class="ActivityBar" id="workspace_activity_bar">
                                         <property name="vexpand">true</property>
                                         <property name="hexpand">false</property>
                                         <property name="width-request">35</property>
-                                        <property name="orientation">vertical</property>
-                                        <property name="homogeneous">true</property>
                                         <style>
                                             <class name="workspace-activity-bar" />
                                         </style>
@@ -47,11 +81,24 @@
                                                 </style>
                                                 <child>
                                                     <object class="ActivityBarItem" id="toggle_session_management_item">
-                                                        <property name="icon-name">compass-regular</property>
+                                                        <property name="code">e71d</property>
+                                                        <property name="icon-size">16</property>
                                                         <property name="action-name">win.toggle-session-management-panel</property>
                                                         <property name="initial-on">true</property>
                                                         <property name="width-request">35</property>
                                                         <property name="height-request">35</property>
+                                                        <property name="tooltip">Toggle session management panel.</property>
+                                                    </object>
+                                                </child>
+                                                <child>
+                                                    <object class="ActivityBarItem" id="toggle_plugin_extensions_item">
+                                                        <property name="code">ecaa</property>
+                                                        <property name="icon-size">16</property>
+                                                        <property name="action-name">win.toggle-plugin-extensions-panel</property>
+                                                        <property name="initial-on">false</property>
+                                                        <property name="width-request">35</property>
+                                                        <property name="height-request">35</property>
+                                                        <property name="tooltip">Toggle plugin extensions panel.</property>
                                                     </object>
                                                 </child>
                                             </object>
@@ -66,11 +113,13 @@
                                                 </style>
                                                 <child>
                                                     <object class="ActivityBarItem" id="toggle_setting_item">
-                                                        <property name="icon-name">gear-solid</property>
+                                                        <property name="code">e713</property>
+                                                        <property name="icon-size">16</property>
                                                         <property name="action-name">win.toggle-setting-panel</property>
                                                         <property name="initial-on">false</property>
                                                         <property name="width-request">35</property>
                                                         <property name="height-request">35</property>
+                                                        <property name="tooltip">Toggle setting panel.</property>
                                                     </object>
                                                 </child>
                                             </object>
