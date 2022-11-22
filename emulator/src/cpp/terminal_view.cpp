@@ -1,4 +1,5 @@
 #include "terminal_view.h"
+
 #include <QAbstractButton>
 #include <QApplication>
 #include <QBoxLayout>
@@ -23,6 +24,7 @@
 #include <QUrl>
 #include <QtDebug>
 #include <thread>
+
 #include "screen.h"
 #include "wcwidth.h"
 
@@ -1818,7 +1820,8 @@ void TerminalView::mouseDoubleClickEvent(QMouseEvent* ev) {
 }
 
 void TerminalView::mousePressEvent(QMouseEvent* ev) {
-  qDebug() << "Detected mouse pressed.";
+  qDebug() << "Detected mouse pressed. " << ev->pos().x() << ","
+           << ev->pos().y();
   if (_possibleTripleClick && (ev->button() == Qt::LeftButton)) {
     mouseTripleClickEvent(ev);
     return;
@@ -1896,6 +1899,7 @@ void TerminalView::mousePressEvent(QMouseEvent* ev) {
 }
 
 void TerminalView::mouseReleaseEvent(QMouseEvent* ev) {
+  qDebug() << "Detected mouse released.";
   if (!_screenWindow) return;
 
   int charLine;
@@ -2259,7 +2263,9 @@ void TerminalView::extendSelection(const QPoint& position) {
 
 void TerminalView::wheelEvent(QWheelEvent* ev) {
   if (ev->angleDelta().y() == 0) return;
+  if (!_screenWindow || !_screenWindow->screen()) return;
   if (_screenWindow->screen()->getHistLines() == 0) return;
+  qDebug() << "Detected wheel event. y " << ev->angleDelta().y();
 
   // if the terminal program is not interested mouse events
   // then send the event to the scrollbar if the slider has room to move
