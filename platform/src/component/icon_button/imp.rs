@@ -2,16 +2,16 @@ use std::cell::{Cell, RefCell};
 
 use gtk::{
     glib::{
-        self,
+        self, clone,
         once_cell::sync::{Lazy, OnceCell},
-        ParamSpec, ParamSpecString, Value, clone
+        ParamSpec, ParamSpecInt, ParamSpecString, Value,
     },
     prelude::*,
     subclass::prelude::*,
     Align, Image,
 };
 
-use crate::{FontIcon, FontType, IconType, SvgIcon, GtkMouseButton};
+use crate::{FontIcon, FontType, GtkMouseButton, IconType, SvgIcon};
 
 #[derive(Default)]
 pub struct IconButton {
@@ -20,6 +20,7 @@ pub struct IconButton {
     pub gtk_icon: RefCell<Option<Image>>,
     pub code: RefCell<Option<String>>,
     pub icon_name: RefCell<Option<String>>,
+    pub icon_color: RefCell<Option<String>>,
     pub icon_size: Cell<i32>,
     pub icon_type: OnceCell<IconType>,
 }
@@ -119,40 +120,30 @@ impl IconButton {
         let size = self.icon_size.get();
         match self.icon_type.get() {
             None => panic!("`icon_type` of IconButton is None!"),
-            Some(IconType::SegoeMDL2) => self
-                .font_icon
-                .borrow()
-                .as_ref()
-                .expect("`segoe_icon` should not be None when IconButton icon type is `SegoeMDL2`")
-                .set_size(size),
-            Some(IconType::SegoeFluent) => self
-                .font_icon
-                .borrow()
-                .as_ref()
-                .expect(
-                    "`segoe_icon` should not be None when IconButton icon type is `SegoeFluent`",
-                )
-                .set_size(size),
-            Some(IconType::FontAwesomeFreeRegular) => self
-                .font_icon
-                .borrow()
-                .as_ref()
-                .expect("`font_awesome_icon` should not be None when IconButton icon type is `FontAwesomeFreeRegular`")
-                .set_size(size),
-            Some(IconType::FontAwesomeFreeSolid) => self
-                .font_icon
-                .borrow()
-                .as_ref()
-                .expect("`font_awesome_icon` should not be None when IconButton icon type is `FontAwesomeFreeSolid`")
-                .set_size(size),
-            Some(IconType::FontAwesomeBrands) => self
+            Some(IconType::Svg) => {},
+            Some(IconType::Gtk) => {},
+            _ => self
                 .font_icon
                 .borrow()
                 .as_ref()
                 .expect("`font_awesome_icon` should not be None when IconButton icon type is `FontAwesomeBrands`")
                 .set_size(size),
-            Some(IconType::Svg) => {},
-            Some(IconType::Gtk) => {},
+        }
+    }
+
+    pub fn color_change(&self) {
+        if let Some(color) = self.icon_color.borrow().as_deref() {
+            match self.icon_type.get() {
+                None => panic!("`icon_type` of IconButton is None!"),
+                Some(IconType::Svg) => {},
+                Some(IconType::Gtk) => {},
+                _ => self
+                    .font_icon
+                    .borrow()
+                    .as_ref()
+                    .expect("`font_awesome_icon` should not be None when IconButton icon type is `FontAwesomeBrands`")
+                    .set_color(color),
+            }
         }
     }
 
@@ -160,12 +151,14 @@ impl IconButton {
         let left_click_gesture = gtk::GestureClick::new();
         left_click_gesture.set_button(GtkMouseButton::LEFT as u32);
         let action_name = action_name.to_string();
-        left_click_gesture.connect_released(clone!(@weak self as button, @strong action_name => move |gesture, _, _, _| {
-            gesture.set_state(gtk::EventSequenceState::Claimed);
-            button.instance()
-                .activate_action(action_name.as_str(), None)
-                .expect(format!("Activate action `{}` failed.", action_name).as_str());
-        }));
+        left_click_gesture.connect_released(
+            clone!(@weak self as button, @strong action_name => move |gesture, _, _, _| {
+                gesture.set_state(gtk::EventSequenceState::Claimed);
+                button.instance()
+                    .activate_action(action_name.as_str(), None)
+                    .expect(format!("Activate action `{}` failed.", action_name).as_str());
+            }),
+        );
         self.instance().add_controller(&left_click_gesture);
     }
 }
@@ -195,7 +188,10 @@ impl ObjectImpl for IconButton {
                 ParamSpecString::builder("code").build(),
                 ParamSpecString::builder("icon-name").build(),
                 ParamSpecString::builder("icon-type").build(),
-                ParamSpecString::builder("icon-size").build(),
+                ParamSpecString::builder("icon-color").build(),
+                ParamSpecInt::builder("icon-size").build(),
+                ParamSpecString::builder("tooltip").build(),
+                ParamSpecString::builder("action-name").build(),
             ]
         });
         PROPERTIES.as_ref()
@@ -227,6 +223,31 @@ impl ObjectImpl for IconButton {
                     .expect("`icon_type` of IconButton can only set once.");
                 self.property_change();
             }
+            "icon-color" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                self.icon_color.borrow_mut().replace(input_value);
+                self.color_change();
+            }
+            "icon-size" => {
+                let input_value = value.get().expect("The value needs to be of type `i32`.");
+                self.icon_size.set(input_value);
+                self.size_change();
+            }
+            "tooltip" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                self.instance().set_has_tooltip(true);
+                self.instance().set_tooltip_text(input_value);
+            }
+            "action-name" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                self.bind_action(input_value);
+            }
             _ => unimplemented!(),
         }
     }
@@ -241,6 +262,12 @@ impl ObjectImpl for IconButton {
                 Some(svg) => svg.to_value(),
                 None => "".to_value(),
             },
+            "icon-color" => self
+                .icon_color
+                .borrow()
+                .as_deref()
+                .unwrap_or("black")
+                .to_value(),
             "icon-type" => self
                 .icon_type
                 .get()

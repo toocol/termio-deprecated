@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QList>
+
 #include "terminal_emulator.h"
 
 namespace nrs = nativers;
@@ -127,26 +128,34 @@ int main(int argc, char* argv[]) {
 
       QWidget* receiver = NULL;
       receiver = emulator.childAt(p);
+      bool flag = false;
 
       if (receiver == NULL) {
-        qDebug() << "Get receiver failed";
-        return;
+        flag = true;
       }
 
       // detected mouse enter/exit events
-      if (prevEvtTarget != receiver) {
-        if (prevEvtTarget != NULL) {
-          std::cout << "LEAVE\n";
-          QMouseEvent* mEvt =
-              new QMouseEvent((QEvent::Leave), prevP, Qt::NoButton,
-                              Qt::NoButton, Qt::NoModifier);
-          QApplication::sendEvent(prevEvtTarget, mEvt);
-        }
-
-        std::cout << "ENTER\n";
+      if (mouse_evt->type & nrs::NRS_MOUSE_ENTERED) {
+        qDebug() << "ENTER";
         QMouseEvent* mEvt = new QMouseEvent((QEvent::Enter), p, Qt::NoButton,
                                             Qt::NoButton, Qt::NoModifier);
-        QApplication::sendEvent(receiver, mEvt);
+        if (flag) {
+          emulator.sendSimulatedEvent(mEvt);
+        } else {
+          QApplication::sendEvent(receiver, mEvt);
+        }
+        return;
+      }
+      if (mouse_evt->type & nrs::NRS_MOUSE_EXITED) {
+        qDebug() << "LEAVE";
+        QMouseEvent* mEvt = new QMouseEvent(
+            (QEvent::Leave), prevP, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+        if (flag) {
+          emulator.sendSimulatedEvent(mEvt);
+        } else {
+          QApplication::sendEvent(receiver, mEvt);
+        }
+        return;
       }
 
       prevEvtTarget = receiver;
@@ -170,22 +179,34 @@ int main(int argc, char* argv[]) {
       if (mouse_evt->type & nrs::NRS_MOUSE_MOVED) {
         QMouseEvent* mEvt = new QMouseEvent(
             (QEvent::MouseMove), p, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
-        // std::cout << "-> evt-type: MOVE\n";
-        QApplication::sendEvent(receiver, mEvt);
+        //        std::cout << "-> evt-type: MOVE\n";
+        if (flag) {
+          emulator.sendSimulatedEvent(mEvt);
+        } else {
+          QApplication::sendEvent(receiver, mEvt);
+        }
       }
 
       if (mouse_evt->type & nrs::NRS_MOUSE_PRESSED) {
         QMouseEvent* mEvt = new QMouseEvent((QEvent::MouseButtonPress), p, btn,
                                             Qt::NoButton, Qt::NoModifier);
-        // std::cout << "-> evt-type: PRESS\n";
-        QApplication::sendEvent(receiver, mEvt);
+        std::cout << "-> evt-type: PRESS\n";
+        if (flag) {
+          emulator.sendSimulatedEvent(mEvt);
+        } else {
+          QApplication::sendEvent(receiver, mEvt);
+        }
       }
 
       if (mouse_evt->type & nrs::NRS_MOUSE_RELEASED) {
         QMouseEvent* mEvt = new QMouseEvent((QEvent::MouseButtonRelease), p,
                                             btn, Qt::NoButton, Qt::NoModifier);
-        // std::cout << "-> evt-type: RELEASE\n";
-        QApplication::sendEvent(receiver, mEvt);
+        std::cout << "-> evt-type: RELEASE\n";
+        if (flag) {
+          emulator.sendSimulatedEvent(mEvt);
+        } else {
+          QApplication::sendEvent(receiver, mEvt);
+        }
       }
 
       if (mouse_evt->type & nrs::NRS_MOUSE_WHEEL) {
@@ -193,8 +214,12 @@ int main(int argc, char* argv[]) {
             new QWheelEvent(QPointF(0, 0), QPointF(0, 0), QPoint(0, 0),
                             QPoint(0, mouse_evt->amount), Qt::NoButton,
                             Qt::NoModifier, Qt::ScrollBegin, false);
-        // std::cout << "-> evt-type: RELEASE\n";
-        QApplication::sendEvent(receiver, mEvt);
+        std::cout << "-> evt-type: WHELL\n";
+        if (flag) {
+          emulator.sendSimulatedEvent(mEvt);
+        } else {
+          QApplication::sendEvent(receiver, mEvt);
+        }
       }
     }
   };

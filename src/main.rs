@@ -7,6 +7,7 @@ use gtk::{
 };
 use log::info;
 use platform::{load_font, APP_COMMUNITY_ID};
+use utilities::Asset;
 use window::TermioCommunityWindow;
 
 //  gsettings set org.gtk.Settings.Debug enable-inspector-keybinding false
@@ -32,7 +33,9 @@ fn main() {
     );
 
     // Create a new application.
-    let app = Application::builder().application_id(APP_COMMUNITY_ID).build();
+    let app = Application::builder()
+        .application_id(APP_COMMUNITY_ID)
+        .build();
 
     // Load css style sheet
     app.connect_startup(|_| load_css());
@@ -53,7 +56,10 @@ fn initialize_log_system() {
 
 fn load_css() {
     let provider = CssProvider::new();
-    provider.load_from_data(include_bytes!("resources/style.css"));
+    let data = Asset::get("style.css")
+        .expect("Get embed asset `style.css` failed.")
+        .data;
+    provider.load_from_data(data.as_ref());
 
     if let Some(display) = &Display::default() {
         StyleContext::add_provider_for_display(

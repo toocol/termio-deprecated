@@ -7,7 +7,8 @@ use gtk::{
     Align, Label,
 };
 
-use crate::{IconButton, IconButtonJsonObject};
+use crate::{IconButton, IconButtonJsonObject, LanguageBundle};
+use crate::prelude::*;
 
 #[derive(Default)]
 pub struct WidgetTitleBar {
@@ -56,7 +57,7 @@ impl WidgetTitleBar {
                     label_font_desc,
                     if self.label_italic.get() { "<i>" } else { "" },
                     if self.label_bold.get() { "<b>" } else { "" },
-                    label_text,
+                    LanguageBundle::message(label_text, None),
                     if self.label_bold.get() { "</b>" } else { "" },
                     if self.label_italic.get() { "</i>" } else { "" },
                 )
@@ -82,7 +83,6 @@ impl ObjectImpl for WidgetTitleBar {
             .unwrap();
         layout.set_orientation(gtk::Orientation::Horizontal);
         layout.set_spacing(5);
-        layout.set_homogeneous(true);
 
         let left_box = self.left_box.borrow();
         let right_box = self.right_box.borrow();
@@ -99,8 +99,8 @@ impl ObjectImpl for WidgetTitleBar {
         left_box.set_orientation(gtk::Orientation::Horizontal);
         right_box.set_orientation(gtk::Orientation::Horizontal);
 
-        left_box.set_hexpand(false);
-        right_box.set_hexpand(false);
+        left_box.set_hexpand(true);
+        right_box.set_hexpand(true);
 
         let label = Label::builder()
             .use_markup(true)

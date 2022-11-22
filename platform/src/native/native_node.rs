@@ -233,9 +233,9 @@ impl NativeNodeObject {
         debug!("`NativeNode` mouse wheel: x: {}, y: {}", x, y);
         let evt = CrossProcessEvent::new_mouse_wheel_event(
             self.imp().key.get(),
-            x,
-            y,
-            y,
+            0.,
+            0.,
+            -y * 120.,
             MODIFIER.load(Ordering::SeqCst),
         );
         self.dispatch(evt);

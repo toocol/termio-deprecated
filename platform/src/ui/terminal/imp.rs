@@ -26,7 +26,6 @@ impl ObjectSubclass for NativeTerminalEmulator {
     type ParentType = gtk::Widget;
 
     fn class_init(klass: &mut Self::Class) {
-        // klass.set_layout_manager_type::<gtk::BinLayout>();
         klass.set_layout_manager_type::<gtk::BinLayout>();
     }
 }

@@ -224,6 +224,10 @@ void TerminalEmulator::createSshSession(long sessionId, QString host,
 }
 
 void TerminalEmulator::sendSimulatedEvent(QEvent* event) {
+  if (!SessionGroup::activeSession) {
+    return;
+  }
+
   SessionGroup* activeGroup = SessionGroup::getSessionGroup(
       SessionGroup::activeSession->sessionGroupId());
   QApplication::sendEvent(activeGroup->view(), event);

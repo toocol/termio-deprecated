@@ -1,4 +1,4 @@
-/* App title bar */
+/* Header bar */
 headerbar entry,
 headerbar spinbutton,
 headerbar button,
@@ -29,6 +29,12 @@ windowcontrols>button {
 windowcontrols>button.close:hover {
     background-color: #cd3333;
     color: white;
+}
+.header-bar-icon-button {
+    min-height: 10px;
+    min-width: 10px;
+    border-color: transparent;
+    padding: 0px;
 }
 
 /* Native terminal emulator */
@@ -65,9 +71,6 @@ windowcontrols>button.close:hover {
     border-width: 0 0 0 3px;
     border-color: transparent;
     border-style: solid;
-}
-.activity-bar-item .svg-icon {
-    padding: 5px 5px 5px 5px;
 }
 
 /* Session credential management */

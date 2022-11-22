@@ -5,28 +5,57 @@ use gtk::{
     glib::{self, clone, once_cell::sync::OnceCell, subclass::InitializingObject},
     prelude::*,
     subclass::prelude::{ObjectSubclass, *},
-    CompositeTemplate, Inhibit, Overlay, Paned, ScrolledWindow, Stack,
+    CompositeTemplate, Inhibit, Overlay, Paned, ScrolledWindow, Stack, HeaderBar,
 };
 
 use log::debug;
 use platform::{
-    termio::data_path, BottomStatusBar, NativeTerminalEmulator, NewSessionDialog,
-    SessionCredentialManagementTree, SessionCredentialObject, Termio, WidgetTitleBar,
-    WorkspaceActivityBar,
+    termio::data_path, NativeTerminalEmulator, NewSessionDialog,
+    SessionCredentialManagementTree, SessionCredentialObject, Termio, WidgetTitleBar, EditionMark, ActivityBarItem, IconButton, ActivityBar,
 };
 
 #[derive(Default, CompositeTemplate)]
 #[template(resource = "/com/toocol/termio/community/window.ui")]
 pub struct TermioCommunityWindow {
-    //// Main layout
+    ///////////////// Main layout
+    #[template_child]
+    pub global_overlay: TemplateChild<Overlay>,
+    #[template_child]
+    pub workbench_box: TemplateChild<gtk::Box>,
+    #[template_child]
+    pub workspace_box: TemplateChild<gtk::Box>,
     #[template_child]
     pub workspace_paned: TemplateChild<Paned>,
+
+    ///////////////// Header bar
     #[template_child]
-    pub workspace_activity_bar: TemplateChild<WorkspaceActivityBar>,
+    pub window_header_bar: TemplateChild<HeaderBar>,
+    #[template_child]
+    pub toggle_left_area_button: TemplateChild<IconButton>,
+    #[template_child]
+    pub toggle_bottom_area_button: TemplateChild<IconButton>,
+
+    ///////////////// Activity bar
+    #[template_child]
+    pub workspace_activity_bar: TemplateChild<ActivityBar>,
+
+    #[template_child]
+    pub workspace_activity_bar_top_box: TemplateChild<gtk::Box>,
+    #[template_child]
+    pub toggle_session_management_item: TemplateChild<ActivityBarItem>,
+    #[template_child]
+    pub toggle_plugin_extensions_item: TemplateChild<ActivityBarItem>,
+
+    #[template_child]
+    pub workspace_activity_bar_bottom_box: TemplateChild<gtk::Box>,
+    #[template_child]
+    pub toggle_setting_item: TemplateChild<ActivityBarItem>,
+
+    ///////////////// Left side bar
     #[template_child]
     pub workspace_left_side_bar: TemplateChild<Stack>,
 
-    //// Session credential management
+    ///////////////// Session credential management
     #[template_child]
     pub session_manageent_wrap_box: TemplateChild<gtk::Box>,
     #[template_child]
@@ -34,17 +63,21 @@ pub struct TermioCommunityWindow {
     #[template_child]
     pub session_credential_management: TemplateChild<SessionCredentialManagementTree>,
 
-    //// Native teminal emulator
+    ///////////////// Native teminal emulator
     #[template_child]
     pub workspace_terminal_scrolled_window: TemplateChild<ScrolledWindow>,
     #[template_child]
-    pub terminal_emulator_overlay: TemplateChild<Overlay>,
-    #[template_child]
     pub native_terminal_emulator: TemplateChild<NativeTerminalEmulator>,
 
-    /// Bottom status bar
+    ///////////////// Bottom status bar
     #[template_child]
-    pub bottom_status_bar: TemplateChild<BottomStatusBar>,
+    pub bottom_status_bar: TemplateChild<gtk::Box>,
+    #[template_child]
+    pub bottom_status_bar_left_box: TemplateChild<gtk::Box>,
+    #[template_child]
+    pub bottom_status_bar_right_box: TemplateChild<gtk::Box>,
+    #[template_child]
+    pub edition_mark: TemplateChild<EditionMark>,
 
     pub termio: OnceCell<Termio>,
     pub new_session_dialog: OnceCell<NewSessionDialog>,
@@ -79,11 +112,13 @@ impl ObjectImpl for TermioCommunityWindow {
         obj.setup_actions();
         obj.resotre_data();
 
+        self.workspace_left_side_bar.set_width_request(50);
+
         self.workspace_paned.set_shrink_start_child(false);
         self.workspace_paned.set_shrink_end_child(false);
-        self.workspace_paned.set_resize_start_child(false);
+        self.workspace_paned.set_resize_start_child(true);
         self.workspace_paned.set_resize_end_child(true);
-        self.workspace_paned.set_position(230);
+        self.workspace_paned.set_position(250);
 
         let terminal_window = &*self.workspace_terminal_scrolled_window;
         let terminal_emulator = &*self.native_terminal_emulator;
@@ -93,6 +128,13 @@ impl ObjectImpl for TermioCommunityWindow {
                 terminal_emulator.resize(allocation.width(), allocation.height());
             }),
         );
+
+        self.instance().set_titlebar(Some(&*self.window_header_bar));
+    }
+
+    fn dispose(&self) {
+        self.workspace_activity_bar_top_box.unparent();
+        self.workspace_activity_bar_bottom_box.unparent();
     }
 }
 

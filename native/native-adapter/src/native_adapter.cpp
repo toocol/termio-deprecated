@@ -699,7 +699,7 @@ REXPORT void RCALL unlock_buffer(i32 key) {
 
 REXPORT bool RCALL fire_mouse_pressed_event(i32 key, f64 x, f64 y, i32 buttons,
                                             i32 modifiers, i64 timestamp) {
-  return fire_mouse_event(key, NRS_MOUSE_MOVED, x, y, 0.0, buttons, modifiers,
+  return fire_mouse_event(key, NRS_MOUSE_PRESSED, x, y, 0.0, buttons, modifiers,
                           0, (long)timestamp);
 }
 
