@@ -10,8 +10,9 @@ use gtk::{
     subclass::prelude::*,
     Align, Image,
 };
+use utilities::DynamicBundle;
 
-use crate::{FontIcon, FontType, GtkMouseButton, IconType, SvgIcon};
+use crate::{FontIcon, FontType, GtkMouseButton, IconType, LanguageBundle, SvgIcon};
 
 #[derive(Default)]
 pub struct IconButton {
@@ -240,7 +241,8 @@ impl ObjectImpl for IconButton {
                     .get()
                     .expect("The value needs to be of type `String`.");
                 self.instance().set_has_tooltip(true);
-                self.instance().set_tooltip_text(input_value);
+                self.instance()
+                    .set_tooltip_text(Some(LanguageBundle::message(input_value, None).as_str()));
             }
             "action-name" => {
                 let input_value = value

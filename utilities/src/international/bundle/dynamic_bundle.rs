@@ -138,14 +138,14 @@ mod tests {
     fn test_dynamic_bundle() {
         assert_eq!(
             "DEFAULT",
-            TestDynamicBundle::message("session.default.group", None)
+            TestDynamicBundle::message("text.session.default.group", None)
         );
 
         change_locale(Locale::LOCALE_CH);
 
         assert_eq!(
             "默认",
-            TestDynamicBundle::message("session.default.group", None)
+            TestDynamicBundle::message("text.session.default.group", None)
         );
     }
 }

@@ -9,8 +9,9 @@ use gtk::{
     prelude::*,
     subclass::prelude::*,
 };
+use utilities::DynamicBundle;
 
-use crate::{FontIcon, GtkMouseButton, ItemStatus};
+use crate::{FontIcon, GtkMouseButton, ItemStatus, LanguageBundle};
 
 const CSS_CLASS: &str = "activity-bar-item";
 const STATUS_ON_CSS: &str = "activity-bar-item-on";
@@ -138,7 +139,8 @@ impl ObjectImpl for ActivityBarItem {
                     .get()
                     .expect("The value needs to be of type `String`.");
                 self.instance().set_has_tooltip(true);
-                self.instance().set_tooltip_text(Some(input_value));
+                self.instance()
+                    .set_tooltip_text(Some(LanguageBundle::message(input_value, None).as_str()));
             }
             _ => unimplemented!(),
         }

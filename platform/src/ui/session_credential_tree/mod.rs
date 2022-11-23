@@ -2,7 +2,7 @@ mod imp;
 
 use core::{create_session, SessionCredential};
 
-use crate::{SessionCredentialObject, ACTION_CREATE_SSH_SESSION};
+use crate::{SessionCredentialObject, ACTION_CREATE_SSH_SESSION, LanguageBundle};
 use gtk::{
     glib::{self, Type},
     prelude::*,
@@ -11,6 +11,7 @@ use gtk::{
     CellAreaBox, CellRendererText, TreeStore, TreeViewColumn,
 };
 use log::debug;
+use utilities::DynamicBundle;
 
 glib::wrapper! {
     pub struct SessionCredentialManagementTree(ObjectSubclass<imp::SessionCredentialManagementTree>)
@@ -80,7 +81,7 @@ impl SessionCredentialManagementTree {
         tree_store.set_value(
             &default_group,
             Columns::ShownName as u32,
-            &"DEFAULT".to_value(),
+            &LanguageBundle::message(LanguageBundle::KEY_TEXT_SESSION_DEFAULT_GROUP, None).to_value(),
         );
         tree_store.set_value(
             &default_group,
