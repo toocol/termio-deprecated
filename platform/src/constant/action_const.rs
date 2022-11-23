@@ -37,6 +37,11 @@ pub const ACTION_CREATE_SSH_SESSION: ActionName = ActionName {
     name: "create-ssh-session",
 };
 
+pub const ACTION_LOCALE_CHANGED: ActionName = ActionName {
+    group: "win",
+    name: "locale-changed",
+};
+
 pub struct ActionName {
     group: &'static str,
     name: &'static str,

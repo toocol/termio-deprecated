@@ -3,8 +3,9 @@ mod imp;
 use gtk::{Adjustment, Frame, Label, PasswordEntry, SpinButton, Window, glib, prelude::*, subclass::prelude::*, Dialog, DialogFlags, Entry, ResponseType};
 use glib::{clone, Object};
 use log::info;
+use utilities::DynamicBundle;
 
-use crate::ACTION_ADD_SESSION_CREDENTIAL;
+use crate::{ACTION_ADD_SESSION_CREDENTIAL, LanguageBundle};
 
 glib::wrapper! {
     pub struct NewSessionDialog(ObjectSubclass<imp::NewSessionDialog>);
@@ -47,25 +48,30 @@ impl NewSessionDialog {
 
         // Create entry and add it to the box
         // Remote host entry.
-        let host_label = Label::builder().label("Remote Host :").build();
+        let host_label = Label::builder()
+            .label(LanguageBundle::message(LanguageBundle::KEY_TEXT_REMOTE_HOST, None).as_str())
+            .build();
         let host_entry = Entry::builder()
-            .placeholder_text("Remote Host")
             .activates_default(true)
             .build();
         // Username entry.
-        let username_label = Label::builder().label("Username :").build();
+        let username_label = Label::builder()
+            .label(LanguageBundle::message(LanguageBundle::KEY_TEXT_USERNAME, None).as_str())
+            .build();
         let username_entry = Entry::builder()
-            .placeholder_text("Username")
             .activates_default(true)
             .build();
         // Password entry.
-        let password_label = Label::builder().label("Password :").build();
+        let password_label = Label::builder()
+            .label(LanguageBundle::message(LanguageBundle::KEY_TEXT_PASSWORD, None).as_str())
+            .build();
         let password_entry = PasswordEntry::builder()
-            .placeholder_text("Password")
             .activates_default(true)
             .build();
         // Port entry.
-        let port_label = Label::builder().label("Port :").build();
+        let port_label = Label::builder()
+            .label(LanguageBundle::message(LanguageBundle::KEY_TEXT_PORT, None).as_str())
+            .build();
         let port_adjustment = Adjustment::new(22., 0., 9999., 1., 5., 0.);
         let port_button = SpinButton::builder().adjustment(&port_adjustment).build();
 
@@ -78,7 +84,7 @@ impl NewSessionDialog {
         gtk_box.append(&port_label);
         gtk_box.append(&port_button);
         let basic_ssh_frame = Frame::builder()
-            .label("Basic SSH Settings :")
+            .label(LanguageBundle::message(LanguageBundle::KEY_TEXT_BASIC_SSH_SETTING, None).as_str())
             .margin_top(10)
             .margin_bottom(10)
             .margin_start(10)
@@ -158,6 +164,13 @@ impl NewSessionDialog {
             .dialog
             .set(dialog)
             .expect("`dialog` of `NewSessionDialog` can only set once.");
+        obj.imp().bind_multilingual_widget(
+            host_label, 
+            username_label, 
+            password_label, 
+            port_label, 
+            basic_ssh_frame
+        );
         obj
     }
 

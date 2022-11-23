@@ -13,8 +13,8 @@ use gtk::{
 
 use platform::{
     termio::data_path, ItemStatus, ACTION_ADD_SESSION_CREDENTIAL, ACTION_CREATE_SSH_SESSION,
-    ACTION_HIDE_LEFT_SIDE_BAR, ACTION_NEW_SESSION_CREDENTIAL_DIALOG, ACTION_TOGGLE_BOTTOM_AREA,
-    ACTION_TOGGLE_LEFT_AREA, ACTION_TOGGLE_PLUGIN_EXTENSION_PANEL,
+    ACTION_HIDE_LEFT_SIDE_BAR, ACTION_LOCALE_CHANGED, ACTION_NEW_SESSION_CREDENTIAL_DIALOG,
+    ACTION_TOGGLE_BOTTOM_AREA, ACTION_TOGGLE_LEFT_AREA, ACTION_TOGGLE_PLUGIN_EXTENSION_PANEL,
     ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL, ACTION_TOGGLE_SETTING_PANEL,
 };
 
@@ -183,6 +183,13 @@ impl TermioCommunityWindow {
             }),
         );
         self.add_action(&action_create_ssh_session);
+
+        // Create `locale-changed` action.
+        let action_locale_changed = SimpleAction::new(ACTION_LOCALE_CHANGED.create(), None);
+        action_locale_changed.connect_activate(clone!(@weak self as window => move |_, _| {
+
+        }));
+        self.add_action(&action_locale_changed);
     }
 
     pub fn resotre_data(&self) {
