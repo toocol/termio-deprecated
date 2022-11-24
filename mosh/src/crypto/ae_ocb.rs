@@ -64,7 +64,7 @@ impl AeOcb {
         nonce: &[u8],
         pt: &[u8],
         mut pt_len: usize,
-        _ad: &[u8],
+        _ad: Option<&[u8]>,
         _ad_len: usize,
         ct: &mut [u8],
         mut tag: Option<&mut [u8]>,
@@ -174,7 +174,7 @@ impl AeOcb {
                     //memcpy(tmp.u8, ptp+k, remaining);
                     tmp_u8 = [0u8; 16];
                     let src_pos = j * BPI * 16 + k * 16;
-                    tmp_u8[0..remaining].copy_from_slice(&pt[src_pos..src_pos + 16]);
+                    tmp_u8[0..remaining].copy_from_slice(&pt[src_pos..src_pos + remaining]);
 
                     tmp_u8[remaining] = 0x80;
                     tmp_bl = Block::from_bytes(tmp_u8);
@@ -234,7 +234,7 @@ impl AeOcb {
         nonce: &[u8],
         ct: &[u8],
         mut ct_len: i32,
-        _ad: &[u8],
+        _ad: Option<&[u8]>,
         _ad_len: usize,
         pt: &mut [u8],
         mut tag: Option<&[u8; 16]>,
@@ -630,10 +630,10 @@ impl Block {
 
     pub fn double_block(bl: &Block) -> Self {
         let mut b = Block::zero_block();
-        let t = bl.l >> 63;
+        let t = (bl.l as i64 >> 63) as u64;
         // FIXME: Maybe `>>>` ?
-        b.l = (bl.l + bl.l) ^ (bl.r >> 63);
-        b.r = (bl.r + bl.r) ^ (t & 135);
+        b.l = (bl.l as u128 + bl.l as u128) as u64 ^ (bl.r >> 63);
+        b.r = (bl.r as u128 + bl.r as u128) as u64 ^ (t & 135);
         b
     }
 
