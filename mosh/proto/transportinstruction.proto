@@ -4,9 +4,6 @@ option optimize_for = LITE_RUNTIME;
 
 package TransportBuffers;
 
-option java_package = "com.toocol.termio.core.mosh.core.proto";
-option java_outer_classname="InstructionPB";
-
 message Instruction {
   optional uint32 protocol_version = 1;
 

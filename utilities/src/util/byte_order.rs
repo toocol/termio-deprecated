@@ -7,7 +7,7 @@ impl ByteOrder {
     }
 
     /// Transfer little-endian long to big-endian [u8].
-    pub fn h_to_be_64(x: u64) -> [u8; 8] {
+    pub fn htobe64(x: u64) -> [u8; 8] {
         [
             ((x >> 56) & 0xFF) as u8,
             ((x >> 48) & 0xFF) as u8,
@@ -21,17 +21,17 @@ impl ByteOrder {
     }
 
     /// Transfer big-endian bytes to u64.
-    pub fn be_64_to_h(bytes: [u8; 8]) -> u64 {
+    pub fn be64toh(bytes: [u8; 8]) -> u64 {
         u64::from_be_bytes(bytes)
     }
 
     /// Transfer little-endian u16 to big-endian byte[].
-    pub fn h_to_be_16(x: u16) -> [u8; 2] {
+    pub fn htobe16(x: u16) -> [u8; 2] {
         [((x >> 8) & 0xFF) as u8, (x & 0xFF) as u8]
     }
 
     /// Transfer big-endian bytes to u16.
-    pub fn be_16_to_h(bytes: [u8; 2]) -> u16 {
+    pub fn be16toh(bytes: [u8; 2]) -> u16 {
         u16::from_be_bytes(bytes)
     }
 
