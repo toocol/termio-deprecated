@@ -212,7 +212,9 @@ impl AeOcb {
                     ctp[1] = Block::xor_block(&ta[1], &oa[1]);
                     ctp[0] = Block::xor_block(&ta[0], &oa[0]);
                 }
-                1 => ctp[0] = Block::xor_block(&ta[0], &oa[0]),
+                1 => {
+                    ctp[0] = Block::xor_block(&ta[0], &oa[0]);
+                }
                 _ => {}
             }
             AeOcb::fill_data_from_block_arrays(ct, &ctp, j, ctp.len());
@@ -318,6 +320,7 @@ impl AeOcb {
             ctx.blocks_processed = block_num;
             ctx.checksum = checksum;
         }
+        AeOcb::initial_blocks(&mut ptp);
 
         if finalize > 0 {
             let mut ta = [Block::zero_block(); BPI + 1];
@@ -363,8 +366,8 @@ impl AeOcb {
                     // memcpy(ptp+k, tmp.u8, remaining);
                     let dest_pos = k * 16 + j * BPI * 16;
                     pt[dest_pos..dest_pos + remaining].copy_from_slice(&tmp_u8[0..remaining]);
-                    let bytes = ptp[k].get_bytes();
-                    tmp_u8[0..remaining].copy_from_slice(&bytes[0..remaining]);
+                    let mut bytes = ptp[k].get_bytes();
+                    bytes[0..remaining].copy_from_slice(&tmp_u8[0..remaining]);
                     ptp[k] = Block::from_bytes(bytes);
 
                     tmp_bl = Block::from_bytes(tmp_u8);
@@ -397,7 +400,6 @@ impl AeOcb {
                 }
                 _ => {}
             }
-
             AeOcb::fill_data_from_block_arrays(pt, &ptp, j, ptp.len());
 
             let blk = Block::xor_block(offset, &ctx.ldollor);
@@ -514,7 +516,7 @@ impl AeOcb {
     fn constant_time_memcmp(av: &[u8], bv: &[u8], n: usize) -> u8 {
         let mut result = 0u8;
 
-        for i in 0..n as usize {
+        for i in 0..n {
             result |= av[i] ^ bv[i];
         }
 
@@ -741,5 +743,15 @@ mod test {
         assert_eq!(block_de, block);
 
         assert!(!Block::unequal_blocks(&block, &block_de));
+    }
+
+    #[test]
+    fn test_double_block() {
+        let mut block = Block::zero_block();
+        block.l = 18446744073709551615;
+        block.r = 18446744073709551615;
+        let block = Block::double_block(&block);
+        assert_eq!(block.l, 18446744073709551615);
+        assert_eq!(block.r, 18446744073709551481);
     }
 }

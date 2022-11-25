@@ -178,7 +178,8 @@ impl Session {
         assert!(cipher_text_len * 2 <= self.cipher_text_buffer.len());
         assert!(pt_len * 2 <= self.plain_text_buffer.len());
 
-        self.plain_text_buffer.data[0..plain_text.text.len()].copy_from_slice(&plain_text.text[0..plain_text.text.len()]);
+        self.plain_text_buffer.data[0..plain_text.text.len()]
+            .copy_from_slice(&plain_text.text[0..plain_text.text.len()]);
         self.nonce_buffer.data[0..NONCE_LEN].copy_from_slice(plain_text.nonce.data());
 
         if cipher_text_len
@@ -206,14 +207,11 @@ impl Session {
             panic!("Encrypted 2^47 blocks.")
         }
 
-        let mut bytes: Vec<u8> = vec![];
+        let mut bytes: Vec<u8> = vec![0; cipher_text_len + 8];
         let cc_bytes = plain_text.nonce.cc_bytes();
-        for i in 0..8usize {
-            bytes.push(cc_bytes[i]);
-        }
-        for i in 0..cipher_text_len - 8 {
-            bytes.push(self.cipher_text_buffer.data[i]);
-        }
+        bytes[0..8].copy_from_slice(&cc_bytes[0..8]);
+        bytes[8..8 + cipher_text_len]
+            .copy_from_slice(&self.cipher_text_buffer.data[0..cipher_text_len]);
 
         bytes
     }
@@ -233,7 +231,7 @@ impl Session {
         assert!(pt_len <= self.plain_text_buffer.len());
 
         let nonce = Nonce::from_bytes(str, 8);
-        self.cipher_text_buffer.data[0..body_len].copy_from_slice(&str[0..body_len]);
+        self.cipher_text_buffer.data[0..body_len].copy_from_slice(&str[8..8 + body_len]);
         self.nonce_buffer.data[0..NONCE_LEN].copy_from_slice(&nonce.data()[0..NONCE_LEN]);
 
         if pt_len
@@ -252,7 +250,7 @@ impl Session {
             panic!("Packet failed integrity check.")
         }
 
-        let mut text: Vec<u8> = vec![];
+        let mut text: Vec<u8> = vec![0; pt_len];
         text[0..pt_len].copy_from_slice(&self.plain_text_buffer.data[0..pt_len]);
         Message::new(nonce, text)
     }
@@ -271,16 +269,15 @@ mod tests {
     fn test_encrypt_decrypt() {
         let key = Base64Key::new("zr0jtuYVKJnfJHP/XOOsbQ".to_string());
         let mut session = Session::new(key);
+
         let plain_text = "Plain Text";
         let nonce = Nonce::from_seq(10);
 
         let bytes = plain_text.as_bytes();
-        let mut text: Vec<u8> = vec![];
-        for i in 0..bytes.len() {
-            text.push(bytes[i]);
-        }
-        let en_message = Message::new(nonce, text);
+        let mut text: Vec<u8> = vec![0; bytes.len()];
+        text[0..bytes.len()].copy_from_slice(bytes);
 
+        let en_message = Message::new(nonce, text);
         let encrypted = session.encrypt(en_message.clone());
         let de_message = session.decrypt(&encrypted, encrypted.len());
         assert_eq!(en_message, de_message);
