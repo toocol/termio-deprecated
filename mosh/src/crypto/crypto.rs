@@ -270,7 +270,8 @@ mod tests {
         let key = Base64Key::new("zr0jtuYVKJnfJHP/XOOsbQ".to_string());
         let mut session = Session::new(key);
 
-        let plain_text = "Plain Text";
+        let plain_text = "Rust is a multi-paradigm, general-purpose programming language. Rust emphasizes performance, type safety, and concurrency.[11][12][13] 
+            Rust enforces memory safety—that is, that all references point to valid memory—without requiring the use of a garbage collector or reference counting present in other memory-safe languages.[13][14]";
         let nonce = Nonce::from_seq(10);
 
         let bytes = plain_text.as_bytes();

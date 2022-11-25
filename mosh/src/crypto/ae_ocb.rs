@@ -430,7 +430,7 @@ impl AeOcb {
     }
 
     fn ntz(x: i32) -> usize {
-        TZ_TABLE[(((x & -x) * 0x077CB531) >> 27) as usize]
+        TZ_TABLE[(((x as i128 & -x as i128) * 0x077CB531) >> 27) as usize]
     }
 
     fn initial_blocks(blocks: &mut [Block]) {
