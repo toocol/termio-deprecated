@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use std::sync::atomic::AtomicU32;
+use std::sync::atomic::AtomicU64;
 use utilities::ByteOrder;
 
 use super::{AeCtx, AeOcb, AE_SUCCESS};
@@ -9,10 +9,10 @@ pub const RECEIVE_MTU: usize = 2048;
 pub const ADDED_BYTES: usize = 16;
 
 ///////////////// Crypto
-static COUNTER: AtomicU32 = AtomicU32::new(0);
+static COUNTER: AtomicU64 = AtomicU64::new(0);
 pub struct Crypto;
 impl Crypto {
-    pub fn unique() -> u32 {
+    pub fn unique() -> u64 {
         COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
     }
 }
