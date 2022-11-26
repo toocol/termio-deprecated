@@ -14,9 +14,10 @@ once_cell = "1.16.0"
 base64 = "0.13.1"
 rand = "0.8.5"
 protobuf = "3.2.0"
-flate2 = "1.0.25"
+flate2 = { version = "1.0.25", features = ["zlib-ng"] }
 
 [build-dependencies]
+protoc-bin-vendored = "3.0.0"
 protobuf-codegen = "3.2.0"
 
 [[bin]]

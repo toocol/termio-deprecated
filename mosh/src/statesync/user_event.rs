@@ -28,7 +28,7 @@ impl UserEvent {
         }
     }
 
-    pub fn new_resize(width: u32, height: u32) -> Self {
+    pub fn new_resize(width: i32, height: i32) -> Self {
         UserEvent {
             user_bytes: None,
             resize: Some(Resize { width, height }),
@@ -40,15 +40,15 @@ impl UserEvent {
         &self.event_type
     }
 
-    pub fn to_user_bytes(mut self) -> UserBytes {
+    pub fn to_user_bytes(&self) -> &UserBytes {
         self.user_bytes
-            .take()
+            .as_ref()
             .expect("`UserEvent` type mismatched, `user_bytes` is None.")
     }
 
-    pub fn to_resize(mut self) -> Resize {
+    pub fn to_resize(&self) -> &Resize {
         self.resize
-            .take()
+            .as_ref()
             .expect("`UserEvent` type mismatched, `resize` is None.")
     }
 }
@@ -65,29 +65,29 @@ impl UserBytes {
         UserBytes { bytes }
     }
 
-    pub fn bytes(self) -> Vec<u8> {
-        self.bytes
+    pub fn bytes(&self) -> Vec<u8> {
+        self.bytes.clone()
     }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Resize {
-    width: u32,
-    height: u32,
+    width: i32,
+    height: i32,
 }
 impl UserEventTrait for Resize {
     const NAME: &'static str = "Resize";
 }
 impl Resize {
-    pub fn new(width: u32, height: u32) -> Self {
+    pub fn new(width: i32, height: i32) -> Self {
         Resize { width, height }
     }
 
-    pub fn width(&self) -> u32 {
+    pub fn width(&self) -> i32 {
         self.width
     }
 
-    pub fn height(&self) -> u32 {
+    pub fn height(&self) -> i32 {
         self.height
     }
 }
