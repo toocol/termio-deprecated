@@ -17,4 +17,4 @@ pub const ACTIVE_RETRY_TIMEOUT: u32 = 10000; /* attempt to resend at frame rate 
 /**
  * Application datagram MTU. For constructors and fallback.
  */
-pub const DEFAULT_SEND_MTU: u32 = 500;
+pub const DEFAULT_SEND_MTU: usize = 500;

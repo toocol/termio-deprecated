@@ -1026,6 +1026,7 @@ dependencies = [
  "protobuf-codegen",
  "protoc-bin-vendored",
  "rand",
+ "ssh2",
  "utilities",
 ]
 
