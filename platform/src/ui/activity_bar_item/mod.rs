@@ -2,6 +2,7 @@ mod imp;
 
 use glib::Object;
 use gtk::glib;
+use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 
 glib::wrapper! {
@@ -20,6 +21,14 @@ impl ActivityBarItem {
             item.imp().activate();
         }
         item
+    }
+
+    pub fn name(&self) -> String {
+        self.widget_name().to_string()
+    }
+
+    pub fn toggle_status(&self) {
+        self.imp().toggle_status();
     }
 }
 

@@ -24,6 +24,7 @@ pub struct IconButton {
     pub icon_color: RefCell<Option<String>>,
     pub icon_size: Cell<i32>,
     pub icon_type: OnceCell<IconType>,
+    pub action_target: RefCell<Option<String>>,
 }
 
 #[glib::object_subclass]
@@ -155,8 +156,15 @@ impl IconButton {
         left_click_gesture.connect_released(
             clone!(@weak self as button, @strong action_name => move |gesture, _, _, _| {
                 gesture.set_state(gtk::EventSequenceState::Claimed);
+                let variant;
+                let param = if let Some(target) = button.action_target.borrow().as_deref() {
+                    variant = target.to_variant();
+                    Some(&variant)
+                } else {
+                    None
+                };
                 button.instance()
-                    .activate_action(action_name.as_str(), None)
+                    .activate_action(action_name.as_str(), param)
                     .expect(format!("Activate action `{}` failed.", action_name).as_str());
             }),
         );
@@ -249,6 +257,12 @@ impl ObjectImpl for IconButton {
                     .get()
                     .expect("The value needs to be of type `String`.");
                 self.bind_action(input_value);
+            }
+            "action-target" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                self.action_target.borrow_mut().replace(input_value);
             }
             _ => unimplemented!(),
         }

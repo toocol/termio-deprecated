@@ -1,4 +1,6 @@
-use std::cell::{Cell, RefCell};
+use std::{
+    cell::{Cell, RefCell},
+};
 
 use gtk::{
     glib::{
@@ -21,6 +23,7 @@ const STATUS_OFF_CSS: &str = "activity-bar-item-off";
 pub struct ActivityBarItem {
     pub font_icon: RefCell<Option<FontIcon>>,
     pub code: OnceCell<String>,
+    pub bind_widget_name: OnceCell<String>,
     pub status: Cell<ItemStatus>,
 }
 
@@ -94,6 +97,7 @@ impl ObjectImpl for ActivityBarItem {
                 ParamSpecBoolean::builder("initial-on").build(),
                 ParamSpecInt::builder("icon-size").build(),
                 ParamSpecString::builder("tooltip").build(),
+                ParamSpecString::builder("bind-widget-name").build(),
             ]
         });
         PROPERTIES.as_ref()
@@ -141,6 +145,14 @@ impl ObjectImpl for ActivityBarItem {
                 self.instance().set_has_tooltip(true);
                 self.instance()
                     .set_tooltip_text(Some(LanguageBundle::message(input_value, None).as_str()));
+            }
+            "bind-widget-name" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                self.bind_widget_name
+                    .set(input_value)
+                    .expect("`bind_widget_name` can only set once.");
             }
             _ => unimplemented!(),
         }

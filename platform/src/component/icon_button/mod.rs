@@ -24,6 +24,7 @@ impl IconButton {
         icon_name: &Option<String>,
         tooltip: &Option<String>,
         action_name: &Option<String>,
+        action_target: &Option<String>,
     ) -> Self {
         let mut has_tooltip = false;
         let mut builder = Object::builder();
@@ -45,6 +46,13 @@ impl IconButton {
         let icon_button: IconButton = builder.build();
 
         if let Some(action_name) = action_name.as_deref() {
+            if let Some(action_target) = action_target.as_deref() {
+                icon_button
+                    .imp()
+                    .action_target
+                    .borrow_mut()
+                    .replace(action_target.to_string());
+            }
             icon_button.imp().bind_action(action_name);
         }
 

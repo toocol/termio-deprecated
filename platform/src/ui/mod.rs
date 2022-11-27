@@ -1,9 +1,9 @@
-mod activity_bar;
-mod activity_bar_item;
-mod terminal;
-mod session_credential_tree;
-mod new_session_dialog;
-mod edition_mark;
+pub mod activity_bar;
+pub mod activity_bar_item;
+pub mod terminal;
+pub mod session_credential_tree;
+pub mod new_session_dialog;
+pub mod edition_mark;
 
 pub use activity_bar::*;
 pub use activity_bar_item::*;

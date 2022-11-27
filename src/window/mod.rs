@@ -8,7 +8,7 @@ use gtk::{
     glib::{self, clone, Object, VariantTy},
     prelude::*,
     subclass::prelude::*,
-    Application,
+    Application, Widget,
 };
 
 use platform::{
@@ -53,28 +53,47 @@ impl TermioCommunityWindow {
         action_toggle_bottom_area.connect_activate(clone!(@weak self as window => move |_, _| {
             if window.imp().workspace_left_side_bar.get_visible() {
                 window.imp().workspace_left_side_bar.hide();
+                window.imp().left_side_bar_seperator.hide();
             } else {
                 window.imp().workspace_left_side_bar.show();
+                window.imp().left_side_bar_seperator.show();
             }
             if window.imp().workspace_activity_bar.get_visible() {
                 window.imp().workspace_activity_bar.hide();
+                window.imp().left_side_bar_seperator.hide();
             } else {
                 window.imp().workspace_activity_bar.show();
+                window.imp().left_side_bar_seperator.show();
             }
         }));
         self.add_action(&action_toggle_bottom_area);
 
         // Create `hide-left-side-bar` action.
-        let action_hide_left_side_bar = SimpleAction::new(ACTION_HIDE_LEFT_SIDE_BAR.create(), None);
-        action_hide_left_side_bar.connect_activate(clone!(@weak self as window => move |_, _| {
-            window.imp().workspace_left_side_bar.hide();
-            let allocation = window.imp()
-                .workspace_terminal_scrolled_window
-                .allocation();
-            window.imp()
-                .native_terminal_emulator
-                .resize(allocation.width(), allocation.height());
-        }));
+        let action_hide_left_side_bar = SimpleAction::new(
+            ACTION_HIDE_LEFT_SIDE_BAR.create(),
+            Some(&String::static_variant_type()),
+        );
+        action_hide_left_side_bar.connect_activate(
+            clone!(@weak self as window => move |_, parameter| {
+                let param = parameter
+                        .expect("Could not get parameter.")
+                        .get::<String>()
+                        .expect("The variant needs to be of type `u8`.");
+                for item in window.imp().workspace_activity_bar.get_all_items() {
+                    if item.name() == param {
+                        item.toggle_status();
+                        break;
+                    }
+                }
+                window.imp().workspace_left_side_bar.hide();
+                let allocation = window.imp()
+                    .workspace_terminal_scrolled_window
+                    .allocation();
+                window.imp()
+                    .native_terminal_emulator
+                    .resize(allocation.width(), allocation.height());
+            }),
+        );
         self.add_action(&action_hide_left_side_bar);
 
         // Create `toggle-session-management-panel` action.
@@ -227,5 +246,37 @@ impl TermioCommunityWindow {
         T: FnOnce(&platform::NativeTerminalEmulator),
     {
         f(self.imp().native_terminal_emulator.as_ref())
+    }
+
+    pub fn chlildren<T: IsA<Widget>>(&self, widget: &T) -> Vec<Widget> {
+        let mut children = vec![];
+        if let Some(first_child) = widget.first_child() {
+            children.push(first_child);
+            let mut first_child = &children[children.len() - 1];
+            while let Some(sibling) = first_child.next_sibling() {
+                children.push(sibling);
+                first_child = &children[children.len() - 1];
+            }
+        }
+        children
+    }
+
+    pub fn generic_chlildren<T: IsA<Widget>>(&self, widget: &T) -> Vec<T> {
+        let mut children = vec![];
+        if let Some(first_child) = widget.first_child() {
+            let item = first_child
+                .downcast::<T>()
+                .expect("Downcast failed type mismatch");
+            children.push(item);
+            let mut first_child = &children[children.len() - 1];
+            while let Some(sibling) = first_child.next_sibling() {
+                let item = sibling
+                    .downcast::<T>()
+                    .expect("Downcast failed type mismatch");
+                children.push(item);
+                first_child = &children[children.len() - 1];
+            }
+        }
+        children
     }
 }

@@ -1152,6 +1152,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "pem"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "03c64931a1a212348ec4f3b4362585eca7159d0d09cbdf4a7f74f02173596fd4"
+dependencies = [
+ "base64",
+]
+
+[[package]]
 name = "pest"
 version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1560,6 +1569,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "sftp"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "gtk4",
+ "lazy_static",
+ "log",
+ "log4rs",
+ "platform",
+ "utilities",
+]
+
+[[package]]
 name = "sha2"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1761,6 +1783,7 @@ dependencies = [
  "java-properties",
  "lazy_static",
  "log",
+ "pem",
  "rust-embed",
 ]
 
