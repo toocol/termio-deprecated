@@ -81,4 +81,5 @@ windowcontrols>button.close:hover {
 .session-credential-management-tree:selected {
     background: #CED2FF;
     color: black;
+    border-radius: 5px 5px 5px 5px;
 }

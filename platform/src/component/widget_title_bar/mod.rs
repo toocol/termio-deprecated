@@ -25,6 +25,7 @@ pub struct IconButtonJsonObject {
     pub icon_name: Option<String>,
     pub tooltip: Option<String>,
     pub action_name: Option<String>,
+    pub action_target: Option<String>,
 }
 
 impl IconButtonJsonObject {
@@ -35,6 +36,7 @@ impl IconButtonJsonObject {
             &self.icon_name,
             &self.tooltip,
             &self.action_name,
+            &self.action_target,
         )
     }
 }

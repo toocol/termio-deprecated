@@ -5,13 +5,14 @@ use gtk::{
     glib::{self, clone, once_cell::sync::OnceCell, subclass::InitializingObject},
     prelude::*,
     subclass::prelude::{ObjectSubclass, *},
-    CompositeTemplate, Inhibit, Overlay, Paned, ScrolledWindow, Stack, HeaderBar,
+    CompositeTemplate, HeaderBar, Inhibit, Overlay, Paned, ScrolledWindow, Stack, Separator,
 };
 
 use log::debug;
 use platform::{
-    termio::data_path, NativeTerminalEmulator, NewSessionDialog,
-    SessionCredentialManagementTree, SessionCredentialObject, Termio, WidgetTitleBar, EditionMark, ActivityBarItem, IconButton, ActivityBar,
+    termio::data_path, ActivityBar, ActivityBarItem, EditionMark, IconButton,
+    NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree,
+    SessionCredentialObject, Termio, WidgetTitleBar,
 };
 
 #[derive(Default, CompositeTemplate)]
@@ -53,11 +54,13 @@ pub struct TermioCommunityWindow {
 
     ///////////////// Left side bar
     #[template_child]
+    pub left_side_bar_seperator: TemplateChild<Separator>,
+    #[template_child]
     pub workspace_left_side_bar: TemplateChild<Stack>,
 
     ///////////////// Session credential management
     #[template_child]
-    pub session_manageent_wrap_box: TemplateChild<gtk::Box>,
+    pub session_management_wrap_box: TemplateChild<gtk::Box>,
     #[template_child]
     pub session_management_title_bar: TemplateChild<WidgetTitleBar>,
     #[template_child]

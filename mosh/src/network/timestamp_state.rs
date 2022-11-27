@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct TimestampState<State: Eq + PartialEq> {
     pub timestamp: u64,
     pub num: u64,

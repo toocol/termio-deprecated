@@ -30,6 +30,7 @@ impl ObjectImpl for SessionCredentialManagementTree {
 
         let instance = self.instance();
         instance.set_headers_visible(false);
+        instance.set_enable_tree_lines(true);
         instance.setup_columns();
         instance.setup_model();
         instance.setup_default_group();

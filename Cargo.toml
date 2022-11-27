@@ -1,5 +1,5 @@
 [workspace]
-members = ["utilities", "core", "platform", "mosh"]
+members = ["utilities", "core", "platform", "mosh", "sftp"]
 
 [package]
 name = "termio"

@@ -1,6 +1,10 @@
 #![allow(dead_code)]
 use std::collections::HashMap;
 
+use protobuf::Message;
+
+use crate::proto::hostinput;
+
 const ACK_BUFFER: usize = 32;
 
 pub struct CompleteTerminal {
@@ -19,8 +23,25 @@ impl CompleteTerminal {
         }
     }
 
-    pub fn apply_string(&self, _diff: Vec<u8>, _ack_num: u64) {
-        todo!()
+    pub fn apply_string(&mut self, diff: Vec<u8>, ack_num: u64) {
+        let input =
+            hostinput::HostMessage::parse_from_bytes(&diff).expect("`HostMessage` parse from bytes failed.");
+        for ins in input.instruction.iter() {
+            if let Some(host_string) = hostinput::exts::hostbytes.get(ins) {
+                let host_string = host_string.hoststring();
+                let mut host_vec = vec![0u8; host_string.len()];
+                host_vec[..].copy_from_slice(host_string);
+                self.act(host_vec, ack_num);
+            }
+            if let Some(_) = hostinput::exts::resize.get(ins) {}
+            if let Some(echo_ack) = hostinput::exts::echoack.get(ins) {
+                let echo_ack_num = echo_ack.echo_ack_num();
+                if echo_ack_num as i64 == self.echo_ack {
+                    return;
+                }
+                self.echo_ack = echo_ack_num as i64;
+            }
+        }
     }
 
     pub fn act(&mut self, bytes: Vec<u8>, ack_num: u64) {

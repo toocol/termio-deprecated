@@ -20,7 +20,7 @@
                         <property name="tooltip">tooltip.toggle.status.bar</property>
                         <property name="action-name">win.toggle-bottom-area</property>
                         <style>
-                            <class name="header-bar-icon-button"/>
+                            <class name="header-bar-icon-button" />
                         </style>
                     </object>
                 </child>
@@ -35,7 +35,7 @@
                         <property name="tooltip">tooltip.toggle.left.side.bar</property>
                         <property name="action-name">win.toggle-left-area</property>
                         <style>
-                            <class name="header-bar-icon-button"/>
+                            <class name="header-bar-icon-button" />
                         </style>
                     </object>
                 </child>
@@ -81,6 +81,7 @@
                                                 </style>
                                                 <child>
                                                     <object class="ActivityBarItem" id="toggle_session_management_item">
+                                                        <property name="name">toggle-session-management</property>
                                                         <property name="code">e71d</property>
                                                         <property name="icon-size">16</property>
                                                         <property name="action-name">win.toggle-session-management-panel</property>
@@ -88,10 +89,12 @@
                                                         <property name="width-request">35</property>
                                                         <property name="height-request">35</property>
                                                         <property name="tooltip">tooltip.toggle.session.management</property>
+                                                        <property name="bind-widget-name">session-management-wrap-box</property>
                                                     </object>
                                                 </child>
                                                 <child>
                                                     <object class="ActivityBarItem" id="toggle_plugin_extensions_item">
+                                                        <property name="name">toggle-session-extensions</property>
                                                         <property name="code">ecaa</property>
                                                         <property name="icon-size">16</property>
                                                         <property name="action-name">win.toggle-plugin-extensions-panel</property>
@@ -127,7 +130,7 @@
                                     </object>
                                 </child>
                                 <child>
-                                    <object class="GtkSeparator"></object>
+                                    <object class="GtkSeparator" id="left_side_bar_seperator"></object>
                                 </child>
                                 <!-- <GtkPaned> workspace paned -->
                                 <child>
@@ -151,7 +154,8 @@
                                                 </style>
                                                 <!-- <GtkBox> Session management wrap box -->
                                                 <child>
-                                                    <object class="GtkBox" id="session_manageent_wrap_box">
+                                                    <object class="GtkBox" id="session_management_wrap_box">
+                                                        <property name="name">session-management-wrap-box</property>
                                                         <property name="orientation">vertical</property>
                                                         <property name="vexpand">true</property>
                                                         <property name="hexpand">true</property>
@@ -176,6 +180,7 @@
                                                                             "icon_type": "Gtk",
                                                                             "icon_name": "list-remove-symbolic",
                                                                             "tooltip": "Minimize session management panel.",
+                                                                            "action_target": "toggle-session-management",
                                                                             "action_name": "win.hide-left-side-bar"
                                                                         }
                                                                     ]
