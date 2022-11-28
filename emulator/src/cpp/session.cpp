@@ -1,5 +1,7 @@
 #include "session.h"
+
 #include <QDir>
+
 #include "shell_command.h"
 #include "vt102emulation.h"
 
@@ -64,21 +66,21 @@ Session::Session(QWidget* parent)
           SLOT(done(int)));
 }
 
-void Session::addView(TerminalView* widget) {
-  Q_ASSERT(!_views.contains(widget));
-  _views.append(widget);
-}
+// void Session::addView(TerminalView* widget) {
+//  Q_ASSERT(!_views.contains(widget));
+//  _views.append(widget);
+//}
 
-void Session::removeView(TerminalView* widget) {
-  _views.removeAll(widget);
-  disconnect(widget, nullptr, this, nullptr);
-  // close the session automatically when the last view is removed
-  if (_views.count() == 0) {
-    close();
-  }
-}
+// void Session::removeView(TerminalView* widget) {
+//  _views.removeAll(widget);
+//  disconnect(widget, nullptr, this, nullptr);
+//  // close the session automatically when the last view is removed
+//  if (_views.count() == 0) {
+//    close();
+//  }
+//}
 
-QList<TerminalView*> Session::views() const { return _views; }
+// QList<TerminalView*> Session::views() const { return _views; }
 
 Emulation* Session::emulation() const { return _emulation; }
 
@@ -314,6 +316,7 @@ void Session::setUserTitle(int what, const QString& caption) {
   // set to true if anything is actually changed (eg. old _nameTitle != new
   // _nameTitle )
   bool modified = false;
+  qDebug() << "title change" << caption;
 
   // (btw: what=0 changes _userTitle and icon, what=1 only icon, what=2 only
   // _nameTitle

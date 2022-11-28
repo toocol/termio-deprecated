@@ -44,7 +44,7 @@ class Session : public QWidget {
    * Views can be removed using removeView().  The session is automatically
    * closed when the last view is removed.
    */
-  void addView(TerminalView* widget);
+  //  void addView(TerminalView* widget);
   /**
    * Removes a view from this session.  When the last view is removed,
    * the session will be closed automatically.
@@ -52,11 +52,11 @@ class Session : public QWidget {
    * @p widget will no longer display output from or send input
    * to the terminal
    */
-  void removeView(TerminalView* widget);
+  //  void removeView(TerminalView* widget);
   /**
    * Returns the views connected to this session
    */
-  QList<TerminalView*> views() const;
+  //  QList<TerminalView*> views() const;
   /**
    * Returns the terminal emulation instance being used to encode / decode
    * characters to / from the process.
@@ -374,7 +374,7 @@ class Session : public QWidget {
   WId windowId() const;
 
   Emulation* _emulation;
-  QList<TerminalView*> _views;
+//  QList<TerminalView*> _views;
 #ifdef Q_OS_WIN
   ConPty* _shellProcess;
 #else

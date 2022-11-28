@@ -63,6 +63,8 @@ set(HEADERS
         src/headers/conpty.h
         src/headers/session.h
         src/headers/shell_command.h
+        src/headers/tabs_bar.h
+        src/headers/tab.h
 )
 set(SOURCES
         src/cpp/main.cpp
@@ -87,6 +89,8 @@ set(SOURCES
         src/cpp/conpty.cpp
         src/cpp/session.cpp
         src/cpp/shell_command.cpp
+        src/cpp/tabs_bar.cpp
+        src/cpp/tab.cpp
 )
 
 if (WIN32)
