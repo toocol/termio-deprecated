@@ -51,18 +51,15 @@ impl TermioCommunityWindow {
         // Create `toggle-left-area` action.
         let action_toggle_bottom_area = SimpleAction::new(ACTION_TOGGLE_LEFT_AREA.create(), None);
         action_toggle_bottom_area.connect_activate(clone!(@weak self as window => move |_, _| {
-            if window.imp().workspace_left_side_bar.get_visible() {
-                window.imp().workspace_left_side_bar.hide();
-                window.imp().left_side_bar_seperator.hide();
-            } else {
-                window.imp().workspace_left_side_bar.show();
-                window.imp().left_side_bar_seperator.show();
-            }
             if window.imp().workspace_activity_bar.get_visible() {
-                window.imp().workspace_activity_bar.hide();
+                window.imp()
+                    .workspace_activity_bar
+                    .hide_activity_bar(window.imp().workspace_left_side_bar.as_ref());
                 window.imp().left_side_bar_seperator.hide();
             } else {
-                window.imp().workspace_activity_bar.show();
+                window.imp()
+                    .workspace_activity_bar
+                    .show_activity_bar(window.imp().workspace_left_side_bar.as_ref());
                 window.imp().left_side_bar_seperator.show();
             }
         }));
@@ -79,12 +76,8 @@ impl TermioCommunityWindow {
                         .expect("Could not get parameter.")
                         .get::<String>()
                         .expect("The variant needs to be of type `u8`.");
-                for item in window.imp().workspace_activity_bar.get_all_items() {
-                    if item.name() == param {
-                        item.toggle_status();
-                        break;
-                    }
-                }
+                window.imp().workspace_activity_bar.set_current_activate_widget(None);
+                window.imp().workspace_activity_bar.toggle_item(param.as_str());
                 window.imp().workspace_left_side_bar.hide();
                 let allocation = window.imp()
                     .workspace_terminal_scrolled_window
@@ -99,20 +92,23 @@ impl TermioCommunityWindow {
         // Create `toggle-session-management-panel` action.
         let action_toggle_session_management_panel = SimpleAction::new(
             ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL.create(),
-            Some(&u8::static_variant_type()),
+            Some(&VariantTy::TUPLE),
         );
         action_toggle_session_management_panel.connect_activate(
             clone!(@weak self as window => move |_, parameter| {
-                let status = parameter
+                let param = parameter
                     .expect("Could not get parameter.")
-                    .get::<u8>()
+                    .get::<(String, u8)>()
                     .expect("The variant needs to be of type `u8`.");
-                let status = ItemStatus::from_u8(status);
+                window.imp().workspace_activity_bar.set_item_status_off_except(param.0.as_str());
+                let status = ItemStatus::from_u8(param.1);
                 match status {
                     ItemStatus::On => {
+                        window.imp().workspace_activity_bar.set_current_activate_widget(Some(param.0));
                         window.imp().workspace_left_side_bar.show();
                     },
                     ItemStatus::Off => {
+                        window.imp().workspace_activity_bar.set_current_activate_widget(None);
                         window.imp().workspace_left_side_bar.hide();
                     },
                 }
@@ -127,11 +123,17 @@ impl TermioCommunityWindow {
         self.add_action(&action_toggle_session_management_panel);
 
         // Create `toggle-plugin-extensions-panel` action.
-        let action_toggle_plugin_extension_panel =
-            SimpleAction::new(ACTION_TOGGLE_PLUGIN_EXTENSION_PANEL.create(), None);
+        let action_toggle_plugin_extension_panel = SimpleAction::new(
+            ACTION_TOGGLE_PLUGIN_EXTENSION_PANEL.create(),
+            Some(&VariantTy::TUPLE),
+        );
         action_toggle_plugin_extension_panel.connect_activate(
-            clone!(@weak self as window => move |_, _| {
-
+            clone!(@weak self as window => move |_, parameter| {
+                let param = parameter
+                    .expect("Could not get parameter.")
+                    .get::<(String, u8)>()
+                    .expect("The variant needs to be of type `u8`.");
+                window.imp().workspace_activity_bar.set_item_status_off_except(param.0.as_str());
             }),
         );
         self.add_action(&action_toggle_plugin_extension_panel);
@@ -261,17 +263,17 @@ impl TermioCommunityWindow {
         children
     }
 
-    pub fn generic_chlildren<T: IsA<Widget>>(&self, widget: &T) -> Vec<T> {
+    pub fn generic_chlildren<T: IsA<Widget>, R: IsA<Widget>>(&self, widget: &T) -> Vec<R> {
         let mut children = vec![];
         if let Some(first_child) = widget.first_child() {
             let item = first_child
-                .downcast::<T>()
+                .downcast::<R>()
                 .expect("Downcast failed type mismatch");
             children.push(item);
             let mut first_child = &children[children.len() - 1];
             while let Some(sibling) = first_child.next_sibling() {
                 let item = sibling
-                    .downcast::<T>()
+                    .downcast::<R>()
                     .expect("Downcast failed type mismatch");
                 children.push(item);
                 first_child = &children[children.len() - 1];

@@ -12,7 +12,12 @@ glib::wrapper! {
 }
 
 impl ActivityBarItem {
-    pub fn new(icon_name: &str, _tooltip: &Option<String>, action_name: &Option<String>, initial_on: bool) -> Self {
+    pub fn new(
+        icon_name: &str,
+        _tooltip: &Option<String>,
+        action_name: &Option<String>,
+        initial_on: bool,
+    ) -> Self {
         let item: ActivityBarItem = Object::builder().property("icon-name", icon_name).build();
         if let Some(action_name) = action_name.as_deref() {
             item.imp().bind_action(action_name);
@@ -30,6 +35,10 @@ impl ActivityBarItem {
     pub fn toggle_status(&self) {
         self.imp().toggle_status();
     }
+
+    pub fn set_status_off(&self) {
+        self.imp().set_status_off();
+    }
 }
 
 #[repr(u8)]
@@ -37,9 +46,8 @@ impl ActivityBarItem {
 pub enum ItemStatus {
     #[default]
     Off = 0,
-    On 
+    On,
 }
-
 impl ItemStatus {
     pub fn to_u8(self) -> u8 {
         self as u8
@@ -49,7 +57,30 @@ impl ItemStatus {
         match u {
             0 => Self::Off,
             1 => Self::On,
-            _ => unimplemented!()
+            _ => unimplemented!(),
+        }
+    }
+}
+
+#[derive(Default, Debug, Clone, Copy)]
+pub enum ItemPosition {
+    #[default]
+    Top,
+    Bottom,
+}
+impl ItemPosition {
+    pub fn from_str(str: &str) -> Self {
+        match str {
+            "top" => ItemPosition::Top,
+            "bottom" => ItemPosition::Bottom,
+            _ => unimplemented!("{}", str),
+        }
+    }
+
+    pub fn to_str(&self) -> &'static str {
+        match self {
+            ItemPosition::Top => "top",
+            ItemPosition::Bottom => "bottom",
         }
     }
 }

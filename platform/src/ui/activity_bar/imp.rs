@@ -1,7 +1,11 @@
+use std::cell::RefCell;
+
 use gtk::{prelude::*, subclass::prelude::*, glib};
 
 #[derive(Default)]
-pub struct ActivityBar {}
+pub struct ActivityBar {
+    pub activate_widget_name: RefCell<Option<String>>
+}
 
 #[glib::object_subclass]
 impl ObjectSubclass for ActivityBar {

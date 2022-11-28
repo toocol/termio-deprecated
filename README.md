@@ -28,7 +28,6 @@ Support various local shell startup, also remote protocol of Ssh/Mosh/Telnet/Rsh
 | Feature                                   | Status       |
 | ----------------------------------------- | ------------ |
 | Terminal Emulator                         | ✔Done        |
-| Terminal Emulator: Blocked command output | 🚀Processing |
 | Remote Session mangement                  | ✔Done        |
 | Remote protocol support: SSH              | ✔Done        |
 | Remote protocol support: Mosh             | 🚀Processing |
