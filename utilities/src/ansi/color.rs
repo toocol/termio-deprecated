@@ -1,3 +1,33 @@
+use hex_color::HexColor;
+
+pub struct Color;
+
+impl Color {
+    pub fn from_rgb(r: u8, g: u8, b: u8) -> (f64, f64, f64) {
+        (r as f64 / 255., g as f64 / 255., b as f64 / 255.)
+    }
+
+    pub fn from_rgba(r: u8, g: u8, b: u8, a: u8) -> (f64, f64, f64, f64) {
+        (
+            r as f64 / 255.,
+            g as f64 / 255.,
+            b as f64 / 255.,
+            a as f64 / 255.,
+        )
+    }
+
+    pub fn from_hexcode(hexcode: &str) -> (f64, f64, f64, f64) {
+        let hex_color = HexColor::parse(hexcode)
+            .expect(format!("Parse hex color failed, {}", hexcode).as_str());
+        (
+            hex_color.r as f64 / 255.,
+            hex_color.g as f64 / 255.,
+            hex_color.b as f64  / 255.,
+            hex_color.a as f64 / 255.
+        )
+    }
+}
+
 pub struct Color256 {
     pub color_code: u8,
     pub hex_code: &'static str,
@@ -18,7 +48,7 @@ impl Color256 {
             self.rgb[0] as f64 / 255.,
             self.rgb[1] as f64 / 255.,
             self.rgb[2] as f64 / 255.,
-            alpha
+            alpha,
         )
     }
 

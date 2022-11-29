@@ -44,9 +44,7 @@ void TerminalEmulator::initialize() {
 
   SessionGroup::initialize(this);
   SessionGroup::changeState(SessionGroup::ONE);
-  //  Session *session = createSession(this);
-  //  int groupId =
-  //      SessionGroup::addSessionToGroup(SessionGroup::ONE_CENTER, session);
+
   SessionGroup* group = SessionGroup::getSessionGroup(SessionGroup::ONE_CENTER);
   _terminalView = group->view();
 
@@ -55,6 +53,9 @@ void TerminalEmulator::initialize() {
           &TerminalEmulator::urlActivated);
   _terminalView->filterChain()->addFilter(urlFilter);
 
+  TabsBar* tabsBar = group->tabsBar();
+
+  _mainLayout->addWidget(tabsBar);
   _mainLayout->addWidget(_terminalView);
   _terminalView->resize(this->size());
 

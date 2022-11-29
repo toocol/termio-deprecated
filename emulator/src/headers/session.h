@@ -5,6 +5,8 @@
 
 #include "emulation.h"
 #include "kprocess.h"
+#include "tab.h"
+#include "tabs_bar.h"
 
 #ifdef Q_OS_WIN
 #include "conpty.h"
@@ -44,7 +46,7 @@ class Session : public QWidget {
    * Views can be removed using removeView().  The session is automatically
    * closed when the last view is removed.
    */
-  void addView(TerminalView* widget);
+  //  void addView(TerminalView* widget);
   /**
    * Removes a view from this session.  When the last view is removed,
    * the session will be closed automatically.
@@ -52,11 +54,11 @@ class Session : public QWidget {
    * @p widget will no longer display output from or send input
    * to the terminal
    */
-  void removeView(TerminalView* widget);
+  //  void removeView(TerminalView* widget);
   /**
    * Returns the views connected to this session
    */
-  QList<TerminalView*> views() const;
+  //  QList<TerminalView*> views() const;
   /**
    * Returns the terminal emulation instance being used to encode / decode
    * characters to / from the process.
@@ -234,6 +236,8 @@ class Session : public QWidget {
 
   void setSessionId(long newSessionId);
 
+  Tab* getTab();
+
  signals:
   /** Emitted when the terminal process starts. */
   void started();
@@ -374,7 +378,7 @@ class Session : public QWidget {
   WId windowId() const;
 
   Emulation* _emulation;
-  QList<TerminalView*> _views;
+//  QList<TerminalView*> _views;
 #ifdef Q_OS_WIN
   ConPty* _shellProcess;
 #else
@@ -386,17 +390,13 @@ class Session : public QWidget {
   bool _autoClose;
   bool _wantedClose;
 
-  QString _nameTitle;
-  QString _displayTitle;
-  QString _userTitle;
+  Tab* _tab;
 
   QString _localTabTitleFormat;
   QString _remoteTabTitleFormat;
 
   QString _initialWorkingDir;
 
-  QString _iconName;
-  QString _iconText;     // as set by: echo -en '\033]1;IconText\007
   bool _isTitleChanged;  ///< flag if the title/icon was changed by user
   bool _addToUtmp;
   bool _flowControl;
@@ -451,6 +451,9 @@ class SessionGroup : public QWidget {
   static void initialize(QWidget*);
   /**
    * Change state and execute the state mechine.
+   *
+   *  currentState|newState(currentState < newState: Increase session group)
+   * -currentState|newState(currentState > newState: Decrease session group)
    */
   static void changeState(SplitScreenState);
 
@@ -464,10 +467,15 @@ class SessionGroup : public QWidget {
 
   static SessionGroup* getSessionGroup(SessionGroupLocation);
 
+  static QList<SessionGroup*> sessionGroups();
+
   TerminalView* view() const;
   void setView(TerminalView* newView);
 
+  TabsBar* tabsBar() const;
+
  private:
+  static QWidget* _parent;
   static SplitScreenState _state;
   static bool _isInit;
   /**
@@ -475,17 +483,12 @@ class SessionGroup : public QWidget {
    * value: Sessions in the group
    */
   static QHash<int, SessionGroup*> _sessionGroupMaps;
-  /**
-   * key: currentState|newState(currentState < newState)
-   *      -currentState|newState(currentState > newState)
-   * value: function to execute
-   */
-  static QHash<int, std::function<void()>> _splitStateMachine;
   static SessionGroup* createNewSessionGroup(QWidget*);
 
   void createTerminalView(QWidget*);
 
   int _groupId;
+  TabsBar* _tabsBar;
   QList<Session*> _sessions;
   TerminalView* _view;
   SessionGroupLocation _location = ONE_CENTER;

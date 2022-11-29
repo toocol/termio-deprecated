@@ -54,11 +54,11 @@ windowcontrols>button.close:hover {
     border-color: transparent;
     padding: 2px 2px 2px 2px;
 }
-.widget-title-bar .left-box {
+/* .widget-title-bar .left-box {
     border-width: 0 1px 0 0;
     border-color: #dedede;
     border-style: solid;
-}
+} */
 
 /* Activity bar */
 .activity-bar-item-on{

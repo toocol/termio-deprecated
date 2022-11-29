@@ -1,6 +1,10 @@
 mod imp;
 
-use gtk::{Adjustment, Frame, Label, PasswordEntry, SpinButton, Window, glib, prelude::*, subclass::prelude::*, Dialog, DialogFlags, Entry, ResponseType};
+use gtk::{
+    Adjustment, Frame, Label, PasswordEntry, 
+    SpinButton, Window, glib::{self, clone::Downgrade}, prelude::*, subclass::prelude::*, 
+    Dialog, DialogFlags, Entry, ResponseType,
+};
 use glib::{clone, Object};
 use log::info;
 use utilities::DynamicBundle;
@@ -12,7 +16,10 @@ glib::wrapper! {
 }
 
 impl NewSessionDialog {
-    pub fn new<T: IsA<Window>>(parent: &T) -> Self {
+    pub fn new<T>(parent: &T) -> Self 
+    where 
+        T: IsA<Window> + WidgetExt + Downgrade, 
+    {
         let obj: NewSessionDialog = Object::new(&[]);
         let dialog = Dialog::with_buttons(
             Some("New Session"),
@@ -132,7 +139,7 @@ impl NewSessionDialog {
 
         // Connect response to dialog
         dialog.connect_response(
-            clone!(@weak host_entry, @weak username_entry, @weak password_entry, @weak port_button => move |dialog, response| {
+            clone!(@strong parent as window, @weak host_entry, @weak username_entry, @weak password_entry, @weak port_button => move |dialog, response| {
                 dialog.hide();
 
                 if response != ResponseType::Accept {
@@ -148,7 +155,7 @@ impl NewSessionDialog {
                 shown_name.push_str("@");
                 shown_name.push_str(username.as_str());
 
-                dialog.activate_action(&ACTION_ADD_SESSION_CREDENTIAL.activate(), Some(&(
+                window.activate_action(&ACTION_ADD_SESSION_CREDENTIAL.activate(), Some(&(
                     shown_name.as_str(), 
                     host.as_str(), 
                     username.as_str(), 

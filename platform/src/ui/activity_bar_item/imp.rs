@@ -1,6 +1,4 @@
-use std::{
-    cell::{Cell, RefCell},
-};
+use std::cell::{Cell, RefCell};
 
 use gtk::{
     glib::{
@@ -13,7 +11,9 @@ use gtk::{
 };
 use utilities::DynamicBundle;
 
-use crate::{FontIcon, GtkMouseButton, ItemStatus, LanguageBundle};
+use crate::{
+    FontIcon, GtkMouseButton, ItemPosition, ItemStatus, LanguageBundle,
+};
 
 const CSS_CLASS: &str = "activity-bar-item";
 const STATUS_ON_CSS: &str = "activity-bar-item-on";
@@ -24,6 +24,7 @@ pub struct ActivityBarItem {
     pub font_icon: RefCell<Option<FontIcon>>,
     pub code: OnceCell<String>,
     pub bind_widget_name: OnceCell<String>,
+    pub position: OnceCell<ItemPosition>,
     pub status: Cell<ItemStatus>,
 }
 
@@ -56,6 +57,12 @@ impl ActivityBarItem {
         }
     }
 
+    pub fn set_status_off(&self) {
+        self.status.set(ItemStatus::Off);
+        self.instance().remove_css_class(STATUS_ON_CSS);
+        self.instance().add_css_class(STATUS_OFF_CSS);
+    }
+
     pub fn activate(&self) {
         self.status.set(ItemStatus::On);
         self.instance().remove_css_class(STATUS_OFF_CSS);
@@ -72,8 +79,9 @@ impl ActivityBarItem {
             clone!(@weak self as item, @strong action_name => move |gesture, _, _, _| {
                 gesture.set_state(gtk::EventSequenceState::Claimed);
                 item.toggle_status();
+                let param = (item.instance().name(), item.status.get().to_u8());
                 item.instance()
-                    .activate_action(action_name.as_str(), Some(&item.status.get().to_u8().to_variant()))
+                    .activate_action(action_name.as_str(), Some(&param.to_variant()))
                     .expect(format!("Activate action `{}` failed.", action_name).as_str());
             }),
         );
@@ -98,6 +106,7 @@ impl ObjectImpl for ActivityBarItem {
                 ParamSpecInt::builder("icon-size").build(),
                 ParamSpecString::builder("tooltip").build(),
                 ParamSpecString::builder("bind-widget-name").build(),
+                ParamSpecString::builder("position").build(),
             ]
         });
         PROPERTIES.as_ref()
@@ -127,7 +136,7 @@ impl ObjectImpl for ActivityBarItem {
             "initial-on" => {
                 let initial_on: bool = value.get().expect("The value needs to be of type `bool`.");
                 if initial_on {
-                    self.activate()
+                    self.activate();
                 }
             }
             "icon-size" => {
@@ -153,6 +162,14 @@ impl ObjectImpl for ActivityBarItem {
                 self.bind_widget_name
                     .set(input_value)
                     .expect("`bind_widget_name` can only set once.");
+            }
+            "position" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                self.position
+                    .set(ItemPosition::from_str(input_value))
+                    .expect("`position` can only set once.");
             }
             _ => unimplemented!(),
         }

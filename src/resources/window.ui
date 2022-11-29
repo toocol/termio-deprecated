@@ -68,6 +68,7 @@
                                         <property name="vexpand">true</property>
                                         <property name="hexpand">false</property>
                                         <property name="width-request">35</property>
+                                        <property name="initial-widget-name">toggle-session-management</property>
                                         <style>
                                             <class name="workspace-activity-bar" />
                                         </style>
@@ -90,6 +91,7 @@
                                                         <property name="height-request">35</property>
                                                         <property name="tooltip">tooltip.toggle.session.management</property>
                                                         <property name="bind-widget-name">session-management-wrap-box</property>
+                                                        <property name="position">top</property>
                                                     </object>
                                                 </child>
                                                 <child>
@@ -102,6 +104,7 @@
                                                         <property name="width-request">35</property>
                                                         <property name="height-request">35</property>
                                                         <property name="tooltip">tooltip.toggle.plugin.extension</property>
+                                                        <property name="position">top</property>
                                                     </object>
                                                 </child>
                                             </object>
@@ -123,6 +126,7 @@
                                                         <property name="width-request">35</property>
                                                         <property name="height-request">35</property>
                                                         <property name="tooltip">tooltip.toggle.setting</property>
+                                                        <property name="position">bottom</property>
                                                     </object>
                                                 </child>
                                             </object>
