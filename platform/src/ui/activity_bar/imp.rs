@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use gtk::{prelude::*, subclass::prelude::*, glib};
+use gtk::{prelude::*, subclass::prelude::*, glib::{self, ParamSpec, once_cell::sync::Lazy, ParamSpecString, Value}};
 
 #[derive(Default)]
 pub struct ActivityBar {
@@ -32,6 +32,27 @@ impl ObjectImpl for ActivityBar {
 
         layout.set_orientation(gtk::Orientation::Vertical);
         layout.set_homogeneous(true);
+    }
+
+    fn properties() -> &'static [ParamSpec] {
+        static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
+            vec![
+                ParamSpecString::builder("initial-widget-name").build(),
+            ]
+        });
+        PROPERTIES.as_ref()
+    }
+
+    fn set_property(&self, _id: usize, value: &Value, pspec: &ParamSpec) {
+        match pspec.name() {
+            "initial-widget-name" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `String`.");
+                *self.activate_widget_name.borrow_mut() = input_value;
+            }
+            _ => unimplemented!(),
+        }
     }
 }
 

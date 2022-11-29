@@ -68,6 +68,7 @@
                                         <property name="vexpand">true</property>
                                         <property name="hexpand">false</property>
                                         <property name="width-request">35</property>
+                                        <property name="initial-widget-name">toggle-session-management</property>
                                         <style>
                                             <class name="workspace-activity-bar" />
                                         </style>

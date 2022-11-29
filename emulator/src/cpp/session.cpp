@@ -28,6 +28,7 @@ Session::Session(QWidget* parent)
 #else
   _shellProcess = new Pty();
 #endif
+  _tab = new Tab(this);
 
   // create emulation backend
   _emulation = new Vt102Emulation();
@@ -86,7 +87,7 @@ Emulation* Session::emulation() const { return _emulation; }
 
 int Session::sessionId() const { return _sessionId; }
 
-QString Session::userTitle() const { return _userTitle; }
+QString Session::userTitle() const { return _tab->userTitle(); }
 
 void Session::setTabTitleFormat(TabTitleContext context,
                                 const QString& format) {
@@ -137,9 +138,9 @@ QString Session::keyBindings() const { return _emulation->keyBindings(); }
 void Session::setTitle(TitleRole role, const QString& newTitle) {
   if (title(role) != newTitle) {
     if (role == NameRole) {
-      _nameTitle = newTitle;
+      _tab->setNameTitle(newTitle);
     } else if (role == DisplayedTitleRole) {
-      _displayTitle = newTitle;
+      _tab->setDisplayTitle(newTitle);
     }
 
     emit titleChanged();
@@ -148,26 +149,28 @@ void Session::setTitle(TitleRole role, const QString& newTitle) {
 
 QString Session::title(TitleRole role) const {
   if (role == NameRole) {
-    return _nameTitle;
+    return _tab->nameTitle();
   } else if (role == DisplayedTitleRole) {
-    return _displayTitle;
+    return _tab->displayTitle();
   } else {
     return QString();
   }
 }
 
 void Session::setIconName(const QString& iconName) {
-  if (iconName != _iconName) {
-    _iconName = iconName;
+  if (iconName != _tab->iconName()) {
+    _tab->setIconName(iconName);
     emit titleChanged();
   }
 }
 
-QString Session::iconName() const { return _iconName; }
+QString Session::iconName() const { return _tab->iconName(); }
 
-void Session::setIconText(const QString& iconText) { _iconText = iconText; }
+void Session::setIconText(const QString& iconText) {
+  _tab->setIconText(iconText);
+}
 
-QString Session::iconText() const { return _iconText; }
+QString Session::iconText() const { return _tab->iconText(); }
 
 bool Session::isTitleChanged() const { return false; }
 
@@ -316,22 +319,22 @@ void Session::setUserTitle(int what, const QString& caption) {
   // set to true if anything is actually changed (eg. old _nameTitle != new
   // _nameTitle )
   bool modified = false;
-  qDebug() << "title change" << caption;
+  qDebug() << "what: " << what << ", title change" << caption;
 
   // (btw: what=0 changes _userTitle and icon, what=1 only icon, what=2 only
   // _nameTitle
   if ((what == 0) || (what == 2)) {
     _isTitleChanged = true;
-    if (_userTitle != caption) {
-      _userTitle = caption;
+    if (_tab->userTitle() != caption) {
+      _tab->setUserTitle(caption);
       modified = true;
     }
   }
 
   if ((what == 0) || (what == 1)) {
     _isTitleChanged = true;
-    if (_iconText != caption) {
-      _iconText = caption;
+    if (_tab->iconText() != caption) {
+      _tab->setIconText(caption);
       modified = true;
     }
   }
@@ -357,7 +360,7 @@ void Session::setUserTitle(int what, const QString& caption) {
 
   if (what == 30) {
     _isTitleChanged = true;
-    if (_nameTitle != caption) {
+    if (_tab->nameTitle() != caption) {
       setTitle(Session::NameRole, caption);
       return;
     }
@@ -372,8 +375,8 @@ void Session::setUserTitle(int what, const QString& caption) {
   // change icon via \033]32;Icon\007
   if (what == 32) {
     _isTitleChanged = true;
-    if (_iconName != caption) {
-      _iconName = caption;
+    if (_tab->iconName() != caption) {
+      _tab->setIconName(caption);
 
       modified = true;
     }
@@ -391,7 +394,7 @@ void Session::setUserTitle(int what, const QString& caption) {
 
 void Session::done(int exitStatus) {
   if (!_autoClose) {
-    _userTitle = QString::fromLatin1("This session is done. Finished");
+    _tab->setUserTitle(QString::fromLatin1("This session is done. Finished"));
     emit titleChanged();
     return;
   }
@@ -404,15 +407,15 @@ void Session::done(int exitStatus) {
   if (!_wantedClose || exitStatus != 0) {
     if (_shellProcess->exitStatus() == QProcess::NormalExit) {
       message = tr("Session '%1' exited with status%2.")
-                    .arg(_nameTitle)
+                    .arg(_tab->nameTitle())
                     .arg(exitStatus);
     } else {
-      message = tr("Session '%1' crashed.").arg(_nameTitle);
+      message = tr("Session '%1' crashed.").arg(_tab->nameTitle());
     }
   }
 
   if (!_wantedClose && _shellProcess->exitStatus() != QProcess::NormalExit)
-    message = tr("Session '%1' exited unexpectedly.").arg(_nameTitle);
+    message = tr("Session '%1' exited unexpectedly.").arg(_tab->nameTitle());
   else
     emit finished();
 }
@@ -470,6 +473,8 @@ void Session::setPassword(const QString& newPassword) {
 
 void Session::setSessionId(long newSessionId) { _sessionId = newSessionId; }
 
+Tab* Session::getTab() { return _tab; }
+
 const QString& Session::user() const { return _user; }
 
 void Session::setUser(const QString& newUser) { _user = newUser; }
@@ -494,26 +499,28 @@ SessionGroup::SplitScreenState SessionGroup::_state = ZERO;
 int SessionGroup::lastSessionGroupId = 0;
 Session* SessionGroup::activeSession = nullptr;
 
+QWidget* SessionGroup::_parent = nullptr;
 bool SessionGroup::_isInit = false;
 QHash<int, SessionGroup*> SessionGroup::_sessionGroupMaps =
     QHash<int, SessionGroup*>();
-QHash<int, std::function<void()>> SessionGroup::_splitStateMachine =
-    QHash<int, std::function<void()>>();
 
 // Function implements.
-SessionGroup::SessionGroup(QWidget* parent) {}
+SessionGroup::SessionGroup(QWidget* parent) { _tabsBar = new TabsBar(this); }
 
 void SessionGroup::initialize(QWidget* parent) {
-  _splitStateMachine[ZERO | ONE] = [parent] {
-    SessionGroup* group = createNewSessionGroup(parent);
-    group->_location = ONE_CENTER;
-  };
+  _isInit = true;
+  SessionGroup::_parent = parent;
 }
 
 void SessionGroup::changeState(SplitScreenState newState) {
   int key = _state < newState ? (_state | newState) : -(_state | newState);
-  if (_splitStateMachine[key]) {
-    _splitStateMachine[key]();
+  QWidget* parent = SessionGroup::_parent;
+  _state = newState;
+  switch (key) {
+    case ZERO | ONE:
+      SessionGroup* group = createNewSessionGroup(parent);
+      group->_location = ONE_CENTER;
+      break;
   }
 }
 
@@ -538,12 +545,15 @@ TerminalView* SessionGroup::view() const { return _view; }
 
 void SessionGroup::setView(TerminalView* newView) { _view = newView; }
 
+TabsBar* SessionGroup::tabsBar() const { return _tabsBar; }
+
 int SessionGroup::addSessionToGroup(SessionGroupLocation location,
                                     Session* session) {
   QHash<int, SessionGroup*>::iterator i;
   for (i = _sessionGroupMaps.begin(); i != _sessionGroupMaps.end(); ++i) {
     if (i.value()->_location == location) {
       i.value()->_sessions.append(session);
+      i.value()->_tabsBar->addTab(session->getTab());
       session->setSessionGroupId(i.key());
       return i.key();
     }
@@ -563,4 +573,8 @@ SessionGroup* SessionGroup::getSessionGroup(SessionGroupLocation location) {
     }
   }
   return nullptr;
+}
+
+QList<SessionGroup*> SessionGroup::sessionGroups() {
+  return SessionGroup::_sessionGroupMaps.values();
 }

@@ -5,6 +5,8 @@
 
 #include "emulation.h"
 #include "kprocess.h"
+#include "tab.h"
+#include "tabs_bar.h"
 
 #ifdef Q_OS_WIN
 #include "conpty.h"
@@ -234,6 +236,8 @@ class Session : public QWidget {
 
   void setSessionId(long newSessionId);
 
+  Tab* getTab();
+
  signals:
   /** Emitted when the terminal process starts. */
   void started();
@@ -386,17 +390,13 @@ class Session : public QWidget {
   bool _autoClose;
   bool _wantedClose;
 
-  QString _nameTitle;
-  QString _displayTitle;
-  QString _userTitle;
+  Tab* _tab;
 
   QString _localTabTitleFormat;
   QString _remoteTabTitleFormat;
 
   QString _initialWorkingDir;
 
-  QString _iconName;
-  QString _iconText;     // as set by: echo -en '\033]1;IconText\007
   bool _isTitleChanged;  ///< flag if the title/icon was changed by user
   bool _addToUtmp;
   bool _flowControl;
@@ -451,6 +451,9 @@ class SessionGroup : public QWidget {
   static void initialize(QWidget*);
   /**
    * Change state and execute the state mechine.
+   *
+   *  currentState|newState(currentState < newState: Increase session group)
+   * -currentState|newState(currentState > newState: Decrease session group)
    */
   static void changeState(SplitScreenState);
 
@@ -464,10 +467,15 @@ class SessionGroup : public QWidget {
 
   static SessionGroup* getSessionGroup(SessionGroupLocation);
 
+  static QList<SessionGroup*> sessionGroups();
+
   TerminalView* view() const;
   void setView(TerminalView* newView);
 
+  TabsBar* tabsBar() const;
+
  private:
+  static QWidget* _parent;
   static SplitScreenState _state;
   static bool _isInit;
   /**
@@ -475,17 +483,12 @@ class SessionGroup : public QWidget {
    * value: Sessions in the group
    */
   static QHash<int, SessionGroup*> _sessionGroupMaps;
-  /**
-   * key: currentState|newState(currentState < newState)
-   *      -currentState|newState(currentState > newState)
-   * value: function to execute
-   */
-  static QHash<int, std::function<void()>> _splitStateMachine;
   static SessionGroup* createNewSessionGroup(QWidget*);
 
   void createTerminalView(QWidget*);
 
   int _groupId;
+  TabsBar* _tabsBar;
   QList<Session*> _sessions;
   TerminalView* _view;
   SessionGroupLocation _location = ONE_CENTER;

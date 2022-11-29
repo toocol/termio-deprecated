@@ -11,7 +11,9 @@ use gtk::{
 };
 use utilities::DynamicBundle;
 
-use crate::{FontIcon, GtkMouseButton, ItemStatus, LanguageBundle, ItemPosition};
+use crate::{
+    FontIcon, GtkMouseButton, ItemPosition, ItemStatus, LanguageBundle,
+};
 
 const CSS_CLASS: &str = "activity-bar-item";
 const STATUS_ON_CSS: &str = "activity-bar-item-on";
@@ -134,7 +136,7 @@ impl ObjectImpl for ActivityBarItem {
             "initial-on" => {
                 let initial_on: bool = value.get().expect("The value needs to be of type `bool`.");
                 if initial_on {
-                    self.activate()
+                    self.activate();
                 }
             }
             "icon-size" => {
