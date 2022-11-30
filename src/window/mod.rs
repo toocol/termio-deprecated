@@ -1,6 +1,6 @@
 mod imp;
 
-use core::SessionCredential;
+use core::{SessionCredential, ProtocolType};
 use std::fs::File;
 
 use gtk::{
@@ -220,10 +220,19 @@ impl TermioCommunityWindow {
         );
         action_session_credential_selection_change.connect_activate(
             clone!(@weak self as window => move |_, parameter| {
-                let _param = parameter
+                let param = parameter
                     .expect("Could not get parameter.")
                     .get::<(String, String, String, i32, u32)>()
                     .expect("The variant needs to be of type `tuple`.");
+                window.imp()
+                    .session_info_table
+                    .update_session_credential_info_table(
+                        param.0.as_str(), 
+                        param.1.as_str(), 
+                        param.2.as_str(), 
+                        ProtocolType::from_int(param.3), 
+                        param.4
+                );
             }),
         );
         self.add_action(&action_session_credential_selection_change);
@@ -235,10 +244,12 @@ impl TermioCommunityWindow {
         );
         action_session_group_selection_change.connect_activate(
             clone!(@weak self as window => move |_, parameter| {
-                let _param = parameter
+                let param = parameter
                     .expect("Could not get parameter.")
                     .get::<(String, i32)>()
                     .expect("The variant needs to be of type `tuple`.");
+                window.imp().session_info_table
+                    .update_session_group_info_table(param.0.as_str(), param.1);
             }),
         );
         self.add_action(&action_session_group_selection_change);

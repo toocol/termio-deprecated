@@ -6,7 +6,7 @@ use gtk::{
     glib::{self, Object, Type},
     prelude::*,
     subclass::prelude::*,
-    CellAreaBox, CellRendererText, ListStore, TreeViewColumn, TreePath,
+    CellAreaBox, CellRendererText, ListStore, TreeViewColumn,
 };
 use utilities::DynamicBundle;
 
@@ -24,6 +24,11 @@ pub const PROPERTIE_KEYS: [&'static str; 5] = [
     LanguageBundle::KEY_TEXT_SESSION_INFO_USERNAME,
     LanguageBundle::KEY_TEXT_SESSION_INFO_PROTOCOL,
     LanguageBundle::KEY_TEXT_SESSION_INFO_PORT,
+];
+
+pub const GROUP_KEYS: [&'static str; 2] = [
+    LanguageBundle::KEY_TEXT_SESSION_GROUP,
+    LanguageBundle::KEY_TEXT_SESSION_SESSION_COUNT,
 ];
 
 impl SessionInfoTable {
@@ -68,20 +73,32 @@ impl SessionInfoTable {
             .expect("`list_store` of SessionInfoTable can only set once.")
     }
 
-    pub fn create_session_info_table(&self) {
+    pub fn update_session_group_info_table(&self, group_name: &str, child_num: i32) {
         let store = self
             .imp()
             .list_store
             .get()
             .expect("`list_store` of SessionInfoTable should set first before use.");
-        for key in PROPERTIE_KEYS {
-            let iter = store.append();
-            store.set_value(&iter, 0, &LanguageBundle::message(key, None).to_value());
-            store.set_value(&iter, 1, &"".to_value());
-        }
+        store.clear();
+
+        let iter = store.append();
+        store.set_value(
+            &iter,
+            0,
+            &LanguageBundle::message(GROUP_KEYS[0], None).to_value(),
+        );
+        store.set_value(&iter, 1, &group_name.to_value());
+
+        let iter = store.append();
+        store.set_value(
+            &iter,
+            0,
+            &LanguageBundle::message(GROUP_KEYS[1], None).to_value(),
+        );
+        store.set_value(&iter, 1, &child_num.to_value());
     }
 
-    pub fn update_session_info_table(
+    pub fn update_session_credential_info_table(
         &self,
         name: &str,
         host: &str,
@@ -94,42 +111,46 @@ impl SessionInfoTable {
             .list_store
             .get()
             .expect("`list_store` of SessionInfoTable should set first before use.");
-        let mut tree_path = TreePath::new_first();
-        let mut iter_opt = store.iter(&tree_path);
-        if let Some(iter) = iter_opt.as_ref() {
-            store.set_value(iter, 1, &name.to_value());
-            if store.iter_next(iter) {
-                tree_path.next();
-                iter_opt = store.iter(&tree_path);
-            }
-        }
+        store.clear();
 
-        if let Some(iter) = iter_opt.as_ref() {
-            store.set_value(iter, 1, &host.to_value());
-            if store.iter_next(iter) {
-                tree_path.next();
-                iter_opt = store.iter(&tree_path);
-            }
-        }
+        let iter = store.append();
+        store.set_value(
+            &iter,
+            0,
+            &LanguageBundle::message(PROPERTIE_KEYS[0], None).to_value(),
+        );
+        store.set_value(&iter, 1, &name.to_value());
 
-        if let Some(iter) = iter_opt.as_ref() {
-            store.set_value(iter, 1, &username.to_value());
-            if store.iter_next(iter) {
-                tree_path.next();
-                iter_opt = store.iter(&tree_path);
-            }
-        }
+        let iter = store.append();
+        store.set_value(
+            &iter,
+            0,
+            &LanguageBundle::message(PROPERTIE_KEYS[1], None).to_value(),
+        );
+        store.set_value(&iter, 1, &host.to_value());
 
-        if let Some(iter) = iter_opt.as_ref() {
-            store.set_value(iter, 1, &protocol.as_str().to_value());
-            if store.iter_next(iter) {
-                tree_path.next();
-                iter_opt = store.iter(&tree_path);
-            }
-        }
+        let iter = store.append();
+        store.set_value(
+            &iter,
+            0,
+            &LanguageBundle::message(PROPERTIE_KEYS[2], None).to_value(),
+        );
+        store.set_value(&iter, 1, &username.to_value());
 
-        if let Some(iter) = iter_opt.as_ref() {
-            store.set_value(iter, 1, &port.to_value());
-        }
+        let iter = store.append();
+        store.set_value(
+            &iter,
+            0,
+            &LanguageBundle::message(PROPERTIE_KEYS[3], None).to_value(),
+        );
+        store.set_value(&iter, 1, &protocol.as_str().to_value());
+
+        let iter = store.append();
+        store.set_value(
+            &iter,
+            0,
+            &LanguageBundle::message(PROPERTIE_KEYS[4], None).to_value(),
+        );
+        store.set_value(&iter, 1, &port.to_value());
     }
 }

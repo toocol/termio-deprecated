@@ -66,7 +66,6 @@ impl ActivityBar {
                         .expect("Downcast ref `ActivityBarItem` filed, type mismatched. ");
                     items.push(item);
                     first_child = &items[items.len() - 1];
-                    println!("top box sibling")
                 }
             }
         }
@@ -88,7 +87,6 @@ impl ActivityBar {
                         .expect("Downcast ref `ActivityBarItem` filed, type mismatched. ");
                     items.push(item);
                     first_child = &items[items.len() - 1];
-                    println!("top box sibling")
                 }
             }
         }

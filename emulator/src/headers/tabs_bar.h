@@ -18,6 +18,9 @@ class TabsBar : public QWidget {
   QList<Tab *> *_tabs;
 
  signals:
+
+ protected slots:
+  void onBackgroundChange(const QColor &);
 };
 
 #endif  // TITLE_TAB_H

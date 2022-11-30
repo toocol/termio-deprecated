@@ -218,7 +218,6 @@
                                                         </child>
                                                         <child>
                                                             <object class="SessionInfoTable" id="session_info_table">
-                                                                <property name="visible">false</property>
                                                                 <style>
                                                                     <class name="session-info-table" />
                                                                 </style>

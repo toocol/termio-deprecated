@@ -15,6 +15,8 @@ impl LanguageBundle {
     pub const KEY_TEXT_SESSION_INFO_USERNAME: &str = "text.session.info.username";
     pub const KEY_TEXT_SESSION_INFO_PROTOCOL: &str = "text.session.info.protocol";
     pub const KEY_TEXT_SESSION_INFO_PORT: &str = "text.session.info.port";
+    pub const KEY_TEXT_SESSION_GROUP: &str = "text.session.info.group";
+    pub const KEY_TEXT_SESSION_SESSION_COUNT: &str = "text.session.info.session.count";
 
     pub const KEY_TOOLTIP_TOGGLE_LEFT_SIDE_BAR: &str = "tooltip.toggle.left.side.bar";
     pub const KEY_TOOLTIP_TOGGLE_STATUS_BAR: &str = "tooltip.toggle.status.bar";

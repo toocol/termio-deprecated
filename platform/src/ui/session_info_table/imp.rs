@@ -25,7 +25,6 @@ impl ObjectImpl for SessionInfoTable {
         obj.set_headers_visible(false);
         obj.setup_columns();
         obj.setup_model();
-        obj.create_session_info_table();
     }
 }
 
