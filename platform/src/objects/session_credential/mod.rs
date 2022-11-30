@@ -18,7 +18,7 @@ impl SessionCredentialObject {
         password: &str,
         group: &str,
         port: u32,
-        credential_type: ProtocolType,
+        protocol: ProtocolType,
     ) -> Self {
         Object::builder()
             .property("shown-name", shown_name)
@@ -27,7 +27,7 @@ impl SessionCredentialObject {
             .property("password", password)
             .property("group", group)
             .property("port", port)
-            .property("credential-type", credential_type.to_int())
+            .property("protocol", protocol.to_int())
             .build()
     }
 
@@ -39,7 +39,7 @@ impl SessionCredentialObject {
             &session_credential.password,
             &session_credential.group,
             session_credential.port,
-            session_credential.credential_type,
+            session_credential.protocol,
         )
     }
 
@@ -52,7 +52,7 @@ impl SessionCredentialObject {
             obj.password.borrow().clone(),
             obj.group.borrow().clone(),
             obj.port.get(),
-            obj.credential_type
+            obj.protocol
                 .get()
                 .expect("`credential_type` should initialize first before use.")
                 .clone(),
@@ -81,6 +81,14 @@ impl SessionCredentialObject {
 
     pub fn shown_name(&self) -> String {
         self.imp().shown_name.borrow().clone()
+    }
+
+    pub fn protocol(&self) -> ProtocolType {
+        self.imp()
+            .protocol
+            .get()
+            .expect("`protocol` of SessionCredentialObject can only set once.")
+            .clone()
     }
 
     pub fn to_shown_string(&self) -> String {

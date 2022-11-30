@@ -42,6 +42,15 @@ pub const ACTION_LOCALE_CHANGED: ActionName = ActionName {
     name: "locale-changed",
 };
 
+pub const ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE: ActionName = ActionName {
+    group: "win",
+    name: "session-credential-selection-change",
+};
+pub const ACTION_SESSION_GROUP_SELECTION_CHANGE: ActionName = ActionName {
+    group: "win",
+    name: "session-group-selection-change",
+};
+
 pub struct ActionName {
     group: &'static str,
     name: &'static str,

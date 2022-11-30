@@ -28,4 +28,11 @@ impl ProtocolType {
             ProtocolType::Mosh => PROTOCOL_TYPE_MOSH,
         }
     }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ProtocolType::Ssh => "SSH",
+            ProtocolType::Mosh => "Mosh",
+        }
+    }
 }

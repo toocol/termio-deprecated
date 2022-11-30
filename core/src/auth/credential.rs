@@ -12,7 +12,7 @@ pub struct SessionCredential {
     pub password: String,
     pub group: String,
     pub port: u32,
-    pub credential_type: ProtocolType,
+    pub protocol: ProtocolType,
 }
 
 impl SessionCredential {
@@ -23,7 +23,7 @@ impl SessionCredential {
         password: String,
         group: String,
         port: u32,
-        credential_type: ProtocolType,
+        protocol: ProtocolType,
     ) -> Self {
         SessionCredential {
             id: 0,
@@ -33,7 +33,7 @@ impl SessionCredential {
             password,
             group,
             port,
-            credential_type,
+            protocol,
         }
     }
 }

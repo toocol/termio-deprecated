@@ -10,6 +10,11 @@ impl LanguageBundle {
     pub const KEY_TEXT_USERNAME: &str = "text.username";
     pub const KEY_TEXT_PASSWORD: &str = "text.password";
     pub const KEY_TEXT_PORT: &str = "text.port";
+    pub const KEY_TEXT_SESSION_INFO_NAME: &str = "text.session.info.name";
+    pub const KEY_TEXT_SESSION_INFO_HOST: &str = "text.session.info.host";
+    pub const KEY_TEXT_SESSION_INFO_USERNAME: &str = "text.session.info.username";
+    pub const KEY_TEXT_SESSION_INFO_PROTOCOL: &str = "text.session.info.protocol";
+    pub const KEY_TEXT_SESSION_INFO_PORT: &str = "text.session.info.port";
 
     pub const KEY_TOOLTIP_TOGGLE_LEFT_SIDE_BAR: &str = "tooltip.toggle.left.side.bar";
     pub const KEY_TOOLTIP_TOGGLE_STATUS_BAR: &str = "tooltip.toggle.status.bar";

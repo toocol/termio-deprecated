@@ -83,3 +83,12 @@ windowcontrols>button.close:hover {
     color: black;
     border-radius: 5px 5px 5px 5px;
 }
+.session-info-table {
+    background: #F6F5F4;
+    color: black;
+}
+.session-info-table:selected {
+    background: #CED2FF;
+    color: black;
+    border-radius: 5px 5px 5px 5px;
+}

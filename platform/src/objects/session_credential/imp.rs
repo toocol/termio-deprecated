@@ -15,7 +15,7 @@ pub struct SessionCredentialObject {
     pub password: RefCell<String>,
     pub group: RefCell<String>,
     pub port: Cell<u32>,
-    pub credential_type: OnceCell<ProtocolType>,
+    pub protocol: OnceCell<ProtocolType>,
 }
 
 #[glib::object_subclass]
@@ -35,7 +35,7 @@ impl ObjectImpl for SessionCredentialObject {
                 ParamSpecString::builder("password").build(),
                 ParamSpecString::builder("group").build(),
                 ParamSpecUInt::builder("port").build(),
-                ParamSpecInt::builder("credential-type").build(),
+                ParamSpecInt::builder("protocol").build(),
             ]
         });
         PROPERTIES.as_ref()
@@ -77,12 +77,12 @@ impl ObjectImpl for SessionCredentialObject {
                 let input_value = value.get().expect("The value needs to be of type `u32`.");
                 self.port.set(input_value);
             }
-            "credential-type" => {
+            "protocol" => {
                 let input_value: i32 = value.get().expect("The value needs to be of type `i8`.");
                 let credential_type = ProtocolType::from_int(input_value);
-                self.credential_type
+                self.protocol
                     .set(credential_type)
-                    .expect("`credential_type` of `SessionCredentialObject` can only set once.");
+                    .expect("`protocol` of `SessionCredentialObject` can only set once.");
             }
             _ => unimplemented!(),
         }
@@ -96,10 +96,10 @@ impl ObjectImpl for SessionCredentialObject {
             "password" => self.password.borrow().to_value(),
             "group" => self.group.borrow().to_value(),
             "port" => self.port.get().to_value(),
-            "credential-type" => self
-                .credential_type
+            "protocol" => self
+                .protocol
                 .get()
-                .expect("`credential_type` should initialize first before use.")
+                .expect("`protocol` should initialize first before use.")
                 .to_int()
                 .to_value(),
             _ => unimplemented!(),

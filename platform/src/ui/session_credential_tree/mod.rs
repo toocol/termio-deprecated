@@ -2,7 +2,7 @@ mod imp;
 
 use core::{create_session, SessionCredential};
 
-use crate::{SessionCredentialObject, ACTION_CREATE_SSH_SESSION, LanguageBundle};
+use crate::{SessionCredentialObject, ACTION_CREATE_SSH_SESSION, LanguageBundle, ACTION_SESSION_GROUP_SELECTION_CHANGE, ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE};
 use gtk::{
     glib::{self, Type},
     prelude::*,
@@ -27,12 +27,22 @@ enum Columns {
     Password,
     Port,
     Type,
+    Protocol,
 }
 
 #[repr(u8)]
 enum TreeNodeType {
     Group = 1,
     SessionCredential = 2,
+}
+impl TreeNodeType {
+    pub fn from_u8(node_type: u8) -> Self {
+        match node_type {
+            1 => TreeNodeType::Group,
+            2 => TreeNodeType::SessionCredential,
+            _ => unimplemented!(),
+        }
+    }
 }
 
 impl SessionCredentialManagementTree {
@@ -59,6 +69,7 @@ impl SessionCredentialManagementTree {
             Type::STRING,
             Type::U32,
             Type::U8,
+            Type::I32,
         ]);
         self.imp()
             .tree_store
@@ -136,6 +147,53 @@ impl SessionCredentialManagementTree {
                         "Try to connect ssh session, session_id={}, host={}, username={}, password={}, port={}",
                         session_id, host, username, password, port
                     );
+                }
+            }
+        });
+
+        self.connect_cursor_changed(|tree_view| {
+            let selection = tree_view.selection();
+            if let Some((tree_model, iter)) = selection.selected() {
+                let node_type = tree_model
+                    .get_value(&iter, Columns::Type as i32)
+                    .get::<u8>()
+                    .expect("Columns `Type` value type mismatch.");
+                let node_type = TreeNodeType::from_u8(node_type);
+
+                let shown_name = tree_model
+                    .get_value(&iter, Columns::ShownName as i32)
+                    .get::<String>()
+                    .expect("Columns `ShownName` value type mismatch.");
+
+                match node_type {
+                    TreeNodeType::Group => {
+                        let child_num = tree_model.iter_n_children(Some(&iter));
+                        let param = (shown_name, child_num);
+                        tree_view.activate_action(&ACTION_SESSION_GROUP_SELECTION_CHANGE.activate(), Some(&param.to_variant()))
+                            .expect(format!("Activate action `{}` failed.", ACTION_SESSION_GROUP_SELECTION_CHANGE.activate()).as_str());
+                    },
+                    TreeNodeType::SessionCredential => {
+                        let host = tree_model
+                            .get_value(&iter, Columns::Host as i32)
+                            .get::<String>()
+                            .expect("Columns `Host` value type mismatch.");
+                        let username = tree_model
+                            .get_value(&iter, Columns::Username as i32)
+                            .get::<String>()
+                            .expect("Columns `Username` value type mismatch.");
+                        let protocol = tree_model
+                            .get_value(&iter, Columns::Protocol as i32)
+                            .get::<i32>()
+                            .expect("Columns `Protocol` value type mismatch.");
+                        let port = tree_model
+                            .get_value(&iter, Columns::Port as i32)
+                            .get::<u32>()
+                            .expect("Columns `Port` value type mismatch.");
+                        let param = (shown_name, host, username, protocol, port);
+
+                        tree_view.activate_action(&ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE.activate(), Some(&param.to_variant()))
+                            .expect(format!("Activate action {} failed.", ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE.activate()).as_str());
+                    },
                 }
             }
         });
@@ -236,6 +294,11 @@ impl SessionCredentialManagementTree {
                 &child_iter,
                 Columns::Type as u32,
                 &(TreeNodeType::SessionCredential as u8).to_value(),
+            );
+            tree_store.set_value(
+                &child_iter,
+                Columns::Protocol as u32,
+                &(session_credential.protocol().to_int()).to_value(),
             );
             debug!(
                 "Insert tree_iter success, shown_string: {}",

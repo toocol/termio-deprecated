@@ -12,7 +12,7 @@ use log::debug;
 use platform::{
     termio::data_path, ActivityBar, ActivityBarItem, EditionMark, IconButton,
     NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree,
-    SessionCredentialObject, Termio, WidgetTitleBar,
+    SessionCredentialObject, Termio, WidgetTitleBar, SessionInfoTable,
 };
 
 #[derive(Default, CompositeTemplate)]
@@ -65,6 +65,8 @@ pub struct TermioCommunityWindow {
     pub session_management_title_bar: TemplateChild<WidgetTitleBar>,
     #[template_child]
     pub session_credential_management: TemplateChild<SessionCredentialManagementTree>,
+    #[template_child]
+    pub session_info_table: TemplateChild<SessionInfoTable>,
 
     ///////////////// Native teminal emulator
     #[template_child]
