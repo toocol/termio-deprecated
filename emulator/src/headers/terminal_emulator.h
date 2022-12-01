@@ -87,6 +87,8 @@ class TerminalEmulator : public QWidget {
 
   void urlActivated(const QUrl &, bool fromContextMenu);
 
+  void updateBackground(const QColor &);
+
  protected slots:
   void selectionChanged(bool textSelected);
 

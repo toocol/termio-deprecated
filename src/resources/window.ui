@@ -216,6 +216,13 @@
                                                                 </child>
                                                             </object>
                                                         </child>
+                                                        <child>
+                                                            <object class="SessionInfoTable" id="session_info_table">
+                                                                <style>
+                                                                    <class name="session-info-table" />
+                                                                </style>
+                                                            </object>
+                                                        </child>
                                                     </object>
                                                 </child>
                                             </object>

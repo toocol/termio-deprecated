@@ -40,6 +40,7 @@ Session* TerminalEmulator::createSession(QWidget* parent) {
 void TerminalEmulator::initialize() {
   _mainLayout = new QVBoxLayout();
   _mainLayout->setContentsMargins(QMargins(0, 0, 0, 0));
+  _mainLayout->setSpacing(0);
   setLayout(_mainLayout);
 
   SessionGroup::initialize(this);
@@ -70,6 +71,8 @@ void TerminalEmulator::initialize() {
           SIGNAL(termLostFocus()));
   connect(_terminalView, &TerminalView::keyPressedSignal, this,
           [this](QKeyEvent* e, bool) { Q_EMIT termKeyPressed(e); });
+  connect(this, SIGNAL(updateBackground(const QColor&)), group->tabsBar(),
+          SLOT(onBackgroundChange(const QColor&)));
 
   QFont font = QApplication::font();
   font.setFamily(QLatin1String(DEFAULT_FONT_FAMILY));
@@ -183,6 +186,7 @@ bool TerminalEmulator::eventFilter(QObject* obj, QEvent* ev) {
 
 void TerminalEmulator::setBackgroundColor(const QColor& color) {
   _terminalView->setBackgroundColor(color);
+  emit updateBackground(color);
 }
 
 void TerminalEmulator::setForegroundColor(const QColor& color) {
@@ -210,6 +214,10 @@ void TerminalEmulator::createSshSession(long sessionId, QString host,
   _emulation = session->emulation();
 
   bindViewToEmulation(_emulation, _terminalView);
+
+  connect(this, SIGNAL(updateBackground(const QColor&)), session->getTab(),
+          SLOT(onBackgroundChange(const QColor&)));
+
   // connect view signals and slots
   connect(_terminalView, SIGNAL(changedContentSizeSignal(int, int)), session,
           SLOT(onViewSizeChange(int, int)));

@@ -6,7 +6,6 @@ use super::{AeCtx, AeOcb, AE_SUCCESS};
 pub const KEY_LEN: usize = 16;
 pub const NONCE_LEN: usize = 12;
 pub const RECEIVE_MTU: usize = 2048;
-pub const ADDED_BYTES: usize = 16;
 
 ///////////////// Crypto
 static COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -156,6 +155,8 @@ pub struct Session {
     nonce_buffer: AlignedBuffer<NONCE_LEN>,
 }
 impl Session {
+    pub const ADDED_BYTES: usize = 16;
+
     pub fn new(key: Base64Key) -> Self {
         let mut session = Session {
             ctx: AeCtx::new(),

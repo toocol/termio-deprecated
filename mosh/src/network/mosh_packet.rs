@@ -3,10 +3,6 @@ use utilities::ByteOrder;
 
 use crate::crypto::{Crypto, Message, Nonce};
 
-const ADDED_BYTES: i32 = 8;
-const DIRECTION_MASK: u64 = 1 << 63;
-const SEQUENCE_MASK: u64 = u64::MAX ^ DIRECTION_MASK;
-
 #[derive(Debug, PartialEq, Eq)]
 pub struct MoshPacket {
     seq: u64,
@@ -17,6 +13,10 @@ pub struct MoshPacket {
 }
 
 impl MoshPacket {
+    pub const ADDED_BYTES: usize = 8;
+    pub const DIRECTION_MASK: u64 = 1 << 63;
+    pub const SEQUENCE_MASK: u64 = u64::MAX ^ MoshPacket::DIRECTION_MASK;
+
     pub fn from_payload(
         payload: Vec<u8>,
         direction: Direction,
@@ -38,8 +38,8 @@ impl MoshPacket {
         let mut payload = vec![0u8; len];
         payload.copy_from_slice(&message.text[4..4 + len]);
         MoshPacket {
-            seq: message.nonce.val() & SEQUENCE_MASK,
-            direction: if (message.nonce.val() & DIRECTION_MASK) == 0 {
+            seq: message.nonce.val() & MoshPacket::SEQUENCE_MASK,
+            direction: if (message.nonce.val() & MoshPacket::DIRECTION_MASK) == 0 {
                 Direction::ToServer
             } else {
                 Direction::ToClient
@@ -51,11 +51,12 @@ impl MoshPacket {
     }
 
     pub fn to_message(&self) -> Message {
-        let direction_seq = (self.direction.to_u64() << 63) | (self.seq & SEQUENCE_MASK);
+        let direction_seq =
+            (self.direction.to_u64() << 63) | (self.seq & MoshPacket::SEQUENCE_MASK);
 
         let mut text = vec![0u8; 4 + self.payload.len()];
         text[0..4].copy_from_slice(&self.timestamps_merge());
-        text[4..4+self.payload.len()].copy_from_slice(&self.payload);
+        text[4..4 + self.payload.len()].copy_from_slice(&self.payload);
 
         Message::new(Nonce::from_seq(direction_seq), text)
     }
@@ -114,7 +115,12 @@ mod tests {
 
     #[test]
     fn test_mosh_packet() {
-        let _packet = MoshPacket::from_payload(vec![], Direction::ToClient, TimeStamp::timestamp_16(), TimeStamp::timestamp_16());
+        let _packet = MoshPacket::from_payload(
+            vec![],
+            Direction::ToClient,
+            TimeStamp::timestamp_16(),
+            TimeStamp::timestamp_16(),
+        );
         let packet = MoshPacket::from_message(Message::new(Nonce::from_seq(1), vec![0; 20]));
         let _message = packet.to_message();
     }

@@ -1,6 +1,6 @@
 mod imp;
 
-use core::SessionCredential;
+use core::{SessionCredential, ProtocolType};
 use std::fs::File;
 
 use gtk::{
@@ -13,10 +13,10 @@ use gtk::{
 
 use platform::{
     termio::data_path, ItemStatus, ACTION_ADD_SESSION_CREDENTIAL, ACTION_CREATE_SSH_SESSION,
-    ACTION_HIDE_LEFT_SIDE_BAR, ACTION_LOCALE_CHANGED,
-    ACTION_NEW_SESSION_CREDENTIAL_DIALOG, ACTION_TOGGLE_BOTTOM_AREA, ACTION_TOGGLE_LEFT_AREA,
-    ACTION_TOGGLE_PLUGIN_EXTENSION_PANEL, ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL,
-    ACTION_TOGGLE_SETTING_PANEL,
+    ACTION_HIDE_LEFT_SIDE_BAR, ACTION_LOCALE_CHANGED, ACTION_NEW_SESSION_CREDENTIAL_DIALOG,
+    ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE, ACTION_SESSION_GROUP_SELECTION_CHANGE,
+    ACTION_TOGGLE_BOTTOM_AREA, ACTION_TOGGLE_LEFT_AREA, ACTION_TOGGLE_PLUGIN_EXTENSION_PANEL,
+    ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL, ACTION_TOGGLE_SETTING_PANEL,
 };
 
 use platform::NewSessionDialog;
@@ -169,7 +169,7 @@ impl TermioCommunityWindow {
                 let param = parameter
                         .expect("Could not get parameter.")
                         .get::<(String, String, String, String, String, u32)>()
-                        .expect("The variant needs to be of type `u8`.");
+                        .expect("The variant needs to be of type `tuple`.");
                 window.with_session_credential_management(move |managemnet| {
                     managemnet.add_session_credential(
                         param.0.as_str(), // shown name
@@ -192,7 +192,7 @@ impl TermioCommunityWindow {
                 let param = parameter
                         .expect("Could not get parameter.")
                         .get::<(u64, String, String, String,)>()
-                        .expect("The variant needs to be of type `u8`.");
+                        .expect("The variant needs to be of type `tuple`.");
                 window.with_terminal_emulator(move |emulator| {
                     emulator.create_ssh_session(
                         param.0,            // session id
@@ -212,6 +212,47 @@ impl TermioCommunityWindow {
 
         }));
         self.add_action(&action_locale_changed);
+
+        // Create `session-credential-selection-change` action.
+        let action_session_credential_selection_change = SimpleAction::new(
+            ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE.create(),
+            Some(VariantTy::TUPLE),
+        );
+        action_session_credential_selection_change.connect_activate(
+            clone!(@weak self as window => move |_, parameter| {
+                let param = parameter
+                    .expect("Could not get parameter.")
+                    .get::<(String, String, String, i32, u32)>()
+                    .expect("The variant needs to be of type `tuple`.");
+                window.imp()
+                    .session_info_table
+                    .update_session_credential_info_table(
+                        param.0.as_str(), 
+                        param.1.as_str(), 
+                        param.2.as_str(), 
+                        ProtocolType::from_int(param.3), 
+                        param.4
+                );
+            }),
+        );
+        self.add_action(&action_session_credential_selection_change);
+
+        // Create `session-group-selection-change` action.
+        let action_session_group_selection_change = SimpleAction::new(
+            ACTION_SESSION_GROUP_SELECTION_CHANGE.create(),
+            Some(VariantTy::TUPLE),
+        );
+        action_session_group_selection_change.connect_activate(
+            clone!(@weak self as window => move |_, parameter| {
+                let param = parameter
+                    .expect("Could not get parameter.")
+                    .get::<(String, i32)>()
+                    .expect("The variant needs to be of type `tuple`.");
+                window.imp().session_info_table
+                    .update_session_group_info_table(param.0.as_str(), param.1);
+            }),
+        );
+        self.add_action(&action_session_group_selection_change);
     }
 
     pub fn resotre_data(&self) {

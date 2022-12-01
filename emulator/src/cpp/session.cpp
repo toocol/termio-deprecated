@@ -28,7 +28,7 @@ Session::Session(QWidget* parent)
 #else
   _shellProcess = new Pty();
 #endif
-  _tab = new Tab(this);
+  _tab = new Tab();
 
   // create emulation backend
   _emulation = new Vt102Emulation();
@@ -507,10 +507,7 @@ QHash<int, SessionGroup*> SessionGroup::_sessionGroupMaps =
 // Function implements.
 SessionGroup::SessionGroup(QWidget* parent) { _tabsBar = new TabsBar(this); }
 
-void SessionGroup::initialize(QWidget* parent) {
-  _isInit = true;
-  SessionGroup::_parent = parent;
-}
+void SessionGroup::initialize(QWidget* parent) { _isInit = true; }
 
 void SessionGroup::changeState(SplitScreenState newState) {
   int key = _state < newState ? (_state | newState) : -(_state | newState);
@@ -527,7 +524,7 @@ void SessionGroup::changeState(SplitScreenState newState) {
 SessionGroup* SessionGroup::createNewSessionGroup(QWidget* parent) {
   SessionGroup* sessionGroup = new SessionGroup(parent);
   sessionGroup->_groupId = ++lastSessionGroupId;
-  sessionGroup->createTerminalView(parent);
+  sessionGroup->createTerminalView(sessionGroup);
   _sessionGroupMaps[sessionGroup->_groupId] = sessionGroup;
   return sessionGroup;
 }

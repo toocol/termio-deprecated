@@ -2,7 +2,7 @@ use utilities::SnowflakeGuidGenerator;
 
 use std::{collections::HashMap, sync::Mutex};
 
-use crate::{ProtocolType, SshSession, MoshSession};
+use crate::{MoshSession, ProtocolType, RshSession, SshSession, TelnetSession};
 use lazy_static::lazy_static;
 use log::info;
 
@@ -75,6 +75,28 @@ pub fn create_session(protocol: ProtocolType) -> u64 {
                 let id = mosh_session.id();
                 let wrapper_map = map_guard.entry(protocol).or_insert(HashMap::new());
                 wrapper_map.insert(id, Box::new(Some(mosh_session)));
+                id
+            } else {
+                panic!("`SESSION_MAP` get lock error.")
+            }
+        }
+        ProtocolType::Telnet => {
+            if let Ok(mut map_guard) = SESSION_MAP.lock() {
+                let telnet_session = TelnetSession::create();
+                let id = telnet_session.id();
+                let wrapper_map = map_guard.entry(protocol).or_insert(HashMap::new());
+                wrapper_map.insert(id, Box::new(Some(telnet_session)));
+                id
+            } else {
+                panic!("`SESSION_MAP` get lock error.")
+            }
+        }
+        ProtocolType::Rsh => {
+            if let Ok(mut map_guard) = SESSION_MAP.lock() {
+                let rsh_session = RshSession::create();
+                let id = rsh_session.id();
+                let wrapper_map = map_guard.entry(protocol).or_insert(HashMap::new());
+                wrapper_map.insert(id, Box::new(Some(rsh_session)));
                 id
             } else {
                 panic!("`SESSION_MAP` get lock error.")
