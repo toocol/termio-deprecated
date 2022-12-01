@@ -40,6 +40,7 @@ Session* TerminalEmulator::createSession(QWidget* parent) {
 void TerminalEmulator::initialize() {
   _mainLayout = new QVBoxLayout();
   _mainLayout->setContentsMargins(QMargins(0, 0, 0, 0));
+  _mainLayout->setSpacing(0);
   setLayout(_mainLayout);
 
   SessionGroup::initialize(this);

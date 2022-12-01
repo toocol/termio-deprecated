@@ -1,6 +1,7 @@
 #include "tab.h"
 
 #include <QPainter>
+#include <QSizePolicy>
 
 Tab::Tab(QWidget* parent) : QWidget{parent} {
   resize(tabMaxWidth, tabMaxHeight);
@@ -8,6 +9,9 @@ Tab::Tab(QWidget* parent) : QWidget{parent} {
   setMaximumHeight(tabMaxHeight);
   setMinimumHeight(tabMaxHeight);
   setAutoFillBackground(true);
+  setWindowFlags(Qt::Window);
+  QSizePolicy policy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+  setSizePolicy(policy);
 }
 
 QString Tab::nameTitle() const { return _nameTitle; }
@@ -48,8 +52,11 @@ void Tab::onBackgroundChange(const QColor& color) {
 
 void Tab::paintEvent(QPaintEvent* evt) {
   QPainter paint(this);
+
   paint.setFont(QFont("Times", 10, QFont::Bold));
   paint.setPen(QColor(255, 255, 255));
-  paint.drawText(QPoint(0, 10), _userTitle);
+
+  QSize size = this->size();
+  paint.drawText(QPoint(5, (size.height() - 10) / 2 + 10), _userTitle);
   paint.end();
 }

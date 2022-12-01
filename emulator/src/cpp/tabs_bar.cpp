@@ -6,7 +6,8 @@ TabsBar::TabsBar(QWidget *parent) : QWidget{parent} {
   _tabsLayout = new QHBoxLayout();
   _tabsLayout->setContentsMargins(QMargins(0, 0, 0, 0));
   _tabsLayout->setDirection(QBoxLayout::LeftToRight);
-  //  _tabsLayout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+  _tabsLayout->setAlignment(Qt::AlignLeft);
+  _tabsLayout->setSpacing(0);
 
   setLayout(_tabsLayout);
   setMaximumHeight(tabMaxHeight);
@@ -18,6 +19,7 @@ TabsBar::TabsBar(QWidget *parent) : QWidget{parent} {
 
 void TabsBar::addTab(Tab *tab) {
   _tabsLayout->addWidget(tab);
+  tab->show();
   _tabs->push_back(tab);
 }
 

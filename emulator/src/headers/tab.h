@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QWidget>
 
+const int tabMinWidth = 100;
 const int tabMaxWidth = 200;
 const int tabMaxHeight = 22;
 
@@ -28,6 +29,19 @@ class Tab : public QWidget {
   void paintEvent(QPaintEvent *) override;
 
  private:
+  /**
+   * @brief sizeHint
+   * @return the recommended size for the widget
+   */
+  QSize sizeHint() const override { return QSize(tabMaxWidth, tabMaxHeight); }
+  /**
+   * @brief minimumSizeHint
+   * @return the recommended minimum size for the widget
+   */
+  QSize minimumSizeHint() const override {
+    return QSize(tabMinWidth, tabMaxHeight);
+  }
+
   int _index;
   /**
    * The session's id correspond to this Tab.
