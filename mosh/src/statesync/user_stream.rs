@@ -7,7 +7,7 @@ use crate::proto::userinput;
 const KEYSTROKE_NUMBER: u32 = 2;
 const RESIZE_NUMBER: u32 = 3;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct UserStream {
     actions: Vec<UserEvent>,
 }
