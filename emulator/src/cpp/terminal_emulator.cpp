@@ -43,7 +43,6 @@ void TerminalEmulator::initialize() {
   _mainLayout->setSpacing(0);
   setLayout(_mainLayout);
 
-  SessionGroup::initialize(this);
   SessionGroup::changeState(SessionGroup::ONE);
 
   SessionGroup* group = SessionGroup::getSessionGroup(SessionGroup::ONE_CENTER);
@@ -84,38 +83,6 @@ void TerminalEmulator::initialize() {
   _terminalView->setKeyboardCursorShape(KeyboardCursorShape::BLOCK_CURSOR);
 }
 
-void TerminalEmulator::bindViewToEmulation(Emulation* emulation,
-                                           TerminalView* terminalView) {
-  if (emulation != nullptr) {
-    terminalView->setUsesMouse(emulation->programUseMouse());
-    terminalView->setBracketedPasteMode(emulation->programBracketedPasteMode());
-
-    // connect emulation - view signals and slots
-    connect(terminalView, &TerminalView::keyPressedSignal, emulation,
-            &Emulation::sendKeyEvent);
-    connect(terminalView, SIGNAL(mouseSignal(int, int, int, int)), emulation,
-            SLOT(sendMouseEvent(int, int, int, int)));
-    connect(terminalView, SIGNAL(sendStringToEmu(const char*)), emulation,
-            SLOT(sendString(const char*)));
-
-    // allow emulation to notify view when the foreground process
-    // indicates whether or not it is interested in mouse signals
-    connect(emulation, SIGNAL(programUsesMouseChanged(bool)), terminalView,
-            SLOT(setUsesMouse(bool)));
-
-    terminalView->setUsesMouse(emulation->programUsesMouse());
-
-    connect(emulation, SIGNAL(programBracketedPasteModeChanged(bool)),
-            terminalView, SLOT(setBracketedPasteMode(bool)));
-
-    terminalView->setBracketedPasteMode(emulation->programBracketedPasteMode());
-
-    terminalView->setScreenWindow(emulation->createWindow());
-
-    connect(this, SIGNAL(finished()), terminalView, SLOT(close()));
-  }
-}
-
 void TerminalEmulator::setCursorShape(KeyboardCursorShape shape) {
   _terminalView->setKeyboardCursorShape(shape);
 }
@@ -128,11 +95,13 @@ void TerminalEmulator::setTerminalFont(const QFont& font) {
   _terminalView->setVTFont(font);
 }
 
-void TerminalEmulator::sendText(QString text) { _emulation->sendText(text); }
+void TerminalEmulator::sendText(QString text) {
+  //  _emulation->sendText(text);
+}
 
 void TerminalEmulator::clear() {
-  _emulation->reset();
-  _emulation->clearHistory();
+  //  _emulation->reset();
+  //  _emulation->clearHistory();
 }
 
 void TerminalEmulator::requestRedrawImage(QImage* primaryImage,
@@ -204,16 +173,15 @@ void TerminalEmulator::createSshSession(long sessionId, QString host,
   qDebug() << "Receive create ssh session event, host = " << host
            << ", user = " << user << ", password = " << password;
   Session* session = createSession(this);
-  SessionGroup::addSessionToGroup(SessionGroup::ONE_CENTER, session);
+  int groupId =
+      SessionGroup::addSessionToGroup(SessionGroup::ONE_CENTER, session);
   SessionGroup::activeSession = session;
   session->setSessionId(sessionId);
   session->setHost(host);
   session->setUser(user);
   session->setPassword(password);
 
-  _emulation = session->emulation();
-
-  bindViewToEmulation(_emulation, _terminalView);
+  SessionGroup::getSessionGroup(groupId)->bindViewToEmulation();
 
   connect(this, SIGNAL(updateBackground(const QColor&)), session->getTab(),
           SLOT(onBackgroundChange(const QColor&)));
@@ -225,9 +193,6 @@ void TerminalEmulator::createSshSession(long sessionId, QString host,
   // slot for close
   connect(_terminalView, SIGNAL(destroyed(QObject*)), session,
           SLOT(viewDestroyed(QObject*)));
-
-  // test ConPTY
-  connect(_emulation, SIGNAL(testConpty()), session, SLOT(run()));
 
   session->run();
 }

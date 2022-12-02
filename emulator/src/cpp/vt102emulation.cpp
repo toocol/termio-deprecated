@@ -1566,9 +1566,6 @@ void Vt102Emulation::sendKeyEvent(QKeyEvent* event, bool fromPaste) {
       case Qt::Key_C:  // cancel flow control
         emit flowControlKeyPressed(false);
         break;
-      case Qt::Key_L:
-        emit testConpty();
-        break;
     }
   }
 

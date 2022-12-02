@@ -37,29 +37,6 @@ class Session : public QWidget {
   explicit Session(QWidget* parent = nullptr);
 
   /**
-   * Adds a new view for this session.
-   *
-   * The viewing widget will display the output from the terminal and
-   * input from the viewing widget (key presses, mouse activity etc.)
-   * will be sent to the terminal.
-   *
-   * Views can be removed using removeView().  The session is automatically
-   * closed when the last view is removed.
-   */
-  //  void addView(TerminalView* widget);
-  /**
-   * Removes a view from this session.  When the last view is removed,
-   * the session will be closed automatically.
-   *
-   * @p widget will no longer display output from or send input
-   * to the terminal
-   */
-  //  void removeView(TerminalView* widget);
-  /**
-   * Returns the views connected to this session
-   */
-  //  QList<TerminalView*> views() const;
-  /**
    * Returns the terminal emulation instance being used to encode / decode
    * characters to / from the process.
    */
@@ -353,8 +330,6 @@ class Session : public QWidget {
  private slots:
   void done(int);
 
-  //  void fireZModemDetected();
-
   void onReceiveBlock(const char* buffer, int len);
   void monitorTimerDone();
 
@@ -365,7 +340,9 @@ class Session : public QWidget {
 
   // automatically detach views from sessions when view is destroyed
   void viewDestroyed(QObject* view);
+  void onTabActivate();
 
+  //  void fireZModemDetected();
   //  void zmodemReadStatus();
   //  void zmodemReadAndSendBlock();
   //  void zmodemRcvBlock(const char* data, int len);
@@ -390,6 +367,7 @@ class Session : public QWidget {
   bool _autoClose;
   bool _wantedClose;
 
+  // Title tab bind to session.
   Tab* _tab;
 
   QString _localTabTitleFormat;
@@ -448,7 +426,6 @@ class SessionGroup : public QWidget {
   static int lastSessionGroupId;
   static Session* activeSession;
 
-  static void initialize(QWidget*);
   /**
    * Change state and execute the state mechine.
    *
@@ -474,10 +451,11 @@ class SessionGroup : public QWidget {
 
   TabsBar* tabsBar() const;
 
+  void bindViewToEmulation();
+
  private:
   static QWidget* _parent;
   static SplitScreenState _state;
-  static bool _isInit;
   /**
    * key:   Session group id
    * value: Sessions in the group

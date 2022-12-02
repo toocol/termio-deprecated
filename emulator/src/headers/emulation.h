@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QTextCodec>
+
 #include "keyboard_translator.h"
 #include "screen.h"
 #include "screen_window.h"
@@ -341,8 +342,6 @@ class Emulation : public QObject {
 
   void handleCommandFromKeyboard(KeyboardTranslator::Command command);
   void outputFromKeypressEvent(void);
-
-  void testConpty();
 
  public slots:
   /** Change the size of the emulation's image */

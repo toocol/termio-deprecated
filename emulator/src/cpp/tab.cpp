@@ -60,3 +60,5 @@ void Tab::paintEvent(QPaintEvent* evt) {
   paint.drawText(QPoint(5, (size.height() - 10) / 2 + 10), _userTitle);
   paint.end();
 }
+
+void Tab::mouseReleaseEvent(QMouseEvent* evt) { emit tabActivate(); }
