@@ -15,13 +15,10 @@ impl Compressor {
 
     pub fn decompress(bytes: Vec<u8>) -> Vec<u8> {
         let mut decoder = ZlibDecoder::new(&bytes[..]);
-        let mut read = String::new();
-        let size = decoder
-            .read_to_string(&mut read)
+        let mut ret: Vec<u8> = vec![];
+        decoder
+            .read_to_end(&mut ret)
             .expect("Zlib decompress failed.");
-
-        let mut ret = vec![0u8; size];
-        ret[0..size].copy_from_slice(&read.as_bytes());
         ret
     }
 }
