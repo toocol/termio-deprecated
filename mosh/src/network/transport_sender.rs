@@ -19,7 +19,7 @@ pub struct TransportSender {
     current_state: UserStream,
     sent_states: Vec<Rc<RefCell<TimestampState<UserStream>>>>,
     fragmenter: Fragmenter,
-    connection: Connection,
+    connection: Rc<RefCell<Connection>>,
 
     assumed_receiver_state: Rc<RefCell<TimestampState<UserStream>>>,
 
@@ -41,7 +41,7 @@ pub struct TransportSender {
 }
 
 impl TransportSender {
-    pub fn new(initial_state: UserStream, connection: Connection) -> Self {
+    pub fn new(initial_state: UserStream, connection: Rc<RefCell<Connection>>) -> Self {
         let sent_states = vec![];
         let timed_state = Rc::new(RefCell::new(TimestampState {
             timestamp: TimeStamp::timestamp(),
@@ -185,7 +185,7 @@ impl TransportSender {
             DEFAULT_SEND_MTU - MoshPacket::ADDED_BYTES - Session::ADDED_BYTES,
         );
         for fragment in fragments {
-            self.connection.send(fragment.to_bytes());
+            self.connection.borrow_mut().send(fragment.to_bytes());
         }
 
         self.pending_data_ack = false;
@@ -222,7 +222,7 @@ impl TransportSender {
             && self.last_heard + ACTIVE_RETRY_TIMEOUT as u64 > now
         {
             self.next_send_time = (self.sent_states.last().unwrap().borrow().timestamp
-                + self.connection.timeout()
+                + self.connection.borrow().timeout()
                 + ACK_DELAY) as i64;
         } else {
             self.next_send_time = -1;
@@ -237,7 +237,7 @@ impl TransportSender {
         for i in 1..self.sent_states.len() {
             let state = &self.sent_states[i];
             assert!(now >= state.borrow().timestamp);
-            if now - state.borrow().timestamp < self.connection.timeout() + ACK_DELAY as u64 {
+            if now - state.borrow().timestamp < self.connection.borrow().timeout() + ACK_DELAY as u64 {
                 self.assumed_receiver_state = state.clone()
             } else {
                 return;
@@ -278,8 +278,8 @@ impl TransportSender {
         self.last_heard = timestamp;
     }
 
-    pub fn connection(&self) -> &Connection {
-        &self.connection
+    pub fn connection(&self) -> Rc<RefCell<Connection>> {
+        self.connection.clone()
     }
 
     pub fn set_send_delay(&mut self, send_min_delay: i32) {

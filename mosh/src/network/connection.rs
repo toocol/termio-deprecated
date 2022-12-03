@@ -1,12 +1,21 @@
 #![allow(dead_code)]
+use std::{net::UdpSocket, time::Duration};
+
 use utilities::TimeStamp;
 
-use crate::crypto::Session;
+use crate::crypto::{Base64Key, Session};
 
 use super::{Direction, MoshPacket, MAX_RTO, MIN_RTO, RTTVAR, SRIT};
 
+const LOCAL_HOST: &str = "127.0.0.1";
+
 pub struct Connection {
+    socket: UdpSocket,
+    local_addr: String,
+    remote_addr: String,
+
     session: Session,
+
     saved_timestamp: i64,
     saved_timestamp_receive_at: i64,
     expected_receiver_seq: u64,
@@ -15,7 +24,43 @@ pub struct Connection {
 impl Connection {
     const DIRECTION: Direction = Direction::ToServer;
 
-    pub fn send(&self, _bytes: Vec<u8>) {}
+    pub fn new(ip: &str, port: &str, key: &str) -> Self {
+        let local_addr = format!("{}:{}", LOCAL_HOST, port);
+        let remote_addr = format!("{}:{}", ip, port);
+
+        let socket = UdpSocket::bind(local_addr.as_str())
+            .expect(format!("Bind to local udp socket failed, {}", local_addr.as_str()).as_str());
+        socket.connect(remote_addr.as_str()).expect(
+            format!(
+                "Connect to remote udp socket failed, {}",
+                remote_addr.as_str()
+            )
+            .as_str(),
+        );
+        socket
+            .set_read_timeout(Some(Duration::from_millis(1)))
+            .expect("Socket set read timeout failed.");
+
+        Connection {
+            socket,
+            local_addr,
+            remote_addr,
+            session: Session::new(Base64Key::new(key.to_string())),
+            saved_timestamp: -1,
+            saved_timestamp_receive_at: 0,
+            expected_receiver_seq: 0,
+        }
+    }
+
+    pub fn send(&self, bytes: Vec<u8>) {
+        self.socket.send(&bytes).expect(
+            format!(
+                "Udp socket send data failed, local_addr = {}, remote_addr = {}",
+                self.local_addr, self.remote_addr
+            )
+            .as_str(),
+        );
+    }
 
     pub fn recv_one(&mut self, bytes: Vec<u8>) -> Vec<u8> {
         let decrypt_message = self.session.decrypt(&bytes, bytes.len());
