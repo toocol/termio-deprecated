@@ -422,15 +422,15 @@ void Session::activityStateSet(int) {}
 void Session::viewDestroyed(QObject* view) {}
 
 void Session::onTabActivate() {
-  Emulation* prevEmulation = SessionGroup::activeSession->emulation();
-  SessionGroup::activeSession = this;
+  if (SessionGroup::activeSession == this) {
+    return;
+  }
   SessionGroup* group = SessionGroup::getSessionGroup(this->sessionGroupId());
 
-  // Disconnect the old signal/slots bind between TerminalView and Emulation.
-  disconnect(group->view(), nullptr, prevEmulation, nullptr);
-  disconnect(prevEmulation, nullptr, group->view(), nullptr);
-
+  group->unbindViewEmulation();
+  SessionGroup::activeSession = this;
   group->bindViewToEmulation();
+  this->emulation()->showBulk();
 }
 
 void Session::updateTerminalSize() {
@@ -539,6 +539,17 @@ void SessionGroup::setView(TerminalView* newView) { _view = newView; }
 
 TabsBar* SessionGroup::tabsBar() const { return _tabsBar; }
 
+void SessionGroup::unbindViewEmulation() {
+  if (!SessionGroup::activeSession) {
+    return;
+  }
+  Emulation* prevEmulation = SessionGroup::activeSession->emulation();
+
+  // Disconnect the old signal/slots bind between TerminalView and Emulation.
+  disconnect(this->view(), nullptr, prevEmulation, nullptr);
+  disconnect(prevEmulation, nullptr, this->view(), nullptr);
+}
+
 void SessionGroup::bindViewToEmulation() {
   Emulation* emulation = activeSession->emulation();
   TerminalView* terminalView = _view;
@@ -573,7 +584,7 @@ void SessionGroup::bindViewToEmulation() {
 
     QFocusEvent* focusEvent = new QFocusEvent(QInputEvent::FocusIn);
     QApplication::sendEvent(terminalView, focusEvent);
-    terminalView->repaint();
+    emulation->outputChanged();
   }
 }
 

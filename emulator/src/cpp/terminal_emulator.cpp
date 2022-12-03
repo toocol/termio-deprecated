@@ -175,13 +175,15 @@ void TerminalEmulator::createSshSession(long sessionId, QString host,
   Session* session = createSession(this);
   int groupId =
       SessionGroup::addSessionToGroup(SessionGroup::ONE_CENTER, session);
-  SessionGroup::activeSession = session;
   session->setSessionId(sessionId);
   session->setHost(host);
   session->setUser(user);
   session->setPassword(password);
 
-  SessionGroup::getSessionGroup(groupId)->bindViewToEmulation();
+  SessionGroup* group = SessionGroup::getSessionGroup(groupId);
+  group->unbindViewEmulation();
+  SessionGroup::activeSession = session;
+  group->bindViewToEmulation();
 
   connect(this, SIGNAL(updateBackground(const QColor&)), session->getTab(),
           SLOT(onBackgroundChange(const QColor&)));

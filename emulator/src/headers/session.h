@@ -451,6 +451,7 @@ class SessionGroup : public QWidget {
 
   TabsBar* tabsBar() const;
 
+  void unbindViewEmulation();
   void bindViewToEmulation();
 
  private:

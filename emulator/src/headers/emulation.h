@@ -390,6 +390,11 @@ class Emulation : public QObject {
    */
   void receiveData(const char* buffer, int len);
 
+ public slots:
+  // triggered by timer, causes the emulation to send an updated screen image to
+  // each view
+  void showBulk();
+
  protected slots:
   /**
    * Schedules an update of attached views.
@@ -399,10 +404,6 @@ class Emulation : public QObject {
   void bufferedUpdate();
 
  private slots:
-  // triggered by timer, causes the emulation to send an updated screen image to
-  // each view
-  void showBulk();
-
   void usesMouseChanged(bool usesMouse);
 
   void bracketedPasteModeChanged(bool bracketedPasteMode);
