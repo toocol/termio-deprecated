@@ -65,6 +65,7 @@ set(HEADERS
         src/headers/shell_command.h
         src/headers/tabs_bar.h
         src/headers/tab.h
+        src/headers/tab_button.h
 )
 set(SOURCES
         src/cpp/main.cpp
@@ -91,6 +92,7 @@ set(SOURCES
         src/cpp/shell_command.cpp
         src/cpp/tabs_bar.cpp
         src/cpp/tab.cpp
+        src/cpp/tab_button.cpp
 )
 
 if (WIN32)

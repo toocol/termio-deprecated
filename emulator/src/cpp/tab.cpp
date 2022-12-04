@@ -58,5 +58,14 @@ void Tab::paintEvent(QPaintEvent* evt) {
 
   QSize size = this->size();
   paint.drawText(QPoint(5, (size.height() - 10) / 2 + 10), _userTitle);
+
+  paint.setPen(QColor(30, 30, 30));
+  paint.drawLine(0, height() - 1, width(), height() - 1);
+
+  paint.setPen(QColor(158, 158, 158));
+  paint.drawLine(width(), 5, width(), height() - 5);
+
   paint.end();
 }
+
+void Tab::mouseReleaseEvent(QMouseEvent* evt) { emit tabActivate(); }

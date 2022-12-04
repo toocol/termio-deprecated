@@ -295,8 +295,8 @@ mod tests {
         inst.set_new_num(2);
         inst.set_ack_num(3);
         inst.set_throwaway_num(4);
-        inst.set_diff(vec![5u8; 20]);
-        inst.set_chaff(vec![5u8; 20]);
+        inst.set_diff(vec![5u8; 20000]);
+        inst.set_chaff(vec![5u8; 2000]);
         let fragments = fragmenter.make_fragments(inst.clone(), mtu);
 
         let mut fragment_assembly = FragmentAssembly::new();

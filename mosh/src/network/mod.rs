@@ -1,15 +1,19 @@
 pub mod compressor;
 pub mod connection;
 pub mod mosh_packet;
+pub mod ssh_touch;
 pub mod constants;
 pub mod timestamp_state;
+pub mod transport;
 pub mod transport_fragment;
 pub mod transport_sender;
 
 pub use compressor::*;
 pub use connection::*;
 pub use mosh_packet::*;
+pub use ssh_touch::*;
 pub use constants::*;
 pub use timestamp_state::*;
+pub use transport::*;
 pub use transport_fragment::*;
 pub use transport_sender::*;

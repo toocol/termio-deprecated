@@ -27,6 +27,7 @@ class Tab : public QWidget {
 
  protected:
   void paintEvent(QPaintEvent *) override;
+  void mouseReleaseEvent(QMouseEvent *) override;
 
  private:
   /**
@@ -59,6 +60,7 @@ class Tab : public QWidget {
   QString _iconText;  // as set by: echo -en '\033]1;IconText\007
 
  signals:
+  void tabActivate();
 
  protected slots:
   void onBackgroundChange(const QColor &);

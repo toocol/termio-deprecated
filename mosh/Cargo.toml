@@ -16,6 +16,7 @@ rand = "0.8.5"
 protobuf = "3.2.0"
 ssh2 = "0.9.3"
 flate2 = { version = "1.0.25", features = ["zlib-ng"] }
+log = "0.4"
 
 [build-dependencies]
 protoc-bin-vendored = "3.0.0"

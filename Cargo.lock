@@ -1030,6 +1030,7 @@ dependencies = [
  "base64",
  "cipher",
  "flate2",
+ "log",
  "once_cell",
  "protobuf",
  "protobuf-codegen",

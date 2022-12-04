@@ -40,4 +40,11 @@ mod tests {
             let _d = Prng::uint8();
         }
     }
+
+    #[test]
+    fn test_fill() {
+        let mut arr = vec![0u8; 100];
+        Prng::fill(&mut arr, 100);
+        println!("{:?}", arr);
+    }
 }

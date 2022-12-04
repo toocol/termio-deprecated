@@ -59,8 +59,6 @@ class TerminalEmulator : public QWidget {
   bool eventFilter(QObject *obj, QEvent *ev) override;
 
  private:
-  void bindViewToEmulation(Emulation *, TerminalView *);
-
   std::function<void()> nativeRedrawCallback;
   std::function<void()> nativeEvtCallback;
   QImage *_primaryImage;
@@ -68,7 +66,6 @@ class TerminalEmulator : public QWidget {
   QTimer *_nativeEvtTimer;
 
   TerminalView *_terminalView;
-  Emulation *_emulation;
 
   QVBoxLayout *_mainLayout;
 

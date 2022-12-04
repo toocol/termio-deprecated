@@ -3,11 +3,13 @@ use std::collections::HashMap;
 
 use protobuf::Message;
 
-use crate::proto::hostinput;
+use crate::{proto::hostinput, terminal::Emulator};
 
 const ACK_BUFFER: usize = 32;
 
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct CompleteTerminal {
+    terminal: Emulator,
     output_queue: Vec<Vec<u8>>,
     acked: HashMap<u64, Vec<u8>>,
 
@@ -17,13 +19,14 @@ pub struct CompleteTerminal {
 impl CompleteTerminal {
     pub fn new() -> Self {
         CompleteTerminal {
+            terminal: Emulator::new(),
             output_queue: vec![],
             acked: HashMap::new(),
             echo_ack: -1,
         }
     }
 
-    pub fn apply_string(&mut self, diff: Vec<u8>, ack_num: u64) {
+    pub fn apply_string(&mut self, diff: &[u8], ack_num: u64) {
         let input =
             hostinput::HostMessage::parse_from_bytes(&diff).expect("`HostMessage` parse from bytes failed.");
         for ins in input.instruction.iter() {

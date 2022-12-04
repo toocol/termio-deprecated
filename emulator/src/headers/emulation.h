@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QTextCodec>
+
 #include "keyboard_translator.h"
 #include "screen.h"
 #include "screen_window.h"
@@ -342,8 +343,6 @@ class Emulation : public QObject {
   void handleCommandFromKeyboard(KeyboardTranslator::Command command);
   void outputFromKeypressEvent(void);
 
-  void testConpty();
-
  public slots:
   /** Change the size of the emulation's image */
   virtual void setImageSize(int lines, int columns);
@@ -391,6 +390,11 @@ class Emulation : public QObject {
    */
   void receiveData(const char* buffer, int len);
 
+ public slots:
+  // triggered by timer, causes the emulation to send an updated screen image to
+  // each view
+  void showBulk();
+
  protected slots:
   /**
    * Schedules an update of attached views.
@@ -400,10 +404,6 @@ class Emulation : public QObject {
   void bufferedUpdate();
 
  private slots:
-  // triggered by timer, causes the emulation to send an updated screen image to
-  // each view
-  void showBulk();
-
   void usesMouseChanged(bool usesMouse);
 
   void bracketedPasteModeChanged(bool bracketedPasteMode);

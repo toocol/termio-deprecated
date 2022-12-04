@@ -27,7 +27,7 @@ impl ObjectImpl for DotSeperator {
             let width = width as f64;
             let height = height as f64;
 
-            let single = 150.;
+            let single = width / 2. * 0.8;
             let spined = 1.5;
             let margin = 15.;
             let ver = (height - 1.) / 2.;

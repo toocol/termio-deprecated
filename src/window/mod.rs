@@ -1,6 +1,6 @@
 mod imp;
 
-use core::{SessionCredential, ProtocolType};
+use core::{ProtocolType, SessionCredential};
 use std::fs::File;
 
 use gtk::{
@@ -15,8 +15,9 @@ use platform::{
     termio::data_path, ItemStatus, ACTION_ADD_SESSION_CREDENTIAL, ACTION_CREATE_SSH_SESSION,
     ACTION_HIDE_LEFT_SIDE_BAR, ACTION_LOCALE_CHANGED, ACTION_NEW_SESSION_CREDENTIAL_DIALOG,
     ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE, ACTION_SESSION_GROUP_SELECTION_CHANGE,
-    ACTION_TOGGLE_BOTTOM_AREA, ACTION_TOGGLE_LEFT_AREA, ACTION_TOGGLE_PLUGIN_EXTENSION_PANEL,
-    ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL, ACTION_TOGGLE_SETTING_PANEL,
+    ACTION_TOGGLE_BOTTOM_AREA, ACTION_TOGGLE_COMMAND_PANEL, ACTION_TOGGLE_LEFT_AREA,
+    ACTION_TOGGLE_PLUGIN_EXTENSION_PANEL, ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL,
+    ACTION_TOGGLE_SETTING_PANEL,
 };
 
 use platform::NewSessionDialog;
@@ -147,6 +148,22 @@ impl TermioCommunityWindow {
         }));
         self.add_action(&action_toggle_setting_panel);
 
+        // Create `toggle-command-panel` action.
+        let action_toggle_command_panel = SimpleAction::new(ACTION_TOGGLE_COMMAND_PANEL.create(), None);
+        action_toggle_command_panel.connect_activate(clone!(@weak self as window => move |_, _| {
+            if window.imp().command_panel_revealer.is_visible() {
+                window.imp().command_panel_revealer.set_reveal_child(false);
+                window.imp().command_panel_revealer.set_visible(false);
+                window.imp().native_terminal_emulator.grab_focus();
+                window.imp().command_panel.clear_entry();
+            } else {
+                window.imp().command_panel_revealer.set_visible(true);
+                window.imp().command_panel_revealer.set_reveal_child(true);
+                window.imp().command_panel.entry_grab_focus();
+            }
+        }));
+        self.add_action(&action_toggle_command_panel);
+
         // Create `new-session-credential` action.
         let action_new_session_credential =
             SimpleAction::new(ACTION_NEW_SESSION_CREDENTIAL_DIALOG.create(), None);
@@ -201,6 +218,7 @@ impl TermioCommunityWindow {
                         param.3.as_str(),   // password
                         TimeStamp::timestamp()
                     );
+                    emulator.grab_focus();
                 })
             }),
         );
@@ -227,10 +245,10 @@ impl TermioCommunityWindow {
                 window.imp()
                     .session_info_table
                     .update_session_credential_info_table(
-                        param.0.as_str(), 
-                        param.1.as_str(), 
-                        param.2.as_str(), 
-                        ProtocolType::from_int(param.3), 
+                        param.0.as_str(),
+                        param.1.as_str(),
+                        param.2.as_str(),
+                        ProtocolType::from_int(param.3),
                         param.4
                 );
             }),

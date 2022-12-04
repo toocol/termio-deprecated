@@ -1,5 +1,6 @@
 #include "session.h"
 
+#include <QApplication>
 #include <QDir>
 
 #include "shell_command.h"
@@ -29,6 +30,7 @@ Session::Session(QWidget* parent)
   _shellProcess = new Pty();
 #endif
   _tab = new Tab();
+  connect(_tab, SIGNAL(tabActivate()), this, SLOT(onTabActivate()));
 
   // create emulation backend
   _emulation = new Vt102Emulation();
@@ -66,22 +68,6 @@ Session::Session(QWidget* parent)
   connect(_shellProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this,
           SLOT(done(int)));
 }
-
-// void Session::addView(TerminalView* widget) {
-//  Q_ASSERT(!_views.contains(widget));
-//  _views.append(widget);
-//}
-
-// void Session::removeView(TerminalView* widget) {
-//  _views.removeAll(widget);
-//  disconnect(widget, nullptr, this, nullptr);
-//  // close the session automatically when the last view is removed
-//  if (_views.count() == 0) {
-//    close();
-//  }
-//}
-
-// QList<TerminalView*> Session::views() const { return _views; }
 
 Emulation* Session::emulation() const { return _emulation; }
 
@@ -435,6 +421,18 @@ void Session::activityStateSet(int) {}
 
 void Session::viewDestroyed(QObject* view) {}
 
+void Session::onTabActivate() {
+  if (SessionGroup::activeSession == this) {
+    return;
+  }
+  SessionGroup* group = SessionGroup::getSessionGroup(this->sessionGroupId());
+
+  group->unbindViewEmulation();
+  SessionGroup::activeSession = this;
+  group->bindViewToEmulation();
+  this->emulation()->showBulk();
+}
+
 void Session::updateTerminalSize() {
   int minLines = -1;
   int minColumns = -1;
@@ -500,14 +498,11 @@ int SessionGroup::lastSessionGroupId = 0;
 Session* SessionGroup::activeSession = nullptr;
 
 QWidget* SessionGroup::_parent = nullptr;
-bool SessionGroup::_isInit = false;
 QHash<int, SessionGroup*> SessionGroup::_sessionGroupMaps =
     QHash<int, SessionGroup*>();
 
 // Function implements.
 SessionGroup::SessionGroup(QWidget* parent) { _tabsBar = new TabsBar(this); }
-
-void SessionGroup::initialize(QWidget* parent) { _isInit = true; }
 
 void SessionGroup::changeState(SplitScreenState newState) {
   int key = _state < newState ? (_state | newState) : -(_state | newState);
@@ -543,6 +538,55 @@ TerminalView* SessionGroup::view() const { return _view; }
 void SessionGroup::setView(TerminalView* newView) { _view = newView; }
 
 TabsBar* SessionGroup::tabsBar() const { return _tabsBar; }
+
+void SessionGroup::unbindViewEmulation() {
+  if (!SessionGroup::activeSession) {
+    return;
+  }
+  Emulation* prevEmulation = SessionGroup::activeSession->emulation();
+
+  // Disconnect the old signal/slots bind between TerminalView and Emulation.
+  disconnect(this->view(), nullptr, prevEmulation, nullptr);
+  disconnect(prevEmulation, nullptr, this->view(), nullptr);
+}
+
+void SessionGroup::bindViewToEmulation() {
+  Emulation* emulation = activeSession->emulation();
+  TerminalView* terminalView = _view;
+
+  if (emulation != nullptr) {
+    terminalView->setUsesMouse(emulation->programUseMouse());
+    terminalView->setBracketedPasteMode(emulation->programBracketedPasteMode());
+
+    // connect emulation - view signals and slots
+    connect(terminalView, &TerminalView::keyPressedSignal, emulation,
+            &Emulation::sendKeyEvent);
+    connect(terminalView, SIGNAL(mouseSignal(int, int, int, int)), emulation,
+            SLOT(sendMouseEvent(int, int, int, int)));
+    connect(terminalView, SIGNAL(sendStringToEmu(const char*)), emulation,
+            SLOT(sendString(const char*)));
+
+    // allow emulation to notify view when the foreground process
+    // indicates whether or not it is interested in mouse signals
+    connect(emulation, SIGNAL(programUsesMouseChanged(bool)), terminalView,
+            SLOT(setUsesMouse(bool)));
+
+    terminalView->setUsesMouse(emulation->programUsesMouse());
+
+    connect(emulation, SIGNAL(programBracketedPasteModeChanged(bool)),
+            terminalView, SLOT(setBracketedPasteMode(bool)));
+
+    terminalView->setBracketedPasteMode(emulation->programBracketedPasteMode());
+
+    terminalView->setScreenWindow(emulation->createWindow());
+
+    connect(this, SIGNAL(finished()), terminalView, SLOT(close()));
+
+    QFocusEvent* focusEvent = new QFocusEvent(QInputEvent::FocusIn);
+    QApplication::sendEvent(terminalView, focusEvent);
+    emulation->outputChanged();
+  }
+}
 
 int SessionGroup::addSessionToGroup(SessionGroupLocation location,
                                     Session* session) {

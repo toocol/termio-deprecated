@@ -56,6 +56,10 @@ ScreenWindow *Emulation::createWindow() {
   ScreenWindow *window = new ScreenWindow();
   window->setScreen(_currentScreen);
   _windows << window;
+  if (_windows.length() > 1) {
+    delete _windows[0];
+    _windows.pop_front();
+  }
 
   connect(window, SIGNAL(selectionChanged()), this, SLOT(bufferedUpdate()));
 
