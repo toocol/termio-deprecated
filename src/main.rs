@@ -6,7 +6,7 @@ use gtk::{
     gio, prelude::*, CssProvider, Settings, StyleContext, STYLE_PROVIDER_PRIORITY_APPLICATION,
 };
 use log::info;
-use platform::{load_font, APP_COMMUNITY_ID};
+use platform::{load_font, APP_COMMUNITY_ID, ACTION_TOGGLE_LEFT_AREA};
 use utilities::Asset;
 use window::TermioCommunityWindow;
 
@@ -37,8 +37,12 @@ fn main() {
         .application_id(APP_COMMUNITY_ID)
         .build();
 
-    // Load css style sheet
-    app.connect_startup(|_| load_css());
+    app.connect_startup(|app| {
+        // Load css style sheet
+        load_css();
+        // Setup shortcut
+        setup_shortcuts(app);
+    });
 
     // Connect to "activate" signal of `app`.
     app.connect_activate(|app| {
@@ -80,4 +84,11 @@ fn build_ui(app: &Application) {
     let window = TermioCommunityWindow::new(app);
     window.show();
     info!("Startup application termio-community success.");
+}
+
+fn setup_shortcuts(app: &Application) {
+    app.set_accels_for_action(
+        ACTION_TOGGLE_LEFT_AREA.activate().as_str(),
+        &["<Alt>1"],
+    )
 }

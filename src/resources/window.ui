@@ -47,6 +47,17 @@
                 <style>
                     <class name="global-overlay" />
                 </style>
+                <child type="overlay">
+                    <object class="GtkRevealer" id="command_panel_revealer">
+                        <property name="transition-type">slide-down</property>
+                        <property name="transition-duration">500</property>
+                        <property name="reveal-child">false</property>
+                        <property name="visible">false</property>
+                        <child>
+                            <object class="CommandPanel" id="command_panel"></object>
+                        </child>
+                    </object>
+                </child>
                 <!-- <GtkBox> workbench box -->
                 <child>
                     <object class="GtkBox" id="workbench_box">

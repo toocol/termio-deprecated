@@ -1,10 +1,11 @@
 use std::{cell::RefCell, rc::Rc};
 
 use gtk::{glib, subclass::prelude::*, traits::WidgetExt};
-use crate::native_node::{NativeNodeImpl, NativeNodeObject};
+use crate::{native_node::{NativeNodeImpl, NativeNodeObject}, ShortcutWatcher};
 
 pub struct NativeTerminalEmulator {
     pub native_node_object: Rc<RefCell<NativeNodeObject>>,
+    pub shortcut_watcher: ShortcutWatcher
 }
 
 impl NativeTerminalEmulator {}
@@ -13,6 +14,7 @@ impl Default for NativeTerminalEmulator {
     fn default() -> Self {
         Self {
             native_node_object: Rc::new(RefCell::new(NativeNodeObject::new())),
+            shortcut_watcher: ShortcutWatcher::default(),
         }
     }
 }

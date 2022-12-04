@@ -5,14 +5,15 @@ use gtk::{
     glib::{self, clone, once_cell::sync::OnceCell, subclass::InitializingObject},
     prelude::*,
     subclass::prelude::{ObjectSubclass, *},
-    CompositeTemplate, HeaderBar, Inhibit, Overlay, Paned, ScrolledWindow, Stack, Separator,
+    CompositeTemplate, EventControllerKey, HeaderBar, Inhibit, Overlay, Paned, Revealer,
+    ScrolledWindow, Separator, Stack,
 };
 
 use log::debug;
 use platform::{
-    termio::data_path, ActivityBar, ActivityBarItem, EditionMark, IconButton,
+    termio::data_path, ActivityBar, ActivityBarItem, CommandPanel, EditionMark, IconButton,
     NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree,
-    SessionCredentialObject, Termio, WidgetTitleBar, SessionInfoTable,
+    SessionCredentialObject, SessionInfoTable, ShortcutWatcher, Termio, WidgetTitleBar,
 };
 
 #[derive(Default, CompositeTemplate)]
@@ -27,6 +28,12 @@ pub struct TermioCommunityWindow {
     pub workspace_box: TemplateChild<gtk::Box>,
     #[template_child]
     pub workspace_paned: TemplateChild<Paned>,
+
+    ///////////////// Command Panel
+    #[template_child]
+    pub command_panel_revealer: TemplateChild<Revealer>,
+    #[template_child]
+    pub command_panel: TemplateChild<CommandPanel>,
 
     ///////////////// Header bar
     #[template_child]
@@ -86,6 +93,7 @@ pub struct TermioCommunityWindow {
 
     pub termio: OnceCell<Termio>,
     pub new_session_dialog: OnceCell<NewSessionDialog>,
+    pub shortcut_watcher: OnceCell<ShortcutWatcher>,
 }
 
 #[glib::object_subclass]
@@ -134,7 +142,25 @@ impl ObjectImpl for TermioCommunityWindow {
             }),
         );
 
-        self.instance().set_titlebar(Some(&*self.window_header_bar));
+        obj.set_titlebar(Some(&*self.window_header_bar));
+
+        self.shortcut_watcher
+            .set(ShortcutWatcher::default())
+            .expect("`shortcut_watcher` can only set once.");
+        //// Key events
+        let key_controller = EventControllerKey::new();
+        let widget = self.workspace_left_side_bar.clone();
+        let window = self.instance().clone();
+        key_controller.connect_key_pressed(move |_, _, keycode, _| {
+            window
+                .imp()
+                .shortcut_watcher
+                .get()
+                .expect("`shortcut_watcher` of window is None.")
+                .watch(&widget, keycode);
+            Inhibit(false)
+        });
+        self.workspace_left_side_bar.add_controller(&key_controller);
     }
 
     fn dispose(&self) {

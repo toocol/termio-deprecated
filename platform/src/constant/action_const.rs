@@ -23,6 +23,10 @@ pub const ACTION_TOGGLE_SETTING_PANEL: ActionName = ActionName {
     group: "win",
     name: "toggle-setting-panel",
 };
+pub const ACTION_TOGGLE_COMMAND_PANEL: ActionName = ActionName {
+    group: "win",
+    name: "toggle-command-panel",
+};
 
 pub const ACTION_NEW_SESSION_CREDENTIAL_DIALOG: ActionName = ActionName {
     group: "win",

@@ -1,5 +1,6 @@
 mod imp;
 
+use crate::constant::GtkMouseButton;
 use gtk::{
     glib::{self, clone},
     prelude::*,
@@ -8,7 +9,6 @@ use gtk::{
     EventControllerKey, EventControllerMotion, EventControllerScroll, EventControllerScrollFlags,
     GestureClick, Inhibit,
 };
-use crate::constant::GtkMouseButton;
 
 glib::wrapper! {
     pub struct NativeTerminalEmulator(ObjectSubclass<imp::NativeTerminalEmulator>)
@@ -26,6 +26,7 @@ impl NativeTerminalEmulator {
         //// Key events
         let key_controller = EventControllerKey::new();
         let native_node_weak = self.imp().native_node_object.borrow().downgrade();
+        let widget = self.clone();
         key_controller.connect_key_pressed(move |controller, key, keycode, modifier| {
             if let Some(_) = controller.im_context() {
                 return Inhibit(false);
@@ -33,6 +34,7 @@ impl NativeTerminalEmulator {
             if let Some(native_node) = native_node_weak.upgrade() {
                 native_node.react_key_pressed_event(key, keycode, modifier);
             }
+            widget.imp().shortcut_watcher.watch(&widget, keycode);
             Inhibit(true)
         });
         let native_node_weak = self.imp().native_node_object.borrow().downgrade();

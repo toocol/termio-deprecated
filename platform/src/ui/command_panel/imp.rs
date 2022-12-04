@@ -5,12 +5,15 @@ use gtk::{
     Align,
 };
 
+use crate::ShortcutWatcher;
+
 const DEFAULT_WIDGET_WIDTH: i32 = 500;
-const DEFAULT_MARGIN_TOP: i32 = 100;
+const DEFAULT_MARGIN_TOP: i32 = 22;
 
 #[derive(Default)]
 pub struct CommandPanel {
-    entry: OnceCell<gtk::Entry>,
+    pub entry: OnceCell<gtk::Entry>,
+    pub shortcut_watcher: ShortcutWatcher,
 }
 
 #[glib::object_subclass]
@@ -49,6 +52,7 @@ impl ObjectImpl for CommandPanel {
         obj.set_width_request(DEFAULT_WIDGET_WIDTH);
         obj.set_halign(Align::Center);
         obj.set_margin_top(DEFAULT_MARGIN_TOP);
+        obj.setup_callbacks();
     }
 
     fn dispose(&self) {
