@@ -14,8 +14,16 @@ class TabsBar : public QWidget {
   void addTab(Tab *);
 
  private:
+  void initEndIcon();
+
+  QHBoxLayout *_mainLayout;
+  QHBoxLayout *_startIconLayout;
   QHBoxLayout *_tabsLayout;
+  QHBoxLayout *_endIconLayout;
   QList<Tab *> *_tabs;
+
+ protected:
+  void paintEvent(QPaintEvent *) override;
 
  signals:
 

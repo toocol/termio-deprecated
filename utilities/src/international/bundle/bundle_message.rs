@@ -40,6 +40,8 @@ impl BundleMessage {
 
 #[cfg(test)]
 mod tests {
+    use crate::{change_locale, Locale};
+
     use super::*;
 
     #[test]
@@ -49,6 +51,7 @@ mod tests {
 
         let message = BundleMessage::generate(&path);
 
-        assert_eq!(message.get("session.default.group").unwrap(), "DEFAULT");
+        change_locale(Locale::LOCALE_EN);
+        assert_eq!(message.get("text.session.default.group").unwrap(), "DEFAULT");
     }
 }

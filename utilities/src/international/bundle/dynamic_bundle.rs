@@ -136,13 +136,13 @@ mod tests {
 
     #[test]
     fn test_dynamic_bundle() {
+        change_locale(Locale::LOCALE_EN);
         assert_eq!(
             "DEFAULT",
             TestDynamicBundle::message("text.session.default.group", None)
         );
 
         change_locale(Locale::LOCALE_CH);
-
         assert_eq!(
             "默认",
             TestDynamicBundle::message("text.session.default.group", None)
