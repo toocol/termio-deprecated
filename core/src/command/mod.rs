@@ -3,13 +3,13 @@ use std::{collections::HashMap, sync::Mutex};
 use lazy_static::lazy_static;
 
 pub struct Command {
-    pub command: &'static str,
-    pub comment: &'static str,
-    pub action: String,
+    command: &'static str,
+    comment: String,
+    action: String,
 }
 
 impl Command {
-    pub fn new(command: &'static str, comment: &'static str, action: String) -> Self {
+    pub fn new(command: &'static str, comment: String, action: String) -> Self {
         Command {
             command,
             comment,
@@ -20,6 +20,18 @@ impl Command {
     pub fn dynamic_feedback(&self, _input: &str) -> Vec<String> {
         let feedbacks = vec![];
         feedbacks
+    }
+
+    pub fn command(&self) -> &'static str {
+        self.command
+    }
+
+    pub fn comment(&self) -> &str {
+        self.comment.as_str()
+    }
+
+    pub fn action(&self) -> &str {
+        self.action.as_str()
     }
 
     #[allow(dead_code)]

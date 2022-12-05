@@ -3,16 +3,18 @@ mod imp;
 use std::cell::Cell;
 
 use gtk::{
-    glib::{self, Object},
-    prelude::IsA,
-    subclass::prelude::ObjectSubclassIsExt,
+    gio::ListStore,
+    glib::{self, clone, Object},
+    prelude::*,
+    subclass::prelude::*,
     traits::{EditableExt, WidgetExt},
-    EventControllerKey, Inhibit, Widget,
+    EventControllerKey, Inhibit, ListBoxRow, Widget,
 };
 use utilities::TimeStamp;
 
 use crate::{
-    ACTION_TOGGLE_COMMAND_PANEL, GTK_KEYCODE_ESCAPE, GTK_KEYCODE_SHIFT_L, GTK_KEYCODE_SHIFT_R,
+    CommandFeedbackItem, CommandFeedbackObject, ACTION_TOGGLE_COMMAND_PANEL, GTK_KEYCODE_ESCAPE,
+    GTK_KEYCODE_SHIFT_L, GTK_KEYCODE_SHIFT_R,
 };
 
 glib::wrapper! {
@@ -26,6 +28,29 @@ impl CommandPanel {
         Object::new(&[])
     }
 
+    pub fn setup_collections(&self) {
+        let collections = ListStore::new(CommandFeedbackObject::static_type());
+        self.imp()
+            .collections
+            .set(collections.clone())
+            .expect("Could not set collections.");
+
+        self.imp()
+            .feedbacks
+            .get()
+            .expect("`feedbacks` of CommandPanel is None")
+            .bind_model(
+                Some(&collections),
+                clone!(@weak self as window => @default-panic, move |obj| {
+                    let command_feedback = obj
+                        .downcast_ref()
+                        .expect("The object should be of type `CollectionObject`.");
+                    let row = window.create_feedback_row(command_feedback);
+                    row.upcast()
+                }),
+            );
+    }
+
     pub fn setup_callbacks(&self) {
         //// Key events
         let key_controller = EventControllerKey::new();
@@ -36,6 +61,17 @@ impl CommandPanel {
             Inhibit(false)
         });
         self.add_controller(&key_controller);
+
+        //// Entry text change
+        let entry = self.imp().entry.get().expect("`entry` of CommandPanel is None.");
+        entry.connect_text_notify(|entry| {
+            println!("Entry text change: {}", entry.text());
+        });
+    }
+
+    pub fn create_feedback_row(&self, command_feedback: &CommandFeedbackObject) -> ListBoxRow {
+        let command_feedback_item = CommandFeedbackItem::from_object(command_feedback);
+        ListBoxRow::builder().child(&command_feedback_item).build()
     }
 
     pub fn entry_grab_focus(&self) {

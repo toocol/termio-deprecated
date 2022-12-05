@@ -1,8 +1,9 @@
 use gtk::{
+    gio::ListStore,
     glib::{self, once_cell::sync::OnceCell},
     prelude::*,
     subclass::prelude::*,
-    Align,
+    Align, ListBox,
 };
 
 use crate::ShortcutWatcher;
@@ -13,6 +14,9 @@ const DEFAULT_MARGIN_TOP: i32 = 22;
 #[derive(Default)]
 pub struct CommandPanel {
     pub entry: OnceCell<gtk::Entry>,
+    pub feedbacks: OnceCell<ListBox>,
+    pub collections: OnceCell<ListStore>,
+
     pub shortcut_watcher: ShortcutWatcher,
 }
 
@@ -43,23 +47,37 @@ impl ObjectImpl for CommandPanel {
 
         layout.set_orientation(gtk::Orientation::Vertical);
 
-        let entry = gtk::Entry::builder().build();
+        let entry = gtk::Entry::builder()
+            .css_classes(vec!["command-panel-entry".to_string()])
+            .build();
         entry.set_parent(&*obj);
         self.entry
             .set(entry)
             .expect("`entry` of CommandPanel can only set once.");
 
+        let feedbacks = ListBox::builder()
+            .css_classes(vec!["command-feedback-list-box".to_string()])
+            .build();
+        feedbacks.set_parent(&*obj);
+        self.feedbacks
+            .set(feedbacks)
+            .expect("`feedbacks` of CommandPanel can only set once.");
+
         obj.set_width_request(DEFAULT_WIDGET_WIDTH);
         obj.set_halign(Align::Center);
         obj.set_margin_top(DEFAULT_MARGIN_TOP);
+
+        obj.setup_collections();
         obj.setup_callbacks();
     }
 
     fn dispose(&self) {
-        self.entry
-            .get()
-            .expect("`entry` of CommandPanel should set first before use.")
-            .unparent();
+        if let Some(entry) = self.entry.get() {
+            entry.unparent();
+        }
+        if let Some(feedbacks) = self.feedbacks.get() {
+            feedbacks.unparent();
+        }
     }
 }
 
