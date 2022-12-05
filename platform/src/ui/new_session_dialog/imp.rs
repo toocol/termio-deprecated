@@ -1,3 +1,5 @@
+use core::Command;
+
 use gtk::{
     glib::{self, once_cell::sync::OnceCell},
     prelude::*,
@@ -6,7 +8,7 @@ use gtk::{
 };
 use utilities::DynamicBundle;
 
-use crate::LanguageBundle;
+use crate::{LanguageBundle, ACTION_OPEN_NEW_SESSION_DIALOG};
 
 #[derive(Default)]
 pub struct NewSessionDialog {
@@ -85,4 +87,16 @@ impl ObjectSubclass for NewSessionDialog {
     type Type = super::NewSessionDialog;
 }
 
-impl ObjectImpl for NewSessionDialog {}
+impl ObjectImpl for NewSessionDialog {
+    fn constructed(&self) {
+        self.parent_constructed();
+
+        Command::new(
+            "add",
+            LanguageBundle::KEY_COMMAND_COMMENT_ADD.to_string(),
+            ACTION_OPEN_NEW_SESSION_DIALOG.activate(),
+            None,
+        )
+        .register();
+    }
+}

@@ -55,6 +55,11 @@ pub const ACTION_SESSION_GROUP_SELECTION_CHANGE: ActionName = ActionName {
     name: "session-group-selection-change",
 };
 
+pub const ACTION_OPEN_NEW_SESSION_DIALOG: ActionName = ActionName {
+    group: "win",
+    name: "open-new-session-dialog",
+};
+
 pub struct ActionName {
     group: &'static str,
     name: &'static str,

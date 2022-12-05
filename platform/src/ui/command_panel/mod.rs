@@ -41,11 +41,11 @@ impl CommandPanel {
             .expect("`feedbacks` of CommandPanel is None")
             .bind_model(
                 Some(&collections),
-                clone!(@weak self as window => @default-panic, move |obj| {
+                clone!(@weak self as panel => @default-panic, move |obj| {
                     let command_feedback = obj
                         .downcast_ref()
                         .expect("The object should be of type `CollectionObject`.");
-                    let row = window.create_feedback_row(command_feedback);
+                    let row = panel.create_feedback_row(command_feedback);
                     row.upcast()
                 }),
             );
@@ -63,10 +63,22 @@ impl CommandPanel {
         self.add_controller(&key_controller);
 
         //// Entry text change
-        let entry = self.imp().entry.get().expect("`entry` of CommandPanel is None.");
-        entry.connect_text_notify(|entry| {
-            println!("Entry text change: {}", entry.text());
-        });
+        let entry = self
+            .imp()
+            .entry
+            .get()
+            .expect("`entry` of CommandPanel is None.");
+        entry.connect_text_notify(clone!(@weak self as panel => move |entry| {
+            let feedbacks = panel 
+                .imp()
+                .dynamic_feedback
+                .dynamic_feedback(entry.text().as_str());
+            if feedbacks.len() > 0 {
+                let _feedbacks: Vec<CommandFeedbackObject> = feedbacks.iter()
+                    .map(CommandFeedbackObject::from_command_feedback)
+                    .collect();
+            }
+        }));
     }
 
     pub fn create_feedback_row(&self, command_feedback: &CommandFeedbackObject) -> ListBoxRow {

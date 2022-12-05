@@ -1,3 +1,5 @@
+use core::DynamicFeedback;
+
 use gtk::{
     gio::ListStore,
     glib::{self, once_cell::sync::OnceCell},
@@ -18,6 +20,7 @@ pub struct CommandPanel {
     pub collections: OnceCell<ListStore>,
 
     pub shortcut_watcher: ShortcutWatcher,
+    pub dynamic_feedback: DynamicFeedback,
 }
 
 #[glib::object_subclass]
