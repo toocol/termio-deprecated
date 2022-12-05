@@ -23,6 +23,8 @@ impl LanguageBundle {
     pub const KEY_TOOLTIP_TOGGLE_SESSION_MANAGEMENT: &str = "tooltip.toggle.session.management";
     pub const KEY_TOOLTIP_TOGGLE_PLUGIN_EXTENSION: &str = "tooltip.toggle.plugin.extension";
     pub const KEY_TOOLTIP_TOGGLE_SETTING: &str = "tooltip.toggle.setting";
+
+    pub const KEY_COMMAND_COMMENT_ADD: &str = "command.comment.add";
 }
 
 impl DynamicBundle for LanguageBundle {

@@ -1,5 +1,6 @@
 pub mod activity_bar;
 pub mod activity_bar_item;
+pub mod command_feedback_item;
 pub mod command_panel;
 pub mod terminal;
 pub mod session_credential_tree;
@@ -10,6 +11,7 @@ pub mod edition_mark;
 
 pub use activity_bar::*;
 pub use activity_bar_item::*;
+pub use command_feedback_item::*;
 pub use command_panel::*;
 pub use terminal::*;
 pub use session_credential_tree::*;
