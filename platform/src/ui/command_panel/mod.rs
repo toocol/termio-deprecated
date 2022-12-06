@@ -69,16 +69,40 @@ impl CommandPanel {
             .get()
             .expect("`entry` of CommandPanel is None.");
         entry.connect_text_notify(clone!(@weak self as panel => move |entry| {
-            let feedbacks = panel 
+            panel.clear_collections();
+
+            let feedbacks = panel
                 .imp()
                 .dynamic_feedback
                 .dynamic_feedback(entry.text().as_str());
+
             if feedbacks.len() > 0 {
-                let _feedbacks: Vec<CommandFeedbackObject> = feedbacks.iter()
+                let feedbacks: Vec<CommandFeedbackObject> = feedbacks.into_iter()
                     .map(CommandFeedbackObject::from_command_feedback)
                     .collect();
+                for feedback in feedbacks.into_iter() {
+                    panel.add_to_collections(feedback);
+                }
+            } else {
+                // TODO: Add `No result` label
             }
         }));
+    }
+
+    pub fn add_to_collections(&self, feedback: CommandFeedbackObject) {
+        self.imp()
+            .collections
+            .get()
+            .expect("`collections` of `CommandFeedbackObject` is None.")
+            .append(&feedback);
+    }
+
+    pub fn clear_collections(&self) {
+        self.imp()
+            .collections
+            .get()
+            .expect("`collections` of `CommandFeedbackObject` is None.")
+            .remove_all();
     }
 
     pub fn create_feedback_row(&self, command_feedback: &CommandFeedbackObject) -> ListBoxRow {

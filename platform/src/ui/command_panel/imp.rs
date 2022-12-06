@@ -40,6 +40,8 @@ impl ObjectImpl for CommandPanel {
     fn constructed(&self) {
         self.parent_constructed();
         let obj = self.instance();
+        obj.set_valign(Align::Start);
+        obj.set_vexpand(false);
 
         let layout = self
             .instance()
@@ -49,11 +51,13 @@ impl ObjectImpl for CommandPanel {
             .unwrap();
 
         layout.set_orientation(gtk::Orientation::Vertical);
+        layout.set_spacing(5);
 
         let entry = gtk::Entry::builder()
             .css_classes(vec!["command-panel-entry".to_string()])
             .build();
         entry.set_parent(&*obj);
+        entry.set_margin_top(5);
         self.entry
             .set(entry)
             .expect("`entry` of CommandPanel can only set once.");

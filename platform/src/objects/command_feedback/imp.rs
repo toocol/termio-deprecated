@@ -1,8 +1,33 @@
+use std::cell::RefCell;
+
 use gtk::glib;
 use gtk::subclass::prelude::*;
 
 #[derive(Default)]
-pub struct CommandFeedbackObject {}
+pub struct CommandFeedbackObject {
+    pub command: RefCell<String>,
+    pub param: RefCell<Option<String>>,
+    pub comment: RefCell<String>,
+    pub shortcuts: RefCell<Option<Vec<&'static str>>>,
+}
+
+impl CommandFeedbackObject {
+    pub fn set_command(&self, command: String) {
+        *self.command.borrow_mut() = command;
+    }
+
+    pub fn set_param(&self, param: Option<String>) {
+        *self.param.borrow_mut() = param;
+    }
+
+    pub fn set_comment(&self, comment: String) {
+        *self.comment.borrow_mut() = comment;
+    }
+
+    pub fn set_shortcuts(&self, shortcuts: Option<Vec<&'static str>>) {
+        *self.shortcuts.borrow_mut() = shortcuts;
+    }
+}
 
 #[glib::object_subclass]
 impl ObjectSubclass for CommandFeedbackObject {

@@ -37,6 +37,11 @@ windowcontrols>button.close:hover {
     padding: 0px;
 }
 
+/* Command Panel */
+.command-panel {
+    background-color: #F6F5F4;
+}
+
 /* Native terminal emulator */
 .workspace-terminal-window {
     background-color: #151515;
