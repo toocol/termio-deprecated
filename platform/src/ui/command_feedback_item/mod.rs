@@ -1,6 +1,9 @@
 mod imp;
 
-use gtk::glib::{self, Object};
+use gtk::{
+    glib::{self, Object},
+    subclass::prelude::ObjectSubclassIsExt,
+};
 
 use crate::CommandFeedbackObject;
 
@@ -11,11 +14,28 @@ glib::wrapper! {
 }
 
 impl CommandFeedbackItem {
-    pub fn new() -> Self {
-        Object::new(&[])
+    pub fn from_object(feedback: &CommandFeedbackObject) -> Self {
+        let item = CommandFeedbackItem::new();
+        let imp = item.imp();
+
+        let command = feedback.command();
+        imp.set_command(command);
+
+        if let Some(param) = feedback.param() {
+            imp.set_param(param);
+        }
+
+        let comment = feedback.comment();
+        imp.set_comment(comment);
+
+        if let Some(shortcuts) = feedback.shortcuts() {
+            imp.set_shortcuts(shortcuts);
+        }
+
+        item
     }
 
-    pub fn from_object(_command_feedback: &CommandFeedbackObject) -> Self {
-        todo!()
+    fn new() -> Self {
+        Object::new(&[])
     }
 }

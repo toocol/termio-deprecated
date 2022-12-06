@@ -1,9 +1,11 @@
+pub mod composite_label;
 pub mod icon_button;
 pub mod icons;
 pub mod shortcut_label;
 pub mod widget_title_bar;
 pub mod dot_seperator;
 
+pub use composite_label::*;
 pub use icon_button::*;
 pub use icons::*;
 pub use shortcut_label::*;

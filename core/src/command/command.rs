@@ -21,6 +21,10 @@ impl CommandParamPattern {
     }
 }
 
+pub enum InputCommandState {
+    Less, Equal, More
+}
+
 #[derive(Debug)]
 pub struct Command {
     command: &'static str,

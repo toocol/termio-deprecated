@@ -97,7 +97,7 @@ impl ShortcutLabel {
                 .as_str(),
             );
             let pixel_size = layout.pixel_size();
-            size.0 += pixel_size.0;
+            size.0 += pixel_size.0 + hor_inset as i32 * 2;
             size.1 = size.1.max(pixel_size.1 + ver_inset as i32 * 2);
             layouts.borrow_mut().push(layout);
 
@@ -113,7 +113,7 @@ impl ShortcutLabel {
                     .as_str(),
                 );
                 let pixel_size = layout.pixel_size();
-                size.0 += pixel_size.0;
+                size.0 += pixel_size.0 + join_inset as i32 * 2;
                 size.1 = size.1.max(pixel_size.1 + ver_inset as i32 * 2);
                 layouts.borrow_mut().push(layout);
             }

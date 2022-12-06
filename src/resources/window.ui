@@ -54,7 +54,11 @@
                         <property name="reveal-child">false</property>
                         <property name="visible">false</property>
                         <child>
-                            <object class="CommandPanel" id="command_panel"></object>
+                            <object class="CommandPanel" id="command_panel">
+                                <style>
+                                    <class name="command-panel"/>
+                                </style>
+                            </object>
                         </child>
                     </object>
                 </child>

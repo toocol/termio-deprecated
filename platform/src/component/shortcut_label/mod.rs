@@ -13,8 +13,10 @@ glib::wrapper! {
 }
 
 impl ShortcutLabel {
-    pub fn new() -> Self {
-        Object::new(&[])
+    pub fn new(shortcuts: &[&'static str]) -> Self {
+        let label:ShortcutLabel = Object::new(&[]);
+        label.set_shortcuts(shortcuts.to_vec());
+        label
     }
 
     pub fn from_properties(
