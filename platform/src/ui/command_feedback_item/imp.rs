@@ -1,7 +1,18 @@
-use gtk::{glib, prelude::*, subclass::prelude::*};
+use gtk::{
+    glib::{self, once_cell::sync::OnceCell},
+    prelude::*,
+    subclass::prelude::*,
+    Label, 
+};
+use crate::ShortcutLabel;
 
 #[derive(Default)]
-pub struct CommandFeedbackItem {}
+pub struct CommandFeedbackItem {
+    pub command: OnceCell<Label>,
+    pub comment: OnceCell<Label>,
+    pub param: OnceCell<Label>,
+    pub shortcuts: OnceCell<ShortcutLabel>,
+}
 
 #[glib::object_subclass]
 impl ObjectSubclass for CommandFeedbackItem {

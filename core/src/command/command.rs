@@ -27,14 +27,22 @@ pub struct Command {
     comment: String,
     action: String,
     param_pattern: Option<CommandParamPattern>,
+    shortcuts: Option<Vec<&'static str>>,
 }
 impl Command {
-    pub fn new(command: &'static str, comment: String, action: String, param_pattern: Option<CommandParamPattern>) -> Self {
+    pub fn new(
+        command: &'static str,
+        comment: String,
+        action: String,
+        param_pattern: Option<CommandParamPattern>,
+        shortcuts: Option<Vec<&'static str>>,
+    ) -> Self {
         Command {
             command,
             comment,
             action,
-            param_pattern
+            param_pattern,
+            shortcuts,
         }
     }
 
@@ -52,6 +60,10 @@ impl Command {
 
     pub fn param_pattern(&self) -> &Option<CommandParamPattern> {
         &self.param_pattern
+    }
+
+    pub fn shortcuts(&self) -> &Option<Vec<&'static str>> {
+        &self.shortcuts
     }
 
     #[allow(dead_code)]

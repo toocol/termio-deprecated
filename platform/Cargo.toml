@@ -10,6 +10,7 @@ utilities = { path = "../utilities/" }
 core = { path = "../core/" }
 
 gtk = { version = "0.5.0", package = "gtk4", features = ["v4_6"] }
+pangocairo = "0.16.3"
 log = "0.4"
 lazy_static = "1.4.0"
 serde = { version = "1.0", features = ["derive"] }

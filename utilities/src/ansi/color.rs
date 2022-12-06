@@ -22,9 +22,32 @@ impl Color {
         (
             hex_color.r as f64 / 255.,
             hex_color.g as f64 / 255.,
-            hex_color.b as f64  / 255.,
-            hex_color.a as f64 / 255.
+            hex_color.b as f64 / 255.,
+            hex_color.a as f64 / 255.,
         )
+    }
+
+    pub fn rgb_to_hexcode(r: u8, g: u8, b: u8) -> String {
+        HexColor::rgb(r, g, b).to_string()
+    }
+
+    pub fn frgb_to_hexcode(r: f64, g: f64, b: f64) -> String {
+        let r = (r * 255.) as u8;
+        let g = (g * 255.) as u8;
+        let b = (b * 255.) as u8;
+        HexColor::rgb(r, g, b).to_string()
+    }
+
+    pub fn rgba_to_hexcode(r: u8, g: u8, b: u8, a: u8) -> String {
+        HexColor::rgba(r, g, b, a).to_string()
+    }
+
+    pub fn frgba_to_hexcode(r: f64, g: f64, b: f64, a: f64) -> String {
+        let r = (r * 255.) as u8;
+        let g = (g * 255.) as u8;
+        let b = (b * 255.) as u8;
+        let a = (a * 255.) as u8;
+        HexColor::rgba(r, g, b, a).to_string()
     }
 }
 

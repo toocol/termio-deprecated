@@ -8,7 +8,7 @@ use gtk::{
 };
 use utilities::DynamicBundle;
 
-use crate::{LanguageBundle, ACTION_OPEN_NEW_SESSION_DIALOG};
+use crate::{LanguageBundle, ACTION_COMMAND_ADD};
 
 #[derive(Default)]
 pub struct NewSessionDialog {
@@ -94,8 +94,9 @@ impl ObjectImpl for NewSessionDialog {
         Command::new(
             "add",
             LanguageBundle::KEY_COMMAND_COMMENT_ADD.to_string(),
-            ACTION_OPEN_NEW_SESSION_DIALOG.activate(),
+            ACTION_COMMAND_ADD.activate(),
             None,
+            Some(vec!["Ctrl", "A"]),
         )
         .register();
     }

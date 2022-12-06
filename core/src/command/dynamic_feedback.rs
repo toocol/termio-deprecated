@@ -2,7 +2,7 @@ pub struct CommandFeedback {
     pub command: String,
     pub param: Option<String>,
     pub comment: String,
-    pub shortcuts: Vec<String>,
+    pub shortcuts: Vec<&'static str>,
 }
 
 #[derive(Default)]

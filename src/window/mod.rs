@@ -12,9 +12,9 @@ use gtk::{
 };
 
 use platform::{
-    termio::data_path, ItemStatus, ACTION_ADD_SESSION_CREDENTIAL, ACTION_CREATE_SSH_SESSION,
-    ACTION_HIDE_LEFT_SIDE_BAR, ACTION_LOCALE_CHANGED, ACTION_NEW_SESSION_CREDENTIAL_DIALOG,
-    ACTION_OPEN_NEW_SESSION_DIALOG, ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE,
+    termio::data_path, ItemStatus, ACTION_ADD_SESSION_CREDENTIAL, ACTION_COMMAND_ADD,
+    ACTION_CREATE_SSH_SESSION, ACTION_HIDE_LEFT_SIDE_BAR, ACTION_LOCALE_CHANGED,
+    ACTION_NEW_SESSION_CREDENTIAL_DIALOG, ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE,
     ACTION_SESSION_GROUP_SELECTION_CHANGE, ACTION_TOGGLE_BOTTOM_AREA, ACTION_TOGGLE_COMMAND_PANEL,
     ACTION_TOGGLE_LEFT_AREA, ACTION_TOGGLE_PLUGIN_EXTENSION_PANEL,
     ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL, ACTION_TOGGLE_SETTING_PANEL,
@@ -273,17 +273,18 @@ impl TermioCommunityWindow {
         );
         self.add_action(&action_session_group_selection_change);
 
-        // Create `open-new-session-dialog` action.
-        let action_open_new_session_dialog =
-            SimpleAction::new(ACTION_OPEN_NEW_SESSION_DIALOG.create(), None);
-        action_open_new_session_dialog.connect_activate(clone!(@weak self as window => move |_, _| {
-            window.imp()
-                .new_session_dialog
-                .get()
-                .expect("`new_session_dialog` is None.")
-                .show_dialog();
-        }));
-        self.add_action(&action_open_new_session_dialog);
+        // Create `action-command-add` action.
+        let action_command_add = SimpleAction::new(ACTION_COMMAND_ADD.create(), None);
+        action_command_add.connect_activate(
+            clone!(@weak self as window => move |_, _| {
+                window.imp()
+                    .new_session_dialog
+                    .get()
+                    .expect("`new_session_dialog` is None.")
+                    .show_dialog();
+            }),
+        );
+        self.add_action(&action_command_add);
     }
 
     pub fn resotre_data(&self) {
