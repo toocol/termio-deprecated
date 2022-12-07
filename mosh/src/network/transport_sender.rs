@@ -237,7 +237,9 @@ impl TransportSender {
         for i in 1..self.sent_states.len() {
             let state = &self.sent_states[i];
             assert!(now >= state.borrow().timestamp);
-            if now - state.borrow().timestamp < self.connection.borrow().timeout() + ACK_DELAY as u64 {
+            if now - state.borrow().timestamp
+                < self.connection.borrow().timeout() + ACK_DELAY as u64
+            {
                 self.assumed_receiver_state = state.clone()
             } else {
                 return;
@@ -246,12 +248,20 @@ impl TransportSender {
     }
 
     fn rationalize_states(&mut self) {
-        let known_receiver_state = &self.sent_states[0].borrow().state;
-        self.current_state.subtract(known_receiver_state);
+        self.current_state
+            .subtract(&self.sent_states[0].borrow().state);
 
         let mut iterator = self.sent_states.iter().rev();
+        let mut idx = self.sent_states.len() as i32 - 1;
         while let Some(prev) = iterator.next() {
-            prev.borrow_mut().state.subtract(known_receiver_state);
+            if idx == 0 {
+                prev.borrow_mut().state.clear();
+            } else {
+                prev.borrow_mut()
+                    .state
+                    .subtract(&self.sent_states[0].borrow().state);
+            }
+            idx -= 1;
         }
     }
 

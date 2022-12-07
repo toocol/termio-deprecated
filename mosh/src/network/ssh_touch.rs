@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use std::{net::TcpStream, io::Read};
 use ssh2::Session;
+use log::info;
 
 pub fn ssh_touch(host: &str, port: &str, username: &str, password: &str) -> (String, String) {
     let mut remote = String::new();
@@ -19,7 +20,7 @@ pub fn ssh_touch(host: &str, port: &str, username: &str, password: &str) -> (Str
     let mut channel = session
         .channel_session()
         .expect("Open channel session failed.");
-    channel.exec("mosh").expect("Execute command failed");
+    channel.exec("mosh-server").expect("Execute command failed");
     let mut response = String::new();
     channel.read_to_string(&mut response).expect("Read response to String failed.");
     channel.close().expect("Close ssh channel failed.");
@@ -41,5 +42,7 @@ pub fn ssh_touch(host: &str, port: &str, username: &str, password: &str) -> (Str
             break;
         }
     }
-   (port, key) 
+
+    info!("Ssh touch success, port = {}, key = {}", port, key);
+   (port.trim().to_string(), key.trim().to_string()) 
 }

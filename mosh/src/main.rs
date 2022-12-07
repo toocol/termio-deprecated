@@ -5,6 +5,7 @@ mod proto;
 mod statesync;
 mod terminal;
 
+use log::info;
 use std::env::{self, Args};
 
 use frontend::STMClient;
@@ -25,6 +26,10 @@ impl Config {
         let port = args.next().expect("Get port config failed.");
         let username = args.next().expect("Get username config failed.");
         let password = args.next().expect("Get password config failed.");
+        info!(
+            "Parse startup parameter success, host = {}, port = {}, username = {}",
+            host, port, username
+        );
         Config {
             host,
             port,
@@ -35,6 +40,8 @@ impl Config {
 }
 
 fn main() {
+    log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
+
     let config = Config::new(env::args());
     let (port, key) = ssh_touch::ssh_touch(
         &config.host,
@@ -42,9 +49,7 @@ fn main() {
         &config.username,
         &config.password,
     );
-    let client = STMClient::new(config.host, port, key);
+    let mut client = STMClient::new(config.host, port, key);
 
-    loop {
-        client.tick();
-    }
+    client.main();
 }

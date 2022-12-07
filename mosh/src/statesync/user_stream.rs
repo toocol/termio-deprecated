@@ -33,6 +33,10 @@ impl UserStream {
         }
     }
 
+    pub fn clear(&mut self) {
+        self.actions.clear();
+    }
+
     pub fn diff_from(&self, existing: &UserStream) -> Vec<u8> {
         let mut iter = existing.actions.iter();
         let mut my_it = self.actions.iter();

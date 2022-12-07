@@ -51,6 +51,10 @@ impl Transport {
         self.sender.push_back_event(event);
     }
 
+    pub fn recv(&self) -> Option<Vec<u8>> {
+        self.connection.borrow().recv()
+    }
+
     pub fn receive_packet(&mut self, bytes: Vec<u8>) {
         let bytes = self.connection.borrow_mut().recv_one(bytes);
         let fragment = Fragment::from_bytes(&bytes);

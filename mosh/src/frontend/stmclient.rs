@@ -4,12 +4,15 @@ use crate::{
     network::Transport,
     statesync::{CompleteTerminal, UserStream},
 };
+
+use super::OverlayManager;
 pub struct STMClient {
     ip: String,
     port: String,
     key: String,
 
     network: Transport,
+    overlay: OverlayManager,
 }
 
 impl STMClient {
@@ -29,10 +32,20 @@ impl STMClient {
             port,
             key,
             network: transport,
+            overlay: OverlayManager::new(),
         }
     }
 
-    pub fn tick(&self) {
-        
+    pub fn main(&mut self) {
+        loop {
+            if let Some(recvd) = self.network.recv() {
+                self.network.receive_packet(recvd);
+            }
+            self.tick();
+        }
+    }
+
+    pub fn tick(&mut self) {
+        self.network.tick();
     }
 }

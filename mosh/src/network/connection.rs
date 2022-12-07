@@ -1,13 +1,9 @@
 #![allow(dead_code)]
 use std::{net::UdpSocket, time::Duration};
-
 use utilities::TimeStamp;
-
 use crate::crypto::{Base64Key, Session};
-
 use super::{Direction, MoshPacket, MAX_RTO, MIN_RTO, RTTVAR, SRIT};
-
-const LOCAL_HOST: &str = "127.0.0.1";
+use log::info;
 
 pub struct Connection {
     socket: UdpSocket,
@@ -25,7 +21,9 @@ impl Connection {
     const DIRECTION: Direction = Direction::ToServer;
 
     pub fn new(ip: &str, port: &str, key: &str) -> Self {
-        let local_addr = format!("{}:{}", LOCAL_HOST, port);
+        let local_ip = local_ipaddress::get().expect("Get local ip address failed.");
+        println!("local ip: {}, port: {}, key: {}", local_ip, port, key);
+        let local_addr = format!("{}:{}", local_ip, port);
         let remote_addr = format!("{}:{}", ip, port);
 
         let socket = UdpSocket::bind(local_addr.as_str())
@@ -38,7 +36,7 @@ impl Connection {
             .as_str(),
         );
         socket
-            .set_read_timeout(Some(Duration::from_millis(1)))
+            .set_read_timeout(Some(Duration::from_millis(5)))
             .expect("Socket set read timeout failed.");
 
         Connection {
@@ -60,6 +58,16 @@ impl Connection {
             )
             .as_str(),
         );
+    }
+
+    pub fn recv(&self) -> Option<Vec<u8>> {
+        let mut recvd = vec![];
+        if let Ok(len) = self.socket.recv(&mut recvd) {
+            info!("Udp socket data received, len = {}", len);
+            Some(recvd)
+        } else {
+            None
+        }
     }
 
     pub fn recv_one(&mut self, bytes: Vec<u8>) -> Vec<u8> {
