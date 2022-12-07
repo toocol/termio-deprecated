@@ -68,6 +68,6 @@ impl CompleteTerminal {
         }
 
         self.acked.insert(ack_num, bytes.clone());
-        // TODO: Show in terminal
+        self.terminal.print(String::from_utf8(bytes).unwrap().as_str());
     }
 }

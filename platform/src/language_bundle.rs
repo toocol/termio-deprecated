@@ -25,6 +25,7 @@ impl LanguageBundle {
     pub const KEY_TOOLTIP_TOGGLE_SETTING: &str = "tooltip.toggle.setting";
 
     pub const KEY_COMMAND_COMMENT_ADD: &str = "command.comment.add";
+    pub const KEY_COMMAND_NO_MATCHING: &str = "command.no.matching";
 }
 
 impl DynamicBundle for LanguageBundle {

@@ -1,4 +1,49 @@
-use std::ffi::{c_char, c_int, c_longlong, CString};
+use std::{
+    ffi::{c_char, c_int, c_longlong, CString},
+    slice,
+};
+
+const IPC_NUM_NATIVE_EVT_TYPE_SIZE: usize = 128;
+const IPC_NUM_NATIVE_EVT_MSG_SIZE: usize = 1024;
+
+pub struct NativeEvent {
+    evt_type: [u8; IPC_NUM_NATIVE_EVT_TYPE_SIZE],
+    evt_msg: [u8; IPC_NUM_NATIVE_EVT_MSG_SIZE],
+}
+impl NativeEvent {
+    pub fn from_bytes(bytes: *const u8) -> Self {
+        let mut native_evt = NativeEvent {
+            evt_type: [0u8; IPC_NUM_NATIVE_EVT_TYPE_SIZE],
+            evt_msg: [0u8; IPC_NUM_NATIVE_EVT_MSG_SIZE],
+        };
+
+        unsafe {
+            let bytes = slice::from_raw_parts(
+                bytes,
+                IPC_NUM_NATIVE_EVT_MSG_SIZE + IPC_NUM_NATIVE_EVT_TYPE_SIZE,
+            );
+
+            native_evt
+                .evt_type
+                .copy_from_slice(&bytes[0..IPC_NUM_NATIVE_EVT_TYPE_SIZE]);
+            native_evt
+                .evt_msg
+                .copy_from_slice(&bytes[IPC_NUM_NATIVE_EVT_TYPE_SIZE..bytes.len()]);
+        }
+
+        native_evt
+    }
+
+    pub fn evt_type(&self) -> String {
+        String::from_utf8(self.evt_type.to_vec())
+            .expect("Transfer `evt_type` to utf-8 string failed.")
+    }
+
+    pub fn evt_msg(&self) -> String {
+        String::from_utf8(self.evt_msg.to_vec())
+            .expect("Transfer `evt_msg` to utf-8 string failed.")
+    }
+}
 
 #[link(name = "native-adapter")]
 extern "C" {
@@ -274,16 +319,12 @@ pub fn native_has_buffer_changes(key: i32) -> bool {
 
 /// Get current native image buffer status
 pub fn native_buffer_status(key: i32) -> i32 {
-    unsafe {
-        buffer_status(key)
-    }
+    unsafe { buffer_status(key) }
 }
 
 /// Thread lock the primary native image buffer.
 pub fn native_lock_buffer(key: i32) -> bool {
-    unsafe { 
-        lock_buffer(key) 
-    }
+    unsafe { lock_buffer(key) }
 }
 
 /// Thread unlock the primary native image buffer.

@@ -84,7 +84,8 @@ impl CommandPanel {
                     panel.add_to_collections(feedback);
                 }
             } else {
-                // TODO: Add `No result` label
+                let feedback = CommandFeedbackObject::no_matching_command();
+                panel.add_to_collections(feedback);
             }
         }));
     }

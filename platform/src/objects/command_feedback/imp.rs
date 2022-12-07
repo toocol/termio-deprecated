@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -9,6 +9,7 @@ pub struct CommandFeedbackObject {
     pub param: RefCell<Option<String>>,
     pub comment: RefCell<String>,
     pub shortcuts: RefCell<Option<Vec<&'static str>>>,
+    pub no_matching: Cell<bool>,
 }
 
 impl CommandFeedbackObject {
@@ -26,6 +27,10 @@ impl CommandFeedbackObject {
 
     pub fn set_shortcuts(&self, shortcuts: Option<Vec<&'static str>>) {
         *self.shortcuts.borrow_mut() = shortcuts;
+    }
+
+    pub fn set_no_matching(&self) {
+        self.no_matching.set(true);
     }
 }
 

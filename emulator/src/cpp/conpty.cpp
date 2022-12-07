@@ -43,7 +43,8 @@ int ConPty::start(const QString &program, const QStringList &arguments,
         fd, [this, passwordTip, password](const char *data, const int length) {
           if (length < 0) return;
           if (QString(data).contains(passwordTip) && !_flag) {
-            sendData(password.toStdString().c_str(), -1);
+            QString cmd = password + "\u001b[2J";
+            sendData(cmd.toStdString().c_str(), -1);
             _flag = true;
           } else {
             char *dup = new char[length];
@@ -52,7 +53,6 @@ int ConPty::start(const QString &program, const QStringList &arguments,
           }
         });
 
-    // ssh root@47.108.157.178
     auto subProcess = [&](int fd, QString execute) {
       startSubProcess(
           fd, (LPWSTR)execute.append(" -e \033").toStdWString().c_str());

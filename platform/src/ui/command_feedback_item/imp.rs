@@ -13,6 +13,7 @@ pub struct CommandFeedbackItem {
     left_box: RefCell<gtk::Box>,
     right_box: RefCell<gtk::Box>,
 
+    pub no_matching_label: OnceCell<Label>,
     pub command: OnceCell<Label>,
     pub comment: OnceCell<Label>,
     pub param: OnceCell<Label>,
@@ -20,6 +21,13 @@ pub struct CommandFeedbackItem {
 }
 
 impl CommandFeedbackItem {
+    pub fn set_no_matching(&self, label: Label) {
+        self.left_box.borrow().append(&label);
+        self.no_matching_label
+            .set(label)
+            .expect("`no_matching_label` of `CommandFeedbackItem` can only set once.");
+    }
+
     pub fn set_command(&self, label: Label) {
         self.left_box.borrow().append(&label);
         self.command
@@ -103,6 +111,9 @@ impl ObjectImpl for CommandFeedbackItem {
     }
 
     fn dispose(&self) {
+        if let Some(no_matching) = self.no_matching_label.get() {
+            no_matching.unparent();
+        }
         if let Some(command) = self.command.get() {
             command.unparent();
         }

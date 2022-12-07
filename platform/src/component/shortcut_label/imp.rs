@@ -121,7 +121,6 @@ impl ShortcutLabel {
 
         obj.set_content_width(size.0);
         obj.set_content_height(size.1);
-        let layouts_clone = layouts.clone();
 
         obj.set_draw_func(move |_, cr, _, _| {
             let mut current_rec_x = 0.;
@@ -130,8 +129,8 @@ impl ShortcutLabel {
 
             cr.set_line_width(line_width);
 
-            for i in 0..layouts_clone.borrow().len() {
-                let layout = &layouts_clone.borrow()[i];
+            for i in 0..layouts.borrow().len() {
+                let layout = &layouts.borrow()[i];
                 let pixel_size = layout.pixel_size();
 
                 if i % 2 == 0 {
