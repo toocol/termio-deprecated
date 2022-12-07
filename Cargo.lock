@@ -1607,19 +1607,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sftp"
-version = "0.1.0"
-dependencies = [
- "core",
- "gtk4",
- "lazy_static",
- "log",
- "log4rs",
- "platform",
- "utilities",
-]
-
-[[package]]
 name = "sha2"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"

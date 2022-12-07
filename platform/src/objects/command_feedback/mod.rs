@@ -24,6 +24,22 @@ impl CommandFeedbackObject {
         command_feed_back_obj
     }
 
+    pub fn no_matching_command() -> Self {
+        let command_feed_back_obj: CommandFeedbackObject = Object::new(&[]);
+        let imp = command_feed_back_obj.imp();
+        imp.set_no_matching();
+        command_feed_back_obj
+    }
+
+    pub fn is_no_matching(&self) -> bool {
+        self.imp().no_matching.get()
+    }
+
+    pub fn no_matching(&self) -> Label {
+        let text = LanguageBundle::message(LanguageBundle::KEY_COMMAND_NO_MATCHING, None);
+        Label::new(Some(&text))
+    }
+
     pub fn command(&self) -> Label {
         Label::new(Some(self.imp().command.borrow().as_ref()))
     }

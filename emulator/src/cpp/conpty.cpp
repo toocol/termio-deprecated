@@ -52,7 +52,6 @@ int ConPty::start(const QString &program, const QStringList &arguments,
           }
         });
 
-    // ssh root@47.108.157.178
     auto subProcess = [&](int fd, QString execute) {
       startSubProcess(
           fd, (LPWSTR)execute.append(" -e \033").toStdWString().c_str());
