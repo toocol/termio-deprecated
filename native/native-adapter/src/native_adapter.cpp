@@ -177,28 +177,6 @@ void update_secondary_buffer_connection(int key) {
   }
 }
 
-void fire_native_event(int key, string type, string evt) {
-  // if (key >= connections.size() || connections[key] == NULL) {
-  //   std::cerr << "ERROR: key not available: " << key << std::endl;
-  //   return;
-  // }
-
-  // jclass cls =
-  //     jni_env->FindClass("com/toocol/termio/platform/nativefx/NativeBinding");
-
-  // jmethodID fireNativeEventMethod = jni_env->GetStaticMethodID(
-  //   cls, "fireNativeEvent", "(ILjava/lang/String;Ljava/lang/String;)V");
-
-  // if (fireNativeEventMethod == NULL) {
-  // std::cerr << "ERROR: cannot fire native events. Method not found by JNI"
-  //         << std::endl;
-  // return;
-  //}
-
-  // jni_env->CallVoidMethod(cls, fireNativeEventMethod, key,
-  //                         stringC2J(jni_env, type), stringC2J(jni_env, evt));
-}
-
 REXPORT i32 RCALL next_key() { return (i32)connections.size(); }
 
 REXPORT i32 RCALL connect_to(cstring cname) {
@@ -415,7 +393,7 @@ REXPORT void RCALL process_native_events(i32 key) {
                 << std::endl;
     }
 
-    fire_native_event(key, nevt.type, nevt.evt_msg);
+    // f(nevt.type, nevt.evt_msg);
   }
 }
 

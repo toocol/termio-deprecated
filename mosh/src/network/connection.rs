@@ -1,9 +1,9 @@
 #![allow(dead_code)]
+use super::{Direction, MoshPacket, MAX_RTO, MIN_RTO, RTTVAR, SRIT};
+use crate::crypto::{Base64Key, Session};
+use log::info;
 use std::{net::UdpSocket, time::Duration};
 use utilities::TimeStamp;
-use crate::crypto::{Base64Key, Session};
-use super::{Direction, MoshPacket, MAX_RTO, MIN_RTO, RTTVAR, SRIT};
-use log::info;
 
 pub struct Connection {
     socket: UdpSocket,
