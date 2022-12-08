@@ -254,7 +254,15 @@ impl NativeNodeObject {
         let dirty = native_is_dirty(key);
         let is_ready = native_is_buffer_ready(key);
 
-        native_process_native_events(key);
+        while native_has_native_events(key) {
+            let evt = native_get_native_event(key);
+            native_drop_native_event(key);
+            debug!(
+                "Receive native event, type: {}, msg: {}",
+                evt.evt_type(),
+                evt.evt_msg()
+            );
+        }
 
         if !dirty || !is_ready {
             native_unlock_buffer(key);

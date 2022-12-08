@@ -29,6 +29,7 @@ std::vector<ipc::shared_memory_object*> primary_buffer_objects;
 std::vector<ipc::mapped_region*> primary_buffer_regions;
 std::vector<ipc::shared_memory_object*> secondary_buffer_objects;
 std::vector<ipc::mapped_region*> secondary_buffer_regions;
+std::map<i32, native_event*> evt_ptrs;
 
 bool fire_mouse_event(i32 key, i32 evt_type, f64 x, f64 y, f64 amount,
                       i32 buttons, i32 modifiers, i32 click_count,
@@ -371,29 +372,47 @@ REXPORT cstring RCALL send_msg(i32 key, cstring msg, i32 sharedStringType) {
   return info_data->client_to_server_res;
 }
 
-REXPORT void RCALL process_native_events(i32 key) {
+REXPORT bool RCALL has_native_events(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
-    return;
+    return false;
+  }
+  return evt_msg_queues_native[key]->get_num_msg() > 0;
+}
+
+REXPORT void* RCALL get_native_event(i32 key) {
+  if (key >= connections.size() || connections[key] == NULL) {
+    std::cerr << "ERROR: key not available: " << key << std::endl;
+    return nullptr;
   }
 
   // process events
   ipc::message_queue::size_type recvd_size;
   unsigned int priority;
 
-  native_event nevt;
+  native_event* nevt = new native_event;
 
-  while (evt_msg_queues_native[key]->get_num_msg() > 0) {
-    bool result = evt_msg_queues_native[key]->try_receive(
-        &nevt, sizeof(native_event), recvd_size, priority);
+  bool result = evt_msg_queues_native[key]->try_receive(
+      nevt, sizeof(native_event), recvd_size, priority);
 
-    if (!result) {
-      std::cerr << "[" << key
-                << "] ERROR: can't read messages, message queue not accessible."
-                << std::endl;
-    }
+  if (!result) {
+    std::cerr << "[" << key
+              << "] ERROR: can't read messages, message queue not accessible."
+              << std::endl;
+    return nullptr;
+  }
 
-    // f(nevt.type, nevt.evt_msg);
+  if (evt_ptrs[key]) {
+    delete evt_ptrs[key];
+  }
+  evt_ptrs.insert(pair<int, native_event*>(key, nevt));
+
+  return (void*)nevt;
+}
+
+REXPORT void RCALL drop_native_event(i32 key) {
+  if (evt_ptrs[key]) {
+    delete evt_ptrs[key];
   }
 }
 

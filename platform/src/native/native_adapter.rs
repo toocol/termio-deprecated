@@ -6,12 +6,13 @@ use std::{
 const IPC_NUM_NATIVE_EVT_TYPE_SIZE: usize = 128;
 const IPC_NUM_NATIVE_EVT_MSG_SIZE: usize = 1024;
 
+#[derive(Debug)]
 pub struct NativeEvent {
     evt_type: [u8; IPC_NUM_NATIVE_EVT_TYPE_SIZE],
     evt_msg: [u8; IPC_NUM_NATIVE_EVT_MSG_SIZE],
 }
 impl NativeEvent {
-    pub fn from_bytes(bytes: *const u8) -> Self {
+    pub fn from_bytes(bytes: *mut u8) -> Self {
         let mut native_evt = NativeEvent {
             evt_type: [0u8; IPC_NUM_NATIVE_EVT_TYPE_SIZE],
             evt_msg: [0u8; IPC_NUM_NATIVE_EVT_MSG_SIZE],
@@ -52,7 +53,9 @@ extern "C" {
     fn terminate_at(key: c_int) -> bool;
     fn is_connected(key: c_int) -> bool;
     fn send_msg(key: c_int, msg: *const c_char, shared_string_type: c_int) -> *const c_char;
-    fn process_native_events(key: c_int);
+    fn has_native_events(key: c_int) -> bool;
+    fn get_native_event(key: c_int) -> *mut u8;
+    fn drop_native_event(key: c_int);
     fn resize(key: c_int, width: c_int, height: c_int);
     fn toggle_buffer(key: c_int);
     fn is_dirty(key: c_int) -> bool;
@@ -194,10 +197,23 @@ pub fn native_send_msg(key: i32, msg: &str, shared_string_type: i32) -> String {
     }
 }
 
-/// Process the native events which store in the shared memory.
-pub fn native_process_native_events(key: i32) {
+/// Determain whether has native events.
+pub fn native_has_native_events(key: i32) -> bool {
+    unsafe { has_native_events(key) }
+}
+
+///  Get the native event.
+pub fn native_get_native_event(key: i32) -> NativeEvent {
     unsafe {
-        process_native_events(key);
+        let bytes = get_native_event(key);
+        NativeEvent::from_bytes(bytes)
+    }
+}
+
+/// Drop the native event.
+pub  fn native_drop_native_event(key: i32) {
+    unsafe {
+        drop_native_event(key)
     }
 }
 
@@ -208,6 +224,7 @@ pub fn native_resize(key: i32, width: i32, height: i32) {
     }
 }
 
+/// Toggle buffer between primary/secondary buffer.
 pub fn native_toggle_buffer(key: c_int) {
     unsafe { toggle_buffer(key) }
 }
