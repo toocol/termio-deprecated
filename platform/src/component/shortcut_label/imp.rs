@@ -123,6 +123,7 @@ impl ShortcutLabel {
         obj.set_content_height(size.1);
 
         obj.set_draw_func(move |_, cr, _, _| {
+            cr.set_antialias(gtk::cairo::Antialias::Best);
             let mut current_rec_x = 0.;
             let mut current_text_x = hor_inset;
             let degress = PI / 180.;
@@ -214,31 +215,31 @@ impl ObjectImpl for ShortcutLabel {
             "font-size" => {
                 let input_value = value
                     .get()
-                    .expect("The value needs to be of type `String`.");
+                    .expect("The value needs to be of type `i32`.");
                 self.font_size.set(input_value);
             }
             "hor-inset" => {
                 let input_value = value
                     .get()
-                    .expect("The value needs to be of type `String`.");
+                    .expect("The value needs to be of type `f64`.");
                 self.hor_inset.set(input_value);
             }
             "ver-inset" => {
                 let input_value = value
                     .get()
-                    .expect("The value needs to be of type `String`.");
+                    .expect("The value needs to be of type `f64`.");
                 self.ver_inset.set(input_value);
             }
             "join-inset" => {
                 let input_value = value
                     .get()
-                    .expect("The value needs to be of type `String`.");
+                    .expect("The value needs to be of type `f64`.");
                 self.join_inset.set(input_value);
             }
             "radius" => {
                 let input_value = value
                     .get()
-                    .expect("The value needs to be of type `String`.");
+                    .expect("The value needs to be of type `f64`.");
                 self.radius.set(input_value);
             }
             _ => unimplemented!(),

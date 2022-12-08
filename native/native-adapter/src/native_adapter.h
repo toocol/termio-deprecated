@@ -1,5 +1,5 @@
-#ifndef _EMU_ADAPTER_H_
-#define _EMU_ADAPTER_H_
+#ifndef _NATIVE_ADAPTER_H_
+#define _NATIVE_ADAPTER_H_
 
 #define REXPORT __declspec(dllexport)
 #define RCALL __stdcall
@@ -47,11 +47,25 @@ REXPORT bool RCALL is_connected(i32);
 REXPORT cstring RCALL send_msg(i32, cstring, i32);
 
 /**
- * Process the native events which store in the shared memory.
- *
+ * Determain whether has native events.
+ * 
  * @param key
  */
-REXPORT void RCALL process_native_events(i32);
+REXPORT bool RCALL has_native_events(i32);
+
+/**
+ * Get the native event.
+ * 
+ * @param key
+ */
+REXPORT void* RCALL get_native_event(i32);
+
+/**
+ * Drop the native event.
+ * 
+ * @param key
+ */
+REXPORT void RCALL drop_native_event(i32);
 
 /**
  * Resize the teminal emulator.
