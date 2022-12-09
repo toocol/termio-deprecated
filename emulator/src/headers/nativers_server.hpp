@@ -77,7 +77,6 @@
 namespace nativers {
 
 struct NATIVE_EVENT {
-  std::string type;
   std::string evt;
 };
 
@@ -206,7 +205,7 @@ class SharedCanvas final {
     this->MAX_SIZE = max_event_message_size();
   }
 
-  void sendNativeEvent(std::string type, std::string evt) {
+  void sendNativeEvent(std::string evt) {
     // process events
     unsigned int priority = 0;
 
@@ -217,7 +216,6 @@ class SharedCanvas final {
 
     native_event nevt;
 
-    store_shared_string(type, nevt.type, IPC_NUM_NATIVE_EVT_TYPE_SIZE);
     store_shared_string(evt, nevt.evt_msg, IPC_NUM_NATIVE_EVT_MSG_SIZE);
 
     bool result = evt_mq_native->timed_send(&nevt, sizeof(native_event),
@@ -234,7 +232,7 @@ class SharedCanvas final {
       while (!event_queue.empty()) {
         NATIVE_EVENT* evt = event_queue.front();
         event_queue.pop();
-        sendNativeEvent(evt->type, evt->evt);
+        sendNativeEvent(evt->evt);
         delete evt;
       }
       Sleep(1);
@@ -494,8 +492,8 @@ class SharedCanvas final {
     return NRS_SUCCESS;
   }
 
-  void pushNativeEvent(std::string type, std::string evt) {
-    NATIVE_EVENT* nv = new NATIVE_EVENT{type, evt};
+  void pushNativeEvent(std::string evt) {
+    NATIVE_EVENT* nv = new NATIVE_EVENT{evt};
     event_queue.push(nv);
   }
 

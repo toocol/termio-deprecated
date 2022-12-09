@@ -147,8 +147,7 @@ bool TerminalEmulator::eventFilter(QObject* obj, QEvent* ev) {
     if (renderered) nativeRedrawCallback();
     _terminalView->nativeCanvas()->unlock();
     if (renderered) _terminalView->nativeCanvas()->toggleBuffer();
-    _terminalView->nativeCanvas()->pushNativeEvent("Paint",
-                                                   "Terminal View Paint");
+    _terminalView->nativeCanvas()->pushNativeEvent("Terminal View Paint");
   }
   return QWidget::eventFilter(obj, ev);
 }

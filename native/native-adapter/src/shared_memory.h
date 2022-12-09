@@ -40,7 +40,6 @@
 #define IPC_SSH_PROPERTY_SIZE 10
 #define IPC_SSH_INFO_SIZE 128
 
-#define IPC_NUM_NATIVE_EVT_TYPE_SIZE 128
 #define IPC_NUM_NATIVE_EVT_MSG_SIZE 1024
 
 #define IPC_NUM_EVT_MSGS 100
@@ -190,12 +189,11 @@ struct create_ssh_session_event {
 
 /**
  * Event that is used to communicate events from native servers back to the
- * client Java API. It's intended to be used in a boost message queue. That's
+ * client Rust API. It's intended to be used in a boost message queue. That's
  * why we don't use more complex types such as std::string etc.
+ * evt_msg pattern: action name;param;param...
  */
 struct native_event {
-  char type[IPC_NUM_NATIVE_EVT_TYPE_SIZE +
-            1];  // not initialized since it is not allowed
   char evt_msg[IPC_NUM_NATIVE_EVT_MSG_SIZE +
                1];  // not initialized since it is not allowed
 };
