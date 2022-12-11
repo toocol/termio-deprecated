@@ -1,11 +1,23 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+};
 
+use crate::{
+    native_node::{NativeNodeImpl, NativeNodeObject},
+    ShortcutWatcher,
+};
 use gtk::{glib, subclass::prelude::*, traits::WidgetExt};
-use crate::{native_node::{NativeNodeImpl, NativeNodeObject}, ShortcutWatcher};
 
 pub struct NativeTerminalEmulator {
     pub native_node_object: Rc<RefCell<NativeNodeObject>>,
-    pub shortcut_watcher: ShortcutWatcher
+    pub shortcut_watcher: ShortcutWatcher,
+
+    // Some data records.
+    pub last_left_mouse_pressed_position: Cell<(i32, i32)>,
+    pub last_right_mouse_pressed_position: Cell<(i32, i32)>,
+    pub last_left_mouse_release_position: Cell<(i32, i32)>,
+    pub last_right_mouse_release_position: Cell<(i32, i32)>,
 }
 
 impl NativeTerminalEmulator {}
@@ -15,6 +27,10 @@ impl Default for NativeTerminalEmulator {
         Self {
             native_node_object: Rc::new(RefCell::new(NativeNodeObject::new())),
             shortcut_watcher: ShortcutWatcher::default(),
+            last_left_mouse_pressed_position: Cell::new((0, 0)),
+            last_right_mouse_pressed_position: Cell::new((0, 0)),
+            last_left_mouse_release_position: Cell::new((0, 0)),
+            last_right_mouse_release_position: Cell::new((0, 0)),
         }
     }
 }

@@ -3,46 +3,57 @@ use std::{
     slice,
 };
 
-const IPC_NUM_NATIVE_EVT_TYPE_SIZE: usize = 128;
 const IPC_NUM_NATIVE_EVT_MSG_SIZE: usize = 1024;
 
 #[derive(Debug)]
 pub struct NativeEvent {
-    evt_type: [u8; IPC_NUM_NATIVE_EVT_TYPE_SIZE],
-    evt_msg: [u8; IPC_NUM_NATIVE_EVT_MSG_SIZE],
+    pub action_name: String,
+    pub params: Option<Vec<String>>,
 }
 impl NativeEvent {
     pub fn from_bytes(bytes: *mut u8) -> Self {
-        let mut native_evt = NativeEvent {
-            evt_type: [0u8; IPC_NUM_NATIVE_EVT_TYPE_SIZE],
-            evt_msg: [0u8; IPC_NUM_NATIVE_EVT_MSG_SIZE],
-        };
+        let mut evt_msg;
 
         unsafe {
-            let bytes = slice::from_raw_parts(
-                bytes,
-                IPC_NUM_NATIVE_EVT_MSG_SIZE + IPC_NUM_NATIVE_EVT_TYPE_SIZE,
-            );
+            let bytes = slice::from_raw_parts(bytes, IPC_NUM_NATIVE_EVT_MSG_SIZE);
+            let mut len = 0usize;
+            for i in bytes.iter() {
+                if *i == 0 {
+                    break;
+                }
+                len += 1;
+            }
+            evt_msg = vec![0u8; len];
 
-            native_evt
-                .evt_type
-                .copy_from_slice(&bytes[0..IPC_NUM_NATIVE_EVT_TYPE_SIZE]);
-            native_evt
-                .evt_msg
-                .copy_from_slice(&bytes[IPC_NUM_NATIVE_EVT_TYPE_SIZE..bytes.len()]);
+            evt_msg.copy_from_slice(&bytes[0..len]);
         }
 
+        let evt_msg = String::from_utf8(evt_msg.to_vec())
+            .expect("Transfer `evt_msg` to utf-8 string failed.");
+
+        let mut action_name = String::new();
+        let mut params = vec![];
+
+        let mut idx = 0;
+        for s in evt_msg.split(";").into_iter() {
+            if idx == 0 {
+                action_name = s.to_string();
+            } else {
+                params.push(s.to_string());
+            }
+            idx += 1;
+        }
+
+        let native_evt = NativeEvent {
+            action_name,
+            params: if params.len() == 0 {
+                None
+            } else {
+                Some(params)
+            },
+        };
+
         native_evt
-    }
-
-    pub fn evt_type(&self) -> String {
-        String::from_utf8(self.evt_type.to_vec())
-            .expect("Transfer `evt_type` to utf-8 string failed.")
-    }
-
-    pub fn evt_msg(&self) -> String {
-        String::from_utf8(self.evt_msg.to_vec())
-            .expect("Transfer `evt_msg` to utf-8 string failed.")
     }
 }
 
@@ -211,10 +222,8 @@ pub fn native_get_native_event(key: i32) -> NativeEvent {
 }
 
 /// Drop the native event.
-pub  fn native_drop_native_event(key: i32) {
-    unsafe {
-        drop_native_event(key)
-    }
+pub fn native_drop_native_event(key: i32) {
+    unsafe { drop_native_event(key) }
 }
 
 /// Resize the teminal emulator.

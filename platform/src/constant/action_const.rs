@@ -60,6 +60,21 @@ pub const ACTION_COMMAND_ADD: ActionName = ActionName {
     name: "action-command-add",
 };
 
+///// Action emit from terminal emulator.
+pub const ACTION_RIGHT_CLICK_TERMINAL_TAB: ActionName = ActionName {
+    group: "win",
+    name: "right-click-terminal-tab",
+};
+pub const ACTION_TAB_BUTTON_MOUSE_PRESS: ActionName = ActionName {
+    group: "win",
+    name: "tab-button-mouse-press",
+};
+pub const ACTION_TAB_BUTTON_MOUSE_RELEASE: ActionName = ActionName {
+    group: "win",
+    name: "tab-button-mouse-release",
+};
+
+
 pub struct ActionName {
     group: &'static str,
     name: &'static str,

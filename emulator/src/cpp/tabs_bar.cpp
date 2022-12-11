@@ -3,8 +3,6 @@
 #include <QPainter>
 #include <QPushButton>
 
-#include "tab_button.h"
-
 TabsBar::TabsBar(QWidget *parent) : QWidget{parent} {
   _mainLayout = new QHBoxLayout();
   _mainLayout->setContentsMargins(QMargins(0, 0, 0, 0));
@@ -39,20 +37,24 @@ TabsBar::TabsBar(QWidget *parent) : QWidget{parent} {
   setMinimumHeight(tabMaxHeight);
   setAutoFillBackground(true);
 
-  _tabs = new QList<Tab *>();
+  _tabs = QList<Tab *>();
+  _buttons = QList<TabButton *>();
 
   initEndIcon();
 }
 
 void TabsBar::addTab(Tab *tab) {
+  _tabs.push_back(tab);
   _tabsLayout->addWidget(tab);
   tab->show();
-  _tabs->push_back(tab);
 }
 
+QList<TabButton *> *TabsBar::buttons() { return &_buttons; }
+
 void TabsBar::initEndIcon() {
-  TabButton *addNewTabButton = new TabButton("\ue710", 16);
+  TabButton *addNewTabButton = new TabButton("\ue710", "tab-button-new", 16);
   _endIconLayout->addWidget(addNewTabButton);
+  _buttons.push_back(addNewTabButton);
 }
 
 void TabsBar::onBackgroundChange(const QColor &color) {

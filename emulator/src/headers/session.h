@@ -7,6 +7,7 @@
 #include "kprocess.h"
 #include "tab.h"
 #include "tabs_bar.h"
+#include "transmit_signals.h"
 
 #ifdef Q_OS_WIN
 #include "conpty.h"
@@ -215,6 +216,8 @@ class Session : public QWidget {
 
   Tab* getTab();
 
+  static void setTransmitSignals(TransmitSignals*);
+
  signals:
   /** Emitted when the terminal process starts. */
   void started();
@@ -349,8 +352,9 @@ class Session : public QWidget {
   //  void zmodemFinished();
 
  private:
-  void updateTerminalSize();
   static QRegularExpression _rexp;
+  static TransmitSignals* _transmitSignal;
+  void updateTerminalSize();
 
   WId windowId() const;
 
@@ -435,6 +439,11 @@ class SessionGroup : public QWidget {
   static void changeState(SplitScreenState);
 
   /**
+   * set the transmit signals
+   */
+  static void setTransmitSignals(TransmitSignals*);
+
+  /**
    * Add the session to the specific session group via SessionGroupLocation, and
    * return the session group id.
    */
@@ -455,6 +464,7 @@ class SessionGroup : public QWidget {
   void bindViewToEmulation();
 
  private:
+  static TransmitSignals* _transmitSignals;
   static QWidget* _parent;
   static SplitScreenState _state;
   /**

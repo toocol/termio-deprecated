@@ -255,13 +255,22 @@ impl NativeNodeObject {
         let is_ready = native_is_buffer_ready(key);
 
         while native_has_native_events(key) {
-            let evt = native_get_native_event(key);
+            let mut evt = native_get_native_event(key);
             native_drop_native_event(key);
-            debug!(
-                "Receive native event, type: {}, msg: {}",
-                evt.evt_type(),
-                evt.evt_msg()
-            );
+
+            let params;
+            imp.drawing_area
+                .borrow()
+                .activate_action(
+                    &evt.action_name,
+                    if evt.params.is_none() {
+                        None
+                    } else {
+                        params = evt.params.take().unwrap().to_variant();
+                        Some(&params)
+                    },
+                )
+                .expect(format!("Activate action `{}` failed", evt.action_name).as_str());
         }
 
         if !dirty || !is_ready {

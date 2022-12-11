@@ -19,6 +19,7 @@ using namespace TConsole;
 
 TerminalEmulator::TerminalEmulator(QWidget* parent)
     : QWidget(parent), _primaryImage(nullptr) {
+  _transmitSingals = new TransmitSignals(this);
   _nativeEvtTimer = new QTimer(this);
   connect(_nativeEvtTimer, &QTimer::timeout, this,
           &TerminalEmulator::nativeEventCallback);
@@ -42,6 +43,9 @@ void TerminalEmulator::initialize() {
   _mainLayout->setContentsMargins(QMargins(0, 0, 0, 0));
   _mainLayout->setSpacing(0);
   setLayout(_mainLayout);
+
+  Session::setTransmitSignals(_transmitSingals);
+  SessionGroup::setTransmitSignals(_transmitSingals);
 
   SessionGroup::changeState(SessionGroup::ONE);
 
@@ -72,6 +76,14 @@ void TerminalEmulator::initialize() {
           [this](QKeyEvent* e, bool) { Q_EMIT termKeyPressed(e); });
   connect(this, SIGNAL(updateBackground(const QColor&)), group->tabsBar(),
           SLOT(onBackgroundChange(const QColor&)));
+
+  // Setup the signal transmit.
+  connect(_transmitSingals, SIGNAL(sigTabRightClick()), this,
+          SLOT(onTabRightClick()));
+  connect(_transmitSingals, SIGNAL(sigTabButtonMousePressed(QString, int)),
+          this, SLOT(onTabButtonMousePress(QString, int)));
+  connect(_transmitSingals, SIGNAL(sigTabButtonMouseRelease(QString, int)),
+          this, SLOT(onTabButtonMouseRelease(QString, int)));
 
   QFont font = QApplication::font();
   font.setFamily(QLatin1String(DEFAULT_FONT_FAMILY));
@@ -147,8 +159,6 @@ bool TerminalEmulator::eventFilter(QObject* obj, QEvent* ev) {
     if (renderered) nativeRedrawCallback();
     _terminalView->nativeCanvas()->unlock();
     if (renderered) _terminalView->nativeCanvas()->toggleBuffer();
-    _terminalView->nativeCanvas()->pushNativeEvent("Paint",
-                                                   "Terminal View Paint");
   }
   return QWidget::eventFilter(obj, ev);
 }
@@ -230,3 +240,20 @@ void TerminalEmulator::onCursorChanged(KeyboardCursorShape cursorShape,
 }
 
 void TerminalEmulator::nativeEventCallback() { nativeEvtCallback(); }
+
+void TerminalEmulator::onTabRightClick() {
+  _terminalView->nativeCanvas()->pushNativeEvent(
+      "win.right-click-terminal-tab");
+}
+
+void TerminalEmulator::onTabButtonMousePress(QString name, int button) {
+  QString evtMsg = "win.tab-button-mouse-press";
+  evtMsg += ";" + name + ";" + QString::number(button);
+  _terminalView->nativeCanvas()->pushNativeEvent(evtMsg.toStdString());
+}
+
+void TerminalEmulator::onTabButtonMouseRelease(QString name, int button) {
+  QString evtMsg = "win.tab-button-mouse-release";
+  evtMsg += ";" + name + ";" + QString::number(button);
+  _terminalView->nativeCanvas()->pushNativeEvent(evtMsg.toStdString());
+}
