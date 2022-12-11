@@ -271,8 +271,6 @@ impl NativeNodeObject {
                     },
                 )
                 .expect(format!("Activate action `{}` failed", evt.action_name).as_str());
-
-            debug!("Receive native event, {:?}", evt);
         }
 
         if !dirty || !is_ready {

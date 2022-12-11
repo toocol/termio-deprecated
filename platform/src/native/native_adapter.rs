@@ -12,13 +12,20 @@ pub struct NativeEvent {
 }
 impl NativeEvent {
     pub fn from_bytes(bytes: *mut u8) -> Self {
-
-        let mut evt_msg = [0u8; IPC_NUM_NATIVE_EVT_MSG_SIZE];
+        let mut evt_msg;
 
         unsafe {
             let bytes = slice::from_raw_parts(bytes, IPC_NUM_NATIVE_EVT_MSG_SIZE);
+            let mut len = 0usize;
+            for i in bytes.iter() {
+                if *i == 0 {
+                    break;
+                }
+                len += 1;
+            }
+            evt_msg = vec![0u8; len];
 
-            evt_msg.copy_from_slice(&bytes[0..bytes.len()]);
+            evt_msg.copy_from_slice(&bytes[0..len]);
         }
 
         let evt_msg = String::from_utf8(evt_msg.to_vec())
@@ -39,7 +46,11 @@ impl NativeEvent {
 
         let native_evt = NativeEvent {
             action_name,
-            params: if params.len() == 0 { None } else { Some(params) }
+            params: if params.len() == 0 {
+                None
+            } else {
+                Some(params)
+            },
         };
 
         native_evt

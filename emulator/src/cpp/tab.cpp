@@ -1,5 +1,6 @@
 #include "tab.h"
 
+#include <QMouseEvent>
 #include <QPainter>
 #include <QSizePolicy>
 
@@ -68,4 +69,10 @@ void Tab::paintEvent(QPaintEvent* evt) {
   paint.end();
 }
 
-void Tab::mouseReleaseEvent(QMouseEvent* evt) { emit tabActivate(); }
+void Tab::mouseReleaseEvent(QMouseEvent* evt) {
+  if (evt->button() == Qt::LeftButton) {
+    emit tabActivate();
+  } else if (evt->button() == Qt::RightButton) {
+    emit tabRightClick();
+  }
+}

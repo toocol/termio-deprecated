@@ -9,8 +9,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include "emulation.h"
 #include "session.h"
+#include "transmit_signals.h"
 
 namespace TConsole {
 
@@ -65,6 +65,7 @@ class TerminalEmulator : public QWidget {
   QImage *_secondaryImage;
   QTimer *_nativeEvtTimer;
 
+  TransmitSignals *_transmitSingals;
   TerminalView *_terminalView;
 
   QVBoxLayout *_mainLayout;
@@ -93,6 +94,9 @@ class TerminalEmulator : public QWidget {
   void onCursorChanged(TConsole::KeyboardCursorShape cursorShape,
                        bool blinkingCursorEnabled);
   void nativeEventCallback();
+  void onTabRightClick();
+  void onTabButtonMousePress(QString, int);
+  void onTabButtonMouseRelease(QString, int);
 };
 
 }  // namespace TConsole

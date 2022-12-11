@@ -37,55 +37,104 @@ impl NativeTerminalEmulator {
             widget.imp().shortcut_watcher.watch(&widget, keycode);
             Inhibit(true)
         });
-        let native_node_weak = self.imp().native_node_object.borrow().downgrade();
-        key_controller.connect_key_released(move |_controller, key, keycode, modifier| {
-            if let Some(native_node) = native_node_weak.upgrade() {
-                native_node.react_key_released_event(key, keycode, modifier);
-            }
-        });
+        key_controller.connect_key_released(
+            clone!(@weak self as terminal => move |_controller, key, keycode, modifier| {
+                terminal
+                    .imp()
+                    .native_node_object
+                    .borrow()
+                    .react_key_released_event(key, keycode, modifier);
+            }),
+        );
         self.add_controller(&key_controller);
 
         //// Mouse click events
+        // Left click
         let gesture_click = GestureClick::new();
-        gesture_click.set_button(GtkMouseButton::LEFT as u32);
-        let native_node_weak = self.imp().native_node_object.borrow().downgrade();
+        gesture_click.set_button(GtkMouseButton::Left as u32);
         gesture_click.connect_pressed(
             clone!(@weak self as terminal => move |_gesture, n_press, x, y| {
                 terminal.grab_focus();
-                if let Some(native_node) = native_node_weak.upgrade() {
-                    native_node.request_focus(true);
-                    native_node.react_mouse_pressed_event(n_press, x, y, GtkMouseButton::LEFT);
-                }
+
+                terminal
+                    .imp()
+                    .native_node_object
+                    .borrow()
+                    .request_focus(true);
+                terminal
+                    .imp()
+                    .native_node_object.borrow()
+                    .react_mouse_pressed_event(n_press, x, y, GtkMouseButton::Left);
+
+                terminal.imp().last_left_mouse_pressed_position.set((x as i32, y as i32));
             }),
         );
-        let native_node_weak = self.imp().native_node_object.borrow().downgrade();
-        gesture_click.connect_released(move |_gesture, n_press, x, y| {
-            if let Some(native_node) = native_node_weak.upgrade() {
-                native_node.react_mouse_released_event(n_press, x, y, GtkMouseButton::LEFT);
-            }
-        });
+        gesture_click.connect_released(
+            clone!(@weak self as terminal => move |_gesture, n_press, x, y| {
+                terminal
+                    .imp()
+                    .native_node_object
+                    .borrow()
+                    .react_mouse_released_event(n_press, x, y, GtkMouseButton::Left);
+
+                terminal.imp().last_left_mouse_release_position.set((x as i32, y as i32));
+            }),
+        );
+        self.add_controller(&gesture_click);
+
+        // Right click
+        let gesture_click = GestureClick::new();
+        gesture_click.set_button(GtkMouseButton::Right as u32);
+        gesture_click.connect_pressed(
+            clone!(@weak self as terminal => move |_gesture, n_press, x, y| {
+                terminal.grab_focus();
+                terminal
+                    .imp()
+                    .native_node_object
+                    .borrow()
+                    .request_focus(true);
+                terminal
+                    .imp()
+                    .native_node_object.borrow()
+                    .react_mouse_pressed_event(n_press, x, y, GtkMouseButton::Right);
+
+                terminal.imp().last_right_mouse_pressed_position.set((x as i32, y as i32));
+            }),
+        );
+        gesture_click.connect_released(clone!(@weak self as terminal => move |_gesture, n_press, x, y| {
+            terminal
+                .imp()
+                .native_node_object
+                .borrow()
+                .react_mouse_released_event(n_press, x, y, GtkMouseButton::Right);
+
+            terminal.imp().last_right_mouse_release_position.set((x as i32, y as i32));
+        }));
         self.add_controller(&gesture_click);
 
         //// Mouse motion events
         let motion_controller = EventControllerMotion::new();
-        let native_node_weak = self.imp().native_node_object.borrow().downgrade();
-        motion_controller.connect_enter(move |_motion, x, y| {
-            if let Some(native_node) = native_node_weak.upgrade() {
-                native_node.react_mouse_motion_enter(x, y);
-            }
-        });
-        let native_node_weak = self.imp().native_node_object.borrow().downgrade();
-        motion_controller.connect_leave(move |_motion| {
-            if let Some(native_node) = native_node_weak.upgrade() {
-                native_node.react_mouse_motion_leave();
-            }
-        });
-        let native_node_weak = self.imp().native_node_object.borrow().downgrade();
-        motion_controller.connect_motion(move |_motion, x, y| {
-            if let Some(native_node) = native_node_weak.upgrade() {
-                native_node.react_mouse_motion_move(x, y);
-            }
-        });
+        motion_controller.connect_enter(clone!(@weak self as terminal => move |_motion, x, y| {
+            terminal
+                .imp()
+                .native_node_object
+                .borrow()
+                .react_mouse_motion_enter(x, y);
+        }));
+        motion_controller.connect_leave(clone!(@weak self as terminal => move |_motion| {
+            terminal
+                .imp()
+                .native_node_object
+                .borrow()
+                .react_mouse_motion_leave();
+        }));
+        motion_controller.connect_motion(clone!(@weak self as terminal => move |_motion, x, y| {
+            terminal
+                .imp()
+                .native_node_object
+                .borrow()
+                .react_mouse_motion_move(x, y);
+        }));
         self.add_controller(&motion_controller);
 
         //// Mouse wheel events
@@ -122,5 +171,25 @@ impl NativeTerminalEmulator {
     /// Terminate the native node.
     pub fn terminate(&self) {
         self.imp().native_node_object.borrow().terminate();
+    }
+
+    /// Last left mouse pressed position
+    pub fn last_left_mouse_pressed_position(&self) -> (i32, i32) {
+        self.imp().last_left_mouse_pressed_position.get()
+    }
+
+    /// Last right mouse pressed position
+    pub fn last_right_mouse_pressed_position(&self) -> (i32, i32) {
+        self.imp().last_right_mouse_pressed_position.get()
+    }
+
+    /// Last left mouse release position
+    pub fn last_left_mouse_release_position(&self) -> (i32, i32) {
+        self.imp().last_left_mouse_release_position.get()
+    }
+
+    /// Last right mouse release position
+    pub fn last_right_mouse_release_position(&self) -> (i32, i32) {
+        self.imp().last_right_mouse_release_position.get()
     }
 }

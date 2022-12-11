@@ -151,7 +151,7 @@ impl IconButton {
 
     pub fn bind_action(&self, action_name: &str) {
         let left_click_gesture = gtk::GestureClick::new();
-        left_click_gesture.set_button(GtkMouseButton::LEFT as u32);
+        left_click_gesture.set_button(GtkMouseButton::Left as u32);
         let action_name = action_name.to_string();
         left_click_gesture.connect_released(
             clone!(@weak self as button, @strong action_name => move |gesture, _, _, _| {

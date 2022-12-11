@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QList>
 
 #include "shell_command.h"
 #include "vt102emulation.h"
@@ -14,6 +15,7 @@ using namespace TConsole;
 /*                                                                           */
 /* ------------------------------------------------------------------------- */
 QRegularExpression Session::_rexp = QRegularExpression(QLatin1String("^~"));
+TransmitSignals* Session::_transmitSignal = nullptr;
 
 Session::Session(QWidget* parent)
     : QWidget{parent},
@@ -31,6 +33,8 @@ Session::Session(QWidget* parent)
 #endif
   _tab = new Tab();
   connect(_tab, SIGNAL(tabActivate()), this, SLOT(onTabActivate()));
+  connect(_tab, SIGNAL(tabRightClick()), Session::_transmitSignal,
+          SIGNAL(sigTabRightClick()));
 
   // create emulation backend
   _emulation = new Vt102Emulation();
@@ -473,6 +477,10 @@ void Session::setSessionId(long newSessionId) { _sessionId = newSessionId; }
 
 Tab* Session::getTab() { return _tab; }
 
+void Session::setTransmitSignals(TransmitSignals* ts) {
+  Session::_transmitSignal = ts;
+}
+
 const QString& Session::user() const { return _user; }
 
 void Session::setUser(const QString& newUser) { _user = newUser; }
@@ -497,12 +505,24 @@ SessionGroup::SplitScreenState SessionGroup::_state = ZERO;
 int SessionGroup::lastSessionGroupId = 0;
 Session* SessionGroup::activeSession = nullptr;
 
+TransmitSignals* SessionGroup::_transmitSignals = nullptr;
 QWidget* SessionGroup::_parent = nullptr;
 QHash<int, SessionGroup*> SessionGroup::_sessionGroupMaps =
     QHash<int, SessionGroup*>();
 
 // Function implements.
-SessionGroup::SessionGroup(QWidget* parent) { _tabsBar = new TabsBar(this); }
+SessionGroup::SessionGroup(QWidget* parent) {
+  _tabsBar = new TabsBar(this);
+  QList<TabButton*>::Iterator i = _tabsBar->buttons()->begin();
+  for (; i != _tabsBar->buttons()->end(); ++i) {
+    connect(*i, SIGNAL(mousePressed(QString, int)),
+            SessionGroup::_transmitSignals,
+            SIGNAL(sigTabButtonMousePressed(QString, int)));
+    connect(*i, SIGNAL(mouseRelease(QString, int)),
+            SessionGroup::_transmitSignals,
+            SIGNAL(sigTabButtonMouseRelease(QString, int)));
+  }
+}
 
 void SessionGroup::changeState(SplitScreenState newState) {
   int key = _state < newState ? (_state | newState) : -(_state | newState);
@@ -514,6 +534,10 @@ void SessionGroup::changeState(SplitScreenState newState) {
       group->_location = ONE_CENTER;
       break;
   }
+}
+
+void SessionGroup::setTransmitSignals(TransmitSignals* ts) {
+  SessionGroup::_transmitSignals = ts;
 }
 
 SessionGroup* SessionGroup::createNewSessionGroup(QWidget* parent) {

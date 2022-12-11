@@ -14,10 +14,11 @@ use gtk::{
 use platform::{
     termio::data_path, ItemStatus, ACTION_ADD_SESSION_CREDENTIAL, ACTION_COMMAND_ADD,
     ACTION_CREATE_SSH_SESSION, ACTION_HIDE_LEFT_SIDE_BAR, ACTION_LOCALE_CHANGED,
-    ACTION_NEW_SESSION_CREDENTIAL_DIALOG, ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE,
-    ACTION_SESSION_GROUP_SELECTION_CHANGE, ACTION_TOGGLE_BOTTOM_AREA, ACTION_TOGGLE_COMMAND_PANEL,
+    ACTION_NEW_SESSION_CREDENTIAL_DIALOG, ACTION_RIGHT_CLICK_TERMINAL_TAB,
+    ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE, ACTION_SESSION_GROUP_SELECTION_CHANGE,
+    ACTION_TAB_BUTTON_MOUSE_PRESS, ACTION_TOGGLE_BOTTOM_AREA, ACTION_TOGGLE_COMMAND_PANEL,
     ACTION_TOGGLE_LEFT_AREA, ACTION_TOGGLE_PLUGIN_EXTENSION_PANEL,
-    ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL, ACTION_TOGGLE_SETTING_PANEL,
+    ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL, ACTION_TOGGLE_SETTING_PANEL, ACTION_TAB_BUTTON_MOUSE_RELEASE,
 };
 
 use platform::NewSessionDialog;
@@ -275,16 +276,56 @@ impl TermioCommunityWindow {
 
         // Create `action-command-add` action.
         let action_command_add = SimpleAction::new(ACTION_COMMAND_ADD.create(), None);
-        action_command_add.connect_activate(
+        action_command_add.connect_activate(clone!(@weak self as window => move |_, _| {
+            window.imp()
+                .new_session_dialog
+                .get()
+                .expect("`new_session_dialog` is None.")
+                .show_dialog();
+        }));
+        self.add_action(&action_command_add);
+
+        // Create `right-click-terminal-tab` action.
+        let action_right_click_terminal_tab =
+            SimpleAction::new(ACTION_RIGHT_CLICK_TERMINAL_TAB.create(), None);
+        action_right_click_terminal_tab.connect_activate(
             clone!(@weak self as window => move |_, _| {
-                window.imp()
-                    .new_session_dialog
-                    .get()
-                    .expect("`new_session_dialog` is None.")
-                    .show_dialog();
+                println!("Terminal tab right clicked.");
             }),
         );
-        self.add_action(&action_command_add);
+        self.add_action(&action_right_click_terminal_tab);
+
+        // Create `tab-button-mouse-press` action.
+        let action_tab_button_mouse_press = SimpleAction::new(
+            ACTION_TAB_BUTTON_MOUSE_PRESS.create(),
+            Some(VariantTy::ARRAY),
+        );
+        action_tab_button_mouse_press.connect_activate(
+            clone!(@weak self as window => move |_, parameter| {
+                let param = parameter
+                    .expect("Could not get parameter.")
+                    .get::<Vec<String>>()
+                    .expect("The variant needs to be of type `tuple`.");
+                println!("Tab button mouse press. param = {:?}", param);
+            }),
+        );
+        self.add_action(&action_tab_button_mouse_press);
+
+        // Create `tab-button-mouse-release` action.
+        let action_tab_button_mouse_release = SimpleAction::new(
+            ACTION_TAB_BUTTON_MOUSE_RELEASE.create(),
+            Some(VariantTy::ARRAY),
+        );
+        action_tab_button_mouse_release.connect_activate(
+            clone!(@weak self as window => move |_, parameter| {
+                let param = parameter
+                    .expect("Could not get parameter.")
+                    .get::<Vec<String>>()
+                    .expect("The variant needs to be of type `tuple`.");
+                println!("Tab button mouse release. param = {:?}", param);
+            }),
+        );
+        self.add_action(&action_tab_button_mouse_release);
     }
 
     pub fn resotre_data(&self) {

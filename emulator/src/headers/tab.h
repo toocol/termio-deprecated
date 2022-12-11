@@ -61,6 +61,7 @@ class Tab : public QWidget {
 
  signals:
   void tabActivate();
+  void tabRightClick();
 
  protected slots:
   void onBackgroundChange(const QColor &);
