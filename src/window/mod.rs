@@ -78,7 +78,7 @@ impl TermioCommunityWindow {
                 let param = parameter
                         .expect("Could not get parameter.")
                         .get::<String>()
-                        .expect("The variant needs to be of type `u8`.");
+                        .expect("The variant needs to be of type `String`.");
                 window.imp().workspace_activity_bar.set_current_activate_widget(None);
                 window.imp().workspace_activity_bar.toggle_item(param.as_str());
                 window.imp().workspace_left_side_bar.hide();
@@ -102,7 +102,7 @@ impl TermioCommunityWindow {
                 let param = parameter
                     .expect("Could not get parameter.")
                     .get::<(String, u8)>()
-                    .expect("The variant needs to be of type `u8`.");
+                    .expect("The variant needs to be of type `tuple`.");
                 window.imp().workspace_activity_bar.set_item_status_off_except(param.0.as_str());
                 let status = ItemStatus::from_u8(param.1);
                 match status {
@@ -135,7 +135,7 @@ impl TermioCommunityWindow {
                 let param = parameter
                     .expect("Could not get parameter.")
                     .get::<(String, u8)>()
-                    .expect("The variant needs to be of type `u8`.");
+                    .expect("The variant needs to be of type `tuple`.");
                 window.imp().workspace_activity_bar.set_item_status_off_except(param.0.as_str());
             }),
         );
@@ -305,7 +305,7 @@ impl TermioCommunityWindow {
                 let param = parameter
                     .expect("Could not get parameter.")
                     .get::<Vec<String>>()
-                    .expect("The variant needs to be of type `tuple`.");
+                    .expect("The variant needs to be of type `vec`.");
                 println!("Tab button mouse press. param = {:?}", param);
             }),
         );
@@ -321,7 +321,7 @@ impl TermioCommunityWindow {
                 let param = parameter
                     .expect("Could not get parameter.")
                     .get::<Vec<String>>()
-                    .expect("The variant needs to be of type `tuple`.");
+                    .expect("The variant needs to be of type `vec`.");
                 println!("Tab button mouse release. param = {:?}", param);
             }),
         );
