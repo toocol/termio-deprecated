@@ -74,6 +74,7 @@ impl ObjectImpl for CommandFeedbackItem {
     fn constructed(&self) {
         self.parent_constructed();
         let obj = self.instance();
+        obj.add_css_class("command-feedback-item");
         obj.set_hexpand(true);
 
         let layout = self

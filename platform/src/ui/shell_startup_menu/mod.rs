@@ -4,8 +4,11 @@ use gtk::{
     gdk::Rectangle,
     glib::{self, Object},
     prelude::ToValue,
+    subclass::prelude::*,
     PositionType,
 };
+
+use crate::{MenuItem, MenuSection};
 
 glib::wrapper! {
     pub struct ShellStartupMenu(ObjectSubclass<imp::ShellStartupMenu>)
@@ -16,6 +19,22 @@ glib::wrapper! {
 impl ShellStartupMenu {
     pub fn builder() -> ShellStartupMenuBuilder {
         ShellStartupMenuBuilder::new()
+    }
+
+    pub fn append_item(&self, item: MenuItem) {
+        self.imp()
+            .model
+            .get()
+            .expect("`model` of `ShellStartupMenu` is None.")
+            .append_item(item);
+    }
+
+    pub fn append_section(&self, section: MenuSection) {
+        self.imp()
+            .model
+            .get()
+            .expect("`model` of `ShellStartupMenu` is None.")
+            .append_section(section);
     }
 }
 

@@ -1,7 +1,8 @@
 mod imp;
 
 use glib::Object;
-use gtk::{glib, prelude::*, subclass::prelude::*, Widget};
+use gtk::{glib, prelude::*, subclass::prelude::*, Label, Widget};
+use lazy_static::__Deref;
 
 glib::wrapper! {
     pub struct FontIcon(ObjectSubclass<imp::FontIcon>);
@@ -35,6 +36,13 @@ impl FontIcon {
 
     pub fn set_parent<T: IsA<Widget>>(&self, parent: &T) {
         self.imp().label.borrow().set_parent(parent)
+    }
+
+    pub fn with_label<F>(&self, f: F)
+    where
+        F: Fn(&Label),
+    {
+        f(self.imp().label.borrow().deref());
     }
 
     pub fn get_code(&self) -> String {

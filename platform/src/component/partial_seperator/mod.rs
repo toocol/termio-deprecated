@@ -21,6 +21,10 @@ impl PartialSeperator {
         seperator
     }
 
+    pub fn builder() -> PartialSeperatorBuilder {
+        PartialSeperatorBuilder::new()
+    }
+
     pub fn set_line_width(&self, line_width: f64) {
         self.imp().line_width.set(line_width);
         self.imp().update_draw_func();
