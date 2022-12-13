@@ -19,6 +19,17 @@ pub struct PartialSeperator {
     pub orientation: Cell<Orientation>,
 }
 
+impl Default for PartialSeperator {
+    fn default() -> Self {
+        Self {
+            line_width: Cell::new(DEFAULT_LINE_WIDTH),
+            factor: Cell::new(DEFAULT_FACTOR),
+            color: Cell::new(DEFAULT_COLOR),
+            orientation: Cell::new(Orientation::Vertical),
+        }
+    }
+}
+
 impl PartialSeperator {
     pub fn update_draw_func(&self) {
         let line_width = self.line_width.get();
@@ -48,17 +59,6 @@ impl PartialSeperator {
                 _ => unimplemented!()
             }
         });
-    }
-}
-
-impl Default for PartialSeperator {
-    fn default() -> Self {
-        Self {
-            line_width: Cell::new(DEFAULT_LINE_WIDTH),
-            factor: Cell::new(DEFAULT_FACTOR),
-            color: Cell::new(DEFAULT_COLOR),
-            orientation: Cell::new(Orientation::Vertical),
-        }
     }
 }
 

@@ -1,7 +1,9 @@
 use std::{cell::Cell, f64::consts::PI};
 
 use gtk::{
-    glib::{self, clone, ParamSpec, once_cell::sync::Lazy, ParamSpecDouble, ParamSpecString, Value},
+    glib::{
+        self, clone, once_cell::sync::Lazy, ParamSpec, ParamSpecDouble, ParamSpecString, Value,
+    },
     prelude::*,
     subclass::prelude::*,
 };
@@ -102,7 +104,7 @@ impl ObjectImpl for DotSeperator {
             "margin" => {
                 let input_value = value
                     .get()
-                    .expect("The value needs to be of type `String`.");
+                    .expect("The value needs to be of type `f64`.");
                 self.margin.set(input_value);
             }
             "color" => {
