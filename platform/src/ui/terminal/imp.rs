@@ -57,9 +57,6 @@ impl ObjectImpl for NativeTerminalEmulator {
         self.native_node_object.borrow().set_hibpi_aware(true);
         self.native_node_object
             .borrow()
-            .imp()
-            .drawing_area
-            .borrow()
             .set_parent(self.instance().as_ref());
         self.connect();
     }

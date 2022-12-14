@@ -8,12 +8,12 @@ use gtk::{
 use crate::{MenuItem, MenuSection};
 
 glib::wrapper! {
-    pub struct MenuModel(ObjectSubclass<imp::MenuModel>)
+    pub struct TestMenu(ObjectSubclass<imp::TestMenu>)
         @extends gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl MenuModel {
+impl TestMenu {
     pub fn new() -> Self {
         Object::new(&[])
     }

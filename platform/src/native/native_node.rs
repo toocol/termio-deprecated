@@ -20,7 +20,7 @@ use gtk::{
     glib::{self, clone, clone::Downgrade, timeout_add_local, Object},
     prelude::*,
     subclass::prelude::*,
-    Align, DrawingArea,
+    Align,
 };
 use log::{debug, error};
 use utilities::TimeStamp;
@@ -29,13 +29,14 @@ const PRIMARY_BUFFER: i32 = 1;
 const SECONDARY_BUFFER: i32 = -1;
 
 glib::wrapper! {
-    pub struct NativeNodeObject(ObjectSubclass<NativeNode>);
+    pub struct NativeNodeObject(ObjectSubclass<NativeNode>)
+        @extends gtk::DrawingArea, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 static MODIFIER: AtomicI32 = AtomicI32::new(0);
 
 pub struct NativeNode {
-    pub drawing_area: RefCell<DrawingArea>,
     pub event_sender: RefCell<Option<Sender<CrossProcessEvent>>>,
     pub primary_buffer: RefCell<Option<*mut u8>>,
     pub secondary_buffer: RefCell<Option<*mut u8>>,
@@ -59,7 +60,6 @@ pub struct NativeNode {
 impl Default for NativeNode {
     fn default() -> Self {
         Self {
-            drawing_area: RefCell::new(DrawingArea::new()),
             event_sender: RefCell::new(None),
             primary_buffer: RefCell::new(None),
             secondary_buffer: RefCell::new(None),
@@ -246,7 +246,25 @@ impl NativeNodeObject {
         let current_timestamp = TimeStamp::timestamp();
         let key = imp.key.get();
 
-        if !native_lock_buffer(key) {
+        while native_has_native_events(key) {
+            let mut evt = native_get_native_event(key);
+            native_drop_native_event(key);
+
+            let params;
+
+            self.activate_action(
+                &evt.action_name,
+                if evt.params.is_none() {
+                    None
+                } else {
+                    params = evt.params.take().unwrap().to_variant();
+                    Some(&params)
+                },
+            )
+            .expect(format!("Activate action `{}` failed", evt.action_name).as_str());
+        }
+
+        if !native_lock(key) {
             error!("[{}] -> locking error.", key);
             return;
         }
@@ -254,27 +272,8 @@ impl NativeNodeObject {
         let dirty = native_is_dirty(key);
         let is_ready = native_is_buffer_ready(key);
 
-        while native_has_native_events(key) {
-            let mut evt = native_get_native_event(key);
-            native_drop_native_event(key);
-
-            let params;
-            imp.drawing_area
-                .borrow()
-                .activate_action(
-                    &evt.action_name,
-                    if evt.params.is_none() {
-                        None
-                    } else {
-                        params = evt.params.take().unwrap().to_variant();
-                        Some(&params)
-                    },
-                )
-                .expect(format!("Activate action `{}` failed", evt.action_name).as_str());
-        }
-
         if !dirty || !is_ready {
-            native_unlock_buffer(key);
+            native_unlock(key);
             return;
         }
 
@@ -294,13 +293,13 @@ impl NativeNodeObject {
             imp.image_width.set(current_w);
             imp.image_height.set(current_h);
 
-            imp.drawing_area.borrow().set_content_width(current_w);
-            imp.drawing_area.borrow().set_content_height(current_h);
+            self.set_content_width(current_w);
+            self.set_content_height(current_h);
         }
 
-        imp.drawing_area.borrow().queue_draw();
+        self.queue_draw();
 
-        native_unlock_buffer(key);
+        native_unlock(key);
 
         if imp.is_verbose.get() {
             let duration = current_timestamp - imp.frame_timestamp.get();
@@ -342,10 +341,6 @@ impl NativeNodeObject {
         self.imp().still_connect.set(false);
     }
 
-    pub fn unparent(&self) {
-        self.imp().drawing_area.borrow().unparent();
-    }
-
     pub fn set_verbose(&self, verbose: bool) {
         self.imp().is_verbose.set(verbose);
     }
@@ -360,16 +355,18 @@ impl ObjectSubclass for NativeNode {
     const NAME: &'static str = "NativeNode";
 
     type Type = NativeNodeObject;
+
+    type ParentType = gtk::DrawingArea;
 }
 
 impl ObjectImpl for NativeNode {
     fn constructed(&self) {
         self.parent_constructed();
+        let obj = self.instance();
 
-        let drawing_area = self.drawing_area.borrow();
-        drawing_area.set_focusable(true);
-        drawing_area.set_halign(Align::Start);
-        drawing_area.set_valign(Align::Start);
+        obj.set_focusable(true);
+        obj.set_halign(Align::Start);
+        obj.set_valign(Align::Start);
 
         let (sender, receiver) = channel::<CrossProcessEvent>();
         self.event_sender.borrow_mut().replace(sender);
@@ -414,54 +411,52 @@ pub trait NativeNodeImpl {
                 .borrow_mut()
                 .replace(native_get_secondary_buffer(key));
 
-            imp.drawing_area
-                    .borrow()
-                    .set_draw_func(clone!(@weak imp as node => move |_drawing_area, cr, _, _| {
-                        if native_lock_buffer(key) {
-                            if !native_is_dirty(key) || !native_is_buffer_ready(key) {
-                                return;
-                            }
-                            match native_buffer_status(key) {
-                                PRIMARY_BUFFER => {
-                                    let primary_surface = ImageSurface::create_for_data_unsafe(
-                                        node.primary_buffer.borrow().as_ref().expect("`primary_buffer` was None.").clone(),
-                                        gtk::cairo::Format::ARgb32,
-                                        node.image_width.get(),
-                                        node.image_height.get(),
-                                        node.image_width.get() * 4,
-                                    )
-                                    .expect("Create `ImageSurface` failed.");
+            node_rc.borrow().set_draw_func(clone!(@weak imp as node => move |_drawing_area, cr, _, _| {
+                if native_lock_buffer(key) {
+                    if !native_is_dirty(key) || !native_is_buffer_ready(key) {
+                        return;
+                    }
+                    match native_buffer_status(key) {
+                        PRIMARY_BUFFER => {
+                            let primary_surface = ImageSurface::create_for_data_unsafe(
+                                node.primary_buffer.borrow().as_ref().expect("`primary_buffer` was None.").clone(),
+                                gtk::cairo::Format::ARgb32,
+                                node.image_width.get(),
+                                node.image_height.get(),
+                                node.image_width.get() * 4,
+                            )
+                            .expect("Create `ImageSurface` failed.");
 
-                                    cr.set_source_surface(&primary_surface, 0., 0.)
-                                        .expect("Context set source surface failed.");
-                                    cr.paint().expect("Invalid pixbuf.");
-                                    cr.set_source_rgba(0., 0., 0., 0.);
-                                    cairo_surface_destroy(primary_surface.to_raw_none());
-                                }
-                                SECONDARY_BUFFER => {
-                                    let secodnary_surface = ImageSurface::create_for_data_unsafe(
-                                        node.secondary_buffer.borrow().as_ref().expect("`primary_buffer` was None.").clone(),
-                                        gtk::cairo::Format::ARgb32,
-                                        node.image_width.get(),
-                                        node.image_height.get(),
-                                        node.image_width.get() * 4,
-                                    )
-                                    .expect("Create `ImageSurface` failed.");
-
-                                    cr.set_source_surface(&secodnary_surface, 0., 0.)
-                                        .expect("Context set source surface failed.");
-                                    cr.paint().expect("Invalid pixbuf.");
-                                    cr.set_source_rgba(0., 0., 0., 0.);
-                                    cairo_surface_destroy(secodnary_surface.to_raw_none());
-                                }
-                                _ => unimplemented!(),
-                            }
-                            // Have update the image, not dirty anymore, toggle the buffer status
-                            native_set_dirty(key, false);
-                            native_unlock_buffer(key);
-                            native_toggle_buffer(key);
+                            cr.set_source_surface(&primary_surface, 0., 0.)
+                                .expect("Context set source surface failed.");
+                            cr.paint().expect("Invalid pixbuf.");
+                            cr.set_source_rgba(0., 0., 0., 0.);
+                            cairo_surface_destroy(primary_surface.to_raw_none());
                         }
-                    }));
+                        SECONDARY_BUFFER => {
+                            let secodnary_surface = ImageSurface::create_for_data_unsafe(
+                                node.secondary_buffer.borrow().as_ref().expect("`primary_buffer` was None.").clone(),
+                                gtk::cairo::Format::ARgb32,
+                                node.image_width.get(),
+                                node.image_height.get(),
+                                node.image_width.get() * 4,
+                            )
+                            .expect("Create `ImageSurface` failed.");
+
+                            cr.set_source_surface(&secodnary_surface, 0., 0.)
+                                .expect("Context set source surface failed.");
+                            cr.paint().expect("Invalid pixbuf.");
+                            cr.set_source_rgba(0., 0., 0., 0.);
+                            cairo_surface_destroy(secodnary_surface.to_raw_none());
+                        }
+                        _ => unimplemented!(),
+                    }
+                    // Have update the image, not dirty anymore, toggle the buffer status
+                    native_set_dirty(key, false);
+                    native_unlock_buffer(key);
+                    native_toggle_buffer(key);
+                }
+            }));
         }
 
         timeout_add_local(Duration::from_millis(1), move || {
@@ -474,3 +469,7 @@ pub trait NativeNodeImpl {
         });
     }
 }
+
+impl WidgetImpl for NativeNode {}
+
+impl DrawingAreaImpl for NativeNode {}

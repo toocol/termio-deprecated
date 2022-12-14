@@ -17,6 +17,16 @@ pub enum QtMouseButton {
 }
 
 impl QtMouseButton {
+    pub fn from_i32(x: i32) -> Self {
+        match x {
+            0 => Self::NoButton,
+            1 => Self::PrimaryButton,
+            2 => Self::SecondaryButton,
+            4 => Self::MiddleButton,
+            _ => unimplemented!()
+        }
+    }
+
     pub fn from_gtk_button(gtk_mouse_button: GtkMouseButton) -> i32 {
         match gtk_mouse_button {
             GtkMouseButton::Left => QtMouseButton::PrimaryButton as i32,

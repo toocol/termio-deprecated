@@ -4,21 +4,24 @@ use core::{ProtocolType, SessionCredential};
 use std::fs::File;
 
 use gtk::{
+    gdk::Rectangle,
     gio::{self, SimpleAction},
-    glib::{self, clone, Object, VariantTy},
+    glib::{self, clone, closure_local, Object, VariantTy},
     prelude::*,
     subclass::prelude::*,
-    Application, Widget,
+    traits::PopoverExt,
+    Allocation, Application, Overlay, Widget,
 };
 
 use platform::{
-    termio::data_path, ItemStatus, ACTION_ADD_SESSION_CREDENTIAL, ACTION_COMMAND_ADD,
-    ACTION_CREATE_SSH_SESSION, ACTION_HIDE_LEFT_SIDE_BAR, ACTION_LOCALE_CHANGED,
-    ACTION_NEW_SESSION_CREDENTIAL_DIALOG, ACTION_RIGHT_CLICK_TERMINAL_TAB,
-    ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE, ACTION_SESSION_GROUP_SELECTION_CHANGE,
-    ACTION_TAB_BUTTON_MOUSE_PRESS, ACTION_TOGGLE_BOTTOM_AREA, ACTION_TOGGLE_COMMAND_PANEL,
+    termio::data_path, GtkMouseButton, ItemStatus, QtMouseButton, ShellStartupMenu,
+    ACTION_ADD_SESSION_CREDENTIAL, ACTION_COMMAND_ADD, ACTION_CREATE_SSH_SESSION,
+    ACTION_HIDE_LEFT_SIDE_BAR, ACTION_LOCALE_CHANGED, ACTION_NEW_SESSION_CREDENTIAL_DIALOG,
+    ACTION_RIGHT_CLICK_TERMINAL_TAB, ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE,
+    ACTION_SESSION_GROUP_SELECTION_CHANGE, ACTION_TAB_BUTTON_MOUSE_PRESS,
+    ACTION_TAB_BUTTON_MOUSE_RELEASE, ACTION_TOGGLE_BOTTOM_AREA, ACTION_TOGGLE_COMMAND_PANEL,
     ACTION_TOGGLE_LEFT_AREA, ACTION_TOGGLE_PLUGIN_EXTENSION_PANEL,
-    ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL, ACTION_TOGGLE_SETTING_PANEL, ACTION_TAB_BUTTON_MOUSE_RELEASE,
+    ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL, ACTION_TOGGLE_SETTING_PANEL,
 };
 
 use platform::NewSessionDialog;
@@ -41,6 +44,35 @@ impl TermioCommunityWindow {
             .new_session_dialog
             .set(NewSessionDialog::new(self))
             .expect("`new_session_dialog` of `TermioCommunityWindow` can only set once.");
+
+        let shell_startup_menu = ShellStartupMenu::builder()
+            .position(gtk::PositionType::Bottom)
+            .has_arrow(false)
+            .build();
+        self.imp().native_terminal_emulator.with_node(
+            clone!(@weak shell_startup_menu => move |node| {
+                shell_startup_menu.set_parent(node);
+            }),
+        );
+        self.imp()
+            .shell_startup_menu
+            .set(shell_startup_menu)
+            .expect("`shell_startup_menu` of `TermioCommunityWindow` can only set once.");
+    }
+
+    pub fn setup_overlay(&self) {
+        // self.imp().global_overlay.connect_closure(
+        //     "get-child-position",
+        //     false,
+        //     closure_local!(
+        //         move |_: Overlay, widget: Widget, _allocation: &Allocation| {
+        //             match widget.type_().name() {
+        //                 "TestMenu" => true,
+        //                 _ => false,
+        //             }
+        //         }
+        //     ),
+        // );
     }
 
     pub fn setup_actions(&self) {
@@ -288,11 +320,9 @@ impl TermioCommunityWindow {
         // Create `right-click-terminal-tab` action.
         let action_right_click_terminal_tab =
             SimpleAction::new(ACTION_RIGHT_CLICK_TERMINAL_TAB.create(), None);
-        action_right_click_terminal_tab.connect_activate(
-            clone!(@weak self as window => move |_, _| {
-                println!("Terminal tab right clicked.");
-            }),
-        );
+        action_right_click_terminal_tab
+            .connect_activate(clone!(@weak self as window => move |_, _| {
+            }));
         self.add_action(&action_right_click_terminal_tab);
 
         // Create `tab-button-mouse-press` action.
@@ -323,6 +353,32 @@ impl TermioCommunityWindow {
                     .get::<Vec<String>>()
                     .expect("The variant needs to be of type `vec`.");
                 println!("Tab button mouse release. param = {:?}", param);
+                let tab_button_name = param[0].as_str();
+                let mouse_button = QtMouseButton::from_i32(param[1].parse().unwrap()).to_gtk_button();
+
+                match mouse_button {
+                    GtkMouseButton::Left => {
+                        match tab_button_name {
+                            "tab-button-new" => {
+                                let mouse_position = window.imp()
+                                    .native_terminal_emulator
+                                    .last_right_mouse_release_position();
+                                let shell_startup_window = window.imp()
+                                    .shell_startup_menu
+                                    .get()
+                                    .expect("`shell_startup_menu` of `TermioCommunityWindow` is None.");
+                                shell_startup_window
+                                    .set_pointing_to(Some(&Rectangle::new(mouse_position.0, mouse_position.1, 1, 1)));
+                                shell_startup_window.show();
+                            },
+                            _ => {},
+                        }
+                    },
+                    GtkMouseButton::Right => {},
+                    GtkMouseButton::Middle => {},
+                    GtkMouseButton::All => {},
+                    GtkMouseButton::NoButton => {},
+                }
             }),
         );
         self.add_action(&action_tab_button_mouse_release);

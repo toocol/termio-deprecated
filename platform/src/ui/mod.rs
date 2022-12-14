@@ -9,6 +9,7 @@ pub mod setting_panel;
 pub mod new_session_dialog;
 pub mod edition_mark;
 pub mod shell_startup_menu;
+pub mod test_menu;
 
 pub use activity_bar::*;
 pub use activity_bar_item::*;
@@ -21,3 +22,4 @@ pub use setting_panel::*;
 pub use new_session_dialog::*;
 pub use edition_mark::*;
 pub use shell_startup_menu::*;
+pub use test_menu::*;

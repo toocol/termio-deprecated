@@ -1,9 +1,9 @@
-use gtk::glib::once_cell::sync::OnceCell;
-use gtk::subclass::prelude::*;
 use gtk::glib;
+use gtk::subclass::prelude::*;
 use gtk::traits::WidgetExt;
+use gtk::{glib::once_cell::sync::OnceCell, Label};
 
-use crate::MenuModel;
+use crate::{MenuItem, MenuModel};
 
 #[derive(Default)]
 pub struct ShellStartupMenu {
@@ -22,11 +22,23 @@ impl ObjectSubclass for ShellStartupMenu {
 impl ObjectImpl for ShellStartupMenu {
     fn constructed(&self) {
         self.parent_constructed();
-        self.instance().add_css_class("shell-startup-menu");
+        let obj = self.instance();
+        obj.add_css_class("shell-startup-menu");
 
         let menu_model = MenuModel::new();
         menu_model.set_parent(&*self.instance());
-        self.model.set(menu_model).expect("`model` of `ShellStartupMenu` can only set once.")
+        self.model
+            .set(menu_model)
+            .expect("`model` of `ShellStartupMenu` can only set once.");
+
+        let item = MenuItem::builder()
+            .label(Label::new(Some("Command Prompt")))
+            .build();
+        obj.append_item(item);
+        let item = MenuItem::builder()
+            .label(Label::new(Some("Windows PowerShell")))
+            .build();
+        obj.append_item(item);
     }
 
     fn dispose(&self) {

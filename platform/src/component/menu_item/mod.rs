@@ -51,4 +51,24 @@ impl MenuItemBuilder {
 
         Object::new(&properties)
     }
+
+    pub fn label(mut self, label: Label) -> Self {
+        self.label = Some(label);
+        self
+    }
+
+    pub fn icon(mut self, icon: FontIcon) -> Self {
+        self.icon = Some(icon);
+        self
+    }
+
+    pub fn shortcut(mut self, shortcut: ShortcutLabel) -> Self {
+        self.shortcut = Some(shortcut);
+        self
+    }
+
+    pub fn action(mut self, action: &str) -> Self {
+        self.action = Some(action.to_string());
+        self
+    }
 }

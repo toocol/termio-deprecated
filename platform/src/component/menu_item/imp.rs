@@ -4,7 +4,7 @@ use gtk::{
     glib::{
         self, clone,
         once_cell::sync::{Lazy, OnceCell},
-        ParamSpec, ParamSpecString, Value,
+        ParamSpec, ParamSpecString, Value, ParamSpecObject,
     },
     prelude::*,
     subclass::prelude::*,
@@ -79,9 +79,9 @@ impl ObjectImpl for MenuItem {
     fn properties() -> &'static [ParamSpec] {
         static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
             vec![
-                ParamSpecString::builder("label").build(),
-                ParamSpecString::builder("icon").build(),
-                ParamSpecString::builder("shortcut").build(),
+                ParamSpecObject::builder::<Label>("label").build(),
+                ParamSpecObject::builder::<FontIcon>("icon").build(),
+                ParamSpecObject::builder::<ShortcutLabel>("shortcut").build(),
                 ParamSpecString::builder("action").build(),
             ]
         });
