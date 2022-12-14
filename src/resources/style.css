@@ -97,3 +97,9 @@ windowcontrols>button.close:hover {
     color: black;
     border-radius: 5px 5px 5px 5px;
 }
+
+/* Menu item */
+.menu-item:hover {
+    background: #E8E6E3;
+    border-radius: 3px 3px 3px 3px;
+}

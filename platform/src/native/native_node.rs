@@ -46,6 +46,7 @@ pub struct NativeNode {
     pub image_width: Cell<i32>,
     pub image_height: Cell<i32>,
 
+    self_triggered: Cell<bool>,
     still_connect: Cell<bool>,
     is_verbose: Cell<bool>,
     hibpi_aware: Cell<bool>,
@@ -68,6 +69,7 @@ impl Default for NativeNode {
             height: Cell::new(0),
             image_width: Cell::new(0),
             image_height: Cell::new(0),
+            self_triggered: Cell::new(false),
             still_connect: Cell::new(false),
             is_verbose: Cell::new(false),
             hibpi_aware: Cell::new(false),
@@ -297,6 +299,7 @@ impl NativeNodeObject {
             self.set_content_height(current_h);
         }
 
+        self.imp().self_triggered.set(true);
         self.queue_draw();
 
         native_unlock(key);
@@ -413,7 +416,7 @@ pub trait NativeNodeImpl {
 
             node_rc.borrow().set_draw_func(clone!(@weak imp as node => move |_drawing_area, cr, _, _| {
                 if native_lock_buffer(key) {
-                    if !native_is_dirty(key) || !native_is_buffer_ready(key) {
+                    if node.self_triggered.get() && (!native_is_dirty(key) || !native_is_buffer_ready(key)) {
                         return;
                     }
                     match native_buffer_status(key) {
@@ -452,6 +455,7 @@ pub trait NativeNodeImpl {
                         _ => unimplemented!(),
                     }
                     // Have update the image, not dirty anymore, toggle the buffer status
+                    node.self_triggered.set(false);
                     native_set_dirty(key, false);
                     native_unlock_buffer(key);
                     native_toggle_buffer(key);

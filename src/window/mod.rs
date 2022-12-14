@@ -1,21 +1,20 @@
 mod imp;
 
-use core::{ProtocolType, SessionCredential};
+use kernel::{ProtocolType, SessionCredential};
 use std::fs::File;
 
 use gtk::{
     gdk::Rectangle,
     gio::{self, SimpleAction},
-    glib::{self, clone, closure_local, Object, VariantTy},
+    glib::{self, clone, Object, VariantTy},
     prelude::*,
     subclass::prelude::*,
-    traits::PopoverExt,
-    Allocation, Application, Overlay, Widget,
+    Application, Widget,
 };
 
 use platform::{
-    termio::data_path, GtkMouseButton, ItemStatus, QtMouseButton, ShellStartupMenu,
-    ACTION_ADD_SESSION_CREDENTIAL, ACTION_COMMAND_ADD, ACTION_CREATE_SSH_SESSION,
+    termio::data_path, GtkMouseButton, ItemStatus, QtMouseButton,
+    ShellStartupMenu, ACTION_ADD_SESSION_CREDENTIAL, ACTION_COMMAND_ADD, ACTION_CREATE_SSH_SESSION,
     ACTION_HIDE_LEFT_SIDE_BAR, ACTION_LOCALE_CHANGED, ACTION_NEW_SESSION_CREDENTIAL_DIALOG,
     ACTION_RIGHT_CLICK_TERMINAL_TAB, ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE,
     ACTION_SESSION_GROUP_SELECTION_CHANGE, ACTION_TAB_BUTTON_MOUSE_PRESS,
@@ -58,21 +57,6 @@ impl TermioCommunityWindow {
             .shell_startup_menu
             .set(shell_startup_menu)
             .expect("`shell_startup_menu` of `TermioCommunityWindow` can only set once.");
-    }
-
-    pub fn setup_overlay(&self) {
-        // self.imp().global_overlay.connect_closure(
-        //     "get-child-position",
-        //     false,
-        //     closure_local!(
-        //         move |_: Overlay, widget: Widget, _allocation: &Allocation| {
-        //             match widget.type_().name() {
-        //                 "TestMenu" => true,
-        //                 _ => false,
-        //             }
-        //         }
-        //     ),
-        // );
     }
 
     pub fn setup_actions(&self) {
@@ -363,13 +347,15 @@ impl TermioCommunityWindow {
                                 let mouse_position = window.imp()
                                     .native_terminal_emulator
                                     .last_right_mouse_release_position();
+                                    
                                 let shell_startup_window = window.imp()
                                     .shell_startup_menu
                                     .get()
                                     .expect("`shell_startup_menu` of `TermioCommunityWindow` is None.");
                                 shell_startup_window
-                                    .set_pointing_to(Some(&Rectangle::new(mouse_position.0, mouse_position.1, 1, 1)));
+                                    .set_pointing_to(Some(&Rectangle::new(mouse_position.0, 22, 1, 1)));
                                 shell_startup_window.show();
+                                // window.imp().test_menu.get().expect("`test_menu` of `TermioCommunityWindow` is None").set_visible(true);
                             },
                             _ => {},
                         }

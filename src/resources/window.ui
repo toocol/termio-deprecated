@@ -82,7 +82,7 @@
                                     <object class="ActivityBar" id="workspace_activity_bar">
                                         <property name="vexpand">true</property>
                                         <property name="hexpand">false</property>
-                                        <property name="width-request">45</property>
+                                        <property name="width-request">40</property>
                                         <property name="initial-widget-name">toggle-session-management</property>
                                         <style>
                                             <class name="workspace-activity-bar" />
@@ -102,8 +102,8 @@
                                                         <property name="icon-size">18</property>
                                                         <property name="action-name">win.toggle-session-management-panel</property>
                                                         <property name="initial-on">true</property>
-                                                        <property name="width-request">45</property>
-                                                        <property name="height-request">45</property>
+                                                        <property name="width-request">40</property>
+                                                        <property name="height-request">40</property>
                                                         <property name="tooltip">tooltip.toggle.session.management</property>
                                                         <property name="bind-widget-name">session-management-wrap-box</property>
                                                         <property name="position">top</property>
@@ -116,8 +116,8 @@
                                                         <property name="icon-size">18</property>
                                                         <property name="action-name">win.toggle-plugin-extensions-panel</property>
                                                         <property name="initial-on">false</property>
-                                                        <property name="width-request">45</property>
-                                                        <property name="height-request">45</property>
+                                                        <property name="width-request">40</property>
+                                                        <property name="height-request">40</property>
                                                         <property name="tooltip">tooltip.toggle.plugin.extension</property>
                                                         <property name="position">top</property>
                                                     </object>
@@ -138,8 +138,8 @@
                                                         <property name="icon-size">18</property>
                                                         <property name="action-name">win.toggle-setting-panel</property>
                                                         <property name="initial-on">false</property>
-                                                        <property name="width-request">45</property>
-                                                        <property name="height-request">45</property>
+                                                        <property name="width-request">40</property>
+                                                        <property name="height-request">40</property>
                                                         <property name="tooltip">tooltip.toggle.setting</property>
                                                         <property name="position">bottom</property>
                                                     </object>

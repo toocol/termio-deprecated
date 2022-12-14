@@ -1,6 +1,6 @@
 mod imp;
 
-use core::CommandFeedback;
+use kernel::CommandFeedback;
 
 use gtk::glib::Object;
 use gtk::subclass::prelude::*;

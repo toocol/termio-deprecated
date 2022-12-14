@@ -1,4 +1,4 @@
-use core::SessionCredential;
+use kernel::SessionCredential;
 use std::fs::File;
 
 use gtk::{
@@ -126,7 +126,6 @@ impl ObjectImpl for TermioCommunityWindow {
         obj.set_decorated(true);
         obj.initialize();
         obj.setup_actions();
-        obj.setup_overlay();
         obj.resotre_data();
 
         self.workspace_left_side_bar.set_width_request(50);

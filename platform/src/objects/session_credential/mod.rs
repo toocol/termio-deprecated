@@ -1,6 +1,6 @@
 mod imp;
 
-use core::{ProtocolType, SessionCredential};
+use kernel::{ProtocolType, SessionCredential};
 
 use glib::Object;
 use gtk::glib;

@@ -1,7 +1,4 @@
-use gtk::glib;
-use gtk::subclass::prelude::*;
-use gtk::traits::WidgetExt;
-use gtk::{glib::once_cell::sync::OnceCell, Label};
+use gtk::{glib::{self, once_cell::sync::OnceCell}, subclass::prelude::*, traits::{WidgetExt, PopoverExt}};
 
 use crate::{MenuItem, MenuModel};
 
@@ -26,17 +23,17 @@ impl ObjectImpl for ShellStartupMenu {
         obj.add_css_class("shell-startup-menu");
 
         let menu_model = MenuModel::new();
-        menu_model.set_parent(&*self.instance());
+        obj.set_child(Some(&menu_model));
         self.model
             .set(menu_model)
             .expect("`model` of `ShellStartupMenu` can only set once.");
 
         let item = MenuItem::builder()
-            .label(Label::new(Some("Command Prompt")))
+            .label("Command Prompt")
             .build();
         obj.append_item(item);
         let item = MenuItem::builder()
-            .label(Label::new(Some("Windows PowerShell")))
+            .label("Windows PowerShell")
             .build();
         obj.append_item(item);
     }

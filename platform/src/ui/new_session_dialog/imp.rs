@@ -1,4 +1,4 @@
-use core::Command;
+use kernel::Command;
 
 use gtk::{
     glib::{self, once_cell::sync::OnceCell},

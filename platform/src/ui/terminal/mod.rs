@@ -24,6 +24,14 @@ impl NativeTerminalEmulator {
         self.set_focusable(true);
         self.set_focus_on_click(true);
 
+        self.connect_has_focus_notify(|terminal| {
+            if terminal.has_focus() {
+                println!("Terminal emulator grab focus.");
+            } else {
+                println!("Terminal emulator lose focus.");
+            }
+        });
+
         //// Key events
         let key_controller = EventControllerKey::new();
         let native_node_weak = self.imp().native_node_object.borrow().downgrade();
