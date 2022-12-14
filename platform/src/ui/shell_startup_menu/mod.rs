@@ -12,7 +12,7 @@ use crate::{MenuItem, MenuSection};
 
 glib::wrapper! {
     pub struct ShellStartupMenu(ObjectSubclass<imp::ShellStartupMenu>)
-        @extends gtk::Widget,
+        @extends gtk::Popover, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::ShortcutManager;
 }
 

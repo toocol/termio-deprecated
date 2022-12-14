@@ -3,7 +3,6 @@ mod imp;
 use gtk::{
     glib::{self, Object},
     prelude::ToValue,
-    Label,
 };
 
 use crate::{FontIcon, ShortcutLabel};
@@ -22,7 +21,8 @@ impl MenuItem {
 
 #[derive(Default)]
 pub struct MenuItemBuilder {
-    label: Option<Label>,
+    label: Option<String>,
+    markup: Option<String>,
     icon: Option<FontIcon>,
     shortcut: Option<ShortcutLabel>,
     action: Option<String>,
@@ -39,6 +39,9 @@ impl MenuItemBuilder {
         if let Some(ref label) = self.label {
             properties.push(("label", label));
         }
+        if let Some(ref markup) = self.label {
+            properties.push(("markup", markup));
+        }
         if let Some(ref icon) = self.icon {
             properties.push(("icon", icon));
         }
@@ -50,5 +53,30 @@ impl MenuItemBuilder {
         }
 
         Object::new(&properties)
+    }
+
+    pub fn label(mut self, label: &str) -> Self {
+        self.label = Some(label.to_string());
+        self
+    }
+
+    pub fn markup(mut self, markup: &str) -> Self {
+        self.markup = Some(markup.to_string());
+        self
+    }
+
+    pub fn icon(mut self, icon: FontIcon) -> Self {
+        self.icon = Some(icon);
+        self
+    }
+
+    pub fn shortcut(mut self, shortcut: ShortcutLabel) -> Self {
+        self.shortcut = Some(shortcut);
+        self
+    }
+
+    pub fn action(mut self, action: &str) -> Self {
+        self.action = Some(action.to_string());
+        self
     }
 }

@@ -1,4 +1,4 @@
-use core::SessionCredential;
+use kernel::SessionCredential;
 use std::fs::File;
 
 use gtk::{
@@ -13,7 +13,7 @@ use log::debug;
 use platform::{
     termio::data_path, ActivityBar, ActivityBarItem, CommandPanel, EditionMark, IconButton,
     NativeTerminalEmulator, NewSessionDialog, SessionCredentialManagementTree,
-    SessionCredentialObject, SessionInfoTable, ShortcutWatcher, Termio, WidgetTitleBar,
+    SessionCredentialObject, SessionInfoTable, ShortcutWatcher, Termio, WidgetTitleBar, ShellStartupMenu,
 };
 
 #[derive(Default, CompositeTemplate)]
@@ -92,8 +92,10 @@ pub struct TermioCommunityWindow {
     pub edition_mark: TemplateChild<EditionMark>,
 
     pub termio: OnceCell<Termio>,
-    pub new_session_dialog: OnceCell<NewSessionDialog>,
     pub shortcut_watcher: OnceCell<ShortcutWatcher>,
+
+    pub new_session_dialog: OnceCell<NewSessionDialog>,
+    pub shell_startup_menu: OnceCell<ShellStartupMenu>,
 }
 
 #[glib::object_subclass]
@@ -121,6 +123,7 @@ impl ObjectImpl for TermioCommunityWindow {
             .expect("`termio` of TermioCommunityWindow can only set once.");
 
         let obj = self.instance();
+        obj.set_decorated(true);
         obj.initialize();
         obj.setup_actions();
         obj.resotre_data();

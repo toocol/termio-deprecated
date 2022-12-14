@@ -1,6 +1,6 @@
 mod imp;
 
-use core::ProtocolType;
+use kernel::ProtocolType;
 
 use gtk::{
     glib::{self, Object, Type},

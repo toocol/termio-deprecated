@@ -1,7 +1,9 @@
 mod imp;
 
-use gtk::glib::{self, Object};
-use gtk::subclass::prelude::*;
+use gtk::{
+    glib::{self, Object},
+    subclass::prelude::*,
+};
 
 use crate::{MenuItem, MenuSection};
 

@@ -191,18 +191,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "core"
-version = "0.1.0"
-dependencies = [
- "lazy_static",
- "log",
- "serde",
- "serde_json",
- "ssh2",
- "utilities",
-]
-
-[[package]]
 name = "core-foundation-sys"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -884,6 +872,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "kernel"
+version = "0.1.0"
+dependencies = [
+ "lazy_static",
+ "log",
+ "serde",
+ "serde_json",
+ "ssh2",
+ "utilities",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1237,8 +1237,8 @@ checksum = "1df8c4ec4b0627e53bdf214615ad287367e482558cf84b109250b37464dc03ae"
 name = "platform"
 version = "0.1.0"
 dependencies = [
- "core",
  "gtk4",
+ "kernel",
  "lazy_static",
  "log",
  "pangocairo",
@@ -1703,9 +1703,9 @@ dependencies = [
 name = "termio"
 version = "0.0.1"
 dependencies = [
- "core",
  "glib-build-tools",
  "gtk4",
+ "kernel",
  "lazy_static",
  "log",
  "log4rs",

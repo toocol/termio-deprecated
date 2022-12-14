@@ -4,7 +4,7 @@ use gtk::{
     glib::{
         self, clone,
         once_cell::sync::{Lazy, OnceCell},
-        ParamSpec, ParamSpecString, Value,
+        ParamSpec, ParamSpecObject, ParamSpecString, Value,
     },
     prelude::*,
     subclass::prelude::*,
@@ -80,8 +80,9 @@ impl ObjectImpl for MenuItem {
         static PROPERTIES: Lazy<Vec<ParamSpec>> = Lazy::new(|| {
             vec![
                 ParamSpecString::builder("label").build(),
-                ParamSpecString::builder("icon").build(),
-                ParamSpecString::builder("shortcut").build(),
+                ParamSpecString::builder("markup").build(),
+                ParamSpecObject::builder::<FontIcon>("icon").build(),
+                ParamSpecObject::builder::<ShortcutLabel>("shortcut").build(),
                 ParamSpecString::builder("action").build(),
             ]
         });
@@ -92,10 +93,25 @@ impl ObjectImpl for MenuItem {
         match pspec.name() {
             "label" => {
                 let input_value = value.get().expect("The value needs to be of type `Label`.");
-                self.left_box.borrow().append(&input_value);
-                self.label
-                    .set(input_value)
-                    .expect("`label` of `MenuItem` can only set once.");
+                if let None = self.label.get() {
+                    let label = Label::builder().use_markup(true).build();
+                    self.left_box.borrow().append(&label);
+                    self.label
+                        .set(label)
+                        .expect("`label` of `MenuItem` can only set once.");
+                }
+                self.label.get().unwrap().set_label(input_value);
+            }
+            "markup" => {
+                let input_value = value.get().expect("The value needs to be of type `Label`.");
+                if let None = self.label.get() {
+                    let label = Label::builder().use_markup(true).build();
+                    self.left_box.borrow().append(&label);
+                    self.label
+                        .set(label)
+                        .expect("`label` of `MenuItem` can only set once.");
+                }
+                self.label.get().unwrap().set_markup(input_value);
             }
             "icon" => {
                 let input_value: FontIcon =
@@ -122,13 +138,11 @@ impl ObjectImpl for MenuItem {
                     .expect("The value needs to be of type `String`.");
                 let gesture_click = GestureClick::new();
                 gesture_click.set_button(GtkMouseButton::Left as u32);
-                gesture_click.connect_pressed(
-                    clone!(@weak self as item => move |_, _, _, _| {
-                        item.instance()
-                            .activate_action(input_value.as_str(), None)
-                            .expect(format!("Activate action failed {}", input_value).as_str());
-                    }),
-                );
+                gesture_click.connect_pressed(clone!(@weak self as item => move |_, _, _, _| {
+                    item.instance()
+                        .activate_action(input_value.as_str(), None)
+                        .expect(format!("Activate action failed {}", input_value).as_str());
+                }));
                 self.instance().add_controller(&gesture_click);
             }
             _ => unimplemented!(),

@@ -1,4 +1,4 @@
-use core::DynamicFeedback;
+use kernel::DynamicFeedback;
 
 use gtk::{
     gio::ListStore,

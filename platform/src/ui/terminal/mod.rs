@@ -1,6 +1,6 @@
 mod imp;
 
-use crate::constant::GtkMouseButton;
+use crate::{constant::GtkMouseButton, NativeNodeObject};
 use gtk::{
     glib::{self, clone},
     prelude::*,
@@ -9,6 +9,7 @@ use gtk::{
     EventControllerKey, EventControllerMotion, EventControllerScroll, EventControllerScrollFlags,
     GestureClick, Inhibit,
 };
+use lazy_static::__Deref;
 
 glib::wrapper! {
     pub struct NativeTerminalEmulator(ObjectSubclass<imp::NativeTerminalEmulator>)
@@ -22,6 +23,14 @@ impl NativeTerminalEmulator {
         self.set_can_focus(true);
         self.set_focusable(true);
         self.set_focus_on_click(true);
+
+        self.connect_has_focus_notify(|terminal| {
+            if terminal.has_focus() {
+                println!("Terminal emulator grab focus.");
+            } else {
+                println!("Terminal emulator lose focus.");
+            }
+        });
 
         //// Key events
         let key_controller = EventControllerKey::new();
@@ -161,6 +170,11 @@ impl NativeTerminalEmulator {
             .native_node_object
             .borrow()
             .create_ssh_session(session_id, host, user, password, timestmap);
+    }
+
+    pub fn with_node<F>(&self, f: F)
+    where F: Fn(&NativeNodeObject) {
+        f(self.imp().native_node_object.borrow().deref());
     }
 
     /// Resize the `NativeNode`.
