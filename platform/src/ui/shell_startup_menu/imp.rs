@@ -1,4 +1,8 @@
-use gtk::{glib::{self, once_cell::sync::OnceCell}, subclass::prelude::*, traits::{WidgetExt, PopoverExt}};
+use gtk::{
+    glib::{self, once_cell::sync::OnceCell},
+    subclass::prelude::*,
+    traits::{PopoverExt, WidgetExt},
+};
 
 use crate::{MenuItem, MenuModel};
 
@@ -28,13 +32,9 @@ impl ObjectImpl for ShellStartupMenu {
             .set(menu_model)
             .expect("`model` of `ShellStartupMenu` can only set once.");
 
-        let item = MenuItem::builder()
-            .label("Command Prompt")
-            .build();
+        let item = MenuItem::builder().label("Command Prompt").build();
         obj.append_item(item);
-        let item = MenuItem::builder()
-            .label("Windows PowerShell")
-            .build();
+        let item = MenuItem::builder().label("Windows PowerShell").build();
         obj.append_item(item);
     }
 
