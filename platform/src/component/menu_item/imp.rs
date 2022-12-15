@@ -21,6 +21,7 @@ pub struct MenuItem {
     pub icon: OnceCell<FontIcon>,
     pub label: OnceCell<Label>,
     pub shortcut: OnceCell<ShortcutLabel>,
+    pub action_param: RefCell<String>,
 }
 
 #[glib::object_subclass]
@@ -84,6 +85,7 @@ impl ObjectImpl for MenuItem {
                 ParamSpecObject::builder::<FontIcon>("icon").build(),
                 ParamSpecObject::builder::<ShortcutLabel>("shortcut").build(),
                 ParamSpecString::builder("action").build(),
+                ParamSpecString::builder("action-param").build(),
             ]
         });
         PROPERTIES.as_ref()
@@ -140,10 +142,16 @@ impl ObjectImpl for MenuItem {
                 gesture_click.set_button(GtkMouseButton::Left as u32);
                 gesture_click.connect_pressed(clone!(@weak self as item => move |_, _, _, _| {
                     item.instance()
-                        .activate_action(input_value.as_str(), None)
+                        .activate_action(input_value.as_str(), Some(&item.action_param.borrow().to_variant()))
                         .expect(format!("Activate action failed {}", input_value).as_str());
                 }));
                 self.instance().add_controller(&gesture_click);
+            }
+            "action-param" => {
+                let input_value = value
+                    .get()
+                    .expect("The value needs to be of type `ShortcutLabel`.");
+                *self.action_param.borrow_mut() = input_value;
             }
             _ => unimplemented!(),
         }

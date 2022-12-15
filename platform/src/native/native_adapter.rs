@@ -85,6 +85,12 @@ extern "C" {
         password: *const c_char,
         timestamp: c_longlong,
     ) -> bool;
+    fn shell_startup(
+        key: c_int,
+        session_id: c_longlong,
+        param: *const c_char,
+        timestamp: c_longlong,
+    ) -> bool;
     fn get_primary_buffer(key: c_int) -> *mut u8;
     fn get_secondary_buffer(key: c_int) -> *mut u8;
     fn lock(key: c_int) -> bool;
@@ -305,6 +311,13 @@ pub fn native_create_ssh_session(
             password.as_ptr(),
             timestamp,
         )
+    }
+}
+
+pub fn native_shell_startup(key: i32, session_id: i64, param: &str, timestamp: i64) -> bool {
+    unsafe {
+        let param = CString::new(param).unwrap();
+        shell_startup(key, session_id, param.as_ptr(), timestamp)
     }
 }
 

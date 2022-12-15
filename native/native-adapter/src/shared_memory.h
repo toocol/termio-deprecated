@@ -39,6 +39,7 @@
 
 #define IPC_SSH_PROPERTY_SIZE 10
 #define IPC_SSH_INFO_SIZE 128
+#define IPC_SHELL_STARTUP_PARAM_SIZE 128
 
 #define IPC_NUM_NATIVE_EVT_MSG_SIZE 1024
 
@@ -118,7 +119,8 @@ enum EVENT_TYPE {
 
   NRS_FOCUS_EVENT = 2 << 14,
   NRS_INPUT_TEXT_EVENT = 2 << 15,
-  NRS_CREATE_SSH_SESSION_EVENT = 2 << 16
+  NRS_CREATE_SSH_SESSION_EVENT = 2 << 16,
+  NRS_SHELL_STARTUP = 2 << 17
 };
 
 enum SHARED_STRING_TYPE {
@@ -185,6 +187,14 @@ struct create_ssh_session_event {
   char host[IPC_SSH_INFO_SIZE + 1];
   char user[IPC_SSH_INFO_SIZE + 1];
   char password[IPC_SSH_INFO_SIZE + 1];
+};
+
+struct shell_startup_event {
+  int type = NRS_SHELL_STARTUP;
+  long sessionId = 0;
+  long timestamp = 0;
+
+  char param[IPC_SHELL_STARTUP_PARAM_SIZE + 1];
 };
 
 /**

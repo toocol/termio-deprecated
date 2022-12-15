@@ -118,6 +118,15 @@ impl NativeNodeObject {
         );
     }
 
+    pub fn shell_startup(&self, session_id: u64, param: &str, timestamp: u64) {
+        native_shell_startup(
+            self.imp().key.get(),
+            session_id as i64,
+            param,
+            timestamp as i64,
+        );
+    }
+
     pub fn request_focus(&self, is_focus: bool) {
         native_request_focus(
             self.imp().key.get(),

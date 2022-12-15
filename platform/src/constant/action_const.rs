@@ -74,6 +74,12 @@ pub const ACTION_TAB_BUTTON_MOUSE_RELEASE: ActionName = ActionName {
     name: "tab-button-mouse-release",
 };
 
+///// Action transmit to terminal emulator.
+pub const ACTION_SHELL_STARTUP: ActionName = ActionName {
+    group: "win",
+    name: "shell-startup",
+};
+
 
 pub struct ActionName {
     group: &'static str,

@@ -20,7 +20,7 @@ use platform::{
     ACTION_SESSION_GROUP_SELECTION_CHANGE, ACTION_TAB_BUTTON_MOUSE_PRESS,
     ACTION_TAB_BUTTON_MOUSE_RELEASE, ACTION_TOGGLE_BOTTOM_AREA, ACTION_TOGGLE_COMMAND_PANEL,
     ACTION_TOGGLE_LEFT_AREA, ACTION_TOGGLE_PLUGIN_EXTENSION_PANEL,
-    ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL, ACTION_TOGGLE_SETTING_PANEL,
+    ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL, ACTION_TOGGLE_SETTING_PANEL, ACTION_SHELL_STARTUP,
 };
 
 use platform::NewSessionDialog;
@@ -368,6 +368,17 @@ impl TermioCommunityWindow {
             }),
         );
         self.add_action(&action_tab_button_mouse_release);
+
+        // Create `shell-startup` action.
+        let action_shell_startup = SimpleAction::new(ACTION_SHELL_STARTUP.create(), Some(&VariantTy::STRING));
+        action_shell_startup.connect_activate(clone!(@weak self as window => move |_, parameter| {
+            let param = parameter
+                .expect("Could not get parameter.")
+                .get::<String>()
+                .expect("The variant needs to be of type `String`.");
+            println!("Shell startup: {}", param);
+        }));
+        self.add_action(&action_shell_startup);
     }
 
     pub fn resotre_data(&self) {

@@ -161,6 +161,16 @@ REXPORT bool RCALL request_focus(i32, bool, i64);
 REXPORT bool RCALL create_ssh_session(i32, i64, cstring, cstring, cstring, i64);
 
 /**
+ * Startup new shell session.
+ *
+ * @param key
+ * @param sessionId
+ * @param param
+ * @param timestamp
+ */
+REXPORT bool RCALL shell_startup(i32, i64, cstring, i64);
+
+/**
  * Get the primary native image buffer.
  *
  * @param key

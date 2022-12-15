@@ -4,7 +4,7 @@ use gtk::{
     traits::{PopoverExt, WidgetExt},
 };
 
-use crate::{MenuItem, MenuModel};
+use crate::{MenuItem, MenuModel, ACTION_SHELL_STARTUP};
 
 #[derive(Default)]
 pub struct ShellStartupMenu {
@@ -32,9 +32,17 @@ impl ObjectImpl for ShellStartupMenu {
             .set(menu_model)
             .expect("`model` of `ShellStartupMenu` can only set once.");
 
-        let item = MenuItem::builder().label("Command Prompt").build();
+        let item = MenuItem::builder()
+            .label("Command Prompt")
+            .action(&ACTION_SHELL_STARTUP.activate())
+            .action_param("cmd.exe")
+            .build();
         obj.append_item(item);
-        let item = MenuItem::builder().label("Windows PowerShell").build();
+        let item = MenuItem::builder()
+            .label("Windows PowerShell")
+            .action(&ACTION_SHELL_STARTUP.activate())
+            .action_param("powershell.exe")
+            .build();
         obj.append_item(item);
     }
 
