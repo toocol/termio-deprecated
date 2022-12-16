@@ -877,6 +877,7 @@ version = "0.1.0"
 dependencies = [
  "lazy_static",
  "log",
+ "parking_lot 0.12.1",
  "serde",
  "serde_json",
  "ssh2",

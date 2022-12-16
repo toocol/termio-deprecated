@@ -110,15 +110,17 @@ impl NativeTerminalEmulator {
                 terminal.imp().last_right_mouse_pressed_position.set((x as i32, y as i32));
             }),
         );
-        gesture_click.connect_released(clone!(@weak self as terminal => move |_gesture, n_press, x, y| {
-            terminal
-                .imp()
-                .native_node_object
-                .borrow()
-                .react_mouse_released_event(n_press, x, y, GtkMouseButton::Right);
+        gesture_click.connect_released(
+            clone!(@weak self as terminal => move |_gesture, n_press, x, y| {
+                terminal
+                    .imp()
+                    .native_node_object
+                    .borrow()
+                    .react_mouse_released_event(n_press, x, y, GtkMouseButton::Right);
 
-            terminal.imp().last_right_mouse_release_position.set((x as i32, y as i32));
-        }));
+                terminal.imp().last_right_mouse_release_position.set((x as i32, y as i32));
+            }),
+        );
         self.add_controller(&gesture_click);
 
         //// Mouse motion events
@@ -172,8 +174,17 @@ impl NativeTerminalEmulator {
             .create_ssh_session(session_id, host, user, password, timestmap);
     }
 
+    pub fn shell_startup(&self, session_id: u64, param: &str, timestamp: u64) {
+        self.imp()
+            .native_node_object
+            .borrow()
+            .shell_startup(session_id, param, timestamp)
+    }
+
     pub fn with_node<F>(&self, f: F)
-    where F: Fn(&NativeNodeObject) {
+    where
+        F: Fn(&NativeNodeObject),
+    {
         f(self.imp().native_node_object.borrow().deref());
     }
 
