@@ -85,6 +85,13 @@ int main(int argc, char* argv[]) {
       emulator.createSshSession(sshEvt->sessionId, QString::fromStdString(host),
                                 QString::fromStdString(user),
                                 QString::fromStdString(password));
+    } else if (evt->type & nrs::NRS_SHELL_STARTUP) {
+      nrs::shell_startup_event* shellStartEvt =
+          static_cast<nrs::shell_startup_event*>((void*)evt);
+      std::string param = nrs::get_shared_string(shellStartEvt->param);
+
+      emulator.shellStartupSession(shellStartEvt->sessionId,
+                                   QString::fromStdString(param));
     } else if (evt->type & nrs::NRS_KEY_EVENT) {
       nrs::key_event* key_evt = static_cast<nrs::key_event*>((void*)evt);
 
@@ -254,7 +261,7 @@ int main(int argc, char* argv[]) {
 
   // don't show the native window
   // we could reuse this to offer optional fullscreen mode
-  emulator.setAttribute(Qt::WA_DontShowOnScreen, true);
+  emulator.setAttribute(Qt::WA_DontShowOnScreen, false);
 
   emulator.installEventFilter(&emulator);
   emulator.show();

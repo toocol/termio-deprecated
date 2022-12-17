@@ -18,12 +18,9 @@
 // class ZModemDialog;
 
 #define ssh "ssh"
-#define telnet "telnet";
-#ifdef Q_OS_WIN
-#define conHost "conHost";
-#else
-#define shell "shell";
-#endif
+#define telnet "telnet"
+#define mosh "mosh"
+#define rsh "rsh"
 
 namespace TConsole {
 
@@ -200,19 +197,24 @@ class Session : public QWidget {
    */
   void setAutoClose(bool b) { _autoClose = b; }
 
-  int sessionGroupId() const;
-  void setSessionGroupId(int newSessionGroupId);
+  const ProtocolType protocolType() const { return _protocolType; }
+  void setProtcolType(const ProtocolType type) { _protocolType = type; }
 
-  const QString& host() const;
-  void setHost(const QString& newHost);
+  int sessionGroupId() const { return _sessionGroupId; }
+  void setSessionGroupId(int newSessionGroupId) {
+    _sessionGroupId = newSessionGroupId;
+  }
 
-  const QString& user() const;
-  void setUser(const QString& newUser);
+  const QString& host() const { return _host; }
+  void setHost(const QString& newHost) { _host = newHost; }
 
-  const QString& password() const;
-  void setPassword(const QString& newPassword);
+  const QString& user() const { return _user; }
+  void setUser(const QString& newUser) { _user = newUser; }
 
-  void setSessionId(long newSessionId);
+  const QString& password() const { return _password; }
+  void setPassword(const QString& newPassword) { _password = newPassword; }
+
+  void setSessionId(long newSessionId) { _sessionId = newSessionId; };
 
   Tab* getTab();
 
@@ -387,6 +389,7 @@ class Session : public QWidget {
   QString _program;
   QStringList _arguments;
 
+  ProtocolType _protocolType;
   long _sessionId;
   QString _host;
   QString _user;

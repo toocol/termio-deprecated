@@ -147,7 +147,6 @@ pub struct CrossProcessEvent {
     user: Option<String>,
     password: Option<String>,
     param: Option<String>,
-    timestamp: Option<u64>,
 }
 
 impl CrossProcessEvent {
@@ -256,7 +255,6 @@ impl CrossProcessEvent {
         host: &str,
         user: &str,
         password: &str,
-        timestamp: u64,
     ) -> Self {
         let mut evt = CrossProcessEvent::default();
         evt.event_type = EventType::CreateSshSessionEvent;
@@ -265,17 +263,15 @@ impl CrossProcessEvent {
         evt.host.replace(host.to_string());
         evt.user.replace(user.to_string());
         evt.password.replace(password.to_string());
-        evt.timestamp.replace(timestamp);
         evt
     }
 
-    pub fn new_shell_startup_event(key: i32, session_id: u64, param: &str, timestamp: u64) -> Self {
+    pub fn new_shell_startup_event(key: i32, session_id: u64, param: &str) -> Self {
         let mut evt = CrossProcessEvent::default();
-        evt.event_type = EventType::CreateSshSessionEvent;
+        evt.event_type = EventType::ShellStartupEvent;
         evt.key = key;
         evt.session_id.replace(session_id);
         evt.param.replace(param.to_string());
-        evt.timestamp.replace(timestamp);
         evt
     }
 
@@ -341,10 +337,6 @@ impl CrossProcessEvent {
 
     pub fn param(&mut self) -> String {
         self.param.take().expect(ERROR_MSG)
-    }
-
-    pub fn timestamp(&mut self) -> u64 {
-        self.timestamp.take().expect(ERROR_MSG)
     }
 }
 

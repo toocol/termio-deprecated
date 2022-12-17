@@ -53,6 +53,8 @@ class TerminalEmulator : public QWidget {
   void createSshSession(long sessionId, QString host, QString user,
                         QString password);
 
+  void shellStartupSession(long sessionId, QString param);
+
   void sendSimulatedEvent(QEvent *);
 
  protected:

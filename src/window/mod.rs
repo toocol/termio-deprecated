@@ -1,6 +1,6 @@
 mod imp;
 
-use kernel::{ProtocolType, SessionCredential};
+use kernel::{ProtocolType, SessionCredential, create_session};
 use std::fs::File;
 
 use gtk::{
@@ -24,7 +24,6 @@ use platform::{
 };
 
 use platform::NewSessionDialog;
-use utilities::TimeStamp;
 
 glib::wrapper! {
     pub struct TermioCommunityWindow(ObjectSubclass<imp::TermioCommunityWindow>)
@@ -234,7 +233,6 @@ impl TermioCommunityWindow {
                         param.1.as_str(),   // host
                         param.2.as_str(),   // username
                         param.3.as_str(),   // password
-                        TimeStamp::timestamp()
                     );
                     emulator.grab_focus();
                 })
@@ -344,18 +342,17 @@ impl TermioCommunityWindow {
                     GtkMouseButton::Left => {
                         match tab_button_name {
                             "tab-button-new" => {
-                                let mouse_position = window.imp()
+                                let (x, _) = window.imp()
                                     .native_terminal_emulator
-                                    .last_right_mouse_release_position();
+                                    .last_left_mouse_release_position();
                                     
                                 let shell_startup_window = window.imp()
                                     .shell_startup_menu
                                     .get()
                                     .expect("`shell_startup_menu` of `TermioCommunityWindow` is None.");
                                 shell_startup_window
-                                    .set_pointing_to(Some(&Rectangle::new(mouse_position.0, 22, 1, 1)));
+                                    .set_pointing_to(Some(&Rectangle::new(x, 22, 1, 1)));
                                 shell_startup_window.show();
-                                // window.imp().test_menu.get().expect("`test_menu` of `TermioCommunityWindow` is None").set_visible(true);
                             },
                             _ => {},
                         }
@@ -376,7 +373,9 @@ impl TermioCommunityWindow {
                 .expect("Could not get parameter.")
                 .get::<String>()
                 .expect("The variant needs to be of type `String`.");
-            println!("Shell startup: {}", param);
+            let session_id = create_session(ProtocolType::LocalShell);
+            window.imp().shell_startup_menu.get().expect("`shell_startup_menu` is None.").hide();
+            window.imp().native_terminal_emulator.shell_startup(session_id, param.as_str());
         }));
         self.add_action(&action_shell_startup);
     }

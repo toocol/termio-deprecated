@@ -41,7 +41,7 @@ impl ObjectImpl for ShellStartupMenu {
         let item = MenuItem::builder()
             .label("Windows PowerShell")
             .action(&ACTION_SHELL_STARTUP.activate())
-            .action_param("powershell.exe")
+            .action_param("powershell.exe -NoExit -File -")
             .build();
         obj.append_item(item);
     }

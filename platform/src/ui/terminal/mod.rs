@@ -166,19 +166,18 @@ impl NativeTerminalEmulator {
         host: &str,
         user: &str,
         password: &str,
-        timestmap: u64,
     ) {
         self.imp()
             .native_node_object
             .borrow()
-            .create_ssh_session(session_id, host, user, password, timestmap);
+            .create_ssh_session(session_id, host, user, password);
     }
 
-    pub fn shell_startup(&self, session_id: u64, param: &str, timestamp: u64) {
+    pub fn shell_startup(&self, session_id: u64, param: &str) {
         self.imp()
             .native_node_object
             .borrow()
-            .shell_startup(session_id, param, timestamp)
+            .shell_startup(session_id, param)
     }
 
     pub fn with_node<F>(&self, f: F)

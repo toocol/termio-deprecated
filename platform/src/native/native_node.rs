@@ -106,7 +106,6 @@ impl NativeNodeObject {
         host: &str,
         user: &str,
         password: &str,
-        timestmap: u64,
     ) {
         let evt = CrossProcessEvent::new_create_ssh_session_event(
             self.imp().key.get(),
@@ -114,17 +113,15 @@ impl NativeNodeObject {
             host,
             user,
             password,
-            timestmap,
         );
         self.dispatch(evt);
     }
 
-    pub fn shell_startup(&self, session_id: u64, param: &str, timestamp: u64) {
+    pub fn shell_startup(&self, session_id: u64, param: &str) {
         let evt = CrossProcessEvent::new_shell_startup_event(
             self.imp().key.get(),
             session_id,
             param,
-            timestamp,
         );
         self.dispatch(evt);
     }
