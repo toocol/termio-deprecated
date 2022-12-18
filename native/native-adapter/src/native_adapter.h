@@ -48,21 +48,21 @@ REXPORT cstring RCALL send_msg(i32, cstring, i32);
 
 /**
  * Determain whether has native events.
- * 
+ *
  * @param key
  */
 REXPORT bool RCALL has_native_events(i32);
 
 /**
  * Get the native event.
- * 
+ *
  * @param key
  */
 REXPORT void* RCALL get_native_event(i32);
 
 /**
  * Drop the native event.
- * 
+ *
  * @param key
  */
 REXPORT void RCALL drop_native_event(i32);
@@ -241,8 +241,9 @@ REXPORT bool RCALL lock_buffer(i32);
  */
 REXPORT void RCALL unlock_buffer(i32);
 
-REXPORT bool RCALL fire_mouse_pressed_event(i32 key, f64 x, f64 y, i32 buttons,
-                                            i32 modifiers, i64 timestamp);
+REXPORT bool RCALL fire_mouse_pressed_event(i32 key, i32 click_count, f64 x,
+                                            f64 y, i32 buttons, i32 modifiers,
+                                            i64 timestamp);
 
 REXPORT bool RCALL fire_mouse_released_event(i32 key, f64 x, f64 y, i32 buttons,
                                              i32 modifiers, i64 timestamp);

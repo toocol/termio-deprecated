@@ -26,9 +26,11 @@ impl NativeTerminalEmulator {
 
         self.connect_has_focus_notify(|terminal| {
             if terminal.has_focus() {
-                println!("Terminal emulator grab focus.");
+                println!("terminal grab focus.");
+                terminal.imp().native_node_object.borrow().request_focus(true);
             } else {
-                println!("Terminal emulator lose focus.");
+                println!("terminal lose focus.");
+                terminal.imp().native_node_object.borrow().request_focus(false);
             }
         });
 
@@ -185,6 +187,10 @@ impl NativeTerminalEmulator {
         F: Fn(&NativeNodeObject),
     {
         f(self.imp().native_node_object.borrow().deref());
+    }
+
+    pub fn request_focus(&self, is_focus: bool) {
+        self.imp().native_node_object.borrow().request_focus(is_focus);
     }
 
     /// Resize the `NativeNode`.

@@ -430,7 +430,12 @@ void Session::onTabActivate() {
   if (SessionGroup::activeSession == this) {
     return;
   }
+  if (SessionGroup::activeSession) {
+    SessionGroup::activeSession->unactivateSession();
+  }
+  activateSession();
   SessionGroup* group = SessionGroup::getSessionGroup(this->sessionGroupId());
+  group->update();
 
   group->unbindViewEmulation();
   SessionGroup::activeSession = this;
@@ -469,6 +474,10 @@ void Session::updateTerminalSize() {
 WId Session::windowId() const { return 0; }
 
 Tab* Session::getTab() { return _tab; }
+
+void Session::activateSession() { _tab->setActivate(true); }
+
+void Session::unactivateSession() { _tab->setActivate(false); }
 
 void Session::setTransmitSignals(TransmitSignals* ts) {
   Session::_transmitSignal = ts;

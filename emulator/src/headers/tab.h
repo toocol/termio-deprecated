@@ -6,7 +6,7 @@
 
 const int tabMinWidth = 100;
 const int tabMaxWidth = 200;
-const int tabMaxHeight = 22;
+const int tabMaxHeight = 23;
 
 class Tab : public QWidget {
   Q_OBJECT
@@ -24,6 +24,8 @@ class Tab : public QWidget {
   void setIconName(QString);
   QString iconText() const;
   void setIconText(QString);
+
+  void setActivate(const bool is) { _activate = is; }
 
  protected:
   void paintEvent(QPaintEvent *) override;
@@ -58,6 +60,8 @@ class Tab : public QWidget {
 
   QString _iconName;
   QString _iconText;  // as set by: echo -en '\033]1;IconText\007
+
+  bool _activate;
 
  signals:
   void tabActivate();

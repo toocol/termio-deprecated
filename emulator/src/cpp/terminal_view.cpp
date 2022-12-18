@@ -1471,7 +1471,7 @@ void TerminalView::setScreenWindow(ScreenWindow* window) {
 
   if (window) {
     // TODO: Determine if this is an issue.
-    //#warning "The order here is not specified - does it matter whether
+    // #warning "The order here is not specified - does it matter whether
     // updateImage or updateLineProperties comes first?"
     connect(_screenWindow, SIGNAL(outputChanged()), this,
             SLOT(updateLineProperties()));
@@ -1736,6 +1736,8 @@ void TerminalView::keyPressEvent(QKeyEvent* event) {
 void TerminalView::mouseDoubleClickEvent(QMouseEvent* ev) {
   if (ev->button() != Qt::LeftButton) return;
   if (!_screenWindow) return;
+  qDebug() << "Detected double click event, " << ev->pos().x() << ", "
+           << ev->pos().y();
 
   int charLine = 0;
   int charColumn = 0;
@@ -1941,6 +1943,8 @@ void TerminalView::mouseReleaseEvent(QMouseEvent* ev) {
 }
 
 void TerminalView::mouseMoveEvent(QMouseEvent* ev) {
+  //  qDebug() << "Detected mouse move. " << ev->pos().x() << ", " <<
+  //  ev->pos().y();
   int charLine = 0;
   int charColumn = 0;
   int leftMargin = _leftBaseMargin +
@@ -2262,6 +2266,7 @@ void TerminalView::extendSelection(const QPoint& position) {
 }
 
 void TerminalView::wheelEvent(QWheelEvent* ev) {
+  qDebug() << "Detected wheel event. y " << ev->angleDelta().y();
   if (ev->angleDelta().y() == 0) return;
   if (!_screenWindow || !_screenWindow->screen()) return;
   if (_screenWindow->screen()->getHistLines() == 0) return;

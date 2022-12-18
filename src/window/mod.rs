@@ -353,6 +353,7 @@ impl TermioCommunityWindow {
                                 shell_startup_window
                                     .set_pointing_to(Some(&Rectangle::new(x, 22, 1, 1)));
                                 shell_startup_window.show();
+                                window.imp().native_terminal_emulator.request_focus(false);
                             },
                             _ => {},
                         }
@@ -376,6 +377,8 @@ impl TermioCommunityWindow {
             let session_id = create_session(ProtocolType::LocalShell);
             window.imp().shell_startup_menu.get().expect("`shell_startup_menu` is None.").hide();
             window.imp().native_terminal_emulator.shell_startup(session_id, param.as_str());
+            window.imp().native_terminal_emulator.grab_focus();
+            window.imp().native_terminal_emulator.request_focus(true);
         }));
         self.add_action(&action_shell_startup);
     }

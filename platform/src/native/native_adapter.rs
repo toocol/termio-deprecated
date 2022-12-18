@@ -103,6 +103,7 @@ extern "C" {
     fn unlock_buffer(key: c_int);
     fn fire_mouse_pressed_event(
         key: c_int,
+        n_press: i32,
         x: f64,
         y: f64,
         buttons: c_int,
@@ -375,13 +376,14 @@ pub fn native_unlock_buffer(key: i32) {
 
 pub fn native_fire_mouse_pressed_event(
     key: i32,
+    n_press: i32,
     x: f64,
     y: f64,
     buttons: i32,
     modifiers: i32,
     timestamp: i64,
 ) -> bool {
-    unsafe { fire_mouse_pressed_event(key, x, y, buttons, modifiers, timestamp) }
+    unsafe { fire_mouse_pressed_event(key, n_press, x, y, buttons, modifiers, timestamp) }
 }
 
 pub fn native_fire_mouse_released_event(

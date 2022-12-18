@@ -8,7 +8,8 @@
 // name.
 #define DEFAULT_FONT_FAMILY "Menlo"
 #else
-#define DEFAULT_FONT_FAMILY "Monospace"
+// #define DEFAULT_FONT_FAMILY "Monospace"
+#define DEFAULT_FONT_FAMILY "Courier New"
 #endif
 
 #define STEP_ZOOM 1
@@ -193,8 +194,13 @@ void TerminalEmulator::createSshSession(long sessionId, QString host,
 
   SessionGroup* group = SessionGroup::getSessionGroup(groupId);
   group->unbindViewEmulation();
+  if (SessionGroup::activeSession) {
+    SessionGroup::activeSession->unactivateSession();
+  }
   SessionGroup::activeSession = session;
+  session->activateSession();
   group->bindViewToEmulation();
+  group->update();
 
   connect(this, SIGNAL(updateBackground(const QColor&)), session->getTab(),
           SLOT(onBackgroundChange(const QColor&)));
@@ -221,8 +227,13 @@ void TerminalEmulator::shellStartupSession(long sessionId, QString param) {
 
   SessionGroup* group = SessionGroup::getSessionGroup(groupId);
   group->unbindViewEmulation();
+  if (SessionGroup::activeSession) {
+    SessionGroup::activeSession->unactivateSession();
+  }
   SessionGroup::activeSession = session;
+  session->activateSession();
   group->bindViewToEmulation();
+  group->update();
 
   connect(this, SIGNAL(updateBackground(const QColor&)), session->getTab(),
           SLOT(onBackgroundChange(const QColor&)));

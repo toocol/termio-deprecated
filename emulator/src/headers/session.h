@@ -218,6 +218,9 @@ class Session : public QWidget {
 
   Tab* getTab();
 
+  void activateSession();
+  void unactivateSession();
+
   static void setTransmitSignals(TransmitSignals*);
 
  signals:

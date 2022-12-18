@@ -13,7 +13,7 @@ TabButton::TabButton(QString code, QString name, int size, QWidget *parent)
   _label = new QLabel(code, this);
   _label->setFont(font);
 
-  _label->setStyleSheet("color:#9e9e9e");
+  _label->setStyleSheet("color:#383838");
   _label->move(8, 3);
 }
 

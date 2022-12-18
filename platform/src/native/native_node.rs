@@ -127,6 +127,9 @@ impl NativeNodeObject {
     }
 
     pub fn request_focus(&self, is_focus: bool) {
+        if !self.imp().still_connect.get() {
+            return
+        }
         let evt = CrossProcessEvent::new_request_focus_event(self.imp().key.get(), is_focus);
         self.dispatch(evt);
     }
@@ -184,6 +187,7 @@ impl NativeNodeObject {
         let evt = CrossProcessEvent::new_mouse_pressed_event(
             self.imp().key.get(),
             QtMouseButton::from_gtk_button(button),
+            n_press,
             x,
             y,
             MODIFIER.load(Ordering::SeqCst),

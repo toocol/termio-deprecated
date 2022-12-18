@@ -33,6 +33,7 @@ pub fn cross_process_event_dispatch(evt: CrossProcessEvent) {
         EventType::MousePressedEvent => {
             native_fire_mouse_pressed_event(
                 evt.key(),
+                evt.n_press(),
                 evt.x(),
                 evt.y(),
                 evt.button(),
@@ -180,11 +181,12 @@ impl CrossProcessEvent {
         evt
     }
 
-    pub fn new_mouse_pressed_event(key: i32, button: i32, x: f64, y: f64, modifier: i32) -> Self {
+    pub fn new_mouse_pressed_event(key: i32, button: i32, n_press: i32, x: f64, y: f64, modifier: i32) -> Self {
         let mut evt = CrossProcessEvent::default();
         evt.event_type = EventType::MousePressedEvent;
         evt.key = key;
         evt.button.replace(button);
+        evt.n_press.replace(n_press);
         evt.x.replace(x);
         evt.y.replace(y);
         evt.modifier.replace(modifier);
