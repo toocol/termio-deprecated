@@ -1,6 +1,11 @@
 #ifndef VIRTUALPTY_H
 #define VIRTUALPTY_H
 #include <QObject>
+
+namespace TConsole {
+
+enum ProtocolType { None, Ssh, Mosh, Telnet, Rsh, LocalShell };
+
 class VirtualPty {
  public:
   VirtualPty(){};
@@ -27,8 +32,8 @@ class VirtualPty {
    * environment variable in the process's environment.
    */
   virtual int start(const QString& program, const QStringList& arguments,
-                    const QStringList& environment, ulong winid,
-                    bool addToUtmp) = 0;
+                    const QStringList& environment, ulong winid, bool addToUtmp,
+                    TConsole::ProtocolType protocolType) = 0;
   /**
    * set properties for "EmptyPTY"
    */
@@ -85,4 +90,5 @@ class VirtualPty {
   bool _xonXoff;
   bool _utf8;
 };
+}  // namespace TConsole
 #endif  // VITRUALPTY_H

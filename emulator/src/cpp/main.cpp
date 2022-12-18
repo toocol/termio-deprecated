@@ -21,8 +21,10 @@ int main(int argc, char* argv[]) {
   TConsole::TerminalEmulator emulator;
   emulator.resize(1280, 800);
   emulator.initialize();
-  emulator.setBackgroundColor(QColor(0x15, 0x15, 0x15));
-  emulator.setForegroundColor(QColor(0xE1, 0xE1, 0xE1));
+  //  emulator.setBackgroundColor(QColor(0x15, 0x15, 0x15));
+  //  emulator.setForegroundColor(QColor(0xE1, 0xE1, 0xE1));
+  emulator.setBackgroundColor(QColor(0xFA, 0xFA, 0xFA));
+  emulator.setForegroundColor(QColor(0x38, 0x38, 0x38));
   emulator.setBlinkingCursor(true);
 
   auto qtRedraw = [&primary_image, &secondary_image, &emulator](
@@ -75,6 +77,7 @@ int main(int argc, char* argv[]) {
       QEvent::Type type = focusEvt->focus ? QEvent::FocusIn : QEvent::FocusOut;
       QFocusEvent* evt = new QFocusEvent(type);
       emulator.sendSimulatedEvent(evt);
+      qDebug() << "Request focus " << focusEvt->focus;
     } else if (evt->type & nrs::NRS_CREATE_SSH_SESSION_EVENT) {
       nrs::create_ssh_session_event* sshEvt =
           static_cast<nrs::create_ssh_session_event*>((void*)evt);
@@ -85,6 +88,13 @@ int main(int argc, char* argv[]) {
       emulator.createSshSession(sshEvt->sessionId, QString::fromStdString(host),
                                 QString::fromStdString(user),
                                 QString::fromStdString(password));
+    } else if (evt->type & nrs::NRS_SHELL_STARTUP) {
+      nrs::shell_startup_event* shellStartEvt =
+          static_cast<nrs::shell_startup_event*>((void*)evt);
+      std::string param = nrs::get_shared_string(shellStartEvt->param);
+
+      emulator.shellStartupSession(shellStartEvt->sessionId,
+                                   QString::fromStdString(param));
     } else if (evt->type & nrs::NRS_KEY_EVENT) {
       nrs::key_event* key_evt = static_cast<nrs::key_event*>((void*)evt);
 
@@ -96,8 +106,9 @@ int main(int argc, char* argv[]) {
 
       std::string kChars = key_evt->chars;
       QKeyEvent* qkevt = NULL;
-      std::cout << "key_evt: " << key_evt->key_code << ", chars: " << kChars
-                << std::endl;
+      //      std::cout << "key_evt: " << key_evt->key_code << ", chars: " <<
+      //      kChars
+      //                << std::endl;
       Qt::KeyboardModifiers modifiers = transferModifiers(key_evt->modifiers);
       if (key_evt->type & nrs::NRS_KEY_PRESSED) {
         qkevt = new QKeyEvent(QEvent::KeyPress, key_evt->key_code, modifiers, 0,
@@ -188,9 +199,18 @@ int main(int argc, char* argv[]) {
       }
 
       if (mouse_evt->type & nrs::NRS_MOUSE_PRESSED) {
-        QMouseEvent* mEvt = new QMouseEvent((QEvent::MouseButtonPress), p, btn,
-                                            Qt::NoButton, Qt::NoModifier);
-        std::cout << "-> evt-type: PRESS\n";
+        QEvent::Type type;
+        switch (mouse_evt->click_count) {
+          case 2:
+            type = QEvent::MouseButtonDblClick;
+            break;
+          default:
+            type = QEvent::MouseButtonPress;
+            break;
+        }
+        QMouseEvent* mEvt =
+            new QMouseEvent(type, p, btn, Qt::NoButton, Qt::NoModifier);
+        qDebug() << "-> evt-type: PRESS " << mouse_evt->click_count;
         if (flag) {
           emulator.sendSimulatedEvent(mEvt);
         } else {
@@ -201,7 +221,7 @@ int main(int argc, char* argv[]) {
       if (mouse_evt->type & nrs::NRS_MOUSE_RELEASED) {
         QMouseEvent* mEvt = new QMouseEvent((QEvent::MouseButtonRelease), p,
                                             btn, Qt::NoButton, Qt::NoModifier);
-        std::cout << "-> evt-type: RELEASE\n";
+        qDebug() << "-> evt-type: RELEASE";
         if (flag) {
           emulator.sendSimulatedEvent(mEvt);
         } else {
@@ -214,12 +234,8 @@ int main(int argc, char* argv[]) {
             new QWheelEvent(QPointF(0, 0), QPointF(0, 0), QPoint(0, 0),
                             QPoint(0, mouse_evt->amount), Qt::NoButton,
                             Qt::NoModifier, Qt::ScrollBegin, false);
-        std::cout << "-> evt-type: WHELL\n";
-        if (flag) {
-          emulator.sendSimulatedEvent(mEvt);
-        } else {
-          QApplication::sendEvent(receiver, mEvt);
-        }
+        qDebug() << "-> evt-type: WHELL";
+        emulator.sendSimulatedEvent(mEvt);
       }
     }
   };

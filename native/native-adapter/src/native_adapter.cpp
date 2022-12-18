@@ -572,6 +572,31 @@ REXPORT bool RCALL create_ssh_session(i32 key, i64 session_id, cstring host,
   );
 }
 
+REXPORT bool RCALL shell_startup(i32 key, i64 session_id, cstring param, i64 timestamp) {
+  if (key >= connections.size() || connections[key] == NULL) {
+    std::cerr << "ERROR: key not available: " << key << std::endl;
+    return false;
+  }
+
+  shell_startup_event evt;
+  evt.type |= NRS_SHELL_STARTUP;
+  evt.sessionId = (long)session_id;
+  evt.timestamp = (long)timestamp;
+
+  store_shared_string(param, evt.param, IPC_SHELL_STARTUP_PARAM_SIZE + 1);
+
+  // timed locking of resources
+  boost::system_time const timeout =
+      boost::get_system_time() + boost::posix_time::milliseconds(LOCK_TIMEOUT);
+
+  return evt_msg_queues[key]->timed_send(
+      &evt,         // data to send
+      sizeof(evt),  // size of the data (check it fits into max_size)
+      0,            // msg priority
+      timeout       // timeout
+  );
+}
+
 REXPORT void* RCALL get_primary_buffer(i32 key) {
   if (key >= connections.size() || connections[key] == NULL) {
     std::cerr << "ERROR: key not available: " << key << std::endl;
@@ -694,10 +719,10 @@ REXPORT void RCALL unlock_buffer(i32 key) {
   }
 }
 
-REXPORT bool RCALL fire_mouse_pressed_event(i32 key, f64 x, f64 y, i32 buttons,
+REXPORT bool RCALL fire_mouse_pressed_event(i32 key, i32 click_count, f64 x, f64 y, i32 buttons,
                                             i32 modifiers, i64 timestamp) {
   return fire_mouse_event(key, NRS_MOUSE_PRESSED, x, y, 0.0, buttons, modifiers,
-                          0, (long)timestamp);
+                          click_count, (long)timestamp);
 }
 
 REXPORT bool RCALL fire_mouse_released_event(i32 key, f64 x, f64 y, i32 buttons,

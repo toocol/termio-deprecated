@@ -54,15 +54,22 @@ void Tab::onBackgroundChange(const QColor& color) {
 void Tab::paintEvent(QPaintEvent* evt) {
   QPainter paint(this);
 
-  paint.setFont(QFont("Times", 10, QFont::Bold));
-  paint.setPen(QColor(255, 255, 255));
+  paint.setFont(QFont("Courier New", 10, QFont::Bold));
+  paint.setPen(QColor(38, 38, 38));
 
   QSize size = this->size();
   paint.drawText(QPoint(5, (size.height() - 10) / 2 + 10), _userTitle);
 
-  paint.setPen(QColor(30, 30, 30));
-  paint.drawLine(0, height() - 1, width(), height() - 1);
+  // Bottom border line
+  if (_activate) {
+    paint.setPen(QColor(30, 30, 30));
+    paint.drawLine(0, height() - 1, width(), height() - 1);
+  } else {
+    paint.setPen(QColor(0xCD, 0xCD, 0xCD));
+    paint.drawLine(0, height() - 1, width(), height() - 1);
+  }
 
+  // Right border line
   paint.setPen(QColor(158, 158, 158));
   paint.drawLine(width(), 5, width(), height() - 5);
 

@@ -66,7 +66,7 @@ void TabsBar::onBackgroundChange(const QColor &color) {
 
 void TabsBar::paintEvent(QPaintEvent *) {
   QPainter paint(this);
-  paint.setPen(QColor(30, 30, 30));
+  paint.setPen(QColor(0xCD, 0xCD, 0xCD));
   paint.drawLine(0, height() - 1, width(), height() - 1);
   paint.end();
 }

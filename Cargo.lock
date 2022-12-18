@@ -877,6 +877,7 @@ version = "0.1.0"
 dependencies = [
  "lazy_static",
  "log",
+ "parking_lot 0.12.1",
  "serde",
  "serde_json",
  "ssh2",
@@ -1237,6 +1238,7 @@ checksum = "1df8c4ec4b0627e53bdf214615ad287367e482558cf84b109250b37464dc03ae"
 name = "platform"
 version = "0.1.0"
 dependencies = [
+ "base64",
  "gtk4",
  "kernel",
  "lazy_static",

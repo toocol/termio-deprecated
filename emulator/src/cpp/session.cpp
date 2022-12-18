@@ -31,6 +31,7 @@ Session::Session(QWidget* parent)
 #else
   _shellProcess = new Pty();
 #endif
+  _protocolType = ProtocolType::None;
   _tab = new Tab();
   connect(_tab, SIGNAL(tabActivate()), this, SLOT(onTabActivate()));
   connect(_tab, SIGNAL(tabRightClick()), Session::_transmitSignal,
@@ -272,7 +273,7 @@ void Session::run() {
    */
   int result =
       _shellProcess->start(exec, arguments, _environment << backgroundColorHint,
-                           windowId(), _addToUtmp);
+                           windowId(), _addToUtmp, _protocolType);
 
   if (result < 0) {
     qDebug() << "CRASHED! result: " << result;
@@ -429,7 +430,12 @@ void Session::onTabActivate() {
   if (SessionGroup::activeSession == this) {
     return;
   }
+  if (SessionGroup::activeSession) {
+    SessionGroup::activeSession->unactivateSession();
+  }
+  activateSession();
   SessionGroup* group = SessionGroup::getSessionGroup(this->sessionGroupId());
+  group->update();
 
   group->unbindViewEmulation();
   SessionGroup::activeSession = this;
@@ -467,32 +473,14 @@ void Session::updateTerminalSize() {
 
 WId Session::windowId() const { return 0; }
 
-const QString& Session::password() const { return _password; }
-
-void Session::setPassword(const QString& newPassword) {
-  _password = newPassword;
-}
-
-void Session::setSessionId(long newSessionId) { _sessionId = newSessionId; }
-
 Tab* Session::getTab() { return _tab; }
+
+void Session::activateSession() { _tab->setActivate(true); }
+
+void Session::unactivateSession() { _tab->setActivate(false); }
 
 void Session::setTransmitSignals(TransmitSignals* ts) {
   Session::_transmitSignal = ts;
-}
-
-const QString& Session::user() const { return _user; }
-
-void Session::setUser(const QString& newUser) { _user = newUser; }
-
-const QString& Session::host() const { return _host; }
-
-void Session::setHost(const QString& newHost) { _host = newHost; }
-
-int Session::sessionGroupId() const { return _sessionGroupId; }
-
-void Session::setSessionGroupId(int newSessionGroupId) {
-  _sessionGroupId = newSessionGroupId;
 }
 
 /* ------------------------------------------------------------------------- */

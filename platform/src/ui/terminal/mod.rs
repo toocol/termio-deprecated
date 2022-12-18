@@ -26,9 +26,11 @@ impl NativeTerminalEmulator {
 
         self.connect_has_focus_notify(|terminal| {
             if terminal.has_focus() {
-                println!("Terminal emulator grab focus.");
+                println!("terminal grab focus.");
+                terminal.imp().native_node_object.borrow().request_focus(true);
             } else {
-                println!("Terminal emulator lose focus.");
+                println!("terminal lose focus.");
+                terminal.imp().native_node_object.borrow().request_focus(false);
             }
         });
 
@@ -110,15 +112,17 @@ impl NativeTerminalEmulator {
                 terminal.imp().last_right_mouse_pressed_position.set((x as i32, y as i32));
             }),
         );
-        gesture_click.connect_released(clone!(@weak self as terminal => move |_gesture, n_press, x, y| {
-            terminal
-                .imp()
-                .native_node_object
-                .borrow()
-                .react_mouse_released_event(n_press, x, y, GtkMouseButton::Right);
+        gesture_click.connect_released(
+            clone!(@weak self as terminal => move |_gesture, n_press, x, y| {
+                terminal
+                    .imp()
+                    .native_node_object
+                    .borrow()
+                    .react_mouse_released_event(n_press, x, y, GtkMouseButton::Right);
 
-            terminal.imp().last_right_mouse_release_position.set((x as i32, y as i32));
-        }));
+                terminal.imp().last_right_mouse_release_position.set((x as i32, y as i32));
+            }),
+        );
         self.add_controller(&gesture_click);
 
         //// Mouse motion events
@@ -164,17 +168,29 @@ impl NativeTerminalEmulator {
         host: &str,
         user: &str,
         password: &str,
-        timestmap: u64,
     ) {
         self.imp()
             .native_node_object
             .borrow()
-            .create_ssh_session(session_id, host, user, password, timestmap);
+            .create_ssh_session(session_id, host, user, password);
+    }
+
+    pub fn shell_startup(&self, session_id: u64, param: &str) {
+        self.imp()
+            .native_node_object
+            .borrow()
+            .shell_startup(session_id, param)
     }
 
     pub fn with_node<F>(&self, f: F)
-    where F: Fn(&NativeNodeObject) {
+    where
+        F: Fn(&NativeNodeObject),
+    {
         f(self.imp().native_node_object.borrow().deref());
+    }
+
+    pub fn request_focus(&self, is_focus: bool) {
+        self.imp().native_node_object.borrow().request_focus(is_focus);
     }
 
     /// Resize the `NativeNode`.

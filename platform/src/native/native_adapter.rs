@@ -85,6 +85,12 @@ extern "C" {
         password: *const c_char,
         timestamp: c_longlong,
     ) -> bool;
+    fn shell_startup(
+        key: c_int,
+        session_id: c_longlong,
+        param: *const c_char,
+        timestamp: c_longlong,
+    ) -> bool;
     fn get_primary_buffer(key: c_int) -> *mut u8;
     fn get_secondary_buffer(key: c_int) -> *mut u8;
     fn lock(key: c_int) -> bool;
@@ -97,6 +103,7 @@ extern "C" {
     fn unlock_buffer(key: c_int);
     fn fire_mouse_pressed_event(
         key: c_int,
+        n_press: i32,
         x: f64,
         y: f64,
         buttons: c_int,
@@ -308,6 +315,13 @@ pub fn native_create_ssh_session(
     }
 }
 
+pub fn native_shell_startup(key: i32, session_id: i64, param: &str, timestamp: i64) -> bool {
+    unsafe {
+        let param = CString::new(param).unwrap();
+        shell_startup(key, session_id, param.as_ptr(), timestamp)
+    }
+}
+
 /// Get the primary native image buffer.
 pub fn native_get_primary_buffer(key: i32) -> *mut u8 {
     unsafe { get_primary_buffer(key) }
@@ -362,13 +376,14 @@ pub fn native_unlock_buffer(key: i32) {
 
 pub fn native_fire_mouse_pressed_event(
     key: i32,
+    n_press: i32,
     x: f64,
     y: f64,
     buttons: i32,
     modifiers: i32,
     timestamp: i64,
 ) -> bool {
-    unsafe { fire_mouse_pressed_event(key, x, y, buttons, modifiers, timestamp) }
+    unsafe { fire_mouse_pressed_event(key, n_press, x, y, buttons, modifiers, timestamp) }
 }
 
 pub fn native_fire_mouse_released_event(

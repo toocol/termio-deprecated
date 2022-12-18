@@ -1,6 +1,6 @@
 mod imp;
 
-use kernel::{ProtocolType, SessionCredential};
+use kernel::{ProtocolType, SessionCredential, create_session};
 use std::fs::File;
 
 use gtk::{
@@ -20,11 +20,10 @@ use platform::{
     ACTION_SESSION_GROUP_SELECTION_CHANGE, ACTION_TAB_BUTTON_MOUSE_PRESS,
     ACTION_TAB_BUTTON_MOUSE_RELEASE, ACTION_TOGGLE_BOTTOM_AREA, ACTION_TOGGLE_COMMAND_PANEL,
     ACTION_TOGGLE_LEFT_AREA, ACTION_TOGGLE_PLUGIN_EXTENSION_PANEL,
-    ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL, ACTION_TOGGLE_SETTING_PANEL,
+    ACTION_TOGGLE_SESSION_MANAGEMENT_PANEL, ACTION_TOGGLE_SETTING_PANEL, ACTION_SHELL_STARTUP,
 };
 
 use platform::NewSessionDialog;
-use utilities::TimeStamp;
 
 glib::wrapper! {
     pub struct TermioCommunityWindow(ObjectSubclass<imp::TermioCommunityWindow>)
@@ -234,7 +233,6 @@ impl TermioCommunityWindow {
                         param.1.as_str(),   // host
                         param.2.as_str(),   // username
                         param.3.as_str(),   // password
-                        TimeStamp::timestamp()
                     );
                     emulator.grab_focus();
                 })
@@ -344,18 +342,18 @@ impl TermioCommunityWindow {
                     GtkMouseButton::Left => {
                         match tab_button_name {
                             "tab-button-new" => {
-                                let mouse_position = window.imp()
+                                let (x, _) = window.imp()
                                     .native_terminal_emulator
-                                    .last_right_mouse_release_position();
+                                    .last_left_mouse_release_position();
                                     
                                 let shell_startup_window = window.imp()
                                     .shell_startup_menu
                                     .get()
                                     .expect("`shell_startup_menu` of `TermioCommunityWindow` is None.");
                                 shell_startup_window
-                                    .set_pointing_to(Some(&Rectangle::new(mouse_position.0, 22, 1, 1)));
+                                    .set_pointing_to(Some(&Rectangle::new(x, 22, 1, 1)));
                                 shell_startup_window.show();
-                                // window.imp().test_menu.get().expect("`test_menu` of `TermioCommunityWindow` is None").set_visible(true);
+                                window.imp().native_terminal_emulator.request_focus(false);
                             },
                             _ => {},
                         }
@@ -368,6 +366,21 @@ impl TermioCommunityWindow {
             }),
         );
         self.add_action(&action_tab_button_mouse_release);
+
+        // Create `shell-startup` action.
+        let action_shell_startup = SimpleAction::new(ACTION_SHELL_STARTUP.create(), Some(&VariantTy::STRING));
+        action_shell_startup.connect_activate(clone!(@weak self as window => move |_, parameter| {
+            let param = parameter
+                .expect("Could not get parameter.")
+                .get::<String>()
+                .expect("The variant needs to be of type `String`.");
+            let session_id = create_session(ProtocolType::LocalShell);
+            window.imp().shell_startup_menu.get().expect("`shell_startup_menu` is None.").hide();
+            window.imp().native_terminal_emulator.shell_startup(session_id, param.as_str());
+            window.imp().native_terminal_emulator.grab_focus();
+            window.imp().native_terminal_emulator.request_focus(true);
+        }));
+        self.add_action(&action_shell_startup);
     }
 
     pub fn resotre_data(&self) {

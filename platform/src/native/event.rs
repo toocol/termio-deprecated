@@ -1,9 +1,10 @@
 use utilities::TimeStamp;
 
 use crate::{
-    native_fire_key_pressed_event, native_fire_key_released_event, native_fire_mouse_entered_event,
-    native_fire_mouse_exited_event, native_fire_mouse_move_event, native_fire_mouse_pressed_event,
-    native_fire_mouse_released_event, native_fire_mouse_wheel_event,
+    native_create_ssh_session, native_fire_key_pressed_event, native_fire_key_released_event,
+    native_fire_mouse_entered_event, native_fire_mouse_exited_event, native_fire_mouse_move_event,
+    native_fire_mouse_pressed_event, native_fire_mouse_released_event,
+    native_fire_mouse_wheel_event, native_request_focus, native_shell_startup,
 };
 
 const ERROR_MSG: &str = "`CrossProcessEvent` type mismatch";
@@ -32,6 +33,7 @@ pub fn cross_process_event_dispatch(evt: CrossProcessEvent) {
         EventType::MousePressedEvent => {
             native_fire_mouse_pressed_event(
                 evt.key(),
+                evt.n_press(),
                 evt.x(),
                 evt.y(),
                 evt.button(),
@@ -84,6 +86,27 @@ pub fn cross_process_event_dispatch(evt: CrossProcessEvent) {
                 TimeStamp::timestamp() as i64,
             );
         }
+        EventType::RequestFocusEvent => {
+            native_request_focus(evt.key(), evt.is_focus(), TimeStamp::timestamp() as i64);
+        }
+        EventType::CreateSshSessionEvent => {
+            native_create_ssh_session(
+                evt.key(),
+                evt.session_id() as i64,
+                evt.host().as_str(),
+                evt.user().as_str(),
+                evt.password().as_str(),
+                TimeStamp::timestamp() as i64,
+            );
+        }
+        EventType::ShellStartupEvent => {
+            native_shell_startup(
+                evt.key(),
+                evt.session_id() as i64,
+                evt.param().as_str(),
+                TimeStamp::timestamp() as i64,
+            );
+        }
         _ => unimplemented!(),
     }
 }
@@ -101,6 +124,10 @@ pub enum EventType {
     MouseLeaveEvent,
     MouseMoveEvent,
     MouseWheelEvent,
+    RequestFocusEvent,
+
+    CreateSshSessionEvent,
+    ShellStartupEvent,
 }
 
 #[derive(Default)]
@@ -115,6 +142,12 @@ pub struct CrossProcessEvent {
     x: Option<f64>,
     y: Option<f64>,
     amount: Option<f64>,
+    is_focus: Option<bool>,
+    session_id: Option<u64>,
+    host: Option<String>,
+    user: Option<String>,
+    password: Option<String>,
+    param: Option<String>,
 }
 
 impl CrossProcessEvent {
@@ -148,11 +181,12 @@ impl CrossProcessEvent {
         evt
     }
 
-    pub fn new_mouse_pressed_event(key: i32, button: i32, x: f64, y: f64, modifier: i32) -> Self {
+    pub fn new_mouse_pressed_event(key: i32, button: i32, n_press: i32, x: f64, y: f64, modifier: i32) -> Self {
         let mut evt = CrossProcessEvent::default();
         evt.event_type = EventType::MousePressedEvent;
         evt.key = key;
         evt.button.replace(button);
+        evt.n_press.replace(n_press);
         evt.x.replace(x);
         evt.y.replace(y);
         evt.modifier.replace(modifier);
@@ -209,6 +243,40 @@ impl CrossProcessEvent {
         evt
     }
 
+    pub fn new_request_focus_event(key: i32, is_focus: bool) -> Self {
+        let mut evt = CrossProcessEvent::default();
+        evt.event_type = EventType::RequestFocusEvent;
+        evt.key = key;
+        evt.is_focus.replace(is_focus);
+        evt
+    }
+
+    pub fn new_create_ssh_session_event(
+        key: i32,
+        session_id: u64,
+        host: &str,
+        user: &str,
+        password: &str,
+    ) -> Self {
+        let mut evt = CrossProcessEvent::default();
+        evt.event_type = EventType::CreateSshSessionEvent;
+        evt.key = key;
+        evt.session_id.replace(session_id);
+        evt.host.replace(host.to_string());
+        evt.user.replace(user.to_string());
+        evt.password.replace(password.to_string());
+        evt
+    }
+
+    pub fn new_shell_startup_event(key: i32, session_id: u64, param: &str) -> Self {
+        let mut evt = CrossProcessEvent::default();
+        evt.event_type = EventType::ShellStartupEvent;
+        evt.key = key;
+        evt.session_id.replace(session_id);
+        evt.param.replace(param.to_string());
+        evt
+    }
+
     pub fn event_type(&self) -> &EventType {
         &self.event_type
     }
@@ -247,6 +315,30 @@ impl CrossProcessEvent {
 
     pub fn amount(&mut self) -> f64 {
         self.amount.take().expect(ERROR_MSG)
+    }
+
+    pub fn is_focus(&mut self) -> bool {
+        self.is_focus.take().expect(ERROR_MSG)
+    }
+
+    pub fn session_id(&mut self) -> u64 {
+        self.session_id.take().expect(ERROR_MSG)
+    }
+
+    pub fn host(&mut self) -> String {
+        self.host.take().expect(ERROR_MSG)
+    }
+
+    pub fn user(&mut self) -> String {
+        self.user.take().expect(ERROR_MSG)
+    }
+
+    pub fn password(&mut self) -> String {
+        self.password.take().expect(ERROR_MSG)
+    }
+
+    pub fn param(&mut self) -> String {
+        self.param.take().expect(ERROR_MSG)
     }
 }
 

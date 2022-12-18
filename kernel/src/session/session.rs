@@ -1,8 +1,9 @@
+use parking_lot::{MappedMutexGuard, Mutex, MutexGuard};
 use utilities::SnowflakeGuidGenerator;
 
-use std::{collections::HashMap, sync::Mutex};
+use std::collections::HashMap;
 
-use crate::{MoshSession, ProtocolType, RshSession, SshSession, TelnetSession};
+use crate::{LocalShellSession, MoshSession, ProtocolType, RshSession, SshSession, TelnetSession};
 use lazy_static::lazy_static;
 use log::info;
 
@@ -58,55 +59,45 @@ impl<T: Session> SessionWrapper for Option<T> {
 /// Create a new session base on protocol, and return it's id.
 pub fn create_session(protocol: ProtocolType) -> u64 {
     match protocol {
-        ProtocolType::Ssh => {
-            if let Ok(mut map_guard) = SESSION_MAP.lock() {
-                let ssh_session = SshSession::create();
-                let id = ssh_session.id();
-                let wrapper_map = map_guard.entry(protocol).or_insert(HashMap::new());
-                wrapper_map.insert(id, Box::new(Some(ssh_session)));
-                id
-            } else {
-                panic!("`SESSION_MAP` get lock error.")
-            }
-        }
-        ProtocolType::Mosh => {
-            if let Ok(mut map_guard) = SESSION_MAP.lock() {
-                let mosh_session = MoshSession::create();
-                let id = mosh_session.id();
-                let wrapper_map = map_guard.entry(protocol).or_insert(HashMap::new());
-                wrapper_map.insert(id, Box::new(Some(mosh_session)));
-                id
-            } else {
-                panic!("`SESSION_MAP` get lock error.")
-            }
-        }
-        ProtocolType::Telnet => {
-            if let Ok(mut map_guard) = SESSION_MAP.lock() {
-                let telnet_session = TelnetSession::create();
-                let id = telnet_session.id();
-                let wrapper_map = map_guard.entry(protocol).or_insert(HashMap::new());
-                wrapper_map.insert(id, Box::new(Some(telnet_session)));
-                id
-            } else {
-                panic!("`SESSION_MAP` get lock error.")
-            }
-        }
-        ProtocolType::Rsh => {
-            if let Ok(mut map_guard) = SESSION_MAP.lock() {
-                let rsh_session = RshSession::create();
-                let id = rsh_session.id();
-                let wrapper_map = map_guard.entry(protocol).or_insert(HashMap::new());
-                wrapper_map.insert(id, Box::new(Some(rsh_session)));
-                id
-            } else {
-                panic!("`SESSION_MAP` get lock error.")
-            }
-        }
+        ProtocolType::Ssh => MutexGuard::map(SESSION_MAP.lock(), move |map| {
+            let ssh_session = SshSession::create();
+            let id = ssh_session.id();
+            map.entry(id).or_insert(Box::new(Some(ssh_session)))
+        })
+        .id(),
+        ProtocolType::Mosh => MutexGuard::map(SESSION_MAP.lock(), move |map| {
+            let mosh_session = MoshSession::create();
+            let id = mosh_session.id();
+            map.entry(id).or_insert(Box::new(Some(mosh_session)))
+        })
+        .id(),
+        ProtocolType::Telnet => MutexGuard::map(SESSION_MAP.lock(), move |map| {
+            let telnet_session = TelnetSession::create();
+            let id = telnet_session.id();
+            map.entry(id).or_insert(Box::new(Some(telnet_session)))
+        })
+        .id(),
+        ProtocolType::Rsh => MutexGuard::map(SESSION_MAP.lock(), move |map| {
+            let rsh_session = RshSession::create();
+            let id = rsh_session.id();
+            map.entry(id).or_insert(Box::new(Some(rsh_session)))
+        })
+        .id(),
+        ProtocolType::LocalShell => MutexGuard::map(SESSION_MAP.lock(), move |map| {
+            let local_shell_session = LocalShellSession::create();
+            let id = local_shell_session.id();
+            map.entry(id).or_insert(Box::new(Some(local_shell_session)))
+        })
+        .id(),
     }
 }
 
+pub fn get_session(id: u64) -> MappedMutexGuard<'static, Box<dyn SessionWrapper>> {
+    MutexGuard::map(SESSION_MAP.lock(), move |d| d.get_mut(&id).unwrap())
+}
+
 lazy_static! {
-    pub static ref SESSION_MAP: Mutex<HashMap<ProtocolType, HashMap<u64, Box<dyn SessionWrapper>>>> = {
+    pub static ref SESSION_MAP: Mutex<HashMap<u64, Box<dyn SessionWrapper>>> = {
         info!("Create session_map success.");
         Mutex::new(HashMap::new())
     };

@@ -100,8 +100,8 @@ class Pty : public KPtyProcess, public VirtualPty {
    * environment variable in the process's environment.
    */
   int start(const QString& program, const QStringList& arguments,
-            const QStringList& environment, ulong winid,
-            bool addToUtmp) override;
+            const QStringList& environment, ulong winid, bool addToUtmp,
+            ProtocolType protocolType) override;
 
   /**
    * set properties for "EmptyPTY"

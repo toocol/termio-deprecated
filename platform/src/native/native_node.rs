@@ -106,24 +106,32 @@ impl NativeNodeObject {
         host: &str,
         user: &str,
         password: &str,
-        timestmap: u64,
     ) {
-        native_create_ssh_session(
+        let evt = CrossProcessEvent::new_create_ssh_session_event(
             self.imp().key.get(),
-            session_id as i64,
+            session_id,
             host,
             user,
             password,
-            timestmap as i64,
         );
+        self.dispatch(evt);
+    }
+
+    pub fn shell_startup(&self, session_id: u64, param: &str) {
+        let evt = CrossProcessEvent::new_shell_startup_event(
+            self.imp().key.get(),
+            session_id,
+            param,
+        );
+        self.dispatch(evt);
     }
 
     pub fn request_focus(&self, is_focus: bool) {
-        native_request_focus(
-            self.imp().key.get(),
-            is_focus,
-            TimeStamp::timestamp() as i64,
-        );
+        if !self.imp().still_connect.get() {
+            return
+        }
+        let evt = CrossProcessEvent::new_request_focus_event(self.imp().key.get(), is_focus);
+        self.dispatch(evt);
     }
 
     pub fn react_key_pressed_event(&self, key: Key, keycode: u32, modifier: ModifierType) {
@@ -179,6 +187,7 @@ impl NativeNodeObject {
         let evt = CrossProcessEvent::new_mouse_pressed_event(
             self.imp().key.get(),
             QtMouseButton::from_gtk_button(button),
+            n_press,
             x,
             y,
             MODIFIER.load(Ordering::SeqCst),

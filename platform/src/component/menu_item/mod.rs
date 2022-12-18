@@ -26,6 +26,7 @@ pub struct MenuItemBuilder {
     icon: Option<FontIcon>,
     shortcut: Option<ShortcutLabel>,
     action: Option<String>,
+    action_param: Option<String>,
 }
 
 impl MenuItemBuilder {
@@ -50,6 +51,9 @@ impl MenuItemBuilder {
         }
         if let Some(ref action) = self.action {
             properties.push(("action", action));
+        }
+        if let Some(ref action_param) = self.action_param {
+            properties.push(("action-param", action_param));
         }
 
         Object::new(&properties)
@@ -77,6 +81,11 @@ impl MenuItemBuilder {
 
     pub fn action(mut self, action: &str) -> Self {
         self.action = Some(action.to_string());
+        self
+    }
+
+    pub fn action_param(mut self, action_param: &str) -> Self {
+        self.action_param = Some(action_param.to_string());
         self
     }
 }

@@ -35,8 +35,10 @@
 #include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
+
 #include <cerrno>
 #include <csignal>
+
 #include "kpty.h"
 #include "kpty_device.h"
 #endif
@@ -149,7 +151,8 @@ void Pty::addEnvironmentVariables(const QStringList& environment) {
 }
 
 int Pty::start(const QString& program, const QStringList& programArguments,
-               const QStringList& environment, ulong winid, bool addToUtmp) {
+               const QStringList& environment, ulong winid, bool addToUtmp,
+               ProtocolType protocolType) {
 #ifndef Q_OS_WIN
   clearProgram();
 

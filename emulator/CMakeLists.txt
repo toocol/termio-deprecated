@@ -67,6 +67,7 @@ set(HEADERS
         src/headers/tab.h
         src/headers/tab_button.h
         src/headers/transmit_signals.h
+        src/headers/settings.h
 )
 set(SOURCES
         src/cpp/main.cpp
@@ -95,6 +96,7 @@ set(SOURCES
         src/cpp/tab.cpp
         src/cpp/tab_button.cpp
         src/cpp/transmit_signals.cpp
+        src/cpp/settings.cpp
 )
 
 if (WIN32)

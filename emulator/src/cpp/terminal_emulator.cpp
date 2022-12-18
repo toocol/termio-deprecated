@@ -8,7 +8,8 @@
 // name.
 #define DEFAULT_FONT_FAMILY "Menlo"
 #else
-#define DEFAULT_FONT_FAMILY "Monospace"
+// #define DEFAULT_FONT_FAMILY "Monospace"
+#define DEFAULT_FONT_FAMILY "Courier New"
 #endif
 
 #define STEP_ZOOM 1
@@ -30,7 +31,6 @@ TerminalEmulator::~TerminalEmulator() {}
 Session* TerminalEmulator::createSession(QWidget* parent) {
   Session* session = new Session(parent);
   session->setTitle(Session::NameRole, QLatin1String("Ssh Session"));
-  session->setProgram(ssh);
   session->setAutoClose(true);
   session->setCodec(QTextCodec::codecForName("UTF-8"));
   session->setHistoryType(HistoryTypeBuffer(10000));
@@ -185,6 +185,8 @@ void TerminalEmulator::createSshSession(long sessionId, QString host,
   Session* session = createSession(this);
   int groupId =
       SessionGroup::addSessionToGroup(SessionGroup::ONE_CENTER, session);
+  session->setProtcolType(ProtocolType::Ssh);
+  session->setProgram(ssh);
   session->setSessionId(sessionId);
   session->setHost(host);
   session->setUser(user);
@@ -192,8 +194,46 @@ void TerminalEmulator::createSshSession(long sessionId, QString host,
 
   SessionGroup* group = SessionGroup::getSessionGroup(groupId);
   group->unbindViewEmulation();
+  if (SessionGroup::activeSession) {
+    SessionGroup::activeSession->unactivateSession();
+  }
   SessionGroup::activeSession = session;
+  session->activateSession();
   group->bindViewToEmulation();
+  group->update();
+
+  connect(this, SIGNAL(updateBackground(const QColor&)), session->getTab(),
+          SLOT(onBackgroundChange(const QColor&)));
+
+  // connect view signals and slots
+  connect(_terminalView, SIGNAL(changedContentSizeSignal(int, int)), session,
+          SLOT(onViewSizeChange(int, int)));
+
+  // slot for close
+  connect(_terminalView, SIGNAL(destroyed(QObject*)), session,
+          SLOT(viewDestroyed(QObject*)));
+
+  session->run();
+}
+
+void TerminalEmulator::shellStartupSession(long sessionId, QString param) {
+  qDebug() << "Receive shell startup session event, command = " << param;
+  Session* session = createSession(this);
+  int groupId =
+      SessionGroup::addSessionToGroup(SessionGroup::ONE_CENTER, session);
+  session->setProtcolType(ProtocolType::LocalShell);
+  session->setProgram(param);
+  session->setSessionId(sessionId);
+
+  SessionGroup* group = SessionGroup::getSessionGroup(groupId);
+  group->unbindViewEmulation();
+  if (SessionGroup::activeSession) {
+    SessionGroup::activeSession->unactivateSession();
+  }
+  SessionGroup::activeSession = session;
+  session->activateSession();
+  group->bindViewToEmulation();
+  group->update();
 
   connect(this, SIGNAL(updateBackground(const QColor&)), session->getTab(),
           SLOT(onBackgroundChange(const QColor&)));

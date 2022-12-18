@@ -28,30 +28,46 @@ void ConPty::init() {
 }
 
 int ConPty::start(const QString &program, const QStringList &arguments,
-                  const QStringList &environment, ulong winid, bool addToUtmp) {
+                  const QStringList &environment, ulong winid, bool addToUtmp,
+                  ProtocolType protocolType) {
 #ifdef Q_OS_WIN
   Q_ASSERT(arguments.count() >= 1);
   QString execute;
-  execute.append(program).append(" ").append(arguments[1]);
-  QString passwordTip = QString(arguments[1]).append("'s password:");
-  QString password = QString(arguments[2]).append("\n");
+  QString passwordTip;
+  QString password;
+  if (protocolType == ProtocolType::Ssh) {
+    execute.append(program).append(" ").append(arguments[1]);
+    passwordTip = QString(arguments[1]).append("'s password:");
+    password = QString(arguments[2]).append("\n");
+  } else {
+    execute.append(program);
+  }
 
   fd = openConPty(_windowLines, _windowColumns);
   setUTF8Mode(_utf8);
   if (fd > 0) {
-    startReadListener(
-        fd, [this, passwordTip, password](const char *data, const int length) {
-          if (length < 0) return;
-          if (QString(data).contains(passwordTip) && !_flag) {
-            QString cmd = password + "\u001b[2J";
-            sendData(cmd.toStdString().c_str(), -1);
-            _flag = true;
-          } else {
-            char *dup = new char[length];
-            memcpy(dup, data, length);
-            emit receivedData(dup, strlen(dup));
-          }
-        });
+    if (protocolType == ProtocolType::Ssh) {
+      startReadListener(fd, [this, passwordTip, password](const char *data,
+                                                          const int length) {
+        if (length < 0) return;
+        if (QString(data).contains(passwordTip) && !_flag) {
+          QString cmd = password + "\u001b[2J";
+          sendData(cmd.toStdString().c_str(), -1);
+          _flag = true;
+        } else {
+          char *dup = new char[length];
+          memcpy(dup, data, length);
+          emit receivedData(dup, strlen(dup));
+        }
+      });
+    } else {
+      startReadListener(fd, [this](const char *data, const int length) {
+        if (length < 0) return;
+        char *dup = new char[length];
+        memcpy(dup, data, length);
+        emit receivedData(dup, strlen(dup));
+      });
+    }
 
     auto subProcess = [&](int fd, QString execute) {
       startSubProcess(
