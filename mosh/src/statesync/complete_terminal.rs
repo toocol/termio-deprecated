@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use protobuf::Message;
 
@@ -9,7 +9,7 @@ const ACK_BUFFER: usize = 32;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct CompleteTerminal {
-    terminal: Emulator,
+    terminal: Rc<RefCell<Emulator>>,
     output_queue: Vec<Vec<u8>>,
     acked: HashMap<u64, Vec<u8>>,
 
@@ -17,9 +17,9 @@ pub struct CompleteTerminal {
 }
 
 impl CompleteTerminal {
-    pub fn new() -> Self {
+    pub fn new(emulator: Rc<RefCell<Emulator>>) -> Self {
         CompleteTerminal {
-            terminal: Emulator::new(),
+            terminal: emulator,
             output_queue: vec![],
             acked: HashMap::new(),
             echo_ack: -1,
@@ -27,8 +27,8 @@ impl CompleteTerminal {
     }
 
     pub fn apply_string(&mut self, diff: &[u8], ack_num: u64) {
-        let input =
-            hostinput::HostMessage::parse_from_bytes(&diff).expect("`HostMessage` parse from bytes failed.");
+        let input = hostinput::HostMessage::parse_from_bytes(&diff)
+            .expect("`HostMessage` parse from bytes failed.");
         for ins in input.instruction.iter() {
             if let Some(host_string) = hostinput::exts::hostbytes.get(ins) {
                 let host_string = host_string.hoststring();
@@ -68,6 +68,8 @@ impl CompleteTerminal {
         }
 
         self.acked.insert(ack_num, bytes.clone());
-        self.terminal.print(String::from_utf8(bytes).unwrap().as_str());
+        self.terminal
+            .borrow()
+            .print(String::from_utf8(bytes).unwrap().as_str());
     }
 }
