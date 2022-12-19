@@ -39,8 +39,9 @@ impl Config {
     }
 }
 
+// cargo run 192.168.150.101 22 root root
 fn main() {
-    log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
+    log4rs::init_file("src/resources/log4rs.yaml", Default::default()).expect("Initialize log system failed.");
 
     let config = Config::new(env::args());
     let (port, key) = ssh_touch::ssh_touch(
