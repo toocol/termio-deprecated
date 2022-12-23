@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+use crate::tools::character::CharacterUnion;
+
 use super::{
     block_array::{BlockArray, ENTRIES},
     character::Character,
@@ -23,6 +25,7 @@ use std::{
 use tempfile::tempfile;
 
 const MAP_THRESHOLD: i32 = -1000;
+const LINE_SIZE: usize = 1024;
 
 /// An extendable tempfile based buffer.
 pub struct HistoryFile {
@@ -193,6 +196,8 @@ pub trait HistoryScroll: Sized + 'static {
     fn add_line(&mut self, previous_wrapped: bool);
 
     fn get_type(&self) -> Rc<Self::HistoryType>;
+
+    fn set_max_nb_lines(&mut self, _: usize) {}
 }
 pub trait HistoryScrollWrapper {
     fn has_scroll(&self) -> bool;
@@ -205,6 +210,7 @@ pub trait HistoryScrollWrapper {
     fn add_cells_list(&self, list: Vec<Character>);
     fn add_line(&self, previous_wrapped: bool);
     fn get_type(&self) -> Rc<dyn HistoryType>;
+    fn set_max_nb_lines(&self, nb_lines: usize);
 }
 impl<T: HistoryScroll> HistoryScrollWrapper for RefCell<T> {
     fn has_scroll(&self) -> bool {
@@ -245,6 +251,10 @@ impl<T: HistoryScroll> HistoryScrollWrapper for RefCell<T> {
 
     fn get_type(&self) -> Rc<dyn HistoryType> {
         self.borrow().get_type()
+    }
+
+    fn set_max_nb_lines(&self, nb_lines: usize) {
+        self.borrow_mut().set_max_nb_lines(nb_lines)
     }
 }
 
@@ -316,7 +326,7 @@ pub struct HistoryScrollFile {
 impl HistoryScrollFile {
     pub fn new(log_file_name: String) -> Self {
         Self {
-            history_type: Rc::new(HistoryTypeFile::new()),
+            history_type: Rc::new(HistoryTypeFile::new(log_file_name.clone())),
             log_file_name: log_file_name,
             index: Box::new(HistoryFile::new()),
             cells: Box::new(HistoryFile::new()),
@@ -441,31 +451,6 @@ impl HistoryScrollBuffer {
         scroll
     }
 
-    pub fn set_max_nb_lines(&mut self, nb_lines: usize) {
-        let old_buffer = &self.history_buffer;
-        let mut new_buffer = vec![vec![]; nb_lines];
-
-        for i in 0..self.used_lines.min(nb_lines) {
-            new_buffer[i] = old_buffer.get(self.buffer_index(i)).unwrap().to_owned()
-        }
-
-        self.used_lines = self.used_lines.min(nb_lines);
-        self.max_line_count = nb_lines;
-        self.head = if self.used_lines == self.max_line_count {
-            0
-        } else {
-            self.used_lines - 1
-        };
-
-        self.history_buffer = new_buffer;
-        self.wrapped_line.resize(nb_lines, false);
-        self.dynamic_cast_type::<HistoryTypeBuffer>().nb_lines = nb_lines;
-    }
-
-    pub fn max_nb_lines(&self) -> usize {
-        self.max_line_count
-    }
-
     fn buffer_index(&self, line_number: usize) -> usize {
         assert!(line_number < self.max_line_count);
         assert!(self.used_lines == self.max_line_count || line_number <= self.head);
@@ -475,6 +460,10 @@ impl HistoryScrollBuffer {
         } else {
             line_number
         }
+    }
+
+    pub fn max_nb_lines(&self) -> usize {
+        self.max_line_count
     }
 }
 impl HistoryScroll for HistoryScrollBuffer {
@@ -573,6 +562,27 @@ impl HistoryScroll for HistoryScrollBuffer {
 
     fn get_type(&self) -> Rc<Self::HistoryType> {
         self.history_type.clone()
+    }
+
+    fn set_max_nb_lines(&mut self, nb_lines: usize) {
+        let old_buffer = &self.history_buffer;
+        let mut new_buffer = vec![vec![]; nb_lines];
+
+        for i in 0..self.used_lines.min(nb_lines) {
+            new_buffer[i] = old_buffer.get(self.buffer_index(i)).unwrap().to_owned()
+        }
+
+        self.used_lines = self.used_lines.min(nb_lines);
+        self.max_line_count = nb_lines;
+        self.head = if self.used_lines == self.max_line_count {
+            0
+        } else {
+            self.used_lines - 1
+        };
+
+        self.history_buffer = new_buffer;
+        self.wrapped_line.resize(nb_lines, false);
+        self.dynamic_cast_type::<HistoryTypeBuffer>().nb_lines = nb_lines;
     }
 }
 
@@ -779,7 +789,7 @@ impl Drop for CompactHistoryBlock {
 }
 
 pub struct CompactHistoryBlockList {
-    list: Vec<Box<RefCell<CompactHistoryBlock>>>,
+    list: Vec<RefCell<CompactHistoryBlock>>,
 }
 impl CompactHistoryBlockList {
     pub fn new() -> Self {
@@ -787,7 +797,7 @@ impl CompactHistoryBlockList {
     }
     pub fn allocate(&mut self, size: usize) -> *mut c_void {
         if self.list.is_empty() || self.list.last().unwrap().borrow().remaining() < size as u32 {
-            let b = Box::new(RefCell::new(CompactHistoryBlock::new()));
+            let b = RefCell::new(CompactHistoryBlock::new());
             self.list.push(b);
         }
         let block = self.list.last().unwrap();
@@ -902,12 +912,27 @@ impl CompactHistoryLine {
         }
     }
 
-    pub fn get_characters(&self, array: &[Character], length: usize, start_column: i32) {
-        todo!()
+    pub fn get_characters(&self, array: &mut [Character], length: usize, start_column: i32) {
+        assert!(start_column >= 0);
+        assert!(start_column as usize + length <= self.get_length());
+        for i in start_column as usize..length + start_column as usize {
+            self.get_character(i, &mut array[i - start_column as usize]);
+        }
     }
 
-    pub fn get_character(&self, index: usize, r: &Character) {
-        todo!()
+    pub fn get_character(&self, index: usize, r: &mut Character) {
+        assert!(index < self.length);
+        let mut format_pos = 0usize;
+        while format_pos + 1 < self.format_length
+            && index >= self.format_array_ref.as_ref().unwrap()[format_pos + 1].start_pos as usize
+        {
+            format_pos += 1;
+        }
+
+        r.character_union = CharacterUnion::from(self.text_ref.as_ref().unwrap()[index]);
+        r.rendition = self.format_array_ref.as_ref().unwrap()[format_pos].rendition;
+        r.foreground_color = self.format_array_ref.as_ref().unwrap()[format_pos].fg_color;
+        r.background_color = self.format_array_ref.as_ref().unwrap()[format_pos].bg_color;
     }
 
     pub fn is_wrapped(&self) -> bool {
@@ -920,6 +945,16 @@ impl CompactHistoryLine {
 
     pub fn get_length(&self) -> usize {
         self.length
+    }
+}
+impl Drop for CompactHistoryLine {
+    fn drop(&mut self) {
+        if self.length > 0 {
+            self.block_list.deallocate(self.text as *mut c_void);
+            self.block_list.deallocate(self.format_array as *mut c_void);
+        }
+        let ptr = self as *mut Self as *mut c_void;
+        self.block_list.deallocate(ptr);
     }
 }
 
@@ -936,20 +971,82 @@ pub struct CompactHistoryScroll {
     max_line_count: u32,
 }
 impl CompactHistoryScroll {
-    pub fn new(max_nb_lines: Option<i32>) {
-        todo!()
-    }
+    pub fn new(max_nb_lines: Option<i32>) -> Self {
+        let max_nb_lines = if let Some(line) = max_nb_lines {
+            line
+        } else {
+            1000
+        };
 
-    pub fn set_max_nb_lines(&mut self, nb_lines: u32) {
-        todo!()
+        let mut scroll = Self {
+            history_type: Rc::new(CompactHistoryType::new(max_nb_lines as usize)),
+            lines: vec![],
+            block_list: CompactHistoryBlockList::new(),
+            max_line_count: 0,
+        };
+        scroll.set_max_nb_lines(max_nb_lines as usize);
+        scroll
     }
 
     pub fn max_nb_lines(&self) -> u32 {
         self.max_line_count
     }
+}
+impl HistoryScroll for CompactHistoryScroll {
+    type HistoryType = CompactHistoryType;
 
-    fn has_different_colors(&self, line: &TextLine) -> bool {
-        todo!()
+    fn has_scroll(&self) -> bool {
+        true
+    }
+
+    fn get_lines(&self) -> i32 {
+        self.lines.len() as i32
+    }
+
+    fn get_line_len(&mut self, lineno: i32) -> i32 {
+        assert!(lineno >= 0 && lineno < self.lines.len() as i32);
+        let line = &self.lines[lineno as usize];
+        line.get_length() as i32
+    }
+
+    fn get_cells(&mut self, lineno: i32, colno: i32, count: i32, res: &mut [Character]) {
+        if count == 0 {
+            return;
+        }
+        assert!(lineno < self.lines.len() as i32);
+        let line = &self.lines[lineno as usize];
+        assert!(colno >= 0);
+        assert!(colno <= line.get_length() as i32 - count);
+        line.get_characters(res, count as usize, colno);
+    }
+
+    fn is_wrapped_line(&mut self, lineno: i32) -> bool {
+        assert!(lineno < self.lines.len() as i32);
+        (&self.lines[lineno as usize]).is_wrapped()
+    }
+
+    fn add_cells(&mut self, character: &[Character], count: i32) {
+        let mut new_line = vec![Character::default(); count as usize];
+        new_line.copy_from_slice(&character[0..count as usize])
+    }
+
+    fn add_line(&mut self, previous_wrapped: bool) {
+        let line = self.lines.last_mut();
+        if let Some(line) = line {
+            line.set_wrapped(previous_wrapped)
+        }
+    }
+
+    fn get_type(&self) -> Rc<Self::HistoryType> {
+        self.history_type.clone()
+    }
+
+    fn set_max_nb_lines(&mut self, nb_lines: usize) {
+        self.max_line_count = nb_lines as u32;
+
+        while self.lines.len() > nb_lines as usize {
+            self.lines.remove(0);
+        }
     }
 }
 
@@ -959,7 +1056,7 @@ pub trait HistoryType {
 
     fn maximum_line_count(&self) -> i32;
 
-    fn scroll(&self, old: Box<dyn HistoryScrollWrapper>) -> Box<dyn HistoryScrollWrapper>;
+    fn scroll(self, old: Option<Box<dyn HistoryScrollWrapper>>) -> Box<dyn HistoryScrollWrapper>;
 
     fn is_unlimited(&self) -> bool {
         self.maximum_line_count() == 0
@@ -981,8 +1078,8 @@ impl HistoryType for HistoryTypeNone {
         0
     }
 
-    fn scroll(&self, old: Box<dyn HistoryScrollWrapper>) -> Box<dyn HistoryScrollWrapper> {
-        todo!()
+    fn scroll(self, _: Option<Box<dyn HistoryScrollWrapper>>) -> Box<dyn HistoryScrollWrapper> {
+        HistoryScrollNone::new().wrap()
     }
 }
 
@@ -996,35 +1093,66 @@ impl HistoryTypeBlockArray {
 }
 impl HistoryType for HistoryTypeBlockArray {
     fn is_enabled(&self) -> bool {
-        todo!()
+        true
     }
 
     fn maximum_line_count(&self) -> i32 {
-        todo!()
+        self.size as i32
     }
 
-    fn scroll(&self, old: Box<dyn HistoryScrollWrapper>) -> Box<dyn HistoryScrollWrapper> {
-        todo!()
+    fn scroll(self, _: Option<Box<dyn HistoryScrollWrapper>>) -> Box<dyn HistoryScrollWrapper> {
+        HistoryScrollBlockArray::new(self.size).wrap()
     }
 }
 
-pub struct HistoryTypeFile;
+pub struct HistoryTypeFile {
+    file_name: String,
+}
 impl HistoryTypeFile {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(file_name: String) -> Self {
+        Self { file_name }
+    }
+}
+impl HistoryTypeFile {
+    pub fn get_file_name(&self) -> &str {
+        &self.file_name
     }
 }
 impl HistoryType for HistoryTypeFile {
     fn is_enabled(&self) -> bool {
-        todo!()
+        true
     }
 
     fn maximum_line_count(&self) -> i32 {
-        todo!()
+        0
     }
 
-    fn scroll(&self, old: Box<dyn HistoryScrollWrapper>) -> Box<dyn HistoryScrollWrapper> {
-        todo!()
+    fn scroll(self, old: Option<Box<dyn HistoryScrollWrapper>>) -> Box<dyn HistoryScrollWrapper> {
+        let mut scroll = HistoryScrollFile::new(self.file_name.clone());
+        let mut line = [Character::default(); LINE_SIZE];
+        let lines = if old.is_some() {
+            old.as_ref().unwrap().get_lines() as usize
+        } else {
+            0
+        };
+        for i in 0..lines {
+            let size = old.as_ref().unwrap().get_line_len(i as i32);
+            if size > LINE_SIZE as i32 {
+                let mut tmp_line = vec![Character::default(); size as usize];
+                old.as_ref()
+                    .unwrap()
+                    .get_cells(i as i32, 0, size, &mut tmp_line);
+                scroll.add_cells(&tmp_line, size);
+                scroll.add_line(old.as_ref().unwrap().is_wrapped_line(i as i32));
+            } else {
+                old.as_ref()
+                    .unwrap()
+                    .get_cells(i as i32, 0, size, &mut line);
+                scroll.add_cells(&line, size);
+                scroll.add_line(old.as_ref().unwrap().is_wrapped_line(i as i32));
+            }
+        }
+        scroll.wrap()
     }
 }
 
@@ -1038,34 +1166,46 @@ impl HistoryTypeBuffer {
 }
 impl HistoryType for HistoryTypeBuffer {
     fn is_enabled(&self) -> bool {
-        todo!()
+        true
     }
 
     fn maximum_line_count(&self) -> i32 {
-        todo!()
+        self.nb_lines as i32
     }
 
-    fn scroll(&self, old: Box<dyn HistoryScrollWrapper>) -> Box<dyn HistoryScrollWrapper> {
-        todo!()
+    fn scroll(self, old: Option<Box<dyn HistoryScrollWrapper>>) -> Box<dyn HistoryScrollWrapper> {
+        if let Some(old) = old {
+            old.set_max_nb_lines(self.nb_lines);
+            old
+        } else {
+            HistoryScrollBuffer::new(Some(self.nb_lines)).wrap()
+        }
     }
 }
 
-pub struct CompactHistoryType;
+pub struct CompactHistoryType {
+    nb_lines: usize,
+}
 impl CompactHistoryType {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(size: usize) -> Self {
+        Self { nb_lines: size }
     }
 }
 impl HistoryType for CompactHistoryType {
     fn is_enabled(&self) -> bool {
-        todo!()
+        true
     }
 
     fn maximum_line_count(&self) -> i32 {
-        todo!()
+        self.nb_lines as i32
     }
 
-    fn scroll(&self, old: Box<dyn HistoryScrollWrapper>) -> Box<dyn HistoryScrollWrapper> {
-        todo!()
+    fn scroll(self, old: Option<Box<dyn HistoryScrollWrapper>>) -> Box<dyn HistoryScrollWrapper> {
+        if let Some(old) = old {
+            old.set_max_nb_lines(self.nb_lines);
+            old
+        } else {
+            CompactHistoryScroll::new(Some(self.nb_lines as i32)).wrap()
+        }
     }
 }
