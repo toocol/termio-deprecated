@@ -26,7 +26,7 @@ impl Emulator {
             guard.borrow_mut().replace(receiver);
         }
 
-        thread::spawn(move || {
+        thread::spawn(move || loop {
             let mut input = String::new();
             stdin()
                 .read_line(&mut input)
@@ -63,9 +63,9 @@ impl Emulator {
     pub fn read(&self) -> Option<UserEvent> {
         if let Ok(guard) = RECEIVER.lock() {
             if let Ok(input) = guard.as_ref().unwrap().try_recv() {
-                return Some(UserEvent::new_user_bytes(input))
+                return Some(UserEvent::new_user_bytes(input));
             } else {
-                return None
+                return None;
             }
         }
         None
