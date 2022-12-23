@@ -46,9 +46,14 @@ impl Default for CharacterUnion {
 impl Into<u16> for CharacterUnion {
     fn into(self) -> u16 {
         match self {
-            Self::Character(ch) => ch.into(),
+            Self::Character(ch) => ch,
             Self::CharSequence(seq) => seq,
         }
+    }
+}
+impl From<u16> for CharacterUnion {
+    fn from(x: u16) -> Self {
+        Self::Character(x.into())
     }
 }
 
