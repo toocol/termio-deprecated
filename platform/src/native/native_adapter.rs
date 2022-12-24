@@ -57,7 +57,7 @@ impl NativeEvent {
     }
 }
 
-#[link(name = "native-adapter")]
+#[link(name = "native-adapter", kind = "static")]
 extern "C" {
     fn next_key() -> c_int;
     fn connect_to(name: *const c_char) -> c_int;

@@ -26,7 +26,7 @@ set(SOURCES
 	src/native_adapter.cpp
 )
 
-add_library(native-adapter SHARED
+add_library(native-adapter STATIC
 	${SOURCES}
 )
 

@@ -23,7 +23,7 @@ pub const MAP_ANON: i32 = MAP_ANONYMOUS;
 
 pub const MAP_FAILED: *const c_void = &-1 as *const i32 as *const c_void;
 
-#[link(name = "native-system")]
+#[link(name = "native-system", kind = "static")]
 extern "C" {
     fn mmap_ffi(
         addr: *const u8,
@@ -68,7 +68,7 @@ pub fn string_width(wstr: &[wchar_t]) -> c_int {
 
 #[cfg(test)]
 mod tests {
-    use std::{ptr::null, os::windows::prelude::AsRawHandle};
+    use std::{os::windows::prelude::AsRawHandle, ptr::null};
 
     use tempfile::tempfile;
 

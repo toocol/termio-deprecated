@@ -1,7 +1,7 @@
 #![allow(unused_macros)]
 use std::ffi::{c_char, CString};
 
-#[link(name = "native-fontconfig")]
+#[link(name = "native-fontconfig", kind = "static")]
 extern "C" {
     fn load_font(font_path: *const c_char);
     fn load_font_private(font_path: *const c_char);

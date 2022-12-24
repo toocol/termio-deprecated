@@ -13,12 +13,12 @@ set(CMAKE_CXX_FLAGS_RELEASE -Ofast)
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -O3  -Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3  -Wall")
 
-link_directories("C:/Windows/System32/lib")
-link_directories("C:/Windows/System32/lib/sys")
-
 include_directories("src/")
 include_directories("C:/Windows/System32/include")
 include_directories("C:/Windows/System32/include/sys")
+
+link_directories("C:/Windows/System32/lib")
+link_directories("C:/Windows/System32/lib/sys")
 
 set(HEADERS 
 	src/native_system.h
@@ -30,12 +30,12 @@ set(SOURCES
 add_library(mman STATIC IMPORTED)
 add_library(utf8proc STATIC IMPORTED)
 set_property(TARGET mman PROPERTY IMPORTED_LOCATION C:/Windows/System32/lib/sys/mman.lib)
-set_property(TARGET utf8proc PROPERTY IMPORTED_LOCATION C:/Windows/System32/lib/utf8proc.lib)
-add_library(native-system SHARED 
+set_property(TARGET utf8proc PROPERTY IMPORTED_LOCATION C:/Windows/System32/lib/utf8proc_static.lib)
+add_library(native-system STATIC
 	${SOURCES}
 )
 
-target_link_libraries(native-system mman utf8proc)
+target_link_libraries(native-system)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET native-system PROPERTY CXX_STANDARD 20)
