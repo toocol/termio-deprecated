@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, hash::Hash, rc::Rc};
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum HotSpotType {
     /// the type of the hotspot is not specified
@@ -109,32 +109,122 @@ pub struct FilterStruct {
     line_positions: Vec<Vec<i32>>,
     buffer: String,
 }
+impl FilterStruct {
+    pub fn new() -> Self {
+        Self {
+            hotspots: HashMap::new(),
+            hostspots_list: vec![],
+            line_positions: vec![],
+            buffer: String::new(),
+        }
+    }
+}
 pub trait Filter {
     /// Causes the filter to process the block of text currently in its internal buffer
-    fn process(&mut self) {}
+    fn process(&mut self);
 
     /// Empties the filters internal buffer and resets the line count back to 0.
     /// All hotspots are deleted.
-    fn reset(&mut self) {}
+    fn reset(&mut self);
 
     /// Returns the hotspot which covers the given @p line and @p column, or 0 if
     /// no hotspot covers that area
+    fn hotspot_at(&self) -> &HotSpot;
+
+    /// Returns the list of hotspots identified by the filter
+    fn hotspots(&self) -> Vec<&HotSpot>;
+
+    /// Returns the list of hotspots identified by the filter which occur on a given line
+    fn hotspots_at_line(&self, line: usize) -> Vec<HotSpot>;
+
+    /// Set the buffer
+    fn set_buffer(&mut self, buffer: String, line_positions: &[i32]);
+}
+
+/// A filter which searches for sections of text matching a regular expression
+/// and creates a new RegExpFilter::HotSpot instance for them.
+///
+/// Subclasses can reimplement newHotSpot() to return custom hotspot types when
+/// matches for the regular expression are found.
+pub struct RegexFilter {
+    filter: FilterStruct,
+    captured_texts: Vec<String>,
+}
+impl Filter for RegexFilter {
+    fn process(&mut self) {
+        todo!()
+    }
+
+    fn reset(&mut self) {
+        todo!()
+    }
+
     fn hotspot_at(&self) -> &HotSpot {
         todo!()
     }
 
-    /// Returns the list of hotspots identified by the filter
     fn hotspots(&self) -> Vec<&HotSpot> {
         todo!()
     }
 
-    /// Returns the list of hotspots identified by the filter which occur on a given line
     fn hotspots_at_line(&self, line: usize) -> Vec<HotSpot> {
         todo!()
     }
 
-    /// Set the buffer
     fn set_buffer(&mut self, buffer: String, line_positions: &[i32]) {
         todo!()
     }
 }
+
+pub struct FilterObject {}
+
+/// A filter which matches URLs in blocks of text
+pub struct UrlFilter {
+    filter: FilterStruct,
+}
+impl Filter for UrlFilter {
+    fn process(&mut self) {
+        todo!()
+    }
+
+    fn reset(&mut self) {
+        todo!()
+    }
+
+    fn hotspot_at(&self) -> &HotSpot {
+        todo!()
+    }
+
+    fn hotspots(&self) -> Vec<&HotSpot> {
+        todo!()
+    }
+
+    fn hotspots_at_line(&self, line: usize) -> Vec<HotSpot> {
+        todo!()
+    }
+
+    fn set_buffer(&mut self, buffer: String, line_positions: &[i32]) {
+        todo!()
+    }
+}
+
+/// A chain which allows a group of filters to be processed as one.
+/// The chain owns the filters added to it and deletes them when the chain itself
+/// is destroyed.
+///
+/// Use addFilter() to add a new filter to the chain.
+/// When new text to be filtered arrives, use addLine() to add each additional
+/// line of text which needs to be processed and then after adding the last line,
+/// use process() to cause each filter in the chain to process the text.
+///
+/// After processing a block of text, the reset() method can be used to set the
+/// filter chain's internal cursor back to the first line.
+///
+/// The hotSpotAt() method will return the first hotspot which covers a given
+/// position.
+///
+/// The hotSpots() and hotSpotsAtLine() method return all of the hotspots in the
+/// text and on a given line respectively.
+pub type FilterChain = Vec<Box<dyn Filter>>;
+pub trait FilterChainImpl {}
+impl<T: Filter> FilterChainImpl for Vec<Box<T>> {}
