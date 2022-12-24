@@ -6,7 +6,7 @@ use gtk::{
     subclass::prelude::*,
     Orientation,
 };
-use utilities::Color;
+use libs::Color;
 
 glib::wrapper! {
     pub struct PartialSeperator(ObjectSubclass<imp::PartialSeperator>)

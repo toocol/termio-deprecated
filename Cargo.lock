@@ -232,6 +232,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "cli"
+version = "0.1.0"
+dependencies = [
+ "lazy_static",
+ "libs",
+ "log",
+ "parking_lot 0.12.1",
+ "serde",
+ "serde_json",
+ "ssh2",
+]
+
+[[package]]
 name = "cmake"
 version = "0.1.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1006,19 +1019,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kernel"
-version = "0.1.0"
-dependencies = [
- "lazy_static",
- "log",
- "parking_lot 0.12.1",
- "serde",
- "serde_json",
- "ssh2",
- "utilities",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1044,6 +1044,19 @@ checksum = "b67380fd3b2fbe7527a606e18729d21c6f3951633d0500574c4dc22d2d638b9f"
 dependencies = [
  "cfg-if",
  "winapi",
+]
+
+[[package]]
+name = "libs"
+version = "0.1.0"
+dependencies = [
+ "encoding",
+ "hex_color",
+ "java-properties",
+ "lazy_static",
+ "log",
+ "pem",
+ "rust-embed",
 ]
 
 [[package]]
@@ -1209,6 +1222,7 @@ dependencies = [
  "base64",
  "cipher",
  "flate2",
+ "libs",
  "local_ipaddress",
  "log",
  "log4rs",
@@ -1219,7 +1233,6 @@ dependencies = [
  "rand",
  "ssh2",
  "terminal_size",
- "utilities",
 ]
 
 [[package]]
@@ -1444,14 +1457,14 @@ name = "platform"
 version = "0.1.0"
 dependencies = [
  "base64",
+ "cli",
  "gtk4",
- "kernel",
  "lazy_static",
+ "libs",
  "log",
  "pangocairo",
  "serde",
  "serde_json",
- "utilities",
 ]
 
 [[package]]
@@ -2055,16 +2068,16 @@ dependencies = [
 name = "termio"
 version = "0.0.1"
 dependencies = [
+ "cli",
  "glib-build-tools",
  "gtk4",
- "kernel",
  "lazy_static",
+ "libs",
  "log",
  "log4rs",
  "platform",
  "serde",
  "serde_json",
- "utilities",
 ]
 
 [[package]]
@@ -2249,19 +2262,6 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
-]
-
-[[package]]
-name = "utilities"
-version = "0.1.0"
-dependencies = [
- "encoding",
- "hex_color",
- "java-properties",
- "lazy_static",
- "log",
- "pem",
- "rust-embed",
 ]
 
 [[package]]

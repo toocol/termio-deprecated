@@ -6,7 +6,7 @@ use gtk::{
     subclass::prelude::*,
     Orientation,
 };
-use utilities::Color;
+use libs::Color;
 
 const DEFAULT_LINE_WIDTH: f64 = 0.5;
 const DEFAULT_FACTOR: f64 = 0.8;

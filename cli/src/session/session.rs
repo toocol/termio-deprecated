@@ -1,5 +1,5 @@
 use parking_lot::{MappedMutexGuard, Mutex, MutexGuard};
-use utilities::SnowflakeGuidGenerator;
+use libs::SnowflakeGuidGenerator;
 
 use std::collections::HashMap;
 

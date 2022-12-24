@@ -6,7 +6,7 @@ use super::{
 use crate::statesync::{CompleteTerminal, UserStream, UserEvent};
 use log::{error, warn};
 use std::{cell::RefCell, rc::Rc};
-use utilities::TimeStamp;
+use libs::TimeStamp;
 
 pub struct Transport {
     last_receive_state: CompleteTerminal,

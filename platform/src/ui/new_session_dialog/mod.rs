@@ -7,7 +7,7 @@ use gtk::{
 };
 use glib::{clone, Object};
 use log::info;
-use utilities::DynamicBundle;
+use libs::DynamicBundle;
 
 use crate::{ACTION_ADD_SESSION_CREDENTIAL, LanguageBundle};
 

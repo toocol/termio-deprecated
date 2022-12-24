@@ -1,4 +1,4 @@
-use utilities::{DynamicBundle, Locale};
+use libs::{DynamicBundle, Locale};
 
 pub struct LanguageBundle;
 
@@ -31,7 +31,7 @@ impl LanguageBundle {
 impl DynamicBundle for LanguageBundle {
     const PROPERTY: &'static str = "language";
 
-    fn locales() -> Vec<utilities::Locale> {
+    fn locales() -> Vec<libs::Locale> {
         Locale::all()
     }
 }

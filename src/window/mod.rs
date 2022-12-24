@@ -1,6 +1,6 @@
 mod imp;
 
-use kernel::{ProtocolType, SessionCredential, create_session};
+use cli::{ProtocolType, SessionCredential, create_session};
 use std::fs::File;
 
 use gtk::{

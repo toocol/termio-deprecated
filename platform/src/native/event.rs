@@ -1,4 +1,4 @@
-use utilities::TimeStamp;
+use libs::TimeStamp;
 
 use crate::{
     native_create_ssh_session, native_fire_key_pressed_event, native_fire_key_released_event,

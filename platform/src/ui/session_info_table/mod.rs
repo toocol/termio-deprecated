@@ -1,6 +1,6 @@
 mod imp;
 
-use kernel::ProtocolType;
+use cli::ProtocolType;
 
 use gtk::{
     glib::{self, Object, Type},
@@ -8,7 +8,7 @@ use gtk::{
     subclass::prelude::*,
     CellAreaBox, CellRendererText, ListStore, TreeViewColumn,
 };
-use utilities::DynamicBundle;
+use libs::DynamicBundle;
 
 use crate::LanguageBundle;
 

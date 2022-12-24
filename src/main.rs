@@ -7,7 +7,7 @@ use gtk::{
 };
 use log::info;
 use platform::{load_font, APP_COMMUNITY_ID, ACTION_TOGGLE_LEFT_AREA};
-use utilities::Asset;
+use libs::Asset;
 use window::TermioCommunityWindow;
 
 //  gsettings set org.gtk.Settings.Debug enable-inspector-keybinding false

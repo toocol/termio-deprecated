@@ -1,4 +1,4 @@
-use kernel::SessionCredential;
+use cli::SessionCredential;
 use std::fs::File;
 
 use gtk::{

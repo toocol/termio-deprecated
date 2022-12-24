@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use utilities::ByteOrder;
+use libs::ByteOrder;
 
 use crate::crypto::{Crypto, Message, Nonce};
 
@@ -109,7 +109,7 @@ impl Direction {
 
 #[cfg(test)]
 mod tests {
-    use utilities::TimeStamp;
+    use libs::TimeStamp;
 
     use super::*;
 
