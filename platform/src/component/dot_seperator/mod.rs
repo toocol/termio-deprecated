@@ -5,7 +5,7 @@ use gtk::{
     prelude::ToValue,
     subclass::prelude::*,
 };
-use utilities::Color;
+use libs::Color;
 
 glib::wrapper! {
     pub struct DotSeperator(ObjectSubclass<imp::DotSeperator>)

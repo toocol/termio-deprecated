@@ -1,11 +1,11 @@
 mod imp;
 
-use kernel::CommandFeedback;
+use cli::CommandFeedback;
 
 use gtk::glib::Object;
 use gtk::subclass::prelude::*;
 use gtk::{glib, Label};
-use utilities::DynamicBundle;
+use libs::DynamicBundle;
 
 use crate::{LanguageBundle, ShortcutLabel};
 

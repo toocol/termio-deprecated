@@ -1,5 +1,5 @@
 [workspace]
-members = ["utilities", "kernel", "platform", "mosh", "terminal"]
+members = ["libs", "cli", "platform", "mosh", "terminal"]
 
 [package]
 name = "termio"
@@ -11,8 +11,8 @@ name = "termio"
 path = "src/main.rs"
 
 [dependencies]
-utilities = { path = "utilities/" }
-kernel = { path = "kernel/" }
+libs = { path = "libs/" }
+cli = { path = "cli/" }
 platform = { path = "platform/" }
 
 gtk = { version = "0.5.0", package = "gtk4", features = ["v4_6"] }

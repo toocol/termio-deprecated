@@ -7,7 +7,7 @@ use gtk::{
     subclass::prelude::*,
     Image,
 };
-use utilities::Asset;
+use libs::Asset;
 
 const PATH_PREFIX: &str = "svg/";
 const CSS_CLASS: &str = "svg-icon";

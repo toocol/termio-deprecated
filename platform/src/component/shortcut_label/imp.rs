@@ -13,7 +13,7 @@ use gtk::{
     prelude::*,
     subclass::prelude::*,
 };
-use utilities::Color;
+use libs::Color;
 
 const DEFAULT_FONT_SIZE: i32 = 10;
 const DEFAULT_HOR_INSET: f64 = 5.;

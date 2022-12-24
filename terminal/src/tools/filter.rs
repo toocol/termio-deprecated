@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+
+use std::{collections::HashMap, rc::Rc};
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum HotSpotType {
     /// the type of the hotspot is not specified
@@ -100,4 +102,39 @@ impl HotSpot {
 /// and identify sections of interest. When processing the text they should
 /// create instances of Filter::HotSpot subclasses for sections of interest and
 /// add them to the filter's list of hotspots using addHotSpot()
-pub struct Filter {}
+pub struct FilterStruct {
+    hotspots: HashMap<i32, Vec<Rc<HotSpot>>>,
+    hostspots_list: Vec<Rc<HotSpot>>,
+
+    line_positions: Vec<Vec<i32>>,
+    buffer: String,
+}
+pub trait Filter {
+    /// Causes the filter to process the block of text currently in its internal buffer
+    fn process(&mut self) {}
+
+    /// Empties the filters internal buffer and resets the line count back to 0.
+    /// All hotspots are deleted.
+    fn reset(&mut self) {}
+
+    /// Returns the hotspot which covers the given @p line and @p column, or 0 if
+    /// no hotspot covers that area
+    fn hotspot_at(&self) -> &HotSpot {
+        todo!()
+    }
+
+    /// Returns the list of hotspots identified by the filter
+    fn hotspots(&self) -> Vec<&HotSpot> {
+        todo!()
+    }
+
+    /// Returns the list of hotspots identified by the filter which occur on a given line
+    fn hotspots_at_line(&self, line: usize) -> Vec<HotSpot> {
+        todo!()
+    }
+
+    /// Set the buffer
+    fn set_buffer(&mut self, buffer: String, line_positions: &[i32]) {
+        todo!()
+    }
+}

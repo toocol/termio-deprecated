@@ -4,7 +4,7 @@ use gtk::{
     glib::{self, Object},
     subclass::prelude::*,
 };
-use utilities::Color;
+use libs::Color;
 
 glib::wrapper! {
     pub struct ShortcutLabel(ObjectSubclass<imp::ShortcutLabel>)

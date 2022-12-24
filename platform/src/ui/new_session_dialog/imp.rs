@@ -1,4 +1,4 @@
-use kernel::Command;
+use cli::Command;
 
 use gtk::{
     glib::{self, once_cell::sync::OnceCell},
@@ -6,7 +6,7 @@ use gtk::{
     subclass::prelude::*,
     Dialog, Frame, Label,
 };
-use utilities::DynamicBundle;
+use libs::DynamicBundle;
 
 use crate::{LanguageBundle, ACTION_COMMAND_ADD};
 

@@ -23,7 +23,7 @@ use gtk::{
     Align,
 };
 use log::{debug, error};
-use utilities::TimeStamp;
+use libs::TimeStamp;
 
 const PRIMARY_BUFFER: i32 = 1;
 const SECONDARY_BUFFER: i32 = -1;

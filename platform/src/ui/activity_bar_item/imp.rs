@@ -9,7 +9,7 @@ use gtk::{
     prelude::*,
     subclass::prelude::*,
 };
-use utilities::DynamicBundle;
+use libs::DynamicBundle;
 
 use crate::{FontIcon, GtkMouseButton, ItemPosition, ItemStatus, LanguageBundle};
 

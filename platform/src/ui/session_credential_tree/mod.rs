@@ -1,6 +1,6 @@
 mod imp;
 
-use kernel::{create_session, SessionCredential};
+use cli::{create_session, SessionCredential};
 
 use crate::{SessionCredentialObject, ACTION_CREATE_SSH_SESSION, LanguageBundle, ACTION_SESSION_GROUP_SELECTION_CHANGE, ACTION_SESSION_CREDENTIAL_SELECTION_CHANGE};
 use gtk::{
@@ -11,7 +11,7 @@ use gtk::{
     CellAreaBox, CellRendererText, TreeStore, TreeViewColumn,
 };
 use log::debug;
-use utilities::DynamicBundle;
+use libs::DynamicBundle;
 
 glib::wrapper! {
     pub struct SessionCredentialManagementTree(ObjectSubclass<imp::SessionCredentialManagementTree>)
@@ -131,7 +131,7 @@ impl SessionCredentialManagementTree {
                         .get_value(&iter, Columns::Port as i32)
                         .get::<u32>()
                         .expect("`SessionCredentialManagementTree` get `password` value error.");
-                    let session_id = create_session(kernel::ProtocolType::Ssh);
+                    let session_id = create_session(cli::ProtocolType::Ssh);
                     tree_view.activate_action(
                         &ACTION_CREATE_SSH_SESSION.activate(), 
                         Some(
@@ -215,7 +215,7 @@ impl SessionCredentialManagementTree {
             password,
             group,
             port,
-            kernel::ProtocolType::Ssh,
+            cli::ProtocolType::Ssh,
         );
         let tree_store = self.imp().tree_store.get().expect(
             "`tree_store` of `SessionCredentialManagementTree` must initialize before use.",

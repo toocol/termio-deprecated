@@ -3,7 +3,7 @@
 use std::collections::BinaryHeap;
 
 use protobuf::Message;
-use utilities::ByteOrder;
+use libs::ByteOrder;
 
 use crate::{network::Compressor, proto::transportinstruction::Instruction};
 

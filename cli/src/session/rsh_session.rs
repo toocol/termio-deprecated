@@ -1,18 +1,18 @@
-use utilities::TimeStamp;
+use libs::TimeStamp;
 
 use crate::{ProtocolType, Session};
 
-pub struct MoshSession {
+pub struct RshSession {
     id: u64,
     establish_time: u64,
 }
 
-impl Session for MoshSession {
-    type TYPE = super::MoshSession;
+impl Session for RshSession {
+    type TYPE = super::RshSession;
 
     fn create() -> Self::TYPE {
-        MoshSession {
-            id: MoshSession::gen_id(),
+        RshSession {
+            id: RshSession::gen_id(),
             establish_time: TimeStamp::timestamp(),
         }
     }
@@ -22,7 +22,7 @@ impl Session for MoshSession {
     }
 
     fn protocol(&self) -> crate::ProtocolType {
-        ProtocolType::Mosh
+        ProtocolType::Rsh
     }
 
     fn establish_time(&self) -> u64 {

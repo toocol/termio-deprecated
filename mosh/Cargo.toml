@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-utilities = { path = "../utilities" }
+libs = { path = "../libs" }
 
 aes = "0.8.2"
 cipher = { version = "0.4.3", features = ["block-padding"] }

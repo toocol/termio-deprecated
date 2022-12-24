@@ -3,7 +3,7 @@ use super::{Direction, MoshPacket, MAX_RTO, MIN_RTO, RTTVAR, SRIT};
 use crate::crypto::{Base64Key, Session};
 use log::info;
 use std::{net::UdpSocket, time::Duration};
-use utilities::TimeStamp;
+use libs::TimeStamp;
 
 pub struct Connection {
     socket: UdpSocket,

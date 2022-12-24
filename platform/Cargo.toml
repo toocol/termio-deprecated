@@ -6,8 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-utilities = { path = "../utilities/" }
-kernel = { path = "../kernel/" }
+libs = { path = "../libs/" }
+cli = { path = "../cli/" }
 
 gtk = { version = "0.5.0", package = "gtk4", features = ["v4_6"] }
 pangocairo = "0.16.3"

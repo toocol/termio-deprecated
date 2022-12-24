@@ -1,4 +1,4 @@
-use kernel::ProtocolType;
+use cli::ProtocolType;
 use std::cell::{Cell, RefCell};
 
 use gtk::glib::once_cell::sync::{Lazy, OnceCell};

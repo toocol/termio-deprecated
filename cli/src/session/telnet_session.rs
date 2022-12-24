@@ -1,18 +1,18 @@
-use utilities::TimeStamp;
+use libs::TimeStamp;
 
 use crate::{ProtocolType, Session};
 
-pub struct RshSession {
+pub struct TelnetSession {
     id: u64,
     establish_time: u64,
 }
 
-impl Session for RshSession {
-    type TYPE = super::RshSession;
+impl Session for TelnetSession {
+    type TYPE = super::TelnetSession;
 
     fn create() -> Self::TYPE {
-        RshSession {
-            id: RshSession::gen_id(),
+        TelnetSession {
+            id: TelnetSession::gen_id(),
             establish_time: TimeStamp::timestamp(),
         }
     }
@@ -22,7 +22,7 @@ impl Session for RshSession {
     }
 
     fn protocol(&self) -> crate::ProtocolType {
-        ProtocolType::Rsh
+        ProtocolType::Telnet
     }
 
     fn establish_time(&self) -> u64 {

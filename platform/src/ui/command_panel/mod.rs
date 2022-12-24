@@ -10,7 +10,7 @@ use gtk::{
     traits::{EditableExt, WidgetExt},
     EventControllerKey, Inhibit, ListBoxRow, Widget,
 };
-use utilities::TimeStamp;
+use libs::TimeStamp;
 
 use crate::{
     CommandFeedbackItem, CommandFeedbackObject, ACTION_TOGGLE_COMMAND_PANEL, GTK_KEYCODE_ESCAPE,

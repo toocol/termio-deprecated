@@ -7,7 +7,7 @@ use gtk::{
     prelude::*,
     subclass::prelude::*,
 };
-use utilities::Color;
+use libs::Color;
 
 const DEFAULT_FACTOR: f64 = 0.8;
 const DEFAULT_SPINED: f64 = 1.5;

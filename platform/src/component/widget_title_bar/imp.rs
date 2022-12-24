@@ -6,9 +6,9 @@ use gtk::{
     subclass::prelude::*,
     Align, Label,
 };
+use libs::DynamicBundle;
 
 use crate::{IconButton, IconButtonJsonObject, LanguageBundle};
-use crate::prelude::*;
 
 #[derive(Default)]
 pub struct WidgetTitleBar {

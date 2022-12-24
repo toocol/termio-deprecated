@@ -10,7 +10,7 @@ use gtk::{
     subclass::prelude::*,
     Align, Image,
 };
-use utilities::DynamicBundle;
+use libs::DynamicBundle;
 
 use crate::{FontIcon, FontType, GtkMouseButton, IconType, LanguageBundle, SvgIcon};
 
