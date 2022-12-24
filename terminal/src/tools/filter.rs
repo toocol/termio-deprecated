@@ -25,46 +25,35 @@ pub enum HotSpotType {
 /// in which case the list of actions can be obtained using the actions()
 /// method.  These actions may then be displayed in a popup menu or toolbar for example.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub struct HotSpot {
+pub struct HotSpotStruct {
     start_line: i32,
     start_column: i32,
     end_line: i32,
     end_column: i32,
     type_: HotSpotType,
 }
-impl HotSpot {
+pub trait HotSpotConstructer {
     /// Constructs a new hotspot which covers the area from (@p startLine, @p startColumn)
     /// to (@p endLine,@p endColumn) in a block of text.
-    pub fn new(start_line: i32, start_column: i32, end_line: i32, end_column: i32) -> Self {
-        todo!()
-    }
-
+    fn new(start_line: i32, start_column: i32, end_line: i32, end_column: i32) -> Self;
+}
+pub trait HotSpot {
     /// Returns the line when the hotspot area starts
-    pub fn start_line(&self) -> i32 {
-        todo!()
-    }
+    fn start_line(&self) -> i32;
 
     /// Returns the line where the hotspot area ends
-    pub fn end_line(&self) -> i32 {
-        todo!()
-    }
+    fn end_line(&self) -> i32;
 
     /// Returns the column on startLine() where the hotspot area starts
-    pub fn start_column(&self) -> i32 {
-        todo!()
-    }
+    fn start_column(&self) -> i32;
 
     /// Returns the column on endLine() where the hotspot area ends
-    pub fn end_column(&self) -> i32 {
-        todo!()
-    }
+    fn end_column(&self) -> i32;
 
     /// Returns the type of the hotspot.  This is usually used as a hint for
     /// views on how to represent the hotspot graphically.  eg.  Link hotspots
     /// are typically underlined when the user mouses over them
-    pub fn type_(&self) -> HotSpotType {
-        todo!()
-    }
+    fn type_(&self) -> HotSpotType;
 
     /// Causes the an action associated with a hotspot to be triggered.
     ///
@@ -72,9 +61,7 @@ impl HotSpot {
     /// typically empty ( in which case the default action should be performed )
     /// or one of the object names from the actions() list.  In which case the
     /// associated action should be performed.
-    pub fn activate(&self, action: &str) {
-        todo!()
-    }
+    fn activate(&self, action: &str);
 
     /// Sets the type of a hotspot.  This should only be set once
     fn set_type(&self, type_: HotSpotType) {
@@ -103,8 +90,8 @@ impl HotSpot {
 /// create instances of Filter::HotSpot subclasses for sections of interest and
 /// add them to the filter's list of hotspots using addHotSpot()
 pub struct FilterStruct {
-    hotspots: HashMap<i32, Vec<Rc<HotSpot>>>,
-    hostspots_list: Vec<Rc<HotSpot>>,
+    hotspots: HashMap<i32, Vec<Rc<Box<dyn HotSpot>>>>,
+    hostspots_list: Vec<Rc<Box<dyn HotSpot>>>,
 
     line_positions: Vec<Vec<i32>>,
     buffer: String,
@@ -129,13 +116,13 @@ pub trait Filter {
 
     /// Returns the hotspot which covers the given @p line and @p column, or 0 if
     /// no hotspot covers that area
-    fn hotspot_at(&self) -> &HotSpot;
+    fn hotspot_at(&self) -> &Box<dyn HotSpot>;
 
     /// Returns the list of hotspots identified by the filter
-    fn hotspots(&self) -> Vec<&HotSpot>;
+    fn hotspots(&self) -> Vec<&Box<dyn HotSpot>>;
 
     /// Returns the list of hotspots identified by the filter which occur on a given line
-    fn hotspots_at_line(&self, line: usize) -> Vec<HotSpot>;
+    fn hotspots_at_line(&self, line: usize) -> Vec<&Box<dyn HotSpot>>;
 
     /// Set the buffer
     fn set_buffer(&mut self, buffer: String, line_positions: &[i32]);
@@ -148,7 +135,6 @@ pub trait Filter {
 /// matches for the regular expression are found.
 pub struct RegexFilter {
     filter: FilterStruct,
-    captured_texts: Vec<String>,
 }
 impl Filter for RegexFilter {
     fn process(&mut self) {
@@ -159,15 +145,15 @@ impl Filter for RegexFilter {
         todo!()
     }
 
-    fn hotspot_at(&self) -> &HotSpot {
+    fn hotspot_at(&self) -> &Box<dyn HotSpot> {
         todo!()
     }
 
-    fn hotspots(&self) -> Vec<&HotSpot> {
+    fn hotspots(&self) -> Vec<&Box<dyn HotSpot>> {
         todo!()
     }
 
-    fn hotspots_at_line(&self, line: usize) -> Vec<HotSpot> {
+    fn hotspots_at_line(&self, line: usize) -> Vec<&Box<dyn HotSpot>> {
         todo!()
     }
 
@@ -191,15 +177,15 @@ impl Filter for UrlFilter {
         todo!()
     }
 
-    fn hotspot_at(&self) -> &HotSpot {
+    fn hotspot_at(&self) -> &Box<dyn HotSpot> {
         todo!()
     }
 
-    fn hotspots(&self) -> Vec<&HotSpot> {
+    fn hotspots(&self) -> Vec<&Box<dyn HotSpot>> {
         todo!()
     }
 
-    fn hotspots_at_line(&self, line: usize) -> Vec<HotSpot> {
+    fn hotspots_at_line(&self, line: usize) -> Vec<&Box<dyn HotSpot>> {
         todo!()
     }
 

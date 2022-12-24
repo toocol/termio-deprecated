@@ -65,3 +65,20 @@ pub fn wcwidth(ucs: u16) -> c_int {
 pub fn string_width(wstr: &[wchar_t]) -> c_int {
     unsafe { string_width_ffi(wstr.as_ptr()) }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{ptr::null, os::windows::prelude::AsRawHandle};
+
+    use tempfile::tempfile;
+
+    use super::*;
+
+    #[test]
+    fn test_mmap() {
+        let tempfile = tempfile().unwrap();
+        let ion = tempfile.as_raw_handle() as i32;
+        let ptr = mmap(null(), 1024, PROT_READ, MAP_PRIVATE, ion, 0);
+        munmap(ptr, 1024);
+    }
+}

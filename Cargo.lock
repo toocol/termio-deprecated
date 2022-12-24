@@ -2049,6 +2049,7 @@ dependencies = [
  "libc",
  "log",
  "page_size",
+ "regex",
  "tempfile",
  "tmui",
  "wchar",
