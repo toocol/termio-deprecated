@@ -8,14 +8,14 @@ GNU for Linux
 
 ### [mman](https://github.com/alitrack/mman-win32)
 ```
-cmake .. -DCMAKE_INSTALL_PREFIX=C:\Windows\System32 -G
+cmake .. -DCMAKE_INSTALL_PREFIX=C:\Windows\System32 -DBUILD_SHARED_LIBS=OFF
 cmake --build ./ --config Release
 cmake --install ./
 ```
 
 ### [utf8proc](https://github.com/JuliaStrings/utf8proc)
 ```
-cmake .. -DBUILD_SHARED_LIBS=true -DCMAKE_INSTALL_PREFIX=C:\Windows\System32 -G 
+cmake .. -DCMAKE_INSTALL_PREFIX=C:\Windows\System32 -DBUILD_SHARED_LIBS=ON
 cmake --build ./ --config Release 
 cmake --install ./
 ```

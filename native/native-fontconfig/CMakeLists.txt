@@ -22,7 +22,7 @@ set(SOURCES
     src/fontconfig.cpp
 )
 
-add_library(native-fontconfig SHARED
+add_library(native-fontconfig STATIC
 	${SOURCES}
 )
 

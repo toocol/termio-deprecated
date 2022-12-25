@@ -10,19 +10,16 @@ use super::{
     },
 };
 use bitvec::vec::BitVec;
-use libc::{c_void, lseek, memcpy, memset, read, write};
+use libc::{c_void, close, dup, fileno, lseek, memcpy, memset, read, tmpfile, write, FILE};
 use log::error;
 use std::{
     cell::RefCell,
     collections::HashMap,
-    fs::File,
     mem::size_of,
-    os::windows::prelude::AsRawHandle,
     ptr::{null, null_mut},
     rc::Rc,
     slice,
 };
-use tempfile::tempfile;
 
 const MAP_THRESHOLD: i32 = -1000;
 const LINE_SIZE: usize = 1024;
@@ -31,7 +28,7 @@ const LINE_SIZE: usize = 1024;
 pub struct HistoryFile {
     ion: i32,
     length: usize,
-    tempfile: File,
+    tempfile: *mut FILE,
 
     /// Raw pointer to start of mmap'ed file data, or null() if the file is not mmap'ed
     file_map: *const u8,
@@ -47,11 +44,11 @@ pub struct HistoryFile {
 
 impl HistoryFile {
     pub fn new() -> Self {
-        let tempfile = tempfile().expect("`HistoryFile` call `tempfile()` failed.");
+        let tempfile = unsafe { tmpfile() };
         Self {
-            ion: tempfile.as_raw_handle() as i32,
+            ion: unsafe { dup(fileno(tempfile)) },
             length: 0,
-            tempfile: tempfile,
+            tempfile,
             file_map: null(),
             file_map_bytes: None,
             read_write_balance: 0,
@@ -155,7 +152,10 @@ impl HistoryFile {
 impl Drop for HistoryFile {
     fn drop(&mut self) {
         if self.file_map != null() {
-            self.unmap()
+            self.unmap();
+        }
+        if self.tempfile != null_mut() {
+            unsafe { close(self.ion) };
         }
     }
 }

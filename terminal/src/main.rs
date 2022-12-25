@@ -3,5 +3,5 @@ mod emulation;
 mod tools;
 
 fn main() {
-    println!("Hello, world!");
+    println!("Hello Terminal!")
 }
