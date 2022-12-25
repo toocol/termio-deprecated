@@ -97,7 +97,7 @@ mod tests {
         let wcstring = wchz!("你好RUST");
         println!("{}", string_width(wcstring));
 
-        let string = "Hello World";
+        let string = "Hello World\0";
         let u16string = U16String::from_str(string);
         let wc_string = u16string.as_slice();
         println!("{}", string_width(wc_string));
