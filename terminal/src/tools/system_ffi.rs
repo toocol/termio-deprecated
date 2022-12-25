@@ -23,7 +23,7 @@ pub const MAP_ANON: i32 = MAP_ANONYMOUS;
 
 pub const MAP_FAILED: *const c_void = &-1 as *const i32 as *const c_void;
 
-#[link(name = "native-system", kind = "static")]
+#[link(name = "native-system-bundle", kind = "static")]
 extern "C" {
     fn mmap_ffi(
         addr: *const u8,
@@ -62,23 +62,44 @@ pub fn wcwidth(ucs: u16) -> c_int {
     unsafe { wcwidth_ffi(wchar_t::from(ucs)) }
 }
 
-pub fn string_width(wstr: &[wchar_t]) -> c_int {
+pub fn string_width(wstr: &[u16]) -> c_int {
     unsafe { string_width_ffi(wstr.as_ptr()) }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::{os::windows::prelude::AsRawHandle, ptr::null};
+    use std::ptr::null;
 
-    use tempfile::tempfile;
+    use libc::{tmpfile, dup, fileno, close};
+    use wchar::{wch, wchz};
+    use widestring::U16String;
 
     use super::*;
 
     #[test]
     fn test_mmap() {
-        let tempfile = tempfile().unwrap();
-        let ion = tempfile.as_raw_handle() as i32;
+        let tmp = unsafe { tmpfile() };
+        let ion = unsafe { dup(fileno(tmp)) };
+        println!("Process `tempfile()`, handle = {}", ion);
         let ptr = mmap(null(), 1024, PROT_READ, MAP_PRIVATE, ion, 0);
+        println!("Process `mmap`");
         munmap(ptr, 1024);
+        println!("Process `munmap`");
+        unsafe { close(ion) };
+        println!("Process `close`");
+    }
+
+    #[test]
+    fn test_wcwidth() {
+        let wc = wch!('你');
+        println!("{}", wcwidth(wc));
+
+        let wcstring = wchz!("你好RUST");
+        println!("{}", string_width(wcstring));
+
+        let string = "Hello World";
+        let u16string = U16String::from_str(string);
+        let wc_string = u16string.as_slice();
+        println!("{}", string_width(wc_string));
     }
 }

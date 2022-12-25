@@ -18,7 +18,6 @@ include_directories("C:/Windows/System32/include")
 include_directories("C:/Windows/System32/include/sys")
 
 link_directories("C:/Windows/System32/lib")
-link_directories("C:/Windows/System32/lib/sys")
 
 set(HEADERS 
 	src/native_system.h
@@ -30,12 +29,12 @@ set(SOURCES
 add_library(mman STATIC IMPORTED)
 add_library(utf8proc STATIC IMPORTED)
 set_property(TARGET mman PROPERTY IMPORTED_LOCATION C:/Windows/System32/lib/sys/mman.lib)
-set_property(TARGET utf8proc PROPERTY IMPORTED_LOCATION C:/Windows/System32/lib/utf8proc_static.lib)
+set_property(TARGET utf8proc PROPERTY IMPORTED_LOCATION C:/Windows/System32/lib/utf8proc.lib)
 add_library(native-system STATIC
 	${SOURCES}
 )
 
-target_link_libraries(native-system)
+target_link_libraries(native-system mman utf8proc)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET native-system PROPERTY CXX_STANDARD 20)

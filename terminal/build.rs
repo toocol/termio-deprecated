@@ -1,7 +1,7 @@
 use std::{path::PathBuf, env};
 
 fn main() {
-    let library_system = "native-system";
+    let library_system = "native-system-bundle";
     let library_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
     println!("cargo:rustc-link-lib=static={}", library_system);
     println!(

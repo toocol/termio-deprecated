@@ -15,7 +15,7 @@ cmake --install ./
 
 ### [utf8proc](https://github.com/JuliaStrings/utf8proc)
 ```
-cmake .. -DCMAKE_INSTALL_PREFIX=C:\Windows\System32 -DBUILD_SHARED_LIBS=OFF
+cmake .. -DCMAKE_INSTALL_PREFIX=C:\Windows\System32 -DBUILD_SHARED_LIBS=ON
 cmake --build ./ --config Release 
 cmake --install ./
 ```
