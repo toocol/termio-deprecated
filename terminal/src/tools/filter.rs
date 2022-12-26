@@ -1,6 +1,6 @@
 #![allow(dead_code)]
-
-use std::{cell::RefCell, collections::HashMap, rc::Rc, ptr::null_mut};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use tmui::prelude::*;
 
 use lazy_static::__Deref;
 
@@ -67,6 +67,8 @@ pub trait HotSpotImpl {
     /// associated action should be performed.
     fn activate(&self, action: &str);
 
+    fn actions(&self) -> Vec<Action>;
+
     /// Sets the type of a hotspot.  This should only be set once
     fn set_type(&mut self, type_: HotSpotType);
 }
@@ -95,6 +97,10 @@ impl HotSpotImpl for HotSpot {
 
     fn set_type(&mut self, type_: HotSpotType) {
         self.type_ = type_
+    }
+
+    fn actions(&self) -> Vec<Action> {
+        vec![]
     }
 }
 impl HotSpotConstructer for HotSpot {
@@ -205,14 +211,19 @@ pub struct RegexFilterHotSpot {
     hotspot: HotSpot,
     captured_texts: Vec<String>,
 }
-impl RegexFilterHotSpot {
+pub trait RegexFilterHotSpotImpl {
     /// Sets the captured texts associated with this hotspot.
-    pub fn set_captured_texts(&mut self, texts: Vec<String>) {
+    fn set_captured_texts(&mut self, texts: Vec<String>);
+
+    /// Returns the texts found by the filter when matching the filter's regular expression.
+    fn captured_texts(&self) -> &[String];
+}
+impl RegexFilterHotSpotImpl for RegexFilterHotSpot {
+    fn set_captured_texts(&mut self, texts: Vec<String>) {
         self.captured_texts = texts;
     }
 
-    /// Returns the texts found by the filter when matching the filter's regular expression.
-    pub fn captured_texts(&self) -> &[String] {
+    fn captured_texts(&self) -> &[String] {
         &self.captured_texts
     }
 }
@@ -249,6 +260,10 @@ impl HotSpotImpl for RegexFilterHotSpot {
 
     fn set_type(&mut self, type_: HotSpotType) {
         self.hotspot.set_type(type_)
+    }
+
+    fn actions(&self) -> Vec<Action> {
+        vec![]
     }
 }
 
@@ -296,19 +311,33 @@ impl Filter for RegexFilter {
 pub struct FilterObject {
     filter: Option<*mut dyn HotSpotImpl>,
 }
+impl ActionHubExt for FilterObject {}
 impl FilterObject {
-    const ACTION_FILTER_ACTIVATED: &'static str = "action-filter-activated";
+    pub const ACTION_FILTER_ACTIVATED: &'static str = "action-filter-activated";
+    pub const ACTION_OPEN: &'static str = "action-open";
+    pub const ACTION_COPY: &'static str = "action-copy";
 
     pub fn new() -> Self {
         Self { filter: None }
     }
 
     pub fn emit_activated(&self, url: String, from_context_menu: bool) {
-        todo!()
+        emit!(Self::ACTION_FILTER_ACTIVATED, (url, from_context_menu));
     }
 
     pub fn activate(&self) {
-        todo!()
+        let filter_ref = self.filter.as_ref();
+        if let Some(filter) = filter_ref {
+            let copy = filter.clone();
+            self.connect_action(Self::ACTION_OPEN, move |_| unsafe {
+                copy.as_ref().unwrap().activate(Self::ACTION_OPEN)
+            });
+
+            let copy = filter.clone();
+            self.connect_action(Self::ACTION_COPY, move |_| unsafe {
+                copy.as_ref().unwrap().activate(Self::ACTION_COPY)
+            });
+        }
     }
 
     pub fn set_filter(&mut self, filter: *mut dyn HotSpotImpl) {
@@ -316,16 +345,44 @@ impl FilterObject {
     }
 }
 
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum UrlType {
+    StandardUrl,
+    Email,
+    Unknown,
+}
 pub struct UrlFilterHotSpot {
     hotspot: HotSpot,
     url_object: RefCell<FilterObject>,
+    captured_texts: Vec<String>,
 }
-impl UrlFilterHotSpot {}
+impl UrlFilterHotSpot {
+    pub fn url_type(&self) -> UrlType {
+        todo!()
+    }
+}
+impl RegexFilterHotSpotImpl for UrlFilterHotSpot {
+    fn set_captured_texts(&mut self, texts: Vec<String>) {
+        self.captured_texts = texts;
+    }
+
+    fn captured_texts(&self) -> &[String] {
+        &self.captured_texts
+    }
+}
 impl HotSpotConstructer for UrlFilterHotSpot {
     fn new(start_line: i32, start_column: i32, end_line: i32, end_column: i32) -> Self {
         let mut hotspot = Self {
-            hotspot: HotSpot { start_line, start_column, end_line, end_column, type_: HotSpotType::Link },
+            hotspot: HotSpot {
+                start_line,
+                start_column,
+                end_line,
+                end_column,
+                type_: HotSpotType::Link,
+            },
             url_object: RefCell::new(FilterObject::new()),
+            captured_texts: vec![],
         };
         let ptr = &mut hotspot as *mut UrlFilterHotSpot as *mut dyn HotSpotImpl;
         hotspot.url_object.borrow_mut().set_filter(ptr);
@@ -353,10 +410,35 @@ impl HotSpotImpl for UrlFilterHotSpot {
         self.hotspot.type_()
     }
 
-    fn activate(&self, action: &str) {}
+    fn activate(&self, _action: &str) {}
 
     fn set_type(&mut self, type_: HotSpotType) {
         self.hotspot.set_type(type_)
+    }
+
+    fn actions(&self) -> Vec<Action> {
+        let mut list = vec![];
+        let kind = self.url_type();
+
+        assert!(kind == UrlType::StandardUrl || kind == UrlType::Email);
+
+        match kind {
+            UrlType::StandardUrl => {
+                let open_action = Action::with_param(FilterObject::ACTION_OPEN, "Open link");
+                let copy_action = Action::with_param(FilterObject::ACTION_COPY, "Copy link address");
+                list.push(open_action);
+                list.push(copy_action);
+            }
+            UrlType::Email => {
+                let open_action = Action::with_param(FilterObject::ACTION_OPEN, "Send email to...");
+                let copy_action = Action::with_param(FilterObject::ACTION_COPY, "Copy email address");
+                list.push(open_action);
+                list.push(copy_action);
+            }
+            _ => {}
+        }
+
+        list
     }
 }
 
