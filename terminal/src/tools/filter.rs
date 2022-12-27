@@ -1,10 +1,20 @@
 #![allow(dead_code)]
+use super::character::{Character, LineProperty};
+use lazy_static::__Deref;
+use lazy_static::lazy_static;
+use regex::Regex;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use tmui::prelude::*;
 
-use lazy_static::__Deref;
+lazy_static! {
+    pub static ref FULL_URL_REGEX: Regex = Regex::new(r"[a-zA-z]+://[^\s]*").unwrap();
+    pub static ref EMAIL_ADDRESS_REGEX: Regex =
+        Regex::new(r"^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$").unwrap();
+    pub static ref URL_AND_EMAIL_REGEX: Regex =
+        Regex::new(r"([a-zA-z]+://[^\s]*)|(^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$)")
+            .unwrap();
+}
 
-use super::character::{Character, LineProperty};
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum HotSpotType {
     /// the type of the hotspot is not specified
@@ -72,6 +82,9 @@ pub trait HotSpotImpl {
     /// Sets the type of a hotspot.  This should only be set once
     fn set_type(&mut self, type_: HotSpotType);
 }
+pub fn unsafe_as_hotspot_ref<T: HotSpotImpl>(hotspot: &mut dyn HotSpotImpl) -> &mut T {
+    unsafe { &mut *(hotspot as *mut dyn HotSpotImpl as *mut T) }
+}
 impl HotSpotImpl for HotSpot {
     fn start_line(&self) -> i32 {
         self.start_line
@@ -135,22 +148,27 @@ impl HotSpotConstructer for HotSpot {
 /// and identify sections of interest. When processing the text they should
 /// create instances of Filter::HotSpot subclasses for sections of interest and
 /// add them to the filter's list of hotspots using addHotSpot()
-pub struct FilterStruct {
+pub struct BaseFilter {
     hotspots: HashMap<i32, Vec<Rc<Box<dyn HotSpotImpl>>>>,
     hostspots_list: Vec<Rc<Box<dyn HotSpotImpl>>>,
 
     line_positions: Vec<i32>,
-    buffer: Vec<String>,
+    buffer: String,
 }
-impl FilterStruct {
+impl BaseFilter {
     pub fn new() -> Self {
         Self {
             hotspots: HashMap::new(),
             hostspots_list: vec![],
             line_positions: vec![],
-            buffer: vec![],
+            buffer: String::new(),
         }
     }
+}
+trait BaseFilterImpl {
+    fn add_hotspot(&mut self, hotspot: Box<dyn HotSpotImpl>);
+
+    fn get_line_column(&self, position: i32) -> (i32, i32);
 }
 pub trait Filter {
     /// Causes the filter to process the block of text currently in its internal buffer
@@ -173,13 +191,16 @@ pub trait Filter {
     /// Set the buffer
     fn set_buffer(&mut self, buffer: String, line_positions: &[i32]);
 
+    /// Get the buffer of filter
+    fn buffer(&self) -> &str;
+
     /// Judge whether two filters are the same
     fn equals(self: Rc<Self>, other: Rc<dyn Filter>) -> bool {
         self.deref() as *const Self as *const u8 as i32
             == other.deref() as *const dyn Filter as *const u8 as i32
     }
 }
-impl Filter for FilterStruct {
+impl Filter for BaseFilter {
     fn process(&mut self) {
         todo!()
     }
@@ -203,6 +224,10 @@ impl Filter for FilterStruct {
     fn set_buffer(&mut self, buffer: String, line_positions: &[i32]) {
         todo!()
     }
+
+    fn buffer(&self) -> &str {
+        &self.buffer
+    }
 }
 
 /// Type of hotspot created by RegExpFilter.  The capturedTexts() method can be
@@ -216,14 +241,14 @@ pub trait RegexFilterHotSpotImpl {
     fn set_captured_texts(&mut self, texts: Vec<String>);
 
     /// Returns the texts found by the filter when matching the filter's regular expression.
-    fn captured_texts(&self) -> &[String];
+    fn captured_texts(&self) -> &Vec<String>;
 }
 impl RegexFilterHotSpotImpl for RegexFilterHotSpot {
     fn set_captured_texts(&mut self, texts: Vec<String>) {
         self.captured_texts = texts;
     }
 
-    fn captured_texts(&self) -> &[String] {
+    fn captured_texts(&self) -> &Vec<String> {
         &self.captured_texts
     }
 }
@@ -273,18 +298,50 @@ impl HotSpotImpl for RegexFilterHotSpot {
 /// Subclasses can reimplement newHotSpot() to return custom hotspot types when
 /// matches for the regular expression are found.
 pub struct RegexFilter {
-    filter: FilterStruct,
+    filter: BaseFilter,
+    search_text: Regex,
 }
 impl RegexFilter {
-    pub fn new() -> Self {
+    pub fn new(regex: Regex) -> Self {
         Self {
-            filter: FilterStruct::new(),
+            filter: BaseFilter::new(),
+            search_text: regex,
         }
+    }
+}
+pub trait RegexFilterImpl {
+    /// Sets the regular expression which the filter searches for in blocks of text.
+    ///
+    /// Regular expressions which match the empty string are treated as not matching anything.
+    fn set_regex(&mut self, regex: Regex);
+
+    /// Returns the regular expression which the filter searches for in blocks of text.
+    fn regex(&self) -> &Regex;
+}
+impl RegexFilterImpl for RegexFilter {
+    fn set_regex(&mut self, regex: Regex) {
+        self.search_text = regex;
+    }
+
+    fn regex(&self) -> &Regex {
+        &self.search_text
     }
 }
 impl Filter for RegexFilter {
     fn process(&mut self) {
-        self.filter.process()
+        let mut pos = 0;
+        let text = self.buffer();
+        assert!(!text.is_empty());
+
+        if self.search_text.is_match("") {
+            return;
+        }
+
+        for cap in self.search_text.captures_iter(text) {
+            for i in 0..cap.len() {
+                let matched = cap.get(i).unwrap();
+            }
+        }
     }
 
     fn reset(&mut self) {
@@ -305,6 +362,10 @@ impl Filter for RegexFilter {
 
     fn set_buffer(&mut self, buffer: String, line_positions: &[i32]) {
         self.filter.set_buffer(buffer, line_positions)
+    }
+
+    fn buffer(&self) -> &str {
+        self.filter.buffer()
     }
 }
 
@@ -353,37 +414,42 @@ pub enum UrlType {
     Unknown,
 }
 pub struct UrlFilterHotSpot {
-    hotspot: HotSpot,
+    hotspot: RegexFilterHotSpot,
     url_object: RefCell<FilterObject>,
-    captured_texts: Vec<String>,
 }
 impl UrlFilterHotSpot {
     pub fn url_type(&self) -> UrlType {
-        todo!()
+        let url = self.captured_texts().first();
+
+        if let Some(url) = url {
+            if FULL_URL_REGEX.is_match(url) {
+                UrlType::StandardUrl
+            } else if EMAIL_ADDRESS_REGEX.is_match(url) {
+                UrlType::Email
+            } else {
+                UrlType::Unknown
+            }
+        } else {
+            UrlType::Unknown
+        }
     }
 }
 impl RegexFilterHotSpotImpl for UrlFilterHotSpot {
     fn set_captured_texts(&mut self, texts: Vec<String>) {
-        self.captured_texts = texts;
+        self.hotspot.set_captured_texts(texts);
     }
 
-    fn captured_texts(&self) -> &[String] {
-        &self.captured_texts
+    fn captured_texts(&self) -> &Vec<String> {
+        self.hotspot.captured_texts()
     }
 }
 impl HotSpotConstructer for UrlFilterHotSpot {
     fn new(start_line: i32, start_column: i32, end_line: i32, end_column: i32) -> Self {
         let mut hotspot = Self {
-            hotspot: HotSpot {
-                start_line,
-                start_column,
-                end_line,
-                end_column,
-                type_: HotSpotType::Link,
-            },
+            hotspot: RegexFilterHotSpot::new(start_line, start_column, end_line, end_column),
             url_object: RefCell::new(FilterObject::new()),
-            captured_texts: vec![],
         };
+        hotspot.set_type(HotSpotType::Link);
         let ptr = &mut hotspot as *mut UrlFilterHotSpot as *mut dyn HotSpotImpl;
         hotspot.url_object.borrow_mut().set_filter(ptr);
         hotspot
@@ -425,13 +491,15 @@ impl HotSpotImpl for UrlFilterHotSpot {
         match kind {
             UrlType::StandardUrl => {
                 let open_action = Action::with_param(FilterObject::ACTION_OPEN, "Open link");
-                let copy_action = Action::with_param(FilterObject::ACTION_COPY, "Copy link address");
+                let copy_action =
+                    Action::with_param(FilterObject::ACTION_COPY, "Copy link address");
                 list.push(open_action);
                 list.push(copy_action);
             }
             UrlType::Email => {
                 let open_action = Action::with_param(FilterObject::ACTION_OPEN, "Send email to...");
-                let copy_action = Action::with_param(FilterObject::ACTION_COPY, "Copy email address");
+                let copy_action =
+                    Action::with_param(FilterObject::ACTION_COPY, "Copy email address");
                 list.push(open_action);
                 list.push(copy_action);
             }
@@ -444,12 +512,12 @@ impl HotSpotImpl for UrlFilterHotSpot {
 
 /// A filter which matches URLs in blocks of text
 pub struct UrlFilter {
-    filter: FilterStruct,
+    filter: RegexFilter,
 }
 impl UrlFilter {
     pub fn new() -> Self {
         Self {
-            filter: FilterStruct::new(),
+            filter: RegexFilter::new(URL_AND_EMAIL_REGEX.clone()),
         }
     }
 }
@@ -476,6 +544,10 @@ impl Filter for UrlFilter {
 
     fn set_buffer(&mut self, buffer: String, line_positions: &[i32]) {
         self.filter.set_buffer(buffer, line_positions)
+    }
+
+    fn buffer(&self) -> &str {
+        self.filter.buffer()
     }
 }
 
@@ -641,6 +713,34 @@ mod tests {
     use std::rc::Rc;
 
     use lazy_static::__Deref;
+
+    use crate::tools::filter::{EMAIL_ADDRESS_REGEX, URL_AND_EMAIL_REGEX};
+
+    use super::FULL_URL_REGEX;
+
+    #[test]
+    fn test_regex() {
+        assert!(FULL_URL_REGEX.is_match("http://www.google.com"));
+        assert!(FULL_URL_REGEX.is_match("https://www.google.com"));
+        assert!(!FULL_URL_REGEX.is_match("www.google.com"));
+        assert!(!FULL_URL_REGEX.is_match("wwwgooglecom"));
+
+        assert!(EMAIL_ADDRESS_REGEX.is_match("joezeo.cn@gmail.com"));
+        assert!(EMAIL_ADDRESS_REGEX.is_match("xxx.d@kk.com"));
+        assert!(!EMAIL_ADDRESS_REGEX.is_match("xxx.@kk.com"));
+        assert!(!EMAIL_ADDRESS_REGEX.is_match("dsfsdkfjl.com"));
+
+        assert!(URL_AND_EMAIL_REGEX.is_match("http://www.google.com"));
+        assert!(URL_AND_EMAIL_REGEX.is_match("https://www.google.com"));
+        assert!(!URL_AND_EMAIL_REGEX.is_match("www.google.com"));
+        assert!(!URL_AND_EMAIL_REGEX.is_match("wwwgooglecom"));
+
+        assert!(URL_AND_EMAIL_REGEX.is_match("joezeo.cn@gmail.com"));
+        assert!(URL_AND_EMAIL_REGEX.is_match("xxx.d@kk.com"));
+        assert!(!URL_AND_EMAIL_REGEX.is_match("xxx.@kk.com"));
+        assert!(!URL_AND_EMAIL_REGEX.is_match("dsfsdkfjl.com"));
+        assert!(!URL_AND_EMAIL_REGEX.is_match(""));
+    }
 
     #[test]
     fn test_equals() {
