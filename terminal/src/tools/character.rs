@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use lazy_static::lazy_static;
-use wchar::{wchar_t, wch};
 use std::{cell::RefCell, collections::HashMap, sync::Mutex};
+use wchar::{wch, wchar_t};
 
 use super::character_color::{
     CharacterColor, ColorEntry, FontWeight, BASE_COLORS, COLOR_SPACE_DEFAULT, COLOR_SPACE_SYSTEM,
@@ -37,6 +37,21 @@ pub enum CharacterUnion {
     /// charSequence is a hash code which can be used to look up the unicode
     /// character sequence in the ExtendedCharTable used to create the sequence.
     CharSequence(u16),
+}
+impl CharacterUnion {
+    pub fn equals(&self, data: u16) -> bool {
+        match self {
+            Self::Character(wch) => *wch == data,
+            Self::CharSequence(seq) => *seq == data,
+        }
+    }
+
+    pub fn data(&self) -> u16 {
+        match self {
+            Self::Character(wch) => *wch,
+            Self::CharSequence(seq) => *seq,
+        }
+    }
 }
 impl Default for CharacterUnion {
     fn default() -> Self {
