@@ -20,3 +20,7 @@ wchar = "0.11.0"
 widestring = "1.0.2"
 bitvec = "1.0.1"
 regex = "1.7.0"
+rust-embed = { version = "6.4.2", features = [
+    "debug-embed",
+    "include-exclude",
+] }

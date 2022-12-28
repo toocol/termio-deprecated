@@ -1,7 +1,9 @@
 #![allow(dead_code)]
+pub mod filter_chain;
 pub mod regex_filter;
 pub mod url_filter;
 
+pub use filter_chain::*;
 pub use regex_filter::*;
 pub use url_filter::*;
 
