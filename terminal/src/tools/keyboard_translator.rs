@@ -1,9 +1,10 @@
 #![allow(dead_code)]
-use std::{
-    collections::{HashMap},
-    rc::Rc,
-};
-use tmui::prelude::{KeyboardModifier, KeyCode};
+use lazy_static::__Deref;
+use rust_embed::EmbeddedFile;
+use std::{collections::HashMap, io::BufReader, path::PathBuf, ptr::read, rc::Rc, str::Lines};
+use tmui::prelude::{KeyCode, KeyboardModifier};
+
+use crate::asset::Asset;
 
 #[cfg(target_os = "windows")]
 static CTRL_MODIFIER: KeyboardModifier = KeyboardModifier::ControlModifier;
@@ -601,22 +602,22 @@ impl KeyboardTranslator {
 
     /// Returns the name of this keyboard translator.
     pub fn name(&self) -> &str {
-        todo!()
+        &self.name
     }
 
     /// Sets the name of this keyboard translator.
     pub fn set_name(&mut self, name: String) {
-        todo!()
+        self.name = name
     }
 
     /// Returns the descriptive name of this keyboard translator.
     pub fn description(&self) -> &str {
-        todo!()
+        &self.description
     }
 
     /// Sets the descriptive name of this keyboard translator.
     pub fn set_description(&mut self, description: String) {
-        todo!()
+        self.description = description
     }
 
     /// Looks for an entry in this keyboard translator which matches the given key code, keyboard modifiers and state flags.
@@ -626,34 +627,71 @@ impl KeyboardTranslator {
     /// @param keyCode A key code from the Qt::Key enum
     /// @param modifiers A combination of modifiers
     /// @param state Optional flags which specify the current state of the terminal
-    pub fn find_entry(&self, modifiers: KeyboardModifier, state: Option<State>) -> Rc<Entry> {
-        todo!()
+    pub fn find_entry(
+        &self,
+        key_code: i32,
+        modifiers: KeyboardModifier,
+        state: Option<State>,
+    ) -> Option<Rc<Entry>> {
+        let state = if state.is_some() {
+            state.unwrap()
+        } else {
+            State::NoState
+        };
+        for it in self.entries.iter() {
+            if *it.0 == key_code {
+                for en in it.1.iter() {
+                    if en.matches(key_code, modifiers, state) {
+                        return Some(en.clone());
+                    }
+                }
+            }
+        }
+        None
     }
 
     /// Adds an entry to this keyboard translator's table.  Entries can be looked
     /// up according to their key sequence using findEntry()
-    pub fn add_entry(&self, entry: Entry) {
-        todo!()
+    pub fn add_entry(&mut self, entry: Entry) {
+        let key_code = entry.key_code();
+        let entries = self.entries.entry(key_code).or_insert(vec![]);
+        entries.push(Rc::new(entry));
     }
 
     /// Replaces an entry in the translator.  If the @p existing entry is null,
     /// then this is equivalent to calling addEntry(@p replacement)
     pub fn replace_entry(&mut self, existing: Entry, replacement: Entry) {
-        todo!()
+        if !existing.is_null {
+            if let Some(es) = self.entries.get_mut(&existing.key_code) {
+                es.retain(|e| !(existing == **e));
+                es.push(Rc::new(replacement));
+            }
+        }
     }
 
     /// Removes an entry from the table.
-    pub fn remove_entry(&mut self, entry: Entry) {
-        todo!()
+    pub fn remove_entry(&mut self, entry: Rc<Entry>) {
+        if !entry.is_null {
+            if let Some(es) = self.entries.get_mut(&entry.key_code) {
+                es.retain(|e| !(*entry == **e));
+            }
+        }
     }
 
     /// Returns a list of all entries in the translator.
     pub fn entries(&self) -> Vec<Rc<Entry>> {
-        todo!()
+        let mut entries = vec![];
+        for es in self.entries.iter() {
+            for e in es.1.iter() {
+                entries.push(e.clone())
+            }
+        }
+        entries
     }
 }
 
 #[repr(C)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum TokenType {
     TitleKeyword,
     TitleText,
@@ -662,6 +700,7 @@ pub enum TokenType {
     Command,
     OutputText,
 }
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Token {
     type_: TokenType,
     text: String,
@@ -676,27 +715,81 @@ pub struct KeyboardTranslatorReader {
 }
 
 impl KeyboardTranslatorReader {
-    /////////////////////// public function
-    pub fn new() -> Self {
-        Self {
+    //////////////////////////////////////////////////////////////////////// public function
+    /// each line of the keyboard translation file is one of:
+    ///
+    /// - keyboard "name"
+    /// - key KeySequence : "characters"
+    /// - key KeySequence : CommandName
+    ///
+    /// KeySequence begins with the name of the key ( taken from the Qt::Key enum )
+    /// and is followed by the keyboard modifiers and state flags ( with + or - in
+    /// front of each modifier or flag to indicate whether it is required ).  All
+    /// keyboard modifiers and flags are optional, if a particular modifier or state
+    /// is not specified it is assumed not to be a part of the sequence.  The key sequence may contain whitespace
+    ///
+    /// eg:  "key Up+Shift : scrollLineUp"
+    ///      "key Next-Shift : "\E[6~"
+    ///
+    /// (lines containing only whitespace are ignored, parseLine assumes that comments have already been removed)
+    pub fn new(source: String) -> Self {
+        let mut reader = Self {
             description: String::new(),
             next_entry: None,
             has_next: false,
+        };
+        let mut lines = source.lines();
+        while let Some(line) = lines.next() {
+            if !reader.description.is_empty() {
+                break;
+            }
+            let tokens = reader.tokenize(line);
+            if !tokens.is_empty() && tokens.first().unwrap().type_ == TokenType::TitleKeyword {
+                reader.description = tokens[1].text.clone();
+                break;
+            }
         }
+
+        // Read first entry, if any
+        reader.read_next(&mut lines);
+
+        reader
     }
 
     pub fn create_entry(condition: String, result: String) -> Entry {
-        todo!()
+        let mut entry_string = "keyboard \"temporary\"\nkey ".to_string();
+        entry_string.push_str(&condition);
+        entry_string.push_str(" : ");
+
+        // if 'result' is the name of a command then the entry result will be that
+        // command, otherwise the result will be treated as a string to echo when the
+        // key sequence specified by 'condition' is pressed
+        let mut command = Command::NoCommand;
+        if Self::parse_as_command(&result, &mut command) {
+            entry_string.push_str(&result);
+        } else {
+            let mut str = "\"".to_string();
+            str.push_str(&result);
+            str.push_str("\"");
+            entry_string.push_str(&str);
+        }
+
+        let reader = Self::new(entry_string);
+        let mut entry = Entry::new();
+        if reader.has_next_entry() {
+            entry = reader.next_entry();
+        }
+        entry
     }
 
     /// Returns the description text.
     pub fn description(&self) -> &str {
-        todo!()
+        &self.description
     }
 
     /// Returns true if there is another entry in the source stream.
     pub fn has_next_entry(&self) -> bool {
-        todo!()
+        self.has_next
     }
 
     /// Returns the next entry found in the source stream
@@ -709,7 +802,7 @@ impl KeyboardTranslatorReader {
         todo!()
     }
 
-    /////////////////////// private function
+    //////////////////////////////////////////////////////////////////////// private function
     fn parse_as_modifier(item: String, modifier: KeyboardModifier) -> bool {
         todo!()
     }
@@ -722,15 +815,35 @@ impl KeyboardTranslatorReader {
         todo!()
     }
 
-    fn parse_as_command(text: String, command: Command) -> bool {
+    fn parse_as_command(text: &String, command: &mut Command) -> bool {
+        if text.to_lowercase() == "erase" {
+            *command = Command::EraseCommand
+        } else if text.to_lowercase() == "scrollpageup" {
+            *command = Command::ScrollPageUpCommand
+        } else if text.to_lowercase() == "scrollpagedown" {
+            *command = Command::ScrollPageDownCommand
+        } else if text.to_lowercase() == "scrolllineup" {
+            *command = Command::ScrollLineUpCommand
+        } else if text.to_lowercase() == "scrolllinedown" {
+            *command = Command::ScrollLineDownCommand
+        } else if text.to_lowercase() == "scrolllock" {
+            *command = Command::ScrollLockCommand
+        } else if text.to_lowercase() == "scrolluptotop" {
+            *command = Command::ScrollUpToTopCommand
+        } else if text.to_lowercase() == "scrolldowntobottom" {
+            *command = Command::ScrollDownToBottomCommand
+        } else {
+            return false
+        }
+
+        true
+    }
+
+    fn tokenize(&self, text: &str) -> Vec<Token> {
         todo!()
     }
 
-    fn tokenize(&self, text: String) -> Vec<Token> {
-        todo!()
-    }
-
-    fn read_next(&self) {
+    fn read_next(&self, lines: &mut Lines) {
         todo!()
     }
 }
@@ -807,27 +920,11 @@ impl KeyboardTranslatorManager {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test() {
-        let mut list = vec![1, 2, 3, 4, 5, 6, 7, 8];
-        let mut i = 0usize;
-        loop {
-            println!("{}", list.len());
-            if i >= list.len() {
-                break;
-            }
-
-            let val = list[i];
-
-            if val == 3 {
-                list.remove(i);
-                list.insert(i, 20);
-                list.insert(i + 1, 21);
-            }
-            if val == 8 {
-                list.insert(i + 1, 30);
-            }
-            i += 1;
+    fn test_lines() {
+        let str = "line1\nline2\nline3".to_string();
+        let mut lines = str.lines();
+        while let Some(line) = lines.next() {
+            println!("{}", line)
         }
-        println!("{:?}", list)
     }
 }
