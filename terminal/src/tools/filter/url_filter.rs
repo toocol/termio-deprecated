@@ -4,8 +4,8 @@ use tmui::prelude::*;
 
 use super::regex_filter::{RegexFilter, RegexFilterHotSpot, RegexFilterHotSpotImpl};
 use super::{
-    BaseFilterImpl, Filter, FilterObject, HotSpotConstructer, HotSpotImpl,
-    HotSpotType, EMAIL_ADDRESS_REGEX, FULL_URL_REGEX,
+    BaseFilterImpl, Filter, FilterObject, HotSpotConstructer, HotSpotImpl, HotSpotType,
+    EMAIL_ADDRESS_REGEX, FULL_URL_REGEX,
 };
 
 #[repr(C)]
@@ -58,22 +58,27 @@ impl HotSpotConstructer for UrlFilterHotSpot {
     }
 }
 impl HotSpotImpl for UrlFilterHotSpot {
+    #[inline]
     fn start_line(&self) -> i32 {
         self.hotspot.start_line()
     }
 
+    #[inline]
     fn end_line(&self) -> i32 {
         self.hotspot.end_line()
     }
 
+    #[inline]
     fn start_column(&self) -> i32 {
         self.hotspot.start_column()
     }
 
+    #[inline]
     fn end_column(&self) -> i32 {
         self.hotspot.end_column()
     }
 
+    #[inline]
     fn type_(&self) -> HotSpotType {
         self.hotspot.type_()
     }
@@ -165,30 +170,37 @@ impl BaseFilterImpl for UrlFilter {
     }
 }
 impl Filter for UrlFilter {
+    #[inline]
     fn process(&mut self, regex: &Regex) {
         self.filter.process(regex)
     }
 
+    #[inline]
     fn reset(&mut self) {
         self.filter.reset()
     }
 
+    #[inline]
     fn hotspot_at(&self, line: i32, column: i32) -> Option<Rc<Box<dyn HotSpotImpl>>> {
         self.filter.hotspot_at(line, column)
     }
 
+    #[inline]
     fn hotspots(&self) -> &Vec<Rc<Box<dyn HotSpotImpl>>> {
         self.filter.hotspots()
     }
 
+    #[inline]
     fn hotspots_at_line(&self, line: i32) -> Option<&Vec<Rc<Box<dyn HotSpotImpl>>>> {
         self.filter.hotspots_at_line(line)
     }
 
+    #[inline]
     fn set_buffer(&mut self, buffer: Rc<RefCell<String>>, line_positions: Rc<RefCell<Vec<i32>>>) {
         self.filter.set_buffer(buffer, line_positions)
     }
 
+    #[inline]
     fn buffer(&mut self) -> Rc<RefCell<String>> {
         self.filter.buffer()
     }

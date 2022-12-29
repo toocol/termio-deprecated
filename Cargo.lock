@@ -1079,6 +1079,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "hex"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
 name = "hex_color"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1360,7 +1366,7 @@ dependencies = [
 [[package]]
 name = "macros"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#0ad4c1b973feb4ea3d3697f8b7c0f0b5796af4d1"
+source = "git+https://github.com/toocol/tmui#ac9f37880b268668faa5e64bffdfef61009a0522"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2054,6 +2060,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustversion"
+version = "1.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5583e89e108996506031660fe09baa5011b9dd0341b89029313006d1fb508d70"
+
+[[package]]
 name = "ryu"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2241,6 +2253,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "strum"
+version = "0.24.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "063e6045c0e62079840579a7e47a355ae92f60eb74daaf156fb1e84ba164e63f"
+
+[[package]]
+name = "strum_macros"
+version = "0.24.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e385be0d24f186b4ce2f9982191e7101bb737312ad61c1f2f984f34bcf85d59"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "rustversion",
+ "syn",
+]
+
+[[package]]
 name = "syn"
 version = "1.0.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2310,6 +2341,7 @@ version = "0.1.0"
 dependencies = [
  "bitvec",
  "criterion",
+ "hex",
  "lazy_static",
  "libc",
  "log",
@@ -2423,22 +2455,24 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 [[package]]
 name = "tipc"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#0ad4c1b973feb4ea3d3697f8b7c0f0b5796af4d1"
+source = "git+https://github.com/toocol/tmui#ac9f37880b268668faa5e64bffdfef61009a0522"
 
 [[package]]
 name = "tlib"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#0ad4c1b973feb4ea3d3697f8b7c0f0b5796af4d1"
+source = "git+https://github.com/toocol/tmui#ac9f37880b268668faa5e64bffdfef61009a0522"
 dependencies = [
  "lazy_static",
  "log",
  "macros",
+ "strum",
+ "strum_macros",
 ]
 
 [[package]]
 name = "tmui"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#0ad4c1b973feb4ea3d3697f8b7c0f0b5796af4d1"
+source = "git+https://github.com/toocol/tmui#ac9f37880b268668faa5e64bffdfef61009a0522"
 dependencies = [
  "hex_color",
  "log",

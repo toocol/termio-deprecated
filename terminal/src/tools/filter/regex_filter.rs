@@ -18,10 +18,12 @@ pub trait RegexFilterHotSpotImpl {
     fn captured_texts(&self) -> &Vec<String>;
 }
 impl RegexFilterHotSpotImpl for RegexFilterHotSpot {
+    #[inline]
     fn set_captured_texts(&mut self, texts: Vec<String>) {
         self.captured_texts = texts;
     }
 
+    #[inline]
     fn captured_texts(&self) -> &Vec<String> {
         &self.captured_texts
     }
@@ -35,28 +37,35 @@ impl HotSpotConstructer for RegexFilterHotSpot {
     }
 }
 impl HotSpotImpl for RegexFilterHotSpot {
+    #[inline]
     fn start_line(&self) -> i32 {
         self.hotspot.start_line()
     }
 
+    #[inline]
     fn end_line(&self) -> i32 {
         self.hotspot.end_line()
     }
 
+    #[inline]
     fn start_column(&self) -> i32 {
         self.hotspot.start_column()
     }
 
+    #[inline]
     fn end_column(&self) -> i32 {
         self.hotspot.end_column()
     }
 
+    #[inline]
     fn type_(&self) -> HotSpotType {
         self.hotspot.type_()
     }
 
+    #[inline]
     fn activate(&self, _action: &str) {}
 
+    #[inline]
     fn set_type(&mut self, type_: HotSpotType) {
         self.hotspot.set_type(type_)
     }
@@ -130,26 +139,32 @@ impl Filter for RegexFilter {
         }
     }
 
+    #[inline]
     fn reset(&mut self) {
         self.filter.reset()
     }
 
+    #[inline]
     fn hotspot_at(&self, line: i32, column: i32) -> Option<Rc<Box<dyn HotSpotImpl>>> {
         self.filter.hotspot_at(line, column)
     }
 
+    #[inline]
     fn hotspots(&self) -> &Vec<Rc<Box<dyn HotSpotImpl>>> {
         self.filter.hotspots()
     }
 
+    #[inline]
     fn hotspots_at_line(&self, line: i32) -> Option<&Vec<Rc<Box<dyn HotSpotImpl>>>> {
         self.filter.hotspots_at_line(line)
     }
 
+    #[inline]
     fn set_buffer(&mut self, buffer: Rc<RefCell<String>>, line_positions: Rc<RefCell<Vec<i32>>>) {
         self.filter.set_buffer(buffer, line_positions)
     }
 
+    #[inline]
     fn buffer(&mut self) -> Rc<RefCell<String>> {
         self.filter.buffer()
     }

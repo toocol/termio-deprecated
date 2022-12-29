@@ -95,32 +95,40 @@ pub fn unsafe_as_hotspot_ref<T: HotSpotImpl>(hotspot: &mut dyn HotSpotImpl) -> &
     unsafe { &mut *(hotspot as *mut dyn HotSpotImpl as *mut T) }
 }
 impl HotSpotImpl for HotSpot {
+    #[inline]
     fn start_line(&self) -> i32 {
         self.start_line
     }
 
+    #[inline]
     fn end_line(&self) -> i32 {
         self.end_line
     }
 
+    #[inline]
     fn start_column(&self) -> i32 {
         self.start_column
     }
 
+    #[inline]
     fn end_column(&self) -> i32 {
         self.end_column
     }
 
+    #[inline]
     fn type_(&self) -> HotSpotType {
         self.type_
     }
 
+    #[inline]
     fn activate(&self, _action: &str) {}
 
+    #[inline]
     fn set_type(&mut self, type_: HotSpotType) {
         self.type_ = type_
     }
 
+    #[inline]
     fn actions(&self) -> Vec<Action> {
         vec![]
     }
@@ -273,19 +281,23 @@ impl Filter for BaseFilter {
         }
     }
 
+    #[inline]
     fn hotspots(&self) -> &Vec<Rc<Box<dyn HotSpotImpl>>> {
         &self.hostspots_list
     }
 
+    #[inline]
     fn hotspots_at_line(&self, line: i32) -> Option<&Vec<Rc<Box<dyn HotSpotImpl>>>> {
         self.hotspots.get(&line)
     }
 
+    #[inline]
     fn set_buffer(&mut self, buffer: Rc<RefCell<String>>, line_positions: Rc<RefCell<Vec<i32>>>) {
         self.buffer = buffer;
         self.line_positions = line_positions;
     }
 
+    #[inline]
     fn buffer(&mut self) -> Rc<RefCell<String>> {
         self.buffer.clone()
     }
@@ -305,6 +317,7 @@ impl FilterObject {
         Self { filter: None }
     }
 
+    #[inline]
     pub fn emit_activated(&self, url: String, from_context_menu: bool) {
         emit!(Self::ACTION_FILTER_ACTIVATED, (url, from_context_menu));
     }
@@ -324,6 +337,7 @@ impl FilterObject {
         }
     }
 
+    #[inline]
     pub fn set_filter(&mut self, filter: *mut dyn HotSpotImpl) {
         self.filter = Some(filter)
     }

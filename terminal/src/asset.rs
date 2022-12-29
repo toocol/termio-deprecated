@@ -1,7 +1,7 @@
 use rust_embed::RustEmbed;
 
 #[derive(RustEmbed)]
-#[folder = "../src/resources/"]
+#[folder = "resources/"]
 #[include = "*.keytab"]
 #[include = "*.colorscheme"]
 #[include = "*.schema"]
