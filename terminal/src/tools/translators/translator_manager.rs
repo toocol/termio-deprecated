@@ -1,9 +1,10 @@
-use log::warn;
-
+use super::{KeyboardTranslator, KeyboardTranslatorReader};
 use crate::asset::Asset;
-
-use super::KeyboardTranslator;
+use log::warn;
 use std::{collections::HashMap, rc::Rc};
+
+const LAYOUT_PATH_PREFIX: &'static str = "kb-layouts/";
+const LAYOUT_PATH_SUFFIX: &'static str = ".keytab";
 
 /// Manages the keyboard translations available for use by terminal sessions
 /// and loads the list of available keyboard translations.
@@ -25,20 +26,10 @@ impl KeyboardTranslatorManager {
         }
     }
 
-    /// Adds a new translator.  If a translator with the same name already exists,
-    /// it will be replaced by the new translator.
-    pub fn add_translator(&mut self, translator: KeyboardTranslator) {
-        todo!()
-    }
-
-    /// Deletes a translator.  Returns true on successful deletion or false otherwise.
-    pub fn delete_translator(&mut self, name: String) -> bool {
-        todo!()
-    }
-
     /// Returns the default translator.
     pub fn default_translator(&self) -> Rc<Box<KeyboardTranslator>> {
-        todo!()
+        let translator = self.load_translator("default");
+        Rc::new(Box::new(translator.unwrap()))
     }
 
     /// Returns the keyboard translator with the given name or 0 if no translator
@@ -48,11 +39,11 @@ impl KeyboardTranslatorManager {
     /// the on-disk .keyboard file is loaded and parsed.
     pub fn find_translator(&mut self, name: String) -> Rc<Box<KeyboardTranslator>> {
         if name.is_empty() {
-            return self.default_translator()
+            return self.default_translator();
         }
 
         if self.translators.contains_key(&name) {
-            return self.translators.get(&name).unwrap().clone()
+            return self.translators.get(&name).unwrap().clone();
         }
 
         let translator = self.load_translator(&name);
@@ -61,7 +52,10 @@ impl KeyboardTranslatorManager {
             self.translators.insert(name, translator.clone());
             translator
         } else {
-            warn!("Unable to load translator `{}`, use the default translator.", name);
+            warn!(
+                "Unable to load translator `{}`, use the default translator.",
+                name
+            );
             self.default_translator()
         }
     }
@@ -69,8 +63,8 @@ impl KeyboardTranslatorManager {
     /// Returns a list of the names of available keyboard translators.
     ///
     /// The first time this is called, a search for available translators is started.
-    pub fn all_translators(&self) -> Vec<String> {
-        todo!()
+    pub fn all_translators(&self) -> &[String] {
+        &self.valid_translator_names
     }
 
     /// Locate the avaliable translators
@@ -84,14 +78,23 @@ impl KeyboardTranslatorManager {
 
     // Load the translator.
     fn load_translator(&self, name: &str) -> Option<KeyboardTranslator> {
-        todo!()
-    }
+        let mut full_name = LAYOUT_PATH_PREFIX.to_string();
+        full_name.push_str(name);
+        full_name.push_str(LAYOUT_PATH_SUFFIX);
 
-    fn save_translator(&self, translator: KeyboardTranslator) -> bool {
-        todo!()
-    }
+        if let Some(asset) = Asset::get(&full_name) {
+            let source = String::from_utf8(asset.data.to_vec())
+                .expect("Parse keyboard layouts to utf-8 failed.");
+            let mut translator = KeyboardTranslator::new(name.to_string());
+            let mut reader = KeyboardTranslatorReader::new(source);
+            translator.set_description(reader.description().to_string());
+            while reader.has_next_entry() {
+                translator.add_entry(reader.next_entry())
+            }
 
-    fn find_translator_path(&self, name: String) -> String {
-        todo!()
+            Some(translator)
+        } else {
+            None
+        }
     }
 }
