@@ -1,10 +1,20 @@
 #![allow(dead_code)]
-use lazy_static::__Deref;
-use rust_embed::EmbeddedFile;
-use std::{collections::HashMap, io::BufReader, path::PathBuf, ptr::read, rc::Rc, str::Lines};
+pub mod translator_manager;
+pub mod translator_reader;
+
+pub use translator_manager::*;
+pub use translator_reader::*;
+
+use lazy_static::lazy_static;
+use regex::Regex;
+use std::{collections::HashMap, rc::Rc};
 use tmui::prelude::{KeyCode, KeyboardModifier};
 
-use crate::asset::Asset;
+lazy_static! {
+    pub static ref TITLE_REGEX: Regex = Regex::new("keyboard\\s+\"(.*)\"").unwrap();
+    pub static ref KEY_REGEX: Regex =
+        Regex::new("key\\s+([\\w\\+\\s\\-\\*\\.]+)\\s*:\\s*(\"(.*)\"|\\w+)").unwrap();
+}
 
 #[cfg(target_os = "windows")]
 static CTRL_MODIFIER: KeyboardModifier = KeyboardModifier::ControlModifier;
@@ -30,6 +40,11 @@ fn one_or_zero(value: bool) -> u8 {
 #[inline]
 fn is_printable_char(ch: u8) -> bool {
     ch >= 32 && ch < 127
+}
+
+#[inline]
+fn is_letter_or_number(ch: u8) -> bool {
+    (ch >= b'a' && ch <= b'z') || (ch >= b'A' && ch <= b'Z') || (ch >= b'0' && ch <= b'9')
 }
 
 #[inline]
@@ -584,6 +599,19 @@ impl Entry {
     }
 }
 
+//////////////////////////////////////////////////////////////////////////////////////
+/// A convertor which maps between key sequences pressed by the user and the
+/// character strings which should be sent to the terminal and commands
+/// which should be invoked when those character sequences are pressed.
+///
+/// Konsole supports multiple keyboard translators, allowing the user to
+/// specify the character sequences which are sent to the terminal
+/// when particular key sequences are pressed.
+///
+/// A key sequence is defined as a key code, associated keyboard modifiers
+/// (Shift,Ctrl,Alt,Meta etc.) and state flags which indicate the state
+/// which the terminal must be in for the key sequence to apply.
+//////////////////////////////////////////////////////////////////////////////////////
 pub struct KeyboardTranslator {
     entries: HashMap<i32, Vec<Rc<Entry>>>,
     name: String,
@@ -690,241 +718,25 @@ impl KeyboardTranslator {
     }
 }
 
-#[repr(C)]
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum TokenType {
-    TitleKeyword,
-    TitleText,
-    KeyKeyword,
-    KeySequence,
-    Command,
-    OutputText,
-}
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct Token {
-    type_: TokenType,
-    text: String,
-}
-
-/// Parses the contents of a Keyboard Translator (.keytab) file and
-/// returns the entries found in it.
-pub struct KeyboardTranslatorReader {
-    description: String,
-    next_entry: Option<Entry>,
-    has_next: bool,
-}
-
-impl KeyboardTranslatorReader {
-    //////////////////////////////////////////////////////////////////////// public function
-    /// each line of the keyboard translation file is one of:
-    ///
-    /// - keyboard "name"
-    /// - key KeySequence : "characters"
-    /// - key KeySequence : CommandName
-    ///
-    /// KeySequence begins with the name of the key ( taken from the Qt::Key enum )
-    /// and is followed by the keyboard modifiers and state flags ( with + or - in
-    /// front of each modifier or flag to indicate whether it is required ).  All
-    /// keyboard modifiers and flags are optional, if a particular modifier or state
-    /// is not specified it is assumed not to be a part of the sequence.  The key sequence may contain whitespace
-    ///
-    /// eg:  "key Up+Shift : scrollLineUp"
-    ///      "key Next-Shift : "\E[6~"
-    ///
-    /// (lines containing only whitespace are ignored, parseLine assumes that comments have already been removed)
-    pub fn new(source: String) -> Self {
-        let mut reader = Self {
-            description: String::new(),
-            next_entry: None,
-            has_next: false,
-        };
-        let mut lines = source.lines();
-        while let Some(line) = lines.next() {
-            if !reader.description.is_empty() {
-                break;
-            }
-            let tokens = reader.tokenize(line);
-            if !tokens.is_empty() && tokens.first().unwrap().type_ == TokenType::TitleKeyword {
-                reader.description = tokens[1].text.clone();
-                break;
-            }
-        }
-
-        // Read first entry, if any
-        reader.read_next(&mut lines);
-
-        reader
-    }
-
-    pub fn create_entry(condition: String, result: String) -> Entry {
-        let mut entry_string = "keyboard \"temporary\"\nkey ".to_string();
-        entry_string.push_str(&condition);
-        entry_string.push_str(" : ");
-
-        // if 'result' is the name of a command then the entry result will be that
-        // command, otherwise the result will be treated as a string to echo when the
-        // key sequence specified by 'condition' is pressed
-        let mut command = Command::NoCommand;
-        if Self::parse_as_command(&result, &mut command) {
-            entry_string.push_str(&result);
-        } else {
-            let mut str = "\"".to_string();
-            str.push_str(&result);
-            str.push_str("\"");
-            entry_string.push_str(&str);
-        }
-
-        let reader = Self::new(entry_string);
-        let mut entry = Entry::new();
-        if reader.has_next_entry() {
-            entry = reader.next_entry();
-        }
-        entry
-    }
-
-    /// Returns the description text.
-    pub fn description(&self) -> &str {
-        &self.description
-    }
-
-    /// Returns true if there is another entry in the source stream.
-    pub fn has_next_entry(&self) -> bool {
-        self.has_next
-    }
-
-    /// Returns the next entry found in the source stream
-    pub fn next_entry(&self) -> Entry {
-        todo!()
-    }
-
-    ///  Returns true if an error occurred whilst parsing the input or false if no error occurred.
-    pub fn parse_error(&self) -> bool {
-        todo!()
-    }
-
-    //////////////////////////////////////////////////////////////////////// private function
-    fn parse_as_modifier(item: String, modifier: KeyboardModifier) -> bool {
-        todo!()
-    }
-
-    fn parse_as_state_flag(item: String, state: State) -> bool {
-        todo!()
-    }
-
-    fn parse_as_key_code(item: String, key_code: i32) -> bool {
-        todo!()
-    }
-
-    fn parse_as_command(text: &String, command: &mut Command) -> bool {
-        if text.to_lowercase() == "erase" {
-            *command = Command::EraseCommand
-        } else if text.to_lowercase() == "scrollpageup" {
-            *command = Command::ScrollPageUpCommand
-        } else if text.to_lowercase() == "scrollpagedown" {
-            *command = Command::ScrollPageDownCommand
-        } else if text.to_lowercase() == "scrolllineup" {
-            *command = Command::ScrollLineUpCommand
-        } else if text.to_lowercase() == "scrolllinedown" {
-            *command = Command::ScrollLineDownCommand
-        } else if text.to_lowercase() == "scrolllock" {
-            *command = Command::ScrollLockCommand
-        } else if text.to_lowercase() == "scrolluptotop" {
-            *command = Command::ScrollUpToTopCommand
-        } else if text.to_lowercase() == "scrolldowntobottom" {
-            *command = Command::ScrollDownToBottomCommand
-        } else {
-            return false
-        }
-
-        true
-    }
-
-    fn tokenize(&self, text: &str) -> Vec<Token> {
-        todo!()
-    }
-
-    fn read_next(&self, lines: &mut Lines) {
-        todo!()
-    }
-}
-
-/// Manages the keyboard translations available for use by terminal sessions
-/// and loads the list of available keyboard translations.
-///
-/// The keyboard translations themselves are not loaded until they are
-/// first requested via a call to find_translator()
-pub struct KeyboardTranslatorManager {
-    translators: HashMap<String, Rc<Box<KeyboardTranslator>>>,
-    have_load_all: bool,
-}
-
-impl KeyboardTranslatorManager {
-    pub fn new() -> Self {
-        Self {
-            translators: HashMap::new(),
-            have_load_all: false,
-        }
-    }
-
-    /// Adds a new translator.  If a translator with the same name already exists,
-    /// it will be replaced by the new translator.
-    pub fn add_translator(&mut self, translator: KeyboardTranslator) {
-        todo!()
-    }
-
-    /// Deletes a translator.  Returns true on successful deletion or false otherwise.
-    pub fn delete_translator(&mut self, name: String) -> bool {
-        todo!()
-    }
-
-    /// Returns the default translator.
-    pub fn default_translator(&self) -> KeyboardTranslator {
-        todo!()
-    }
-
-    /// Returns the keyboard translator with the given name or 0 if no translator
-    /// with that name exists.
-    ///
-    /// The first time that a translator with a particular name is requested,
-    /// the on-disk .keyboard file is loaded and parsed.
-    pub fn find_translator(&self, name: String) -> Rc<Box<KeyboardTranslator>> {
-        todo!()
-    }
-
-    /// Returns a list of the names of available keyboard translators.
-    ///
-    /// The first time this is called, a search for available translators is started.
-    pub fn all_translators(&self) -> Vec<String> {
-        todo!()
-    }
-
-    /// Locate the avaliable translators
-    fn find_translators(&self) {
-        todo!()
-    }
-
-    // Load the translator.
-    fn load_translator(&self, name: String) -> KeyboardTranslator {
-        todo!()
-    }
-
-    fn save_translator(&self, translator: KeyboardTranslator) -> bool {
-        todo!()
-    }
-
-    fn find_translator_path(&self, name: String) -> String {
-        todo!()
-    }
-}
-
 #[cfg(test)]
 mod tests {
+    use super::{KEY_REGEX, TITLE_REGEX};
+
     #[test]
-    fn test_lines() {
-        let str = "line1\nline2\nline3".to_string();
-        let mut lines = str.lines();
-        while let Some(line) = lines.next() {
-            println!("{}", line)
-        }
+    fn test_regex() {
+        let line = "keyboard \"Default (XFree 4)\"";
+        let s = TITLE_REGEX.captures(line).unwrap().get(1).unwrap().as_str();
+        println!("{}", s);
+
+        let line = "key Right-Shift-Ansi : \"\\EC\"";
+        let caps = KEY_REGEX.captures(line).unwrap();
+        let s = caps.get(0).unwrap().as_str();
+        println!("0: {}", s);
+        let s = caps.get(1).unwrap().as_str();
+        println!("1: {}", s);
+        let s = caps.get(2).unwrap().as_str();
+        println!("2: {}", s);
+        let s = caps.get(3).unwrap().as_str();
+        println!("3: {}", s);
     }
 }

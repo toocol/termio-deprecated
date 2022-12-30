@@ -5,7 +5,6 @@ pub mod constant;
 pub mod font;
 pub mod termio;
 pub mod ui;
-pub mod prelude;
 pub mod language_bundle;
 
 pub use component::*;
