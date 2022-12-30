@@ -1,9 +1,9 @@
 pub mod system_ffi;
 pub mod block_array;
+pub mod translators;
 pub mod character_color;
 pub mod filter;
 pub mod history;
-pub mod keyboard_translator;
 pub mod character;
 pub mod terminal_character_decoder;
 pub mod text_stream;

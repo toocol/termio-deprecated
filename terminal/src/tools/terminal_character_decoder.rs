@@ -126,7 +126,12 @@ impl<'a> TerminalCharacterDecoder<'a> for PlainTextDecoder<'a> {
         let mut output_count = count;
 
         if !self.include_trailing_whitespace {
-            for i in count - 1..-1 {
+            let mut i = count - 1;
+            loop {
+                if i < 0 {
+                    break;
+                }
+
                 if character
                     .get(i as usize)
                     .unwrap()
@@ -137,6 +142,8 @@ impl<'a> TerminalCharacterDecoder<'a> for PlainTextDecoder<'a> {
                 } else {
                     output_count -= 1;
                 }
+
+                i -= 1;
             }
         }
 
