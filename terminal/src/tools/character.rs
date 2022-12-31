@@ -5,6 +5,7 @@ use wchar::{wch, wchar_t};
 
 use super::character_color::{
     CharacterColor, ColorEntry, FontWeight, BASE_COLORS, COLOR_SPACE_DEFAULT, COLOR_SPACE_SYSTEM,
+    DEFAULT_BACK_COLOR, DEFAULT_FORE_COLOR,
 };
 pub type LineProperty = u8;
 
@@ -52,10 +53,17 @@ impl CharacterUnion {
             Self::CharSequence(seq) => *seq,
         }
     }
+
+    pub fn set_data(&mut self, data: u16) {
+        match self {
+            Self::Character(ch) => *ch = data,
+            Self::CharSequence(seq) => *seq = data,
+        }
+    }
 }
 impl Default for CharacterUnion {
     fn default() -> Self {
-        Self::Character(wch!('\0'))
+        Self::Character(wch!(' '))
     }
 }
 impl Into<u16> for CharacterUnion {
@@ -72,7 +80,7 @@ impl From<u16> for CharacterUnion {
     }
 }
 
-#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Character {
     // The union of character, is one of `Character` or `CharSequence`
     pub character_union: CharacterUnion,
@@ -84,7 +92,27 @@ pub struct Character {
     pub background_color: CharacterColor,
 }
 
+impl Default for Character {
+    fn default() -> Self {
+        Self {
+            character_union: Default::default(),
+            rendition: DEFAULT_RENDITION,
+            foreground_color: CharacterColor::new(COLOR_SPACE_DEFAULT, DEFAULT_FORE_COLOR),
+            background_color: CharacterColor::new(COLOR_SPACE_DEFAULT, DEFAULT_BACK_COLOR),
+        }
+    }
+}
+
 impl Character {
+    pub fn new(c: wchar_t, f: CharacterColor, b: CharacterColor, r: u8) -> Self {
+        Self {
+            character_union: CharacterUnion::Character(c),
+            rendition: r,
+            foreground_color: f,
+            background_color: b,
+        }
+    }
+
     /// Returns true if this character has a transparent background when
     /// it is drawn with the specified @p palette.
     #[inline]
