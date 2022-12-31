@@ -121,7 +121,7 @@ pub trait HistoryType {
 
     fn maximum_line_count(&self) -> i32;
 
-    fn scroll(self, old: Option<Box<dyn HistoryScrollWrapper>>) -> Box<dyn HistoryScrollWrapper>;
+    fn scroll(&self, old: Option<Rc<Box<dyn HistoryScrollWrapper>>>) -> Rc<Box<dyn HistoryScrollWrapper>>;
 
     fn is_unlimited(&self) -> bool {
         self.maximum_line_count() == 0
@@ -143,8 +143,8 @@ impl HistoryType for HistoryTypeNone {
         0
     }
 
-    fn scroll(self, _: Option<Box<dyn HistoryScrollWrapper>>) -> Box<dyn HistoryScrollWrapper> {
-        HistoryScrollNone::new().wrap()
+    fn scroll(&self, _: Option<Rc<Box<dyn HistoryScrollWrapper>>>) -> Rc<Box<dyn HistoryScrollWrapper>> {
+        Rc::new(HistoryScrollNone::new().wrap())
     }
 }
 
@@ -165,8 +165,8 @@ impl HistoryType for HistoryTypeBlockArray {
         self.size as i32
     }
 
-    fn scroll(self, _: Option<Box<dyn HistoryScrollWrapper>>) -> Box<dyn HistoryScrollWrapper> {
-        HistoryScrollBlockArray::new(self.size).wrap()
+    fn scroll(&self, _: Option<Rc<Box<dyn HistoryScrollWrapper>>>) -> Rc<Box<dyn HistoryScrollWrapper>> {
+        Rc::new(HistoryScrollBlockArray::new(self.size).wrap())
     }
 }
 
@@ -192,7 +192,7 @@ impl HistoryType for HistoryTypeFile {
         0
     }
 
-    fn scroll(self, old: Option<Box<dyn HistoryScrollWrapper>>) -> Box<dyn HistoryScrollWrapper> {
+    fn scroll(&self, old: Option<Rc<Box<dyn HistoryScrollWrapper>>>) -> Rc<Box<dyn HistoryScrollWrapper>> {
         let mut scroll = HistoryScrollFile::new(self.file_name.clone());
         let mut line = [Character::default(); LINE_SIZE];
         let lines = if old.is_some() {
@@ -217,7 +217,7 @@ impl HistoryType for HistoryTypeFile {
                 scroll.add_line(old.as_ref().unwrap().is_wrapped_line(i as i32));
             }
         }
-        scroll.wrap()
+        Rc::new(scroll.wrap())
     }
 }
 
@@ -238,12 +238,12 @@ impl HistoryType for HistoryTypeBuffer {
         self.nb_lines as i32
     }
 
-    fn scroll(self, old: Option<Box<dyn HistoryScrollWrapper>>) -> Box<dyn HistoryScrollWrapper> {
+    fn scroll(&self, old: Option<Rc<Box<dyn HistoryScrollWrapper>>>) -> Rc<Box<dyn HistoryScrollWrapper>> {
         if let Some(old) = old {
             old.set_max_nb_lines(self.nb_lines);
             old
         } else {
-            HistoryScrollBuffer::new(Some(self.nb_lines)).wrap()
+            Rc::new(HistoryScrollBuffer::new(Some(self.nb_lines)).wrap())
         }
     }
 }
@@ -265,12 +265,12 @@ impl HistoryType for CompactHistoryType {
         self.nb_lines as i32
     }
 
-    fn scroll(self, old: Option<Box<dyn HistoryScrollWrapper>>) -> Box<dyn HistoryScrollWrapper> {
+    fn scroll(&self, old: Option<Rc<Box<dyn HistoryScrollWrapper>>>) -> Rc<Box<dyn HistoryScrollWrapper>> {
         if let Some(old) = old {
             old.set_max_nb_lines(self.nb_lines);
             old
         } else {
-            CompactHistoryScroll::new(Some(self.nb_lines as i32)).wrap()
+            Rc::new(CompactHistoryScroll::new(Some(self.nb_lines as i32)).wrap())
         }
     }
 }

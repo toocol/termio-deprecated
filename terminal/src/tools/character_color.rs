@@ -107,6 +107,16 @@ pub struct CharacterColor {
 }
 
 impl CharacterColor {
+    /// Create the default foreground character color.
+    pub fn default_foreground() -> Self {
+        Self::new(COLOR_SPACE_DEFAULT, DEFAULT_FORE_COLOR)
+    }
+
+    /// Create the default background character color.
+    pub fn default_background() -> Self {
+        Self::new(COLOR_SPACE_DEFAULT, DEFAULT_BACK_COLOR)
+    }
+
     /// Constructs a new CharacterColor whoose color and color space are undefined.
     pub fn empty() -> Self {
         Self {
@@ -259,8 +269,8 @@ pub const BASE_COLORS: usize = 10;
 pub const INTENSITIES: usize = 2;
 pub const TABLE_COLORS: usize = INTENSITIES * BASE_COLORS;
 
-pub const DEFAULT_FORE_COLOR: usize = 0;
-pub const DEFAULT_BACK_COLOR: usize = 1;
+pub const DEFAULT_FORE_COLOR: u32 = 0;
+pub const DEFAULT_BACK_COLOR: u32 = 1;
 
 /// A standard set of colors using black text on a white background.
 pub const BASE_COLOR_TABLE: [ColorEntry; TABLE_COLORS] = [
