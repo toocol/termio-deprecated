@@ -84,13 +84,13 @@ pub enum State {
     Combination(u8),
 }
 impl State {
-    pub fn or(&self, other: State) -> State {
+    pub fn or(&self, other: Self) -> Self {
         let one = self.as_u8();
         let other = other.as_u8();
         Self::Combination(one | other)
     }
 
-    pub fn has(&self, has: State) -> bool {
+    pub fn has(&self, has: Self) -> bool {
         match self {
             Self::Combination(state) => state & has.as_u8() > 0,
             _ => *self == has,
@@ -140,44 +140,93 @@ impl From<u8> for State {
 }
 
 /// This enum describes commands which are associated with particular key sequences.
-#[repr(u16)]
+#[repr(C)]
 #[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
 pub enum Command {
     /// Indicates that no command is associated with this command sequence.
     #[default]
-    NoCommand = 0,
+    NoCommand,
     /// Send command.
-    SendComand = 1,
+    SendComand,
     /// Scroll the terminal display up one page.
-    ScrollPageUpCommand = 2,
+    ScrollPageUpCommand,
     /// Scroll the terminal display down one page.
-    ScrollPageDownCommand = 4,
+    ScrollPageDownCommand,
     /// Scroll the terminal display up one line.
-    ScrollLineUpCommand = 8,
+    ScrollLineUpCommand,
     /// Scroll the terminal display down one line.
-    ScrollLineDownCommand = 16,
+    ScrollLineDownCommand,
     /// Toggles scroll lock mode.
-    ScrollLockCommand = 32,
+    ScrollLockCommand,
     /// Scroll the terminal display up to the start of history.
-    ScrollUpToTopCommand = 64,
+    ScrollUpToTopCommand,
     /// Scroll the terminal display down to the end of history.
-    ScrollDownToBottomCommand = 128,
+    ScrollDownToBottomCommand,
     /// Echos the operating system specific erase character.
-    EraseCommand = 256,
+    EraseCommand,
+    Combination(u16)
+}
+impl Command {
+    pub fn or(&self, other: Self) -> Self {
+        let one = self.as_u16();
+        let other = other.as_u16();
+        Self::Combination(one | other)
+    }
+
+    pub fn has(&self, has: Self) -> bool {
+        match self {
+            Self::Combination(cmd) => cmd & has.as_u16() > 0,
+            _ => *self == has,
+        }
+    }
+
+    pub fn as_u16(&self) -> u16 {
+        match self {
+            Self::NoCommand => 0,
+            Self::SendComand => 1,
+            Self::ScrollPageUpCommand => 2,
+            Self::ScrollPageDownCommand => 4,
+            Self::ScrollLineUpCommand => 8,
+            Self::ScrollLineDownCommand => 16,
+            Self::ScrollLockCommand => 32,
+            Self::ScrollUpToTopCommand => 64,
+            Self::ScrollDownToBottomCommand => 128,
+            Self::EraseCommand => 256,
+            Self::Combination(x) => *x,
+        }
+    }
 }
 impl Into<u16> for Command {
     fn into(self) -> u16 {
         match self {
-            Self::NoCommand => Self::NoCommand as u16,
-            Self::SendComand => Self::SendComand as u16,
-            Self::ScrollPageUpCommand => Self::ScrollPageUpCommand as u16,
-            Self::ScrollPageDownCommand => Self::ScrollPageDownCommand as u16,
-            Self::ScrollLineUpCommand => Self::ScrollLineUpCommand as u16,
-            Self::ScrollLineDownCommand => Self::ScrollLineDownCommand as u16,
-            Self::ScrollLockCommand => Self::ScrollLockCommand as u16,
-            Self::ScrollUpToTopCommand => Self::ScrollUpToTopCommand as u16,
-            Self::ScrollDownToBottomCommand => Self::ScrollDownToBottomCommand as u16,
-            Self::EraseCommand => Self::EraseCommand as u16,
+            Self::NoCommand => 0,
+            Self::SendComand => 1,
+            Self::ScrollPageUpCommand => 2,
+            Self::ScrollPageDownCommand => 4,
+            Self::ScrollLineUpCommand => 8,
+            Self::ScrollLineDownCommand => 16,
+            Self::ScrollLockCommand => 32,
+            Self::ScrollUpToTopCommand => 64,
+            Self::ScrollDownToBottomCommand => 128,
+            Self::EraseCommand => 256,
+            Self::Combination(x) => x,
+        }
+    }
+}
+impl From<u16> for Command {
+    fn from(x: u16) -> Self {
+        match x {
+            0 => Self::NoCommand,
+            1 => Self::SendComand,
+            2 => Self::ScrollPageUpCommand,
+            4 => Self::ScrollPageDownCommand,
+            8 => Self::ScrollLineUpCommand,
+            16 => Self::ScrollLineDownCommand,
+            32 => Self::ScrollLockCommand,
+            64 => Self::ScrollUpToTopCommand,
+            128 => Self::ScrollDownToBottomCommand,
+            256 => Self::EraseCommand,
+            _ => Self::Combination(x),
         }
     }
 }
@@ -620,10 +669,10 @@ pub struct KeyboardTranslator {
 
 impl KeyboardTranslator {
     /// Constructs a new keyboard translator with the given @p name.
-    pub fn new(name: String) -> Self {
+    pub fn new<T: ToString>(name: T) -> Self {
         Self {
             entries: HashMap::new(),
-            name: name,
+            name: name.to_string(),
             description: String::new(),
         }
     }

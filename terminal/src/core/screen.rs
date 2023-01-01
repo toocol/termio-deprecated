@@ -57,7 +57,7 @@ impl SavedState {
 pub type ImageLine = Vec<Character>;
 
 /// An image of characters with associated attributes.
-
+/// 
 /// The terminal emulation ( Emulation ) receives a serial stream of
 /// characters from the program currently running in the terminal.
 /// From this stream it creates an image of characters which is ultimately
@@ -1242,7 +1242,7 @@ impl Screen {
     ///
     /// a positive return value indicates that the image has been scrolled up,
     /// a negative return value indicates that the image has been scrolled down.
-    pub fn scolled_lines(&self) -> i32 {
+    pub fn scrolled_lines(&self) -> i32 {
         self.scrolled_lines
     }
 

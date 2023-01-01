@@ -51,9 +51,9 @@ checksum = "2cb2f989d18dd141ab8ae82f64d1a8cdd37e0840f73a406896cf5e99502fab61"
 
 [[package]]
 name = "arc-swap"
-version = "1.5.1"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "983cd8b9d4b02a6dc6ffa557262eb5858a27a0038ffffe21a0f133eaa819a164"
+checksum = "bddcadddf5e9015d310179a59bb28c4d4b9920ad0f11e8e14dbadf654890c9a6"
 
 [[package]]
 name = "atty"
@@ -1366,7 +1366,7 @@ dependencies = [
 [[package]]
 name = "macros"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#10ec1d20438dd4cfef212e5968bfaafc214b31d7"
+source = "git+https://github.com/toocol/tmui#7b088dcd7a4a8a5ff40c39f724a15109bf5863a9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2455,12 +2455,12 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 [[package]]
 name = "tipc"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#10ec1d20438dd4cfef212e5968bfaafc214b31d7"
+source = "git+https://github.com/toocol/tmui#7b088dcd7a4a8a5ff40c39f724a15109bf5863a9"
 
 [[package]]
 name = "tlib"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#10ec1d20438dd4cfef212e5968bfaafc214b31d7"
+source = "git+https://github.com/toocol/tmui#7b088dcd7a4a8a5ff40c39f724a15109bf5863a9"
 dependencies = [
  "lazy_static",
  "log",
@@ -2472,7 +2472,7 @@ dependencies = [
 [[package]]
 name = "tmui"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#10ec1d20438dd4cfef212e5968bfaafc214b31d7"
+source = "git+https://github.com/toocol/tmui#7b088dcd7a4a8a5ff40c39f724a15109bf5863a9"
 dependencies = [
  "hex_color",
  "log",
