@@ -669,10 +669,10 @@ pub struct KeyboardTranslator {
 
 impl KeyboardTranslator {
     /// Constructs a new keyboard translator with the given @p name.
-    pub fn new(name: String) -> Self {
+    pub fn new<T: ToString>(name: T) -> Self {
         Self {
             entries: HashMap::new(),
-            name: name,
+            name: name.to_string(),
             description: String::new(),
         }
     }

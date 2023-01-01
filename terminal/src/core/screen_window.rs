@@ -1,7 +1,13 @@
 #![allow(dead_code)]
 use super::screen::{bound, Screen};
-use crate::tools::{character::{Character, LineProperty}, translators::Command};
-use std::{cell::RefCell, rc::Rc};
+use crate::tools::{
+    character::{Character, LineProperty},
+    translators::Command,
+};
+use std::{
+    cell::{Ref, RefCell},
+    rc::Rc,
+};
 use tmui::{graphics::figure::Rect, prelude::*};
 
 /// Describes the units which scroll_by() moves the window by.
@@ -25,7 +31,7 @@ pub enum RelativeScrollMode {
 /// Whenever the output from the underlying screen is changed, the notifyOutputChanged() slot should be called.  
 /// This in turn will update the window's position and emit the outputChanged() signal if necessary.
 pub struct ScreenWindow {
-    screen: Option<Box<Screen>>,
+    screen: Option<Rc<RefCell<Box<Screen>>>>,
     window_buffer: Option<Box<Vec<Character>>>,
     window_buffer_size: i32,
     buffer_needs_update: bool,
@@ -56,8 +62,8 @@ impl ScreenWindow {
     /// Should not call this constructor directly, instead use the Emulation::create_window() method to create a window
     /// on the emulation which you wish to view.  This allows the emulation to notify the window when the
     /// associated screen has changed and synchronize selection updates between all views on a session.
-    pub fn new() -> Rc<RefCell<Self>> {
-        let window_rc = Rc::new(RefCell::new(Self {
+    pub fn new() -> Rc<RefCell<Box<Self>>> {
+        let window_rc = Rc::new(RefCell::new(Box::new(Self {
             screen: None,
             window_buffer: None,
             window_buffer_size: 0,
@@ -66,7 +72,7 @@ impl ScreenWindow {
             current_line: 0,
             track_output: true,
             scroll_count: 0,
-        }));
+        })));
 
         let window = window_rc.clone();
         window_rc
@@ -110,14 +116,14 @@ impl ScreenWindow {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /// Sets the screen which this window looks onto
-    pub fn set_screen(&mut self, screen: Screen) {
-        self.screen = Some(Box::new(screen));
+    pub fn set_screen(&mut self, screen: Rc<RefCell<Box<Screen>>>) {
+        self.screen = Some(screen);
     }
 
     /// Returns the screen which this window looks onto.
     #[inline]
-    pub fn screen(&self) -> &Screen {
-        self.screen.as_deref().unwrap()
+    pub fn screen(&self) -> Ref<Box<Screen>> {
+        self.screen.as_deref().unwrap().borrow()
     }
 
     /// Returns the image of characters which are currently visible through this
@@ -137,7 +143,7 @@ impl ScreenWindow {
 
         let current_line = self.current_line();
         let end_line = self.end_window_line();
-        self.screen.as_ref().unwrap().get_image(
+        self.screen.as_ref().unwrap().borrow().get_image(
             self.window_buffer.as_deref_mut().unwrap(),
             size,
             current_line,
@@ -198,11 +204,11 @@ impl ScreenWindow {
     pub fn set_selection_start(&mut self, column: i32, line: i32, column_mode: bool) {
         let current_line = self.current_line();
         let end_line = self.end_window_line();
-        self.screen.as_deref_mut().unwrap().set_selection_start(
-            column,
-            (line + current_line).min(end_line),
-            column_mode,
-        );
+        self.screen
+            .as_deref()
+            .unwrap()
+            .borrow_mut()
+            .set_selection_start(column, (line + current_line).min(end_line), column_mode);
 
         self.buffer_needs_update = true;
         emit!(Self::selection_changed());
@@ -213,8 +219,9 @@ impl ScreenWindow {
         let current_line = self.current_line();
         let end_line = self.end_window_line();
         self.screen
-            .as_deref_mut()
+            .as_deref()
             .unwrap()
+            .borrow_mut()
             .set_selection_end(column, (line + current_line).min(end_line));
 
         self.buffer_needs_update = true;
@@ -243,7 +250,11 @@ impl ScreenWindow {
 
     /// Clears the current selection.
     pub fn clear_selection(&mut self) {
-        self.screen.as_deref_mut().unwrap().clear_selection();
+        self.screen
+            .as_deref()
+            .unwrap()
+            .borrow_mut()
+            .clear_selection();
 
         emit!(Self::selection_changed());
     }
@@ -366,20 +377,23 @@ impl ScreenWindow {
         // move window to the bottom of the screen and update scroll count
         // if this window is currently tracking the bottom of the screen
         if self.track_output {
-            self.scroll_count -= self.screen().scrolled_lines();
-            self.current_line = 0.max(
-                self.screen().get_history_lines()
-                    - (self.window_lines() - self.screen().get_lines()),
-            );
+            let scrolled_line = self.screen().scrolled_lines();
+            self.scroll_count -= scrolled_line;
+
+            let history_line = self.screen().get_history_lines();
+            let lines = self.screen().get_lines();
+            self.current_line = 0.max(history_line - (self.window_lines() - lines));
         } else {
             // if the history is not unlimited then it may have run out of space and dropped the oldest
             // lines of output - in this case the screen window's current line number will need to
             // be adjusted - otherwise the output will scroll
-            self.current_line = 0.max(self.current_line - self.screen().dropped_lines());
+            let dropped_lines = self.screen().dropped_lines();
+            self.current_line = 0.max(self.current_line - dropped_lines);
 
             // ensure that the screen window's current position does
             // not go beyond the bottom of the screen
-            self.current_line = self.current_line.min(self.screen().get_history_lines());
+            let history_lines = self.screen().get_history_lines();
+            self.current_line = self.current_line.min(history_lines);
         }
 
         self.buffer_needs_update = true;
