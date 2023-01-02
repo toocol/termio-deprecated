@@ -3,17 +3,28 @@ pub mod vt102_emulation;
 pub use vt102_emulation::*;
 
 use crate::{
-    core::{screen::Screen, screen_window::ScreenWindow},
+    core::{
+        screen::Screen,
+        screen_window::{ScreenWindow, ScreenWindowSignals},
+    },
     tools::{
         history::HistoryType, terminal_character_decoder::TerminalCharacterDecoder,
-        translators::KeyboardTranslator,
+        translators::{KeyboardTranslator, KeyboardTranslatorManager},
     },
 };
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+};
 use tmui::{
     graphics::figure::Size,
     prelude::*,
-    tlib::{events::KeyEvent, signals, object::{ObjectSubclass, ObjectImpl}},
+    tlib::{
+        emit,
+        events::KeyEvent,
+        object::{ObjectImpl, ObjectSubclass},
+        signals,
+    },
 };
 use wchar::wchar_t;
 
@@ -39,17 +50,19 @@ pub enum EmulationCodec {
 #[extends_object]
 #[derive(Default)]
 pub struct BaseEmulation {
+    /// The manager of keyboard translator.
+    pub translator_manager: Option<Rc<RefCell<KeyboardTranslatorManager>>>,
     /// The kayboard layout translator.
-    pub key_translator: Option<Box<KeyboardTranslator>>,
+    pub key_translator: RefCell<Option<Rc<RefCell<Box<KeyboardTranslator>>>>>,
     /// Current active screen.
-    pub current_screen: Rc<RefCell<Box<Screen>>>,
+    pub current_screen: RefCell<Rc<RefCell<Box<Screen>>>>,
     /// 0 = primary screen. <br>
     /// 1 = alternate screen (used by vi,emocs etc. scrollBar is not enable in this mode).
-    pub screen: [Rc<RefCell<Box<Screen>>>; 2],
+    pub screen: RefCell<[Rc<RefCell<Box<Screen>>>; 2]>,
 
-    windows: Vec<Rc<RefCell<Box<ScreenWindow>>>>,
-    use_mouse: bool,
-    bracket_paste_mode: bool,
+    windows: RefCell<Vec<Rc<RefCell<Box<ScreenWindow>>>>>,
+    use_mouse: Cell<bool>,
+    bracket_paste_mode: Cell<bool>,
 }
 impl ObjectSubclass for BaseEmulation {
     const NAME: &'static str = "BaseEmulation";
@@ -64,16 +77,16 @@ pub trait Emulation: ActionExt + Sized + 'static {
     type Type: Emulation + ActionExt;
 
     /// Constructer to create a new Emulation.
-    fn new() -> Self::Type;
+    fn new(translator_manager: Rc<RefCell<KeyboardTranslatorManager>>) -> Rc<Self::Type>;
 
     /// Wrap trait `Emulation` to `EmulationWrapper`.
-    fn wrap(self) -> Rc<Box<dyn EmulationWrapper>> {
-        Rc::new(Box::new(RefCell::new(self)))
+    fn wrap(self: Rc<Self>) -> Box<dyn EmulationWrapper> {
+        Box::new(Some(self))
     }
 
     /// Creates a new window onto the output from this emulation.  The contents of the window are then rendered by views
     /// which are set to use this window using the TerminalDisplay::setScreenWindow() method.
-    fn create_window(&self) -> Rc<RefCell<Box<ScreenWindow>>>;
+    fn create_window(self: &Rc<Self>) -> Rc<RefCell<Box<ScreenWindow>>>;
 
     /// Returns the size of the screen image which the emulation produces.
     fn image_size(&self) -> Size;
@@ -85,13 +98,13 @@ pub trait Emulation: ActionExt + Sized + 'static {
     /// older lines at the top of the screen are transferred to a history store.
     ///
     /// The number of lines which are kept and the storage location depend on the type of store.
-    fn set_history(&mut self, history_type: Box<dyn HistoryType>);
+    fn set_history(&self, history_type: Rc<dyn HistoryType>);
 
     /// Returns the history store used by this emulation.  @see set_history().
-    fn history(&self) -> Rc<Box<dyn HistoryType>>;
+    fn history(&self) -> Rc<dyn HistoryType>;
 
     /// Clears the history scroll.
-    fn clear_history(&mut self);
+    fn clear_history(&self);
 
     /// Copies the output history from @p startLine to @p endLine
     /// into @p stream, using @p decoder to convert the terminal characters into text.
@@ -101,7 +114,7 @@ pub trait Emulation: ActionExt + Sized + 'static {
     /// @param startLine Index of first line to copy <br>
     /// @param endLine Index of last line to copy
     fn write_to_stream(
-        &mut self,
+        &self,
         decoder: &mut dyn TerminalCharacterDecoder,
         start_line: i32,
         end_line: i32,
@@ -112,39 +125,39 @@ pub trait Emulation: ActionExt + Sized + 'static {
 
     /// Sets the key bindings used to key events ( received through send_key_event() ) into character
     /// streams to send to the terminal.
-    fn set_keyboard_layout(&mut self, name: &str);
+    fn set_keyboard_layout(&self, name: &str);
 
     /// Returns the name of the emulation's current key bindings.
     /// @see set_key_bindings()
     fn keyboard_layout(&self) -> String;
 
     /// Copies the current image into the history and clears the screen.
-    fn clear_entire_screen(&mut self);
+    fn clear_entire_screen(&self);
 
     /// Resets the state of the terminal.
-    fn reset(&mut self);
+    fn reset(&self);
 
     /// Returns true if the active terminal program wants mouse input events.
     fn program_use_mouse(&self) -> bool;
     ///The programUsesMouseChanged() signal is emitted when this changes.
-    fn set_use_mouse(&mut self, on: bool);
+    fn set_use_mouse(&self, on: bool);
 
     fn program_bracketed_paste_mode(&self) -> bool;
-    fn set_bracketed_paste_mode(&mut self, on: bool);
+    fn set_bracketed_paste_mode(&self, on: bool);
 
-    fn set_mode(&mut self, mode: i32);
-    fn reset_mode(&mut self, mode: i32);
+    fn set_mode(&self, mode: i32);
+    fn reset_mode(&self, mode: i32);
 
     /// Processes an incoming character.  @see receive_data() <br>
     /// @p ch A unicode character code.
-    fn receive_char(&mut self, ch: wchar_t);
+    fn receive_char(&self, ch: wchar_t);
 
     /// Sets the active screen.  The terminal has two screens, primary andalternate.
     /// The primary screen is used by default.  When certain interactive
     /// programs such as Vim are run, they trigger a switch to the alternate screen.
     ///
     /// @param index 0 to switch to the primary screen, or 1 to switch to the alternate screen
-    fn set_screen(&mut self, index: i32);
+    fn set_screen(&self, index: i32);
 
     ////////////////////////////////////////////////// Signals //////////////////////////////////////////////////
     signals! {
@@ -300,61 +313,129 @@ pub trait Emulation: ActionExt + Sized + 'static {
 }
 
 impl ActionExt for BaseEmulation {}
+
 impl Emulation for BaseEmulation {
     type Type = BaseEmulation;
 
-    fn new() -> Self::Type {
+    fn new(translator_manager: Rc<RefCell<KeyboardTranslatorManager>>) -> Rc<Self::Type> {
         let screen_0 = Rc::new(RefCell::new(Box::new(Screen::new(40, 80))));
         let screen_1 = Rc::new(RefCell::new(Box::new(Screen::new(40, 80))));
 
         let mut object: Self = Object::new(&[]);
-        object.key_translator = None;
-        object.current_screen = screen_0.clone();
-        object.screen = [screen_0, screen_1];
-        object.windows = vec![];
-        object.use_mouse = false;
-        object.bracket_paste_mode = false;
-        object
+        object.translator_manager = Some(translator_manager);
+        object.key_translator = RefCell::new(None);
+        object.current_screen = RefCell::new(screen_0.clone());
+        object.screen = RefCell::new([screen_0, screen_1]);
+        object.windows = RefCell::new(vec![]);
+
+        let emulation = Rc::new(object);
+
+        let rc = emulation.clone();
+        emulation.connect_action(emulation.program_uses_mouse_changed(), move |param| {
+            let uses_mouse = param.unwrap().get::<bool>();
+            rc.uses_mouse_changed(uses_mouse);
+        });
+
+        let rc = emulation.clone();
+        emulation.connect_action(
+            emulation.program_bracketed_paste_mode_changed(),
+            move |param| {
+                let bracketed_paste_mode = param.unwrap().get::<bool>();
+                rc.bracketed_paste_mode_changed(bracketed_paste_mode);
+            },
+        );
+
+        let rc = emulation.clone();
+        emulation.connect_action(emulation.cursor_changed(), move |param| {
+            let (cursor_shape, blinking_cursor_enable) = param.unwrap().get::<(u8, bool)>();
+            emit!(
+                rc.title_changed(),
+                (
+                    50,
+                    format!(
+                        "CursorShape={};BlinkingCursorEnabled={}",
+                        cursor_shape, blinking_cursor_enable
+                    )
+                )
+            );
+        });
+
+        emulation
     }
 
-    fn create_window(&self) -> Rc<RefCell<Box<ScreenWindow>>> {
-        todo!()
+    fn create_window(self: &Rc<Self>) -> Rc<RefCell<Box<ScreenWindow>>> {
+        let window = ScreenWindow::new();
+
+        window
+            .borrow_mut()
+            .set_screen(self.current_screen.borrow().clone());
+        self.windows.borrow_mut().push(window.clone());
+        let len = self.windows.borrow().len();
+        if len > 1 {
+            self.windows.borrow_mut().remove(0);
+        }
+
+        let rc = self.clone();
+        self.connect_action(window.borrow().selection_changed(), move |_| {
+            rc.buffer_update();
+        });
+
+        ScreenWindow::connect_notify_output_changed(&window, self.output_changed());
+        ScreenWindow::connect_handle_command_from_keyboard(
+            &window,
+            self.handle_command_from_keyboard(),
+        );
+        ScreenWindow::connect_scroll_to_end(&window, self.output_from_keypress_event());
+
+        window
     }
 
     fn image_size(&self) -> Size {
-        todo!()
+        Size::from((
+            self.current_screen.borrow().borrow().get_columns(),
+            self.current_screen.borrow().borrow().get_lines(),
+        ))
     }
 
     fn line_count(&self) -> i32 {
-        todo!()
+        self.current_screen.borrow().borrow().get_lines()
+            + self.current_screen.borrow().borrow().get_history_lines()
     }
 
-    fn set_history(&mut self, history_type: Box<dyn HistoryType>) {
-        todo!()
+    fn set_history(&self, history_type: Rc<dyn HistoryType>) {
+        self.screen.borrow()[0]
+            .borrow_mut()
+            .set_scroll(history_type, None)
     }
 
-    fn history(&self) -> Rc<Box<dyn HistoryType>> {
-        todo!()
+    fn history(&self) -> Rc<dyn HistoryType> {
+        self.screen.borrow()[0].borrow().get_scroll()
     }
 
-    fn clear_history(&mut self) {
-        todo!()
+    fn clear_history(&self) {
+        let scroll = self.screen.borrow()[0].borrow().get_scroll();
+        self.screen.borrow()[0]
+            .borrow_mut()
+            .set_scroll(scroll, Some(false));
     }
 
     fn write_to_stream(
-        &mut self,
+        &self,
         decoder: &mut dyn TerminalCharacterDecoder,
         start_line: i32,
         end_line: i32,
     ) {
-        todo!()
+        self.current_screen
+            .borrow()
+            .borrow_mut()
+            .write_lines_to_stream(decoder, start_line, end_line);
     }
 
     fn erase_char(&self) -> char {
-        todo!()
+        '\u{b}'
     }
 
-    fn set_keyboard_layout(&mut self, name: &str) {
+    fn set_keyboard_layout(&self, name: &str) {
         todo!()
     }
 
@@ -362,11 +443,11 @@ impl Emulation for BaseEmulation {
         todo!()
     }
 
-    fn clear_entire_screen(&mut self) {
+    fn clear_entire_screen(&self) {
         todo!()
     }
 
-    fn reset(&mut self) {
+    fn reset(&self) {
         todo!()
     }
 
@@ -374,7 +455,7 @@ impl Emulation for BaseEmulation {
         todo!()
     }
 
-    fn set_use_mouse(&mut self, on: bool) {
+    fn set_use_mouse(&self, on: bool) {
         todo!()
     }
 
@@ -382,23 +463,23 @@ impl Emulation for BaseEmulation {
         todo!()
     }
 
-    fn set_bracketed_paste_mode(&mut self, on: bool) {
+    fn set_bracketed_paste_mode(&self, on: bool) {
         todo!()
     }
 
-    fn set_mode(&mut self, mode: i32) {
+    fn set_mode(&self, mode: i32) {
         todo!()
     }
 
-    fn reset_mode(&mut self, mode: i32) {
+    fn reset_mode(&self, mode: i32) {
         todo!()
     }
 
-    fn receive_char(&mut self, ch: wchar_t) {
+    fn receive_char(&self, ch: wchar_t) {
         todo!()
     }
 
-    fn set_screen(&mut self, index: i32) {
+    fn set_screen(&self, index: i32) {
         todo!()
     }
 
@@ -451,9 +532,9 @@ pub trait EmulationWrapper {
 
     fn line_count(&self) -> i32;
 
-    fn set_history(&self, history_type: Box<dyn HistoryType>);
+    fn set_history(&self, history_type: Rc<dyn HistoryType>);
 
-    fn history(&self) -> Rc<Box<dyn HistoryType>>;
+    fn history(&self) -> Rc<dyn HistoryType>;
 
     fn clear_history(&self);
 
@@ -544,29 +625,29 @@ pub trait EmulationWrapper {
     fn output_from_keypress_event(&self) -> Signal;
 }
 
-impl<T: Emulation + ActionExt> EmulationWrapper for RefCell<T> {
+impl<T: Emulation + ActionExt> EmulationWrapper for Option<Rc<T>> {
     fn create_window(&self) -> Rc<RefCell<Box<ScreenWindow>>> {
-        self.borrow().create_window()
+        self.as_ref().unwrap().create_window()
     }
 
     fn image_size(&self) -> Size {
-        self.borrow().image_size()
+        self.as_ref().unwrap().image_size()
     }
 
     fn line_count(&self) -> i32 {
-        self.borrow().line_count()
+        self.as_ref().unwrap().line_count()
     }
 
-    fn set_history(&self, history_type: Box<dyn HistoryType>) {
-        self.borrow_mut().set_history(history_type)
+    fn set_history(&self, history_type: Rc<dyn HistoryType>) {
+        self.as_ref().unwrap().set_history(history_type)
     }
 
-    fn history(&self) -> Rc<Box<dyn HistoryType>> {
-        self.borrow().history()
+    fn history(&self) -> Rc<dyn HistoryType> {
+        self.as_ref().unwrap().history()
     }
 
     fn clear_history(&self) {
-        self.borrow_mut().clear_history()
+        self.as_ref().unwrap().clear_history()
     }
 
     fn write_to_stream(
@@ -575,173 +656,178 @@ impl<T: Emulation + ActionExt> EmulationWrapper for RefCell<T> {
         start_line: i32,
         end_line: i32,
     ) {
-        self.borrow_mut()
+        self.as_ref()
+            .unwrap()
             .write_to_stream(decoder, start_line, end_line)
     }
 
     fn erase_char(&self) -> char {
-        self.borrow().erase_char()
+        self.as_ref().unwrap().erase_char()
     }
 
     fn set_keyboard_layout(&self, name: &str) {
-        self.borrow_mut().set_keyboard_layout(name)
+        self.as_ref().unwrap().set_keyboard_layout(name)
     }
 
     fn keyboard_layout(&self) -> String {
-        self.borrow().keyboard_layout()
+        self.as_ref().unwrap().keyboard_layout()
     }
 
     fn clear_entire_screen(&self) {
-        self.borrow_mut().clear_entire_screen()
+        self.as_ref().unwrap().clear_entire_screen()
     }
 
     fn reset(&self) {
-        self.borrow_mut().reset()
+        self.as_ref().unwrap().reset()
     }
 
     fn program_use_mouse(&self) -> bool {
-        self.borrow().program_use_mouse()
+        self.as_ref().unwrap().program_use_mouse()
     }
 
     fn set_use_mouse(&self, on: bool) {
-        self.borrow_mut().set_use_mouse(on)
+        self.as_ref().unwrap().set_use_mouse(on)
     }
 
     fn program_bracketed_paste_mode(&self) -> bool {
-        self.borrow().program_bracketed_paste_mode()
+        self.as_ref().unwrap().program_bracketed_paste_mode()
     }
 
     fn set_bracketed_paste_mode(&self, on: bool) {
-        self.borrow_mut().set_bracketed_paste_mode(on)
+        self.as_ref().unwrap().set_bracketed_paste_mode(on)
     }
 
     fn set_mode(&self, mode: i32) {
-        self.borrow_mut().set_mode(mode)
+        self.as_ref().unwrap().set_mode(mode)
     }
 
     fn reset_mode(&self, mode: i32) {
-        self.borrow_mut().reset_mode(mode)
+        self.as_ref().unwrap().reset_mode(mode)
     }
 
     fn receive_char(&self, ch: wchar_t) {
-        self.borrow_mut().receive_char(ch)
+        self.as_ref().unwrap().receive_char(ch)
     }
 
     fn set_screen(&self, index: i32) {
-        self.borrow_mut().set_screen(index)
+        self.as_ref().unwrap().set_screen(index)
     }
 
     fn set_image_size(&self, lines: i32, columns: i32) {
-        self.borrow().set_image_size(lines, columns)
+        self.as_ref().unwrap().set_image_size(lines, columns)
     }
 
     fn send_text(&self, text: String) {
-        self.borrow().send_text(text)
+        self.as_ref().unwrap().send_text(text)
     }
 
     fn send_key_event(&self, event: KeyEvent, from_paste: bool) {
-        self.borrow().send_key_event(event, from_paste)
+        self.as_ref().unwrap().send_key_event(event, from_paste)
     }
 
     fn send_mouse_event(&self, buttons: i32, column: i32, line: i32, event_type: u8) {
-        self.borrow()
+        self.as_ref()
+            .unwrap()
             .send_mouse_event(buttons, column, line, event_type)
     }
 
     fn send_string(&self, string: String, length: i32) {
-        self.borrow().send_string(string, length)
+        self.as_ref().unwrap().send_string(string, length)
     }
 
     fn receive_data(&self, buffer: Vec<u8>, len: i32) {
-        self.borrow().receive_data(buffer, len)
+        self.as_ref().unwrap().receive_data(buffer, len)
     }
 
     fn show_bulk(&self) {
-        self.borrow().show_bulk()
+        self.as_ref().unwrap().show_bulk()
     }
 
     fn buffer_update(&self) {
-        self.borrow().buffer_update()
+        self.as_ref().unwrap().buffer_update()
     }
 
     fn uses_mouse_changed(&self, uses_mouse: bool) {
-        self.borrow().uses_mouse_changed(uses_mouse)
+        self.as_ref().unwrap().uses_mouse_changed(uses_mouse)
     }
 
     fn bracketed_paste_mode_changed(&self, bracketed_paste_mode: bool) {
-        self.borrow()
+        self.as_ref()
+            .unwrap()
             .bracketed_paste_mode_changed(bracketed_paste_mode)
     }
 
     fn send_data(&self) -> Signal {
-        self.borrow().send_data()
+        self.as_ref().unwrap().send_data()
     }
 
     fn lock_pty_request(&self) -> Signal {
-        self.borrow().lock_pty_request()
+        self.as_ref().unwrap().lock_pty_request()
     }
 
     fn use_utf8_request(&self) -> Signal {
-        self.borrow().use_utf8_request()
+        self.as_ref().unwrap().use_utf8_request()
     }
 
     fn state_set(&self) -> Signal {
-        self.borrow().state_set()
+        self.as_ref().unwrap().state_set()
     }
 
     fn zmodem_detected(&self) -> Signal {
-        self.borrow().zmodem_detected()
+        self.as_ref().unwrap().zmodem_detected()
     }
 
     fn change_tab_text_color_request(&self) -> Signal {
-        self.borrow().change_tab_text_color_request()
+        self.as_ref().unwrap().change_tab_text_color_request()
     }
 
     fn program_uses_mouse_changed(&self) -> Signal {
-        self.borrow().program_uses_mouse_changed()
+        self.as_ref().unwrap().program_uses_mouse_changed()
     }
 
     fn program_bracketed_paste_mode_changed(&self) -> Signal {
-        self.borrow().program_bracketed_paste_mode_changed()
+        self.as_ref()
+            .unwrap()
+            .program_bracketed_paste_mode_changed()
     }
 
     fn output_changed(&self) -> Signal {
-        self.borrow().output_changed()
+        self.as_ref().unwrap().output_changed()
     }
 
     fn title_changed(&self) -> Signal {
-        self.borrow().title_changed()
+        self.as_ref().unwrap().title_changed()
     }
 
     fn image_size_changed(&self) -> Signal {
-        self.borrow().image_size_changed()
+        self.as_ref().unwrap().image_size_changed()
     }
 
     fn image_size_initialized(&self) -> Signal {
-        self.borrow().image_size_initialized()
+        self.as_ref().unwrap().image_size_initialized()
     }
 
     fn image_resize_request(&self) -> Signal {
-        self.borrow().image_resize_request()
+        self.as_ref().unwrap().image_resize_request()
     }
 
     fn profile_change_command_received(&self) -> Signal {
-        self.borrow().profile_change_command_received()
+        self.as_ref().unwrap().profile_change_command_received()
     }
 
     fn flow_control_key_pressed(&self) -> Signal {
-        self.borrow().flow_control_key_pressed()
+        self.as_ref().unwrap().flow_control_key_pressed()
     }
 
     fn cursor_changed(&self) -> Signal {
-        self.borrow().cursor_changed()
+        self.as_ref().unwrap().cursor_changed()
     }
 
     fn handle_command_from_keyboard(&self) -> Signal {
-        self.borrow().handle_command_from_keyboard()
+        self.as_ref().unwrap().handle_command_from_keyboard()
     }
 
     fn output_from_keypress_event(&self) -> Signal {
-        self.borrow().output_from_keypress_event()
+        self.as_ref().unwrap().output_from_keypress_event()
     }
 }

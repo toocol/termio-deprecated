@@ -8,7 +8,15 @@ use std::{
     cell::{Ref, RefCell},
     rc::Rc,
 };
-use tmui::{graphics::figure::Rect, prelude::*, tlib::{signals, emit, object::{ObjectSubclass, ObjectImpl}}};
+use tmui::{
+    graphics::figure::Rect,
+    prelude::*,
+    tlib::{
+        emit,
+        object::{ObjectImpl, ObjectSubclass},
+        signals,
+    },
+};
 
 /// Describes the units which scroll_by() moves the window by.
 pub enum RelativeScrollMode {
@@ -57,6 +65,27 @@ impl ObjectImpl for ScreenWindow {}
 
 impl ActionExt for ScreenWindow {}
 
+////////////////////////////////////////////////// Signals //////////////////////////////////////////////////
+pub trait ScreenWindowSignals: ActionExt {
+    signals! {
+        /// Emitted when the contents of the associated terminal screen (see screen()) changes.
+        output_changed();
+
+        /// Emitted when the screen window is scrolled to a different position.
+        ///
+        /// @param line The line which is now at the top of the window.
+        scrolled();
+
+        /// Emitted when the selection is changed.
+        selection_changed();
+
+        /// Emitted when handle command `ScrollDownToBottomCommand` from keyboard.
+        scroll_to_end();
+    }
+}
+
+impl ScreenWindowSignals for ScreenWindow {}
+
 impl ScreenWindow {
     /// Constructs a new screen window with the given parent.
     /// A screen must be specified by calling setScreen() before calling getImage() or getLineProperties().
@@ -82,38 +111,27 @@ impl ScreenWindow {
         let window = window_rc.clone();
         window_rc
             .borrow()
-            .connect_action(signal, move |_| {
-                window.borrow_mut().notify_output_changed()
-            });
+            .connect_action(signal, move |_| window.borrow_mut().notify_output_changed());
     }
 
-    pub fn connect_command_from_keyboard(window_rc: &Rc<RefCell<Box<Self>>>, signal: Signal) {
+    pub fn connect_handle_command_from_keyboard(
+        window_rc: &Rc<RefCell<Box<Self>>>,
+        signal: Signal,
+    ) {
         let window = window_rc.clone();
-        window_rc
-            .borrow()
-            .connect_action(signal, move |param| {
-                let command = param.unwrap().get::<u16>();
-                window.borrow_mut().handle_command_from_keyboard(command);
-            });
+        window_rc.borrow().connect_action(signal, move |param| {
+            let command = param.unwrap().get::<u16>();
+            window.borrow_mut().handle_command_from_keyboard(command);
+        });
     }
 
-    ////////////////////////////////////////////////// Signals //////////////////////////////////////////////////
-    signals! {
-        /// Emitted when the contents of the associated terminal screen (see screen()) changes.
-        output_changed();
-
-        /// Emitted when the screen window is scrolled to a different position.
-        ///
-        /// @param line The line which is now at the top of the window.
-        scrolled();
-
-        /// Emitted when the selection is changed.
-        selection_changed();
-
-        /// Emitted when handle command `ScrollDownToBottomCommand` from keyboard.
-        scroll_to_end();    
+    pub fn connect_scroll_to_end(window_rc: &Rc<RefCell<Box<Self>>>, signal: Signal) {
+        let window = window_rc.clone();
+        window_rc.borrow().connect_action(signal, move |param| {
+            let line = param.unwrap().get::<i32>();
+            window.borrow_mut().scroll_to(line);
+        });
     }
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /// Sets the screen which this window looks onto
     pub fn set_screen(&mut self, screen: Rc<RefCell<Box<Screen>>>) {
