@@ -14,7 +14,7 @@ use crate::tools::{
 };
 use bitvec::vec::BitVec;
 use std::{cell::RefCell, rc::Rc};
-use tmui::graphics::figure::Rect;
+use tmui::{graphics::figure::Rect};
 use wchar::{wch, wchar_t};
 
 const MODE_ORIGIN: usize = 0;
@@ -35,6 +35,7 @@ pub fn bound<T: Ord>(min: T, val: T, max: T) -> T {
     min.max(max.min(val))
 }
 
+#[derive(Debug, Default)]
 pub struct SavedState {
     cursor_column: i32,
     cursor_line: i32,
@@ -57,7 +58,7 @@ impl SavedState {
 pub type ImageLine = Vec<Character>;
 
 /// An image of characters with associated attributes.
-/// 
+///
 /// The terminal emulation ( Emulation ) receives a serial stream of
 /// characters from the program currently running in the terminal.
 /// From this stream it creates an image of characters which is ultimately
@@ -137,16 +138,16 @@ pub struct Screen {
     character_buffer: RefCell<[Character; MAX_CHARS]>,
 }
 
-impl Screen {
-    pub fn new(lines: i32, columns: i32) -> Self {
-        let mut screen = Self {
-            lines: lines,
-            columns: columns,
-            screen_lines: Box::new(vec![vec![]; lines as usize + 1]),
+impl Default for Screen {
+    fn default() -> Self {
+        Self {
+            lines: 0,
+            columns: 0,
+            screen_lines: Box::default(),
             scrolled_lines: 0,
             last_scolled_region: Rect::new(0, 0, 0, 0),
             dropped_lines: 0,
-            line_properties: Box::new(vec![0u8; lines as usize + 1]),
+            line_properties: Box::default(),
             history: Rc::new(HistoryScrollNone::new().wrap()),
             cursor_x: 0,
             cursor_y: 0,
@@ -169,7 +170,18 @@ impl Screen {
             last_pos: -1,
             last_drawn_char: 0,
             character_buffer: RefCell::new([Character::default(); MAX_CHARS]),
-        };
+        }
+    }
+}
+
+impl Screen {
+    pub fn new(lines: i32, columns: i32) -> Self {
+        let mut screen = Self::default();
+        screen.lines = lines;
+        screen.columns = columns;
+        screen.screen_lines = Box::new(vec![vec![]; lines as usize + 1]);
+        screen.line_properties = Box::new(vec![0u8; lines as usize + 1]);
+
         for i in 0..screen.lines as usize + 1 {
             screen.line_properties[i] = LINE_DEFAULT;
         }

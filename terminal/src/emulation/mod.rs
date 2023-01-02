@@ -12,7 +12,8 @@ use crate::{
 use std::{cell::RefCell, rc::Rc};
 use tmui::{
     graphics::figure::Size,
-    prelude::{ActionHubExt, KeyEvent},
+    prelude::*,
+    tlib::{events::KeyEvent, signals, object::{ObjectSubclass, ObjectImpl}},
 };
 use wchar::wchar_t;
 
@@ -35,7 +36,9 @@ pub enum EmulationCodec {
     Utf8Codec = 1,
 }
 
-pub struct EmulationStorage {
+#[extends_object]
+#[derive(Default)]
+pub struct BaseEmulation {
     /// The kayboard layout translator.
     pub key_translator: Option<Box<KeyboardTranslator>>,
     /// Current active screen.
@@ -48,45 +51,25 @@ pub struct EmulationStorage {
     use_mouse: bool,
     bracket_paste_mode: bool,
 }
+impl ObjectSubclass for BaseEmulation {
+    const NAME: &'static str = "BaseEmulation";
 
-impl EmulationStorage {
-    pub fn new() -> Self {
-        let screen_0 = Rc::new(RefCell::new(Box::new(Screen::new(40, 80))));
-        let screen_1 = Rc::new(RefCell::new(Box::new(Screen::new(40, 80))));
+    type Type = BaseEmulation;
 
-        Self {
-            key_translator: None,
-            current_screen: screen_0.clone(),
-            screen: [screen_0, screen_1],
-            windows: vec![],
-            use_mouse: false,
-            bracket_paste_mode: false,
-        }
-    }
+    type ParentType = Object;
 }
+impl ObjectImpl for BaseEmulation {}
 
-pub trait Emulation {
-    const ACTION_SEND_DATA: &'static str = "action-send-data";
-    const ACTION_LOCK_PTY_REQUEST: &'static str = "action-lock-pty-request";
-    const ACTION_USE_UTF8_REQUEST: &'static str = "action-use-utf8-request";
-    const ACTION_STATE_SET: &'static str = "action-state-set";
-    const ACTION_ZMODEM_DETECTED: &'static str = "action-zmodem-detected";
-    const ACTION_CHANGE_TAB_TEXT_COLOR_REQUEST: &'static str =
-        "action-change-tab-text-color-request";
-    const ACTION_PROGRAM_USE_MOUSE_CHANGED: &'static str = "action-program-use-mouse-changed";
-    const ACTION_PROGRAM_BRACKETED_PASTE_MODE_CHANGED: &'static str =
-        "action-program-bracketed-paste-mode-changed";
-    const ACTION_OUTPUT_CHANGED: &'static str = "action-output-changed";
-    const ACTION_TITLE_CHANGED: &'static str = "action-title-changed";
-    const ACTION_IMAGE_SIZE_CHANGED: &'static str = "action-iamge-size-changed";
-    const ACTION_IMAGE_SIZE_INITIALIZED: &'static str = "action-iamge-size-initialized";
-    const ACTION_IMAGE_RESIZE_REQUEST: &'static str = "action-iamge-resize-request";
-    const ACTION_PROFILE_CHANGE_COMMAND_RECEIVED: &'static str =
-        "action-profile-change-command-received";
-    const ACTION_FLOW_CONTROL_KEY_PRESSED: &'static str = "action-flow-control-key-pressed";
-    const ACTION_CURSOR_CHANGED: &'static str = "action-cursor-changed";
-    const ACTION_HANDLE_COMMAND_FROM_KEYBOARD: &'static str = "action-handle-command-from-keyboard";
-    const ACTION_OUTPUT_FROM_KEY_PRESS_EVENT: &'static str = "action-output-from-key-press-event";
+pub trait Emulation: ActionExt + Sized + 'static {
+    type Type: Emulation + ActionExt;
+
+    /// Constructer to create a new Emulation.
+    fn new() -> Self::Type;
+
+    /// Wrap trait `Emulation` to `EmulationWrapper`.
+    fn wrap(self) -> Rc<Box<dyn EmulationWrapper>> {
+        Rc::new(Box::new(RefCell::new(self)))
+    }
 
     /// Creates a new window onto the output from this emulation.  The contents of the window are then rendered by views
     /// which are set to use this window using the TerminalDisplay::setScreenWindow() method.
@@ -129,7 +112,7 @@ pub trait Emulation {
 
     /// Sets the key bindings used to key events ( received through send_key_event() ) into character
     /// streams to send to the terminal.
-    fn set_keyboard_layout<T: ToString>(&mut self, name: T);
+    fn set_keyboard_layout(&mut self, name: &str);
 
     /// Returns the name of the emulation's current key bindings.
     /// @see set_key_bindings()
@@ -164,145 +147,112 @@ pub trait Emulation {
     fn set_screen(&mut self, index: i32);
 
     ////////////////////////////////////////////////// Signals //////////////////////////////////////////////////
-    /// Emitted when a buffer of data is ready to send to the standard input of the terminal.
-    ///
-    /// @param data The buffer of data ready to be sent <br>
-    /// @param len The length of @p data in bytes
-    fn send_data() -> &'static str {
-        Self::ACTION_SEND_DATA
-    }
+    signals! {
+        /// Emitted when a buffer of data is ready to send to the standard input of the terminal.
+        ///
+        /// @param data The buffer of data ready to be sent <br>
+        /// @param len The length of @p data in bytes
+        send_data();
 
-    ///  Requests that sending of input to the emulation from the terminal process be suspended or resumed.
-    ///
-    /// @param suspend If true, requests that sending of input from the terminal process' stdout be suspended.  
-    /// Otherwise requests that sending of input be resumed.
-    fn lock_pty_request() -> &'static str {
-        Self::ACTION_LOCK_PTY_REQUEST
-    }
+        ///  Requests that sending of input to the emulation from the terminal process be suspended or resumed.
+        ///
+        /// @param suspend If true, requests that sending of input from the terminal process' stdout be suspended.
+        /// Otherwise requests that sending of input be resumed.
+        lock_pty_request();
 
-    /// Requests that the pty used by the terminal process be set to UTF 8 mode.
-    fn use_utf8_request() -> &'static str {
-        Self::ACTION_USE_UTF8_REQUEST
-    }
+        /// Requests that the pty used by the terminal process be set to UTF 8 mode.
+        use_utf8_request();
 
-    /// Emitted when the activity state of the emulation is set.
-    ///
-    /// @param state The new activity state, one of NOTIFYNORMAL, NOTIFYACTIVITY or NOTIFYBELL
-    fn state_set() -> &'static str {
-        Self::ACTION_STATE_SET
-    }
+        /// Emitted when the activity state of the emulation is set.
+        ///
+        /// @param state The new activity state, one of NOTIFYNORMAL, NOTIFYACTIVITY or NOTIFYBELL
+        state_set();
 
-    /// Emmitted when the `zmodem` detected.
-    fn zmodem_detected() -> &'static str {
-        Self::ACTION_ZMODEM_DETECTED
-    }
+        /// Emmitted when the `zmodem` detected.
+        zmodem_detected();
 
-    /// Requests that the color of the text used to represent the tabs associated with this
-    /// emulation be changed.  This is a Konsole-specific extension from pre-KDE 4 times.
-    fn change_tab_text_color_request() -> &'static str {
-        Self::ACTION_CHANGE_TAB_TEXT_COLOR_REQUEST
-    }
+        /// Requests that the color of the text used to represent the tabs associated with this
+        /// emulation be changed.  This is a Konsole-specific extension from pre-KDE 4 times.
+        change_tab_text_color_request();
 
-    /// This is emitted when the program running in the shell indicates whether or not it is interested in mouse events.
-    ///
-    /// @param usesMouse This will be true if the program wants to be informed about mouse events or false otherwise.
-    fn program_uses_mouse_changed() -> &'static str {
-        Self::ACTION_PROGRAM_USE_MOUSE_CHANGED
-    }
+        /// This is emitted when the program running in the shell indicates whether or not it is interested in mouse events.
+        ///
+        /// @param usesMouse This will be true if the program wants to be informed about mouse events or false otherwise.
+        program_uses_mouse_changed();
 
-    fn program_bracketed_paste_mode_changed() -> &'static str {
-        Self::ACTION_PROGRAM_BRACKETED_PASTE_MODE_CHANGED
-    }
+        program_bracketed_paste_mode_changed();
 
-    /// Emitted when the contents of the screen image change.
-    /// The emulation buffers the updates from successive image changes,
-    /// and only emits outputChanged() at sensible intervals when there is a lot of terminal activity.
-    ///
-    /// Normally there is no need for objects other than the screen windows
-    /// created with createWindow() to listen for this signal.
-    ///
-    /// ScreenWindow objects created using createWindow() will emit their
-    /// own outputChanged() signal in response to this signal.
-    fn output_changed() -> &'static str {
-        Self::ACTION_OUTPUT_CHANGED
-    }
+        /// Emitted when the contents of the screen image change.
+        /// The emulation buffers the updates from successive image changes,
+        /// and only emits outputChanged() at sensible intervals when there is a lot of terminal activity.
+        ///
+        /// Normally there is no need for objects other than the screen windows
+        /// created with createWindow() to listen for this signal.
+        ///
+        /// ScreenWindow objects created using createWindow() will emit their
+        /// own outputChanged() signal in response to this signal.
+        output_changed();
 
-    /// Emitted when the program running in the terminal wishes to update the session's title.
-    /// This also allows terminal programs to customize other aspects of the terminal emulation display.
-    ///
-    /// This signal is emitted when the escape sequence "\033]ARG;VALUE\007" is received in the input string,
-    /// where ARG is a number specifying what should change and VALUE is a string specifying the new value.
-    ///
-    /// @param title Specifies what to change.
-    /// <ul>
-    /// <li>0 - Set window icon text and session title to @p newTitle</li>
-    /// <li>1 - Set window icon text to @p newTitle</li>
-    /// <li>2 - Set session title to @p newTitle</li>
-    /// <li>11 - Set the session's default background color to @p newTitle,
-    ///         where @p newTitle can be an HTML-style string ("#RRGGBB") or a
-    /// named color (eg 'red', 'blue').
-    /// </li>
-    /// <li>31 - Supposedly treats @p newTitle as a URL and opens it (NOT
-    /// IMPLEMENTED)</li> <li>32 - Sets the icon associated with the session.  @p
-    /// newTitle is the name of the icon to use, which can be the name of any icon
-    /// in the current KDE icon theme (eg: 'konsole', 'kate', 'folder_home')</li>
-    /// </ul>
-    /// @param newTitle Specifies the new title
-    fn title_changed() -> &'static str {
-        Self::ACTION_TITLE_CHANGED
-    }
+        /// Emitted when the program running in the terminal wishes to update the session's title.
+        /// This also allows terminal programs to customize other aspects of the terminal emulation display.
+        ///
+        /// This signal is emitted when the escape sequence "\033]ARG;VALUE\007" is received in the input string,
+        /// where ARG is a number specifying what should change and VALUE is a string specifying the new value.
+        ///
+        /// @param title Specifies what to change.
+        /// <ul>
+        /// <li>0 - Set window icon text and session title to @p newTitle</li>
+        /// <li>1 - Set window icon text to @p newTitle</li>
+        /// <li>2 - Set session title to @p newTitle</li>
+        /// <li>11 - Set the session's default background color to @p newTitle,
+        ///         where @p newTitle can be an HTML-style string ("#RRGGBB") or a
+        /// named color (eg 'red', 'blue').
+        /// </li>
+        /// <li>31 - Supposedly treats @p newTitle as a URL and opens it (NOT
+        /// IMPLEMENTED)</li> <li>32 - Sets the icon associated with the session.  @p
+        /// newTitle is the name of the icon to use, which can be the name of any icon
+        /// in the current KDE icon theme (eg: 'konsole', 'kate', 'folder_home')</li>
+        /// </ul>
+        /// @param newTitle Specifies the new title
+        title_changed();
 
-    /// Emitted when the program running in the terminal changes the screen size.
-    fn image_size_changed() -> &'static str {
-        Self::ACTION_IMAGE_SIZE_CHANGED
-    }
+        /// Emitted when the program running in the terminal changes the screen size.
+        image_size_changed();
 
-    /// Emitted when the setImageSize() is called on this emulation for the first time.
-    fn image_size_initialized() -> &'static str {
-        Self::ACTION_IMAGE_SIZE_INITIALIZED
-    }
+        /// Emitted when the setImageSize() is called on this emulation for the first time.
+        image_size_initialized();
 
-    /// Emitted after receiving the escape sequence which asks to change the terminal emulator's size.
-    fn image_resize_request() -> &'static str {
-        Self::ACTION_IMAGE_RESIZE_REQUEST
-    }
+        /// Emitted after receiving the escape sequence which asks to change the terminal emulator's size.
+        image_resize_request();
 
-    /// Emitted when the terminal program requests to change various properties of the terminal display.
-    ///
-    /// A profile change command occurs when a special escape sequence, followed
-    /// by a string containing a series of name and value pairs is received.
-    /// This string can be parsed using a ProfileCommandParser instance.
-    ///
-    /// @param text A string expected to contain a series of key and value pairs in
-    /// the form:  name=value;name2=value2 ...
-    fn profile_change_command_received() -> &'static str {
-        Self::ACTION_PROFILE_CHANGE_COMMAND_RECEIVED
-    }
+        /// Emitted when the terminal program requests to change various properties of the terminal display.
+        ///
+        /// A profile change command occurs when a special escape sequence, followed
+        /// by a string containing a series of name and value pairs is received.
+        /// This string can be parsed using a ProfileCommandParser instance.
+        ///
+        /// @param text A string expected to contain a series of key and value pairs in
+        /// the form:  name=value;name2=value2 ...
+        profile_change_command_received();
 
-    /// Emitted when a flow control key combination ( Ctrl+S or Ctrl+Q ) is pressed.
-    ///
-    /// @param suspendKeyPressed True if Ctrl+S was pressed to suspend output or Ctrl+Q to resume output.
-    fn flow_control_key_pressed() -> &'static str {
-        Self::ACTION_FLOW_CONTROL_KEY_PRESSED
-    }
+        /// Emitted when a flow control key combination ( Ctrl+S or Ctrl+Q ) is pressed.
+        ///
+        /// @param suspendKeyPressed True if Ctrl+S was pressed to suspend output or Ctrl+Q to resume output.
+        flow_control_key_pressed();
 
-    /// Emitted when the cursor shape or its blinking state is changed via DECSCUSR sequences.
-    ////
-    /// @param cursorShape One of 3 possible values in KeyboardCursorShape enum. <br>
-    /// @param blinkingCursorEnabled Whether to enable blinking or not
-    fn cursor_changed() -> &'static str {
-        Self::ACTION_CURSOR_CHANGED
-    }
+        /// Emitted when the cursor shape or its blinking state is changed via DECSCUSR sequences.
+        ////
+        /// @param cursorShape One of 3 possible values in KeyboardCursorShape enum. <br>
+        /// @param blinkingCursorEnabled Whether to enable blinking or not
+        cursor_changed();
 
-    fn handle_command_from_keyboard() -> &'static str {
-        Self::ACTION_HANDLE_COMMAND_FROM_KEYBOARD
-    }
+        handle_command_from_keyboard();
 
-    fn output_from_keypress_event() -> &'static str {
-        Self::ACTION_OUTPUT_FROM_KEY_PRESS_EVENT
+        output_from_keypress_event();
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    ////////////////////////////////////////////////// Slots //////////////////////////////////////////////////
     /// Change the size of the emulation's image.
     fn set_image_size(&self, lines: i32, columns: i32);
 
@@ -349,11 +299,24 @@ pub trait Emulation {
     fn bracketed_paste_mode_changed(&self, bracketed_paste_mode: bool);
 }
 
-pub trait EmulationActionInitalizer: ActionHubExt + Emulation {
-    fn initialize_action_slots(&self) {}
-}
+impl ActionExt for BaseEmulation {}
+impl Emulation for BaseEmulation {
+    type Type = BaseEmulation;
 
-impl Emulation for EmulationStorage {
+    fn new() -> Self::Type {
+        let screen_0 = Rc::new(RefCell::new(Box::new(Screen::new(40, 80))));
+        let screen_1 = Rc::new(RefCell::new(Box::new(Screen::new(40, 80))));
+
+        let mut object: Self = Object::new(&[]);
+        object.key_translator = None;
+        object.current_screen = screen_0.clone();
+        object.screen = [screen_0, screen_1];
+        object.windows = vec![];
+        object.use_mouse = false;
+        object.bracket_paste_mode = false;
+        object
+    }
+
     fn create_window(&self) -> Rc<RefCell<Box<ScreenWindow>>> {
         todo!()
     }
@@ -391,7 +354,7 @@ impl Emulation for EmulationStorage {
         todo!()
     }
 
-    fn set_keyboard_layout<T: ToString>(&mut self, name: T) {
+    fn set_keyboard_layout(&mut self, name: &str) {
         todo!()
     }
 
@@ -478,5 +441,307 @@ impl Emulation for EmulationStorage {
 
     fn bracketed_paste_mode_changed(&self, bracketed_paste_mode: bool) {
         todo!()
+    }
+}
+
+pub trait EmulationWrapper {
+    fn create_window(&self) -> Rc<RefCell<Box<ScreenWindow>>>;
+
+    fn image_size(&self) -> Size;
+
+    fn line_count(&self) -> i32;
+
+    fn set_history(&self, history_type: Box<dyn HistoryType>);
+
+    fn history(&self) -> Rc<Box<dyn HistoryType>>;
+
+    fn clear_history(&self);
+
+    fn write_to_stream(
+        &self,
+        decoder: &mut dyn TerminalCharacterDecoder,
+        start_line: i32,
+        end_line: i32,
+    );
+
+    fn erase_char(&self) -> char;
+
+    fn set_keyboard_layout(&self, name: &str);
+
+    fn keyboard_layout(&self) -> String;
+
+    fn clear_entire_screen(&self);
+
+    fn reset(&self);
+
+    fn program_use_mouse(&self) -> bool;
+    fn set_use_mouse(&self, on: bool);
+
+    fn program_bracketed_paste_mode(&self) -> bool;
+    fn set_bracketed_paste_mode(&self, on: bool);
+
+    fn set_mode(&self, mode: i32);
+    fn reset_mode(&self, mode: i32);
+
+    fn receive_char(&self, ch: wchar_t);
+
+    fn set_screen(&self, index: i32);
+
+    fn set_image_size(&self, lines: i32, columns: i32);
+
+    fn send_text(&self, text: String);
+
+    fn send_key_event(&self, event: KeyEvent, from_paste: bool);
+
+    fn send_mouse_event(&self, buttons: i32, column: i32, line: i32, event_type: u8);
+
+    fn send_string(&self, string: String, length: i32);
+
+    fn receive_data(&self, buffer: Vec<u8>, len: i32);
+
+    fn show_bulk(&self);
+
+    fn buffer_update(&self);
+
+    fn uses_mouse_changed(&self, uses_mouse: bool);
+
+    fn bracketed_paste_mode_changed(&self, bracketed_paste_mode: bool);
+
+    fn send_data(&self) -> Signal;
+
+    fn lock_pty_request(&self) -> Signal;
+
+    fn use_utf8_request(&self) -> Signal;
+
+    fn state_set(&self) -> Signal;
+
+    fn zmodem_detected(&self) -> Signal;
+
+    fn change_tab_text_color_request(&self) -> Signal;
+
+    fn program_uses_mouse_changed(&self) -> Signal;
+
+    fn program_bracketed_paste_mode_changed(&self) -> Signal;
+
+    fn output_changed(&self) -> Signal;
+
+    fn title_changed(&self) -> Signal;
+
+    fn image_size_changed(&self) -> Signal;
+
+    fn image_size_initialized(&self) -> Signal;
+
+    fn image_resize_request(&self) -> Signal;
+
+    fn profile_change_command_received(&self) -> Signal;
+
+    fn flow_control_key_pressed(&self) -> Signal;
+
+    fn cursor_changed(&self) -> Signal;
+
+    fn handle_command_from_keyboard(&self) -> Signal;
+
+    fn output_from_keypress_event(&self) -> Signal;
+}
+
+impl<T: Emulation + ActionExt> EmulationWrapper for RefCell<T> {
+    fn create_window(&self) -> Rc<RefCell<Box<ScreenWindow>>> {
+        self.borrow().create_window()
+    }
+
+    fn image_size(&self) -> Size {
+        self.borrow().image_size()
+    }
+
+    fn line_count(&self) -> i32 {
+        self.borrow().line_count()
+    }
+
+    fn set_history(&self, history_type: Box<dyn HistoryType>) {
+        self.borrow_mut().set_history(history_type)
+    }
+
+    fn history(&self) -> Rc<Box<dyn HistoryType>> {
+        self.borrow().history()
+    }
+
+    fn clear_history(&self) {
+        self.borrow_mut().clear_history()
+    }
+
+    fn write_to_stream(
+        &self,
+        decoder: &mut dyn TerminalCharacterDecoder,
+        start_line: i32,
+        end_line: i32,
+    ) {
+        self.borrow_mut()
+            .write_to_stream(decoder, start_line, end_line)
+    }
+
+    fn erase_char(&self) -> char {
+        self.borrow().erase_char()
+    }
+
+    fn set_keyboard_layout(&self, name: &str) {
+        self.borrow_mut().set_keyboard_layout(name)
+    }
+
+    fn keyboard_layout(&self) -> String {
+        self.borrow().keyboard_layout()
+    }
+
+    fn clear_entire_screen(&self) {
+        self.borrow_mut().clear_entire_screen()
+    }
+
+    fn reset(&self) {
+        self.borrow_mut().reset()
+    }
+
+    fn program_use_mouse(&self) -> bool {
+        self.borrow().program_use_mouse()
+    }
+
+    fn set_use_mouse(&self, on: bool) {
+        self.borrow_mut().set_use_mouse(on)
+    }
+
+    fn program_bracketed_paste_mode(&self) -> bool {
+        self.borrow().program_bracketed_paste_mode()
+    }
+
+    fn set_bracketed_paste_mode(&self, on: bool) {
+        self.borrow_mut().set_bracketed_paste_mode(on)
+    }
+
+    fn set_mode(&self, mode: i32) {
+        self.borrow_mut().set_mode(mode)
+    }
+
+    fn reset_mode(&self, mode: i32) {
+        self.borrow_mut().reset_mode(mode)
+    }
+
+    fn receive_char(&self, ch: wchar_t) {
+        self.borrow_mut().receive_char(ch)
+    }
+
+    fn set_screen(&self, index: i32) {
+        self.borrow_mut().set_screen(index)
+    }
+
+    fn set_image_size(&self, lines: i32, columns: i32) {
+        self.borrow().set_image_size(lines, columns)
+    }
+
+    fn send_text(&self, text: String) {
+        self.borrow().send_text(text)
+    }
+
+    fn send_key_event(&self, event: KeyEvent, from_paste: bool) {
+        self.borrow().send_key_event(event, from_paste)
+    }
+
+    fn send_mouse_event(&self, buttons: i32, column: i32, line: i32, event_type: u8) {
+        self.borrow()
+            .send_mouse_event(buttons, column, line, event_type)
+    }
+
+    fn send_string(&self, string: String, length: i32) {
+        self.borrow().send_string(string, length)
+    }
+
+    fn receive_data(&self, buffer: Vec<u8>, len: i32) {
+        self.borrow().receive_data(buffer, len)
+    }
+
+    fn show_bulk(&self) {
+        self.borrow().show_bulk()
+    }
+
+    fn buffer_update(&self) {
+        self.borrow().buffer_update()
+    }
+
+    fn uses_mouse_changed(&self, uses_mouse: bool) {
+        self.borrow().uses_mouse_changed(uses_mouse)
+    }
+
+    fn bracketed_paste_mode_changed(&self, bracketed_paste_mode: bool) {
+        self.borrow()
+            .bracketed_paste_mode_changed(bracketed_paste_mode)
+    }
+
+    fn send_data(&self) -> Signal {
+        self.borrow().send_data()
+    }
+
+    fn lock_pty_request(&self) -> Signal {
+        self.borrow().lock_pty_request()
+    }
+
+    fn use_utf8_request(&self) -> Signal {
+        self.borrow().use_utf8_request()
+    }
+
+    fn state_set(&self) -> Signal {
+        self.borrow().state_set()
+    }
+
+    fn zmodem_detected(&self) -> Signal {
+        self.borrow().zmodem_detected()
+    }
+
+    fn change_tab_text_color_request(&self) -> Signal {
+        self.borrow().change_tab_text_color_request()
+    }
+
+    fn program_uses_mouse_changed(&self) -> Signal {
+        self.borrow().program_uses_mouse_changed()
+    }
+
+    fn program_bracketed_paste_mode_changed(&self) -> Signal {
+        self.borrow().program_bracketed_paste_mode_changed()
+    }
+
+    fn output_changed(&self) -> Signal {
+        self.borrow().output_changed()
+    }
+
+    fn title_changed(&self) -> Signal {
+        self.borrow().title_changed()
+    }
+
+    fn image_size_changed(&self) -> Signal {
+        self.borrow().image_size_changed()
+    }
+
+    fn image_size_initialized(&self) -> Signal {
+        self.borrow().image_size_initialized()
+    }
+
+    fn image_resize_request(&self) -> Signal {
+        self.borrow().image_resize_request()
+    }
+
+    fn profile_change_command_received(&self) -> Signal {
+        self.borrow().profile_change_command_received()
+    }
+
+    fn flow_control_key_pressed(&self) -> Signal {
+        self.borrow().flow_control_key_pressed()
+    }
+
+    fn cursor_changed(&self) -> Signal {
+        self.borrow().cursor_changed()
+    }
+
+    fn handle_command_from_keyboard(&self) -> Signal {
+        self.borrow().handle_command_from_keyboard()
+    }
+
+    fn output_from_keypress_event(&self) -> Signal {
+        self.borrow().output_from_keypress_event()
     }
 }

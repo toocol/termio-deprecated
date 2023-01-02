@@ -1,17 +1,42 @@
-use super::{Emulation, EmulationStorage};
+use super::{BaseEmulation, Emulation};
 use crate::{
     core::screen_window::ScreenWindow,
     tools::{history::HistoryType, terminal_character_decoder::TerminalCharacterDecoder},
 };
 use std::{cell::RefCell, rc::Rc};
-use tmui::{graphics::figure::Size, prelude::*};
+use tmui::{graphics::figure::Size, prelude::*, tlib::events::KeyEvent};
 use wchar::wchar_t;
 
+#[derive(Default)]
 pub struct VT102Emulation {
-    emulation: EmulationStorage,
+    emulation: BaseEmulation,
 }
 
+impl ObjectOperation for VT102Emulation {
+    fn id(&self) -> u64 {
+        self.emulation.id()
+    }
+
+    fn set_property(&self, name: &str, value: Value) {
+        self.emulation.set_property(name, value)
+    }
+
+    fn get_property(&self, name: &str) -> Option<std::cell::Ref<Box<Value>>> {
+        self.emulation.get_property(name)
+    }
+}
+
+impl ActionExt for VT102Emulation {}
+
 impl Emulation for VT102Emulation {
+    type Type = VT102Emulation;
+
+    fn new() -> Self::Type {
+        Self {
+            emulation: BaseEmulation::new()
+        }
+    }
+
     fn create_window(&self) -> Rc<RefCell<Box<ScreenWindow>>> {
         self.emulation.create_window()
     }
@@ -42,14 +67,15 @@ impl Emulation for VT102Emulation {
         start_line: i32,
         end_line: i32,
     ) {
-        self.emulation.write_to_stream(decoder, start_line, end_line)
+        self.emulation
+            .write_to_stream(decoder, start_line, end_line)
     }
 
     fn erase_char(&self) -> char {
         self.emulation.erase_char()
     }
 
-    fn set_keyboard_layout<T: ToString>(&mut self, name: T) {
+    fn set_keyboard_layout(&mut self, name: &str) {
         self.emulation.set_keyboard_layout(name)
     }
 
@@ -111,7 +137,8 @@ impl Emulation for VT102Emulation {
     }
 
     fn send_mouse_event(&self, buttons: i32, column: i32, line: i32, event_type: u8) {
-        self.emulation.send_mouse_event(buttons, column, line, event_type)
+        self.emulation
+            .send_mouse_event(buttons, column, line, event_type)
     }
 
     fn send_string(&self, string: String, length: i32) {
@@ -135,6 +162,7 @@ impl Emulation for VT102Emulation {
     }
 
     fn bracketed_paste_mode_changed(&self, bracketed_paste_mode: bool) {
-        self.emulation.bracketed_paste_mode_changed(bracketed_paste_mode)
+        self.emulation
+            .bracketed_paste_mode_changed(bracketed_paste_mode)
     }
 }

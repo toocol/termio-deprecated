@@ -2,13 +2,13 @@
 pub mod translator_manager;
 pub mod translator_reader;
 
+use tmui::tlib::namespace::{KeyboardModifier, KeyCode};
 pub use translator_manager::*;
 pub use translator_reader::*;
 
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::{collections::HashMap, rc::Rc};
-use tmui::prelude::{KeyCode, KeyboardModifier};
 
 lazy_static! {
     pub static ref TITLE_REGEX: Regex = Regex::new("keyboard\\s+\"(.*)\"").unwrap();
@@ -661,6 +661,7 @@ impl Entry {
 /// (Shift,Ctrl,Alt,Meta etc.) and state flags which indicate the state
 /// which the terminal must be in for the key sequence to apply.
 //////////////////////////////////////////////////////////////////////////////////////
+#[derive(Debug)]
 pub struct KeyboardTranslator {
     entries: HashMap<i32, Vec<Rc<Entry>>>,
     name: String,

@@ -8,7 +8,7 @@ use std::{
     cell::{Ref, RefCell},
     rc::Rc,
 };
-use tmui::{graphics::figure::Rect, prelude::*};
+use tmui::{graphics::figure::Rect, prelude::*, tlib::{signals, emit, object::{ObjectSubclass, ObjectImpl}}};
 
 /// Describes the units which scroll_by() moves the window by.
 pub enum RelativeScrollMode {
@@ -30,6 +30,8 @@ pub enum RelativeScrollMode {
 ///
 /// Whenever the output from the underlying screen is changed, the notifyOutputChanged() slot should be called.  
 /// This in turn will update the window's position and emit the outputChanged() signal if necessary.
+#[extends_object]
+#[derive(Default)]
 pub struct ScreenWindow {
     screen: Option<Rc<RefCell<Box<Screen>>>>,
     window_buffer: Option<Box<Vec<Character>>>,
@@ -44,18 +46,18 @@ pub struct ScreenWindow {
     /// count of lines which the window has been scrolled by since the last call to reset_scroll_count()
     scroll_count: i32,
 }
+impl ObjectSubclass for ScreenWindow {
+    const NAME: &'static str = "ScreenWindow";
 
-impl ActionHubExt for ScreenWindow {}
+    type Type = ScreenWindow;
+
+    type ParentType = Object;
+}
+impl ObjectImpl for ScreenWindow {}
+
+impl ActionExt for ScreenWindow {}
 
 impl ScreenWindow {
-    pub const ACTION_NOTIFY_OUTPUT_CHANGED: &'static str = "action-notify-output-changed";
-    pub const ACTION_COMMAND_FROM_KEYBOARD: &'static str = "action-command-from-keyboard";
-
-    pub const ACTION_OUTPUT_CHANGED: &'static str = "action-output-changed";
-    pub const ACTION_SCROLLED: &'static str = "action-scrolled";
-    pub const ACTION_SELECTION_CHANGED: &'static str = "action-selection-changed";
-    pub const ACTION_SCROLL_TO_END: &'static str = "action-scroll-to-end";
-
     /// Constructs a new screen window with the given parent.
     /// A screen must be specified by calling setScreen() before calling getImage() or getLineProperties().
     ///
@@ -63,55 +65,53 @@ impl ScreenWindow {
     /// on the emulation which you wish to view.  This allows the emulation to notify the window when the
     /// associated screen has changed and synchronize selection updates between all views on a session.
     pub fn new() -> Rc<RefCell<Box<Self>>> {
-        let window_rc = Rc::new(RefCell::new(Box::new(Self {
-            screen: None,
-            window_buffer: None,
-            window_buffer_size: 0,
-            buffer_needs_update: true,
-            window_lines: 1,
-            current_line: 0,
-            track_output: true,
-            scroll_count: 0,
-        })));
+        let mut object: Self = Object::new(&[]);
+        object.screen = None;
+        object.window_buffer = None;
+        object.window_buffer_size = 0;
+        object.buffer_needs_update = true;
+        object.window_lines = 1;
+        object.current_line = 0;
+        object.track_output = true;
+        object.scroll_count = 0;
 
+        Rc::new(RefCell::new(Box::new(object)))
+    }
+
+    pub fn connect_notify_output_changed(window_rc: &Rc<RefCell<Box<Self>>>, signal: Signal) {
         let window = window_rc.clone();
         window_rc
             .borrow()
-            .connect_action(Self::ACTION_NOTIFY_OUTPUT_CHANGED, move |_| {
+            .connect_action(signal, move |_| {
                 window.borrow_mut().notify_output_changed()
             });
+    }
 
+    pub fn connect_command_from_keyboard(window_rc: &Rc<RefCell<Box<Self>>>, signal: Signal) {
         let window = window_rc.clone();
         window_rc
             .borrow()
-            .connect_action(Self::ACTION_COMMAND_FROM_KEYBOARD, move |param| {
+            .connect_action(signal, move |param| {
                 let command = param.unwrap().get::<u16>();
                 window.borrow_mut().handle_command_from_keyboard(command);
             });
-
-        window_rc
     }
 
     ////////////////////////////////////////////////// Signals //////////////////////////////////////////////////
-    /// Emitted when the contents of the associated terminal screen (see screen()) changes.
-    pub fn output_changed() -> &'static str {
-        Self::ACTION_OUTPUT_CHANGED
-    }
+    signals! {
+        /// Emitted when the contents of the associated terminal screen (see screen()) changes.
+        output_changed();
 
-    /// Emitted when the screen window is scrolled to a different position.
-    ///
-    /// @param line The line which is now at the top of the window.
-    pub fn scrolled() -> &'static str {
-        Self::ACTION_SCROLLED
-    }
+        /// Emitted when the screen window is scrolled to a different position.
+        ///
+        /// @param line The line which is now at the top of the window.
+        scrolled();
 
-    /// Emitted when the selection is changed.
-    pub fn selection_changed() -> &'static str {
-        Self::ACTION_SELECTION_CHANGED
-    }
+        /// Emitted when the selection is changed.
+        selection_changed();
 
-    pub fn scroll_to_end() -> &'static str {
-        Self::ACTION_SCROLL_TO_END
+        /// Emitted when handle command `ScrollDownToBottomCommand` from keyboard.
+        scroll_to_end();    
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -211,7 +211,7 @@ impl ScreenWindow {
             .set_selection_start(column, (line + current_line).min(end_line), column_mode);
 
         self.buffer_needs_update = true;
-        emit!(Self::selection_changed());
+        emit!(self.selection_changed());
     }
 
     /// Sets the end of the selection to the given @p line and @p column within the window.
@@ -225,7 +225,7 @@ impl ScreenWindow {
             .set_selection_end(column, (line + current_line).min(end_line));
 
         self.buffer_needs_update = true;
-        emit!(Self::selection_changed());
+        emit!(self.selection_changed());
     }
 
     /// Retrieves the start of the selection within the window.
@@ -256,7 +256,7 @@ impl ScreenWindow {
             .borrow_mut()
             .clear_selection();
 
-        emit!(Self::selection_changed());
+        emit!(self.selection_changed());
     }
 
     /// Sets the number of lines in the window.
@@ -317,7 +317,7 @@ impl ScreenWindow {
 
         self.buffer_needs_update = true;
 
-        emit!(Self::scrolled(), self.current_line());
+        emit!(self.scrolled(), self.current_line());
     }
 
     /// Scrolls the window relative to its current position on the screen.
@@ -398,7 +398,7 @@ impl ScreenWindow {
 
         self.buffer_needs_update = true;
 
-        emit!(Self::output_changed())
+        emit!(self.output_changed())
     }
 
     pub fn handle_command_from_keyboard(&mut self, command: u16) {
@@ -423,7 +423,7 @@ impl ScreenWindow {
             update = true;
         }
         if command.has(Command::ScrollDownToBottomCommand) {
-            emit!(Self::scroll_to_end());
+            emit!(self.scroll_to_end());
             update = true;
         }
         if command.has(Command::ScrollUpToTopCommand) {
@@ -433,7 +433,7 @@ impl ScreenWindow {
 
         if update {
             self.set_track_output(self.at_end_of_output());
-            emit!(Self::output_changed());
+            emit!(self.output_changed());
         }
     }
 }
