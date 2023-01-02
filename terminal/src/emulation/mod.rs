@@ -312,8 +312,6 @@ pub trait Emulation: ActionExt + Sized + 'static {
     fn bracketed_paste_mode_changed(&self, bracketed_paste_mode: bool);
 }
 
-impl ActionExt for BaseEmulation {}
-
 impl Emulation for BaseEmulation {
     type Type = BaseEmulation;
 

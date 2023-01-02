@@ -63,8 +63,6 @@ impl ObjectSubclass for ScreenWindow {
 }
 impl ObjectImpl for ScreenWindow {}
 
-impl ActionExt for ScreenWindow {}
-
 ////////////////////////////////////////////////// Signals //////////////////////////////////////////////////
 pub trait ScreenWindowSignals: ActionExt {
     signals! {
