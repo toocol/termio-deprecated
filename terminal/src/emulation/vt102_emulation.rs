@@ -1,18 +1,43 @@
-use super::{Emulation, EmulationStorage};
+use super::{BaseEmulation, Emulation};
 use crate::{
     core::screen_window::ScreenWindow,
-    tools::{history::HistoryType, terminal_character_decoder::TerminalCharacterDecoder},
+    tools::{history::HistoryType, terminal_character_decoder::TerminalCharacterDecoder, translators::KeyboardTranslatorManager},
 };
 use std::{cell::RefCell, rc::Rc};
-use tmui::{graphics::figure::Size, prelude::*};
+use tmui::{graphics::figure::Size, prelude::*, tlib::events::KeyEvent};
 use wchar::wchar_t;
 
+#[derive(Default)]
 pub struct VT102Emulation {
-    emulation: EmulationStorage,
+    emulation: Rc<BaseEmulation>,
 }
 
+impl ObjectOperation for VT102Emulation {
+    fn id(&self) -> u64 {
+        self.emulation.id()
+    }
+
+    fn set_property(&self, name: &str, value: Value) {
+        self.emulation.set_property(name, value)
+    }
+
+    fn get_property(&self, name: &str) -> Option<std::cell::Ref<Box<Value>>> {
+        self.emulation.get_property(name)
+    }
+}
+
+impl ActionExt for VT102Emulation {}
+
 impl Emulation for VT102Emulation {
-    fn create_window(&self) -> Rc<RefCell<Box<ScreenWindow>>> {
+    type Type = VT102Emulation;
+
+    fn new(translator_manager: Rc<RefCell<KeyboardTranslatorManager>>) -> Rc<Self::Type> {
+        Rc::new(Self {
+            emulation: BaseEmulation::new(translator_manager),
+        })
+    }
+
+    fn create_window(self: &Rc<Self>) -> Rc<RefCell<Box<ScreenWindow>>> {
         self.emulation.create_window()
     }
 
@@ -24,32 +49,33 @@ impl Emulation for VT102Emulation {
         self.emulation.line_count()
     }
 
-    fn set_history(&mut self, history_type: Box<dyn HistoryType>) {
+    fn set_history(&self, history_type: Rc<dyn HistoryType>) {
         self.emulation.set_history(history_type)
     }
 
-    fn history(&self) -> Rc<Box<dyn HistoryType>> {
+    fn history(&self) -> Rc<dyn HistoryType> {
         self.emulation.history()
     }
 
-    fn clear_history(&mut self) {
+    fn clear_history(&self) {
         self.emulation.clear_history()
     }
 
     fn write_to_stream(
-        &mut self,
+        &self,
         decoder: &mut dyn TerminalCharacterDecoder,
         start_line: i32,
         end_line: i32,
     ) {
-        self.emulation.write_to_stream(decoder, start_line, end_line)
+        self.emulation
+            .write_to_stream(decoder, start_line, end_line)
     }
 
     fn erase_char(&self) -> char {
         self.emulation.erase_char()
     }
 
-    fn set_keyboard_layout<T: ToString>(&mut self, name: T) {
+    fn set_keyboard_layout(&self, name: &str) {
         self.emulation.set_keyboard_layout(name)
     }
 
@@ -57,11 +83,11 @@ impl Emulation for VT102Emulation {
         self.emulation.keyboard_layout()
     }
 
-    fn clear_entire_screen(&mut self) {
+    fn clear_entire_screen(&self) {
         self.emulation.clear_entire_screen()
     }
 
-    fn reset(&mut self) {
+    fn reset(&self) {
         self.emulation.reset()
     }
 
@@ -69,7 +95,7 @@ impl Emulation for VT102Emulation {
         self.emulation.program_use_mouse()
     }
 
-    fn set_use_mouse(&mut self, on: bool) {
+    fn set_use_mouse(&self, on: bool) {
         self.emulation.set_use_mouse(on)
     }
 
@@ -77,23 +103,23 @@ impl Emulation for VT102Emulation {
         self.emulation.program_bracketed_paste_mode()
     }
 
-    fn set_bracketed_paste_mode(&mut self, on: bool) {
+    fn set_bracketed_paste_mode(&self, on: bool) {
         self.emulation.set_bracketed_paste_mode(on)
     }
 
-    fn set_mode(&mut self, mode: i32) {
+    fn set_mode(&self, mode: i32) {
         self.emulation.set_mode(mode)
     }
 
-    fn reset_mode(&mut self, mode: i32) {
+    fn reset_mode(&self, mode: i32) {
         self.emulation.reset_mode(mode)
     }
 
-    fn receive_char(&mut self, ch: wchar_t) {
+    fn receive_char(&self, ch: wchar_t) {
         self.emulation.receive_char(ch)
     }
 
-    fn set_screen(&mut self, index: i32) {
+    fn set_screen(&self, index: i32) {
         self.emulation.set_screen(index)
     }
 
@@ -111,7 +137,8 @@ impl Emulation for VT102Emulation {
     }
 
     fn send_mouse_event(&self, buttons: i32, column: i32, line: i32, event_type: u8) {
-        self.emulation.send_mouse_event(buttons, column, line, event_type)
+        self.emulation
+            .send_mouse_event(buttons, column, line, event_type)
     }
 
     fn send_string(&self, string: String, length: i32) {
@@ -135,6 +162,7 @@ impl Emulation for VT102Emulation {
     }
 
     fn bracketed_paste_mode_changed(&self, bracketed_paste_mode: bool) {
-        self.emulation.bracketed_paste_mode_changed(bracketed_paste_mode)
+        self.emulation
+            .bracketed_paste_mode_changed(bracketed_paste_mode)
     }
 }

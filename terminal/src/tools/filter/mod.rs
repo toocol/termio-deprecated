@@ -5,6 +5,9 @@ pub mod url_filter;
 
 pub use filter_chain::*;
 pub use regex_filter::*;
+use tmui::tlib::emit;
+use tmui::tlib::object::{ObjectSubclass, ObjectImpl};
+use tmui::tlib::{signals, signal};
 pub use url_filter::*;
 
 use crate::tools::system_ffi::string_width;
@@ -24,9 +27,10 @@ lazy_static! {
             .unwrap();
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
 pub enum HotSpotType {
     /// the type of the hotspot is not specified
+    #[default]
     NotSpecified,
     /// this hotspot represents a clickable link
     Link,
@@ -47,7 +51,7 @@ pub enum HotSpotType {
 /// opening that URL in a web browser. Hotspots may have more than one action,
 /// in which case the list of actions can be obtained using the actions()
 /// method.  These actions may then be displayed in a popup menu or toolbar for example.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
 pub struct HotSpot {
     start_line: i32,
     start_column: i32,
@@ -303,35 +307,60 @@ impl Filter for BaseFilter {
     }
 }
 
+#[extends_object]
+#[derive(Default)]
 pub struct FilterObject {
     filter: Option<*mut dyn HotSpotImpl>,
 }
-impl ActionHubExt for FilterObject {}
+impl ObjectSubclass for FilterObject {
+    const NAME: &'static str = "FilterObject";
+
+    type Type = FilterObject;
+
+    type ParentType = Object;
+}
+impl ObjectImpl for FilterObject {}
+
+impl ActionExt for FilterObject {}
 impl FilterObject {
     pub const ACTION_FILTER_ACTIVATED: &'static str = "action-filter-activated";
     pub const ACTION_OPEN: &'static str = "action-open";
     pub const ACTION_COPY: &'static str = "action-copy";
     pub const ACTION_CLICK: &'static str = "action-click";
 
+    signals!{
+        /// Signal to activate ation `filter activated`.
+        action_filter_activated();
+
+        /// Signal to activate action `open`.
+        action_open();
+
+        /// Signal to activate action `copy`.
+        action_copy();
+
+        /// Signal to activate action `click`.
+        action_click();
+    }
+
     pub fn new() -> Self {
-        Self { filter: None }
+        Object::new(&[])
     }
 
     #[inline]
     pub fn emit_activated(&self, url: String, from_context_menu: bool) {
-        emit!(Self::ACTION_FILTER_ACTIVATED, (url, from_context_menu));
+        emit!(self.action_filter_activated(), (url, from_context_menu))
     }
 
     pub fn activate(&self) {
         let filter_ref = self.filter.as_ref();
         if let Some(filter) = filter_ref {
             let copy = filter.clone();
-            self.connect_action(Self::ACTION_OPEN, move |_| unsafe {
+            self.connect_action(self.action_open(), move |_| unsafe {
                 copy.as_ref().unwrap().activate(Self::ACTION_OPEN)
             });
 
             let copy = filter.clone();
-            self.connect_action(Self::ACTION_COPY, move |_| unsafe {
+            self.connect_action(self.action_copy(), move |_| unsafe {
                 copy.as_ref().unwrap().activate(Self::ACTION_COPY)
             });
         }

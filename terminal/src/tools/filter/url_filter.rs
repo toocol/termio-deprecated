@@ -1,4 +1,5 @@
 use regex::Regex;
+use tmui::tlib::object::{ObjectSubclass, ObjectImpl};
 use std::{cell::RefCell, rc::Rc};
 use tmui::prelude::*;
 
@@ -15,10 +16,22 @@ pub enum UrlType {
     Email,
     Unknown,
 }
+
+#[extends_object]
+#[derive(Default)]
 pub struct UrlFilterHotSpot {
     hotspot: RegexFilterHotSpot,
     url_object: RefCell<FilterObject>,
 }
+impl ObjectSubclass for UrlFilterHotSpot {
+    const NAME: &'static str = "UrlFilterHotSpot";
+
+    type Type = UrlFilterHotSpot;
+
+    type ParentType = Object;
+}
+impl ObjectImpl for UrlFilterHotSpot {}
+
 impl UrlFilterHotSpot {
     pub fn url_type(&self) -> UrlType {
         let url = self.captured_texts().first();
@@ -47,16 +60,19 @@ impl RegexFilterHotSpotImpl for UrlFilterHotSpot {
 }
 impl HotSpotConstructer for UrlFilterHotSpot {
     fn new(start_line: i32, start_column: i32, end_line: i32, end_column: i32) -> Self {
-        let mut hotspot = Self {
-            hotspot: RegexFilterHotSpot::new(start_line, start_column, end_line, end_column),
-            url_object: RefCell::new(FilterObject::new()),
-        };
+        let mut hotspot: UrlFilterHotSpot = Object::new(&[]);
+
+        hotspot.hotspot = RegexFilterHotSpot::new(start_line, start_column, end_line, end_column);
         hotspot.set_type(HotSpotType::Link);
+
         let ptr = &mut hotspot as *mut UrlFilterHotSpot as *mut dyn HotSpotImpl;
+        hotspot.url_object.borrow().activate();
         hotspot.url_object.borrow_mut().set_filter(ptr);
+
         hotspot
     }
 }
+impl ActionExt for UrlFilterHotSpot {}
 impl HotSpotImpl for UrlFilterHotSpot {
     #[inline]
     fn start_line(&self) -> i32 {
@@ -129,16 +145,24 @@ impl HotSpotImpl for UrlFilterHotSpot {
 
         match kind {
             UrlType::StandardUrl => {
-                let open_action = Action::with_param(FilterObject::ACTION_OPEN, "Open link");
-                let copy_action =
-                    Action::with_param(FilterObject::ACTION_COPY, "Copy link address");
+                let open_action = self
+                    .create_action_with_param(self.url_object.borrow().action_open(), "Open link");
+                let copy_action = self.create_action_with_param(
+                    self.url_object.borrow().action_open(),
+                    "Copy link address",
+                );
                 list.push(open_action);
                 list.push(copy_action);
             }
             UrlType::Email => {
-                let open_action = Action::with_param(FilterObject::ACTION_OPEN, "Send email to...");
-                let copy_action =
-                    Action::with_param(FilterObject::ACTION_COPY, "Copy email address");
+                let open_action = self.create_action_with_param(
+                    self.url_object.borrow().action_open(),
+                    "Send email to...",
+                );
+                let copy_action = self.create_action_with_param(
+                    self.url_object.borrow().action_copy(),
+                    "Copy email address",
+                );
                 list.push(open_action);
                 list.push(copy_action);
             }

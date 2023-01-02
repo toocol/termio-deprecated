@@ -6,6 +6,7 @@ use super::{HotSpot, HotSpotConstructer, HotSpotImpl, HotSpotType, BaseFilter, B
 
 /// Type of hotspot created by RegExpFilter.  The capturedTexts() method can be
 /// used to find the text matched by the filter's regular expression.
+#[derive(Debug, Default)]
 pub struct RegexFilterHotSpot {
     hotspot: HotSpot,
     captured_texts: Vec<String>,

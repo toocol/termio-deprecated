@@ -1,7 +1,7 @@
 use super::{is_letter_or_number, Command, Entry, State, KEY_REGEX, TITLE_REGEX};
 use crate::tools::text_stream::LineReader;
 use log::warn;
-use tmui::prelude::{KeyCode, KeyboardModifier};
+use tmui::tlib::namespace::{KeyboardModifier, KeyCode};
 
 #[repr(C)]
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]

@@ -1,7 +1,7 @@
 use super::{KeyboardTranslator, KeyboardTranslatorReader};
 use crate::asset::Asset;
 use log::warn;
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, rc::Rc, cell::RefCell};
 
 const LAYOUT_PATH_PREFIX: &'static str = "kb-layouts/";
 const LAYOUT_PATH_SUFFIX: &'static str = ".keytab";
@@ -12,7 +12,7 @@ const LAYOUT_PATH_SUFFIX: &'static str = ".keytab";
 /// The keyboard translations themselves are not loaded until they are
 /// first requested via a call to find_translator()
 pub struct KeyboardTranslatorManager {
-    translators: HashMap<String, Rc<Box<KeyboardTranslator>>>,
+    translators: HashMap<String, Rc<RefCell<Box<KeyboardTranslator>>>>,
     valid_translator_names: Vec<String>,
     have_load_all: bool,
 }
@@ -27,9 +27,9 @@ impl KeyboardTranslatorManager {
     }
 
     /// Returns the default translator.
-    pub fn default_translator(&self) -> Rc<Box<KeyboardTranslator>> {
+    pub fn default_translator(&self) -> Rc<RefCell<Box<KeyboardTranslator>>> {
         let translator = self.load_translator("default");
-        Rc::new(Box::new(translator.unwrap()))
+        Rc::new(RefCell::new(Box::new(translator.unwrap())))
     }
 
     /// Returns the keyboard translator with the given name or 0 if no translator
@@ -37,7 +37,7 @@ impl KeyboardTranslatorManager {
     ///
     /// The first time that a translator with a particular name is requested,
     /// the on-disk .keyboard file is loaded and parsed.
-    pub fn find_translator(&mut self, name: String) -> Rc<Box<KeyboardTranslator>> {
+    pub fn find_translator(&mut self, name: String) -> Rc<RefCell<Box<KeyboardTranslator>>> {
         if name.is_empty() {
             return self.default_translator();
         }
@@ -48,7 +48,7 @@ impl KeyboardTranslatorManager {
 
         let translator = self.load_translator(&name);
         if translator.is_some() {
-            let translator = Rc::new(Box::new(translator.unwrap()));
+            let translator = Rc::new(RefCell::new(Box::new(translator.unwrap())));
             self.translators.insert(name, translator.clone());
             translator
         } else {
