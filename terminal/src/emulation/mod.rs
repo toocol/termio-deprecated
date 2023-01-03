@@ -551,16 +551,20 @@ impl Emulation for BaseEmulation {
             return;
         }
 
-        self.screen.borrow()[0].borrow_mut().resize_image(lines, columns);
-        self.screen.borrow()[1].borrow_mut().resize_image(lines, columns);
+        self.screen.borrow()[0]
+            .borrow_mut()
+            .resize_image(lines, columns);
+        self.screen.borrow()[1]
+            .borrow_mut()
+            .resize_image(lines, columns);
 
         emit!(self.image_size_changed(), (lines, columns));
 
         self.buffer_update();
     }
 
-    fn send_text(&self, text: String) {
-        todo!()
+    fn send_text(&self, _: String) {
+        // Default implementation does nothing.
     }
 
     fn send_key_event(&self, event: KeyEvent, _from_paste: bool) {
@@ -584,23 +588,43 @@ impl Emulation for BaseEmulation {
 
         self.buffer_update();
 
-        let utf8_text = String::from_utf8(buffer).expect("`Emulation` receive_data() parse utf-8 string failed.");
+        let utf8_text = String::from_utf8(buffer.clone())
+            .expect("`Emulation` receive_data() parse utf-8 string failed.");
         let utf16_text = U16String::from_str(&utf8_text);
+
+        // Send characters to terminal emulator
+        let text_slice = utf16_text.as_slice();
+        for i in 0..text_slice.len() {
+            self.receive_char(text_slice[i]);
+        }
+
+        // Look for z-modem indicator
+        for i in 0..len as usize {
+            if buffer[i] == '\u{0030}' as u8 {
+                if len as usize - i - 1 > 3
+                    && String::from_utf8(buffer[i + 1..i + 4].to_vec()).unwrap() == "B00"
+                {
+                    emit!(self.zmodem_detected())
+                }
+            }
+        }
     }
 
     fn show_bulk(&self) {
+        // TODO: need add timer
         todo!()
     }
 
     fn buffer_update(&self) {
+        // TODO: need add timer
         todo!()
     }
 
     fn uses_mouse_changed(&self, uses_mouse: bool) {
-        todo!()
+        self.use_mouse.set(uses_mouse)
     }
 
     fn bracketed_paste_mode_changed(&self, bracketed_paste_mode: bool) {
-        todo!()
+        self.bracket_paste_mode.set(bracketed_paste_mode)
     }
 }

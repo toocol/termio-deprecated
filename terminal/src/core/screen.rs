@@ -23,7 +23,8 @@ const MODE_INSERT: usize = 2;
 const MODE_SCREEN: usize = 3;
 const MODE_CURSOR: usize = 4;
 const MODE_NEWLINE: usize = 5;
-const MODES_SCREEN: usize = 6;
+
+pub const MODES_SCREEN: usize = 6;
 
 const MAX_CHARS: usize = 1024;
 
