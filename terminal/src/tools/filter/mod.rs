@@ -321,7 +321,6 @@ impl ObjectSubclass for FilterObject {
 }
 impl ObjectImpl for FilterObject {}
 
-impl ActionExt for FilterObject {}
 impl FilterObject {
     pub const ACTION_FILTER_ACTIVATED: &'static str = "action-filter-activated";
     pub const ACTION_OPEN: &'static str = "action-open";

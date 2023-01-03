@@ -72,7 +72,6 @@ impl HotSpotConstructer for UrlFilterHotSpot {
         hotspot
     }
 }
-impl ActionExt for UrlFilterHotSpot {}
 impl HotSpotImpl for UrlFilterHotSpot {
     #[inline]
     fn start_line(&self) -> i32 {

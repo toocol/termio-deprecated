@@ -31,13 +31,13 @@ pub enum RelativeScrollMode {
 ///
 /// A new ScreenWindow for a terminal session can be created by calling Emulation::createWindow()
 ///
-/// Use the scrollTo() method to scroll the window up and down on the screen.
-/// Use the getImage() method to retrieve the character image which is currently visible in the window.
+/// Use the scroll_to() method to scroll the window up and down on the screen.
+/// Use the get_image() method to retrieve the character image which is currently visible in the window.
 ///
-/// setTrackOutput() controls whether the window moves to the bottom of the associated screen when new lines are added to it.
+/// set_track_output() controls whether the window moves to the bottom of the associated screen when new lines are added to it.
 ///
-/// Whenever the output from the underlying screen is changed, the notifyOutputChanged() slot should be called.  
-/// This in turn will update the window's position and emit the outputChanged() signal if necessary.
+/// Whenever the output from the underlying screen is changed, the notify_output_changed() slot should be called.  
+/// This in turn will update the window's position and emit the output_changed() signal if necessary.
 #[extends_object]
 #[derive(Default)]
 pub struct ScreenWindow {
@@ -63,8 +63,6 @@ impl ObjectSubclass for ScreenWindow {
 }
 impl ObjectImpl for ScreenWindow {}
 
-impl ActionExt for ScreenWindow {}
-
 ////////////////////////////////////////////////// Signals //////////////////////////////////////////////////
 pub trait ScreenWindowSignals: ActionExt {
     signals! {
@@ -88,7 +86,7 @@ impl ScreenWindowSignals for ScreenWindow {}
 
 impl ScreenWindow {
     /// Constructs a new screen window with the given parent.
-    /// A screen must be specified by calling setScreen() before calling getImage() or getLineProperties().
+    /// A screen must be specified by calling set_screen() before calling get_image() or getLineProperties().
     ///
     /// Should not call this constructor directly, instead use the Emulation::create_window() method to create a window
     /// on the emulation which you wish to view.  This allows the emulation to notify the window when the
@@ -200,7 +198,7 @@ impl ScreenWindow {
         self.scroll_count
     }
 
-    /// Resets the count of scrolled lines returned by scrollCount().
+    /// Resets the count of scrolled lines returned by scroll_count().
     pub fn reset_scroll_count(&mut self) {
         self.scroll_count = 0
     }
@@ -357,13 +355,13 @@ impl ScreenWindow {
     /// of the screen when new output is added.
     ///
     /// If this is set to true, the window will be moved to the bottom of the
-    /// associated screen ( see screen() ) when the notifyOutputChanged() method is called.
+    /// associated screen ( see screen() ) when the notify_output_changed() method is called.
     pub fn set_track_output(&mut self, track_output: bool) {
         self.track_output = track_output
     }
 
     /// Returns whether the window automatically moves to the bottom of the screen
-    /// as new output is added.  See setTrackOutput()
+    /// as new output is added.  See set_track_output()
     pub fn track_output(&self) -> bool {
         self.track_output
     }

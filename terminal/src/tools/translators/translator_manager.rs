@@ -19,11 +19,13 @@ pub struct KeyboardTranslatorManager {
 
 impl KeyboardTranslatorManager {
     pub fn new() -> Self {
-        Self {
+        let mut manager = Self {
             translators: HashMap::new(),
             valid_translator_names: vec![],
             have_load_all: false,
-        }
+        };
+        manager.collect_valid_translators();
+        manager
     }
 
     /// Returns the default translator.
@@ -68,7 +70,7 @@ impl KeyboardTranslatorManager {
     }
 
     /// Locate the avaliable translators
-    fn find_translators(&mut self) {
+    fn collect_valid_translators(&mut self) {
         for asset_name in Asset::iter() {
             if asset_name.ends_with(".keytab") {
                 self.valid_translator_names.push(asset_name.to_string());
