@@ -7,6 +7,13 @@ use std::{cell::RefCell, rc::Rc};
 use tmui::{graphics::figure::Size, prelude::*, tlib::events::KeyEvent};
 use wchar::wchar_t;
 
+/// Provides an xterm compatible terminal emulation based on the DEC VT102
+/// terminal. A full description of this terminal can be found at
+/// http://vt100.net/docs/vt102-ug/
+/// 
+/// In addition, various additional xterm escape sequences are supported to
+/// provide features such as mouse input handling. See
+/// http://rtfm.etla.org/xterm/ctlseq.html for a description of xterm's escape sequences.
 #[derive(Default)]
 pub struct VT102Emulation {
     emulation: Rc<BaseEmulation>,

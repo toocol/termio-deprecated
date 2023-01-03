@@ -14,7 +14,7 @@ use crate::tools::{
 };
 use bitvec::vec::BitVec;
 use std::{cell::RefCell, rc::Rc};
-use tmui::{graphics::figure::Rect};
+use tmui::{graphics::figure::Rect, prelude::*, tlib::object::{ObjectSubclass, ObjectImpl}};
 use wchar::{wch, wchar_t};
 
 const MODE_ORIGIN: usize = 0;
@@ -61,21 +61,22 @@ pub type ImageLine = Vec<Character>;
 ///
 /// The terminal emulation ( Emulation ) receives a serial stream of
 /// characters from the program currently running in the terminal.
-/// From this stream it creates an image of characters which is ultimately
-/// rendered by the display widget ( TerminalDisplay ).  Some types of emulation
+/// From this stream `Screen` creates an image of characters which is ultimately
+/// rendered by the display widget ( TerminalView ).  Some types of emulation
 /// may have more than one screen image.
 ///
-/// getImage() is used to retrieve the currently visible image
+/// get_image() is used to retrieve the currently visible image
 /// which is then used by the display widget to draw the output from the terminal.
 ///
 /// The number of lines of output history which are kept in addition to the
 /// current screen image depends on the history scroll being used to store the
-/// output. The scroll is specified using setScroll() The output history can be retrieved using writeToStream()
+/// output. The scroll is specified using set_scroll() The output history can be retrieved using write_to_stream()
 ///
 /// The screen image has a selection associated with it, specified using
-/// setSelectionStart() and setSelectionEnd().  The selected text can be
-/// retrieved using selectedText().  When getImage() is used to retrieve the
+/// set_selection_start() and set_selection_end().  The selected text can be
+/// retrieved using selected_text().  When get_image() is used to retrieve the
 /// visible image, characters which are part of the selection have their colours inverted.
+#[extends_object]
 pub struct Screen {
     lines: i32,
     columns: i32,
@@ -137,10 +138,19 @@ pub struct Screen {
 
     character_buffer: RefCell<[Character; MAX_CHARS]>,
 }
+impl ObjectSubclass for Screen {
+    const NAME: &'static str = "Screen";
+
+    type Type = Screen;
+
+    type ParentType = Object;
+}
+impl ObjectImpl for Screen {}
 
 impl Default for Screen {
     fn default() -> Self {
         Self {
+            object: Object::default(),
             lines: 0,
             columns: 0,
             screen_lines: Box::default(),
