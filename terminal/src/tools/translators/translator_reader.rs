@@ -162,17 +162,17 @@ impl KeyboardTranslatorReader {
         true
     }
 
-    fn parse_as_key_code(item: &String, key_code: &mut i32) -> bool {
+    fn parse_as_key_code(item: &String, key_code: &mut u32) -> bool {
         let code = KeyCode::from(item);
         if !(code == KeyCode::Unknown) {
             let code: u32 = code.into();
-            *key_code = code as i32;
+            *key_code = code;
         } else if item.to_lowercase() == "prior" {
             let code: u32 = KeyCode::KeyPageUp.into();
-            *key_code = code as i32;
+            *key_code = code;
         } else if item.to_lowercase() == "next" {
             let code: u32 = KeyCode::KeyPageDown.into();
-            *key_code = code as i32;
+            *key_code = code;
         } else {
             return false;
         }
@@ -280,7 +280,7 @@ impl KeyboardTranslatorReader {
                 let mut flag_mask = State::NoState;
                 let mut modifiers = KeyboardModifier::NoModifier;
                 let mut modifier_mask = KeyboardModifier::NoModifier;
-                let mut key_code = 0;
+                let mut key_code = 0u32;
 
                 self.decode_sequence(
                     &tokens[1].text,
@@ -322,7 +322,7 @@ impl KeyboardTranslatorReader {
     fn decode_sequence(
         &self,
         text: &str,
-        key_code: &mut i32,
+        key_code: &mut u32,
         modifiers: &mut KeyboardModifier,
         modifier_mask: &mut KeyboardModifier,
         flags: &mut State,
@@ -353,7 +353,7 @@ impl KeyboardTranslatorReader {
 
             if (end_of_item || is_last_letter) && !buffer.is_empty() {
                 let mut item_modifier = KeyboardModifier::NoModifier;
-                let mut item_key_code = 0;
+                let mut item_key_code = 0u32;
                 let mut item_flag = State::NoState;
 
                 if Self::parse_as_modifier(&buffer, &mut item_modifier) {

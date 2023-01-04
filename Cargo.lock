@@ -228,12 +228,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "chunked_transfer"
-version = "1.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cca491388666e04d7248af3f60f0c40cfb0991c72205595d7c396e3510207d1a"
-
-[[package]]
 name = "ciborium"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1366,7 +1360,7 @@ dependencies = [
 [[package]]
 name = "macros"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#fae3b232d62b090ce3e89671742d934f5e8ed774"
+source = "git+https://github.com/toocol/tmui#7dbf051a76432b1c8822451dbb1ff1b156dbf09d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2455,12 +2449,12 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 [[package]]
 name = "tipc"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#fae3b232d62b090ce3e89671742d934f5e8ed774"
+source = "git+https://github.com/toocol/tmui#7dbf051a76432b1c8822451dbb1ff1b156dbf09d"
 
 [[package]]
 name = "tlib"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#fae3b232d62b090ce3e89671742d934f5e8ed774"
+source = "git+https://github.com/toocol/tmui#7dbf051a76432b1c8822451dbb1ff1b156dbf09d"
 dependencies = [
  "lazy_static",
  "log",
@@ -2472,7 +2466,7 @@ dependencies = [
 [[package]]
 name = "tmui"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#fae3b232d62b090ce3e89671742d934f5e8ed774"
+source = "git+https://github.com/toocol/tmui#7dbf051a76432b1c8822451dbb1ff1b156dbf09d"
 dependencies = [
  "hex_color",
  "log",
@@ -2555,12 +2549,11 @@ checksum = "a156c684c91ea7d62626509bce3cb4e1d9ed5c4d978f7b4352658f96a4c26b4a"
 
 [[package]]
 name = "ureq"
-version = "2.5.0"
+version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b97acb4c28a254fd7a4aeec976c46a7fa404eac4d7c134b30c75144846d7cb8f"
+checksum = "733b5ad78377302af52c0dbcb2623d78fe50e4b3bf215948ff29e9ee031d8566"
 dependencies = [
  "base64",
- "chunked_transfer",
  "flate2",
  "log",
  "once_cell",

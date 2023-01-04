@@ -235,7 +235,7 @@ impl From<u16> for Command {
 /// and the character sequence and commands associated with it for a particular KeyboardTranslator.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Entry {
-    key_code: i32,
+    key_code: u32,
     modifiers: KeyboardModifier,
     modifier_mask: KeyboardModifier,
 
@@ -382,15 +382,15 @@ impl Entry {
         result
     }
 
-    /// Returns the character code ( from the Qt::Key enum ) associated with this entry.
+    /// Returns the character code ( from the tlib::[`KeyCode`] enum ) associated with this entry.
     #[inline]
-    pub fn key_code(&self) -> i32 {
+    pub fn key_code(&self) -> u32 {
         self.key_code
     }
 
     /// Sets the character code associated with this entry.
     #[inline]
-    pub fn set_key_code(&mut self, key_code: i32) {
+    pub fn set_key_code(&mut self, key_code: u32) {
         self.key_code = key_code
     }
 
@@ -507,7 +507,7 @@ impl Entry {
     ///Returns true if this entry matches the given key sequence, specified
     /// as a combination of @p keyCode , @p modifiers and @p state.
     #[allow(unused_mut)]
-    pub fn matches(&self, key_code: i32, modifiers: KeyboardModifier, flags: State) -> bool {
+    pub fn matches(&self, key_code: u32, modifiers: KeyboardModifier, flags: State) -> bool {
         let mut modifiers = modifiers;
         let mut flags = flags;
         #[cfg(target_os = "macos")]
@@ -663,7 +663,7 @@ impl Entry {
 //////////////////////////////////////////////////////////////////////////////////////
 #[derive(Debug)]
 pub struct KeyboardTranslator {
-    entries: HashMap<i32, Vec<Rc<Entry>>>,
+    entries: HashMap<u32, Vec<Rc<Entry>>>,
     name: String,
     description: String,
 }
@@ -707,7 +707,7 @@ impl KeyboardTranslator {
     /// @param state Optional flags which specify the current state of the terminal
     pub fn find_entry(
         &self,
-        key_code: i32,
+        key_code: u32,
         modifiers: KeyboardModifier,
         state: Option<State>,
     ) -> Option<Rc<Entry>> {

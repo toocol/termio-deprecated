@@ -17,12 +17,12 @@ use std::{cell::RefCell, rc::Rc};
 use tmui::{graphics::figure::Rect, prelude::*, tlib::object::{ObjectSubclass, ObjectImpl}};
 use wchar::{wch, wchar_t};
 
-const MODE_ORIGIN: usize = 0;
-const MODE_WRAP: usize = 1;
-const MODE_INSERT: usize = 2;
-const MODE_SCREEN: usize = 3;
-const MODE_CURSOR: usize = 4;
-const MODE_NEWLINE: usize = 5;
+pub const MODE_ORIGIN: usize = 0;
+pub const MODE_WRAP: usize = 1;
+pub const MODE_INSERT: usize = 2;
+pub const MODE_SCREEN: usize = 3;
+pub const MODE_CURSOR: usize = 4;
+pub const MODE_NEWLINE: usize = 5;
 
 pub const MODES_SCREEN: usize = 6;
 
@@ -187,7 +187,7 @@ impl Default for Screen {
 
 impl Screen {
     pub fn new(lines: i32, columns: i32) -> Self {
-        let mut screen = Self::default();
+        let mut screen: Screen = Object::new(&[]);
         screen.lines = lines;
         screen.columns = columns;
         screen.screen_lines = Box::new(vec![vec![]; lines as usize + 1]);
