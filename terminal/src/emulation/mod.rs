@@ -52,14 +52,15 @@ pub enum EmulationCodec {
     Utf8Codec = 1,
 }
 
-/// The terminal emulation ( `Emulation` ) receives a serial stream of
+/// The terminal emulation ( [`Emulation`] ) receives a serial stream of
 /// characters from the program currently running in the terminal.
 ///
-/// From this stream `Screen` creates an image of characters which is ultimately
-/// rendered by the display widget ( `TerminalView` ).  Some types of emulation
+/// From this stream [`Screen`] creates an image of characters which is ultimately
+/// rendered by the display widget ( [`TerminalView`] ).  Some types of emulation
 /// may have more than one screen image.
 ///
-/// Every running `Session` has one specified `Emulation`.
+/// Every running [`Session`] has one specified Emulation.
+/// The common abstract to use in dyn trait object was the [`EmulationWrapper`]
 #[extends_object]
 #[derive(Default)]
 pub struct BaseEmulation {

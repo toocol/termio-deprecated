@@ -187,7 +187,7 @@ impl Default for Screen {
 
 impl Screen {
     pub fn new(lines: i32, columns: i32) -> Self {
-        let mut screen = Self::default();
+        let mut screen: Screen = Object::new(&[]);
         screen.lines = lines;
         screen.columns = columns;
         screen.screen_lines = Box::new(vec![vec![]; lines as usize + 1]);
