@@ -1,22 +1,31 @@
 #![allow(unused_macros)]
 use super::{BaseEmulation, Emulation};
 use crate::{
-    core::{screen::MODES_SCREEN, screen_window::ScreenWindow},
+    core::{
+        screen::{MODES_SCREEN, MODE_NEWLINE},
+        screen_window::ScreenWindow,
+    },
     emulation::EmulationState,
     tools::{
-        history::HistoryType, terminal_character_decoder::TerminalCharacterDecoder,
-        translators::KeyboardTranslatorManager,
+        character_color::VT100_GRAPHICS,
+        history::HistoryType,
+        terminal_character_decoder::TerminalCharacterDecoder,
+        translators::{KeyboardTranslatorManager, State},
     },
 };
 use std::{
-    cell::{Cell, RefCell},
+    cell::{Cell, RefCell, RefMut},
     collections::HashMap,
     rc::Rc,
 };
 use tmui::{
     graphics::figure::Size,
     prelude::*,
-    tlib::{emit, events::KeyEvent},
+    tlib::{
+        emit,
+        events::KeyEvent,
+        namespace::{KeyCode, KeyboardModifier},
+    },
 };
 use wchar::{wch, wchar_t};
 use widestring::U16String;
@@ -220,10 +229,10 @@ pub struct VT102Emulation {
     /// (printable character, control, digit etc.) for the purposes of decoding terminal output
     char_class: RefCell<[i32; 256]>,
     charset: RefCell<[CharCodes; 2]>,
-    current_modes: TerminalState,
-    saved_modes: TerminalState,
+    current_modes: RefCell<TerminalState>,
+    saved_modes: RefCell<TerminalState>,
     pending_title_updates: RefCell<HashMap<i32, String>>,
-    report_focus_event: bool,
+    report_focus_event: Cell<bool>,
     // TODO: Add timer: title_update_timer
 }
 impl ObjectOperation for VT102Emulation {
@@ -359,12 +368,15 @@ impl VT102Emulation {
         // TODO: Update title update timer
     }
 
-    fn request_window_attribute(&self, p: i32) {
-        todo!()
+    fn request_window_attribute(&self, _p: i32) {
+        // No implementation
     }
 
     fn add_to_current_token(&self, cc: wchar_t) {
-        todo!()
+        let pos = self.token_buffer_pos.get();
+        self.token_buffer.borrow_mut()[pos] = cc;
+        self.token_buffer_pos
+            .set((pos + 1).min(MAX_TOKEN_LENGTH - 1));
     }
 
     fn add_digit(&self, digit: i32) {
@@ -395,26 +407,53 @@ impl VT102Emulation {
        it might involve VT100 enhanced fonts, which have these
        particular glyphs allocated in (0x00-0x1f) in their code page.
     */
-    fn charset(&self) -> Option<&CharCodes> {
-        let codes = self.charset.borrow().get(if self
-            .emulation
-            .as_ref()
-            .unwrap()
-            .current_screen
-            .borrow()
-            .borrow()
-            .id()
-            == self.emulation.as_ref().unwrap().screen.borrow()[1].borrow().id()
-        {
-            1
-        } else {
-            0
-        });
-        todo!()
+    fn charset(&self) -> RefMut<CharCodes> {
+        RefMut::map(self.charset.borrow_mut(), |charset| {
+            charset
+                .get_mut(
+                    if self
+                        .emulation
+                        .as_ref()
+                        .unwrap()
+                        .current_screen
+                        .borrow()
+                        .borrow()
+                        .id()
+                        == self.emulation.as_ref().unwrap().screen.borrow()[1]
+                            .borrow()
+                            .id()
+                    {
+                        1
+                    } else {
+                        0
+                    },
+                )
+                .unwrap()
+        })
     }
 
     fn apply_charset(&self, c: wchar_t) -> wchar_t {
-        todo!()
+        if self.charset().graphic && 0x5f <= c && c <= 0x7e {
+            return VT100_GRAPHICS[(c - 0x5f) as usize];
+        }
+        if self.charset().pound && c == wch!('#') {
+            return 0xa3;
+        }
+        c
+    }
+
+    /// "Charset" related part of the emulation state. This configures the VT100 charset filter.
+    ///
+    /// While most operation work on the current _screen, the following two are different.
+    fn reset_charset(&self, scrno: i32) {
+        self.charset.borrow_mut()[scrno as usize].current_charset = 0;
+        self.charset.borrow_mut()[scrno as usize]
+            .charset
+            .copy_from_slice("BBBB".as_bytes());
+        self.charset.borrow_mut()[scrno as usize].saved_graphic = false;
+        self.charset.borrow_mut()[scrno as usize].saved_pound = false;
+        self.charset.borrow_mut()[scrno as usize].graphic = false;
+        self.charset.borrow_mut()[scrno as usize].pound = false;
     }
 
     fn set_charset(&self, n: i32, cs: i32) {
@@ -425,32 +464,64 @@ impl VT102Emulation {
     }
 
     fn use_charset(&self, n: i32) {
-        todo!()
+        let mut charset = self.charset();
+        charset.current_charset = n & 3;
+        charset.graphic = charset.charset[(n & 3) as usize] == b'0';
+        // This mode is obsolete.
+        charset.pound = charset.charset[(n & 3) as usize] == b'A';
     }
 
     fn set_and_use_charset(&self, n: i32, cs: i32) {
-        todo!()
+        self.charset().charset[(n & 3) as usize] = cs as u8;
+        self.use_charset(n & 3);
     }
 
     fn save_cursor(&self) {
-        todo!()
+        let mut charset = self.charset();
+        charset.saved_graphic = charset.graphic;
+        charset.saved_pound = charset.pound;
+        // we are not clear about these
+        // sa_charset = charsets[cScreen->_charset];
+        // sa_charset_num = cScreen->_charset;
+        self.emulation
+            .as_ref()
+            .unwrap()
+            .current_screen
+            .borrow()
+            .borrow_mut()
+            .save_cursor();
     }
 
     fn restore_cursor(&self) {
-        todo!()
-    }
-
-    fn reset_charset(&self, scrno: i32) {
-        todo!()
+        let mut charset = self.charset();
+        charset.graphic = charset.saved_graphic;
+        charset.pound = charset.saved_pound;
+        self.emulation
+            .as_ref()
+            .unwrap()
+            .current_screen
+            .borrow()
+            .borrow_mut()
+            .resotre_cursor();
     }
 
     fn set_margins(&self, top: i32, bottom: i32) {
-        todo!()
+        self.emulation.as_ref().unwrap().screen.borrow()[0]
+            .borrow_mut()
+            .set_margins(top, bottom);
+        self.emulation.as_ref().unwrap().screen.borrow()[1]
+            .borrow_mut()
+            .set_margins(top, bottom);
     }
 
     /// Set margins for all screens back to their defaults.
     fn set_default_margins(&self) {
-        todo!()
+        self.emulation.as_ref().unwrap().screen.borrow()[0]
+            .borrow_mut()
+            .set_default_margins();
+        self.emulation.as_ref().unwrap().screen.borrow()[1]
+            .borrow_mut()
+            .set_default_margins();
     }
 
     //////////////////////////////////////// Modes operations ////////////////////////////////////////
@@ -467,17 +538,22 @@ impl VT102Emulation {
     */
     /// Returns true if 'mode' is set or false otherwise.
     fn get_mode(&self, mode: i32) -> bool {
-        todo!()
+        self.current_modes.borrow().mode[mode as usize]
     }
 
     /// Saves the current boolean value of 'mode'.
     fn save_mode(&self, mode: i32) {
-        todo!()
+        self.saved_modes.borrow_mut().mode[mode as usize] =
+            self.current_modes.borrow().mode[mode as usize];
     }
 
     /// Restores the boolean value of 'mode'.
     fn restore_mode(&self, mode: i32) {
-        todo!()
+        if self.saved_modes.borrow().mode[mode as usize] {
+            self.set_mode(mode)
+        } else {
+            self.reset_mode(mode)
+        }
     }
 
     /// Resets all modes (except MODE_Allow132Columns).
@@ -771,7 +847,30 @@ impl Emulation for VT102Emulation {
     }
 
     fn erase_char(&self) -> char {
-        self.emulation.as_ref().unwrap().erase_char()
+        let entry = self
+            .emulation
+            .as_ref()
+            .unwrap()
+            .key_translator
+            .borrow()
+            .as_ref()
+            .unwrap()
+            .borrow()
+            .find_entry(
+                KeyCode::KeyBackspace as u32,
+                KeyboardModifier::NoModifier,
+                Some(State::NoState),
+            );
+        if let Some(entry) = entry {
+            let text = entry.text(None, None);
+            if text.len() > 0 {
+                text[0] as char
+            } else {
+                '\u{b}'
+            }
+        } else {
+            '\u{b}'
+        }
     }
 
     fn set_keyboard_layout(&self, name: &str) {
@@ -813,11 +912,71 @@ impl Emulation for VT102Emulation {
     }
 
     fn set_mode(&self, mode: i32) {
-        self.emulation.as_ref().unwrap().set_mode(mode)
+        let mode = mode as usize;
+        self.current_modes.borrow_mut().mode[mode] = true;
+
+        match mode {
+            MODE_132_COLUMNS => {
+                if self.get_mode(MODE_ALLOW_132_COLUMNS as i32) {
+                    self.clear_screen_and_set_columns(132);
+                }
+            }
+            MODE_MOUSE_1000 => emit!(self.program_uses_mouse_changed(), false),
+            MODE_MOUSE_1001 => emit!(self.program_uses_mouse_changed(), false),
+            MODE_MOUSE_1002 => emit!(self.program_uses_mouse_changed(), false),
+            MODE_MOUSE_1003 => emit!(self.program_uses_mouse_changed(), false),
+            MODE_BRACKETD_PASTE => emit!(self.program_bracketed_paste_mode_changed(), true),
+            MODE_APP_SCREEN => {
+                self.emulation.as_ref().unwrap().screen.borrow()[1]
+                    .borrow_mut()
+                    .clear_selection();
+                self.set_screen(1);
+            }
+            _ => {}
+        }
+
+        if mode < MODES_SCREEN || mode == MODE_NEWLINE {
+            self.emulation.as_ref().unwrap().screen.borrow()[0]
+                .borrow_mut()
+                .set_mode(mode);
+            self.emulation.as_ref().unwrap().screen.borrow()[1]
+                .borrow_mut()
+                .set_mode(mode);
+        }
     }
 
     fn reset_mode(&self, mode: i32) {
-        self.emulation.as_ref().unwrap().reset_mode(mode)
+        let mode = mode as usize;
+        self.current_modes.borrow_mut().mode[mode] = false;
+
+        match mode {
+            MODE_132_COLUMNS => {
+                if self.get_mode(MODE_ALLOW_132_COLUMNS as i32) {
+                    self.clear_screen_and_set_columns(80);
+                }
+            }
+            MODE_MOUSE_1000 => emit!(self.program_uses_mouse_changed(), true),
+            MODE_MOUSE_1001 => emit!(self.program_uses_mouse_changed(), true),
+            MODE_MOUSE_1002 => emit!(self.program_uses_mouse_changed(), true),
+            MODE_MOUSE_1003 => emit!(self.program_uses_mouse_changed(), true),
+            MODE_BRACKETD_PASTE => emit!(self.program_bracketed_paste_mode_changed(), false),
+            MODE_APP_SCREEN => {
+                self.emulation.as_ref().unwrap().screen.borrow()[0]
+                    .borrow_mut()
+                    .clear_selection();
+                self.set_screen(0);
+            }
+            _ => {}
+        }
+
+        if mode < MODES_SCREEN || mode == MODE_NEWLINE {
+            self.emulation.as_ref().unwrap().screen.borrow()[0]
+                .borrow_mut()
+                .reset_mode(mode);
+            self.emulation.as_ref().unwrap().screen.borrow()[1]
+                .borrow_mut()
+                .reset_mode(mode);
+        }
     }
 
     fn set_screen(&self, index: i32) {
