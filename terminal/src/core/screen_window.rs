@@ -4,10 +4,7 @@ use crate::tools::{
     character::{Character, LineProperty},
     translators::Command,
 };
-use std::{
-    cell::{Ref, RefCell},
-    rc::Rc,
-};
+use std::ptr::NonNull;
 use tmui::{
     graphics::figure::Rect,
     prelude::*,
@@ -41,7 +38,7 @@ pub enum RelativeScrollMode {
 #[extends_object]
 #[derive(Default)]
 pub struct ScreenWindow {
-    screen: Option<Rc<RefCell<Box<Screen>>>>,
+    screen: Option<NonNull<Screen>>,
     window_buffer: Option<Box<Vec<Character>>>,
     window_buffer_size: i32,
     buffer_needs_update: bool,
@@ -91,7 +88,7 @@ impl ScreenWindow {
     /// Should not call this constructor directly, instead use the Emulation::create_window() method to create a window
     /// on the emulation which you wish to view.  This allows the emulation to notify the window when the
     /// associated screen has changed and synchronize selection updates between all views on a session.
-    pub fn new() -> Rc<RefCell<Box<Self>>> {
+    pub fn new() -> Box<Self> {
         let mut object: Self = Object::new(&[]);
         object.screen = None;
         object.window_buffer = None;
@@ -102,44 +99,50 @@ impl ScreenWindow {
         object.track_output = true;
         object.scroll_count = 0;
 
-        Rc::new(RefCell::new(Box::new(object)))
+        Box::new(object)
     }
 
-    pub fn connect_notify_output_changed(window_rc: &Rc<RefCell<Box<Self>>>, signal: Signal) {
-        let window = window_rc.clone();
-        window_rc
-            .borrow()
-            .connect_action(signal, move |_| window.borrow_mut().notify_output_changed());
-    }
-
-    pub fn connect_handle_command_from_keyboard(
-        window_rc: &Rc<RefCell<Box<Self>>>,
-        signal: Signal,
-    ) {
-        let window = window_rc.clone();
-        window_rc.borrow().connect_action(signal, move |param| {
-            let command = param.unwrap().get::<u16>();
-            window.borrow_mut().handle_command_from_keyboard(command);
+    pub fn connect_notify_output_changed(&mut self, signal: Signal) {
+        let ptr = NonNull::new(self as *mut Self);
+        self.connect_action(signal, move |_| {
+            let mut ptr = ptr;
+            if let Some(window) = ptr.as_mut() {
+                unsafe { window.as_mut().notify_output_changed() }
+            }
         });
     }
 
-    pub fn connect_scroll_to_end(window_rc: &Rc<RefCell<Box<Self>>>, signal: Signal) {
-        let window = window_rc.clone();
-        window_rc.borrow().connect_action(signal, move |param| {
+    pub fn connect_handle_command_from_keyboard(&mut self, signal: Signal) {
+        let ptr = NonNull::new(self as *mut Self);
+        self.connect_action(signal, move |param| {
+            let command = param.unwrap().get::<u16>();
+            let mut ptr = ptr;
+            if let Some(window) = ptr.as_mut() {
+                unsafe { window.as_mut().handle_command_from_keyboard(command) }
+            }
+        });
+    }
+
+    pub fn connect_scroll_to_end(&mut self, signal: Signal) {
+        let ptr = NonNull::new(self as *mut Self);
+        self.connect_action(signal, move |param| {
             let line = param.unwrap().get::<i32>();
-            window.borrow_mut().scroll_to(line);
+            let mut ptr = ptr;
+            if let Some(window) = ptr.as_mut() {
+                unsafe { window.as_mut().scroll_to(line) }
+            }
         });
     }
 
     /// Sets the screen which this window looks onto
-    pub fn set_screen(&mut self, screen: Rc<RefCell<Box<Screen>>>) {
-        self.screen = Some(screen);
+    pub fn set_screen(&mut self, screen: Option<NonNull<Screen>>) {
+        self.screen = screen;
     }
 
     /// Returns the screen which this window looks onto.
     #[inline]
-    pub fn screen(&self) -> Ref<Box<Screen>> {
-        self.screen.as_deref().unwrap().borrow()
+    pub fn screen(&self) -> &Screen {
+        unsafe { self.screen.as_ref().unwrap().as_ref() }
     }
 
     /// Returns the image of characters which are currently visible through this
@@ -159,12 +162,14 @@ impl ScreenWindow {
 
         let current_line = self.current_line();
         let end_line = self.end_window_line();
-        self.screen.as_ref().unwrap().borrow().get_image(
-            self.window_buffer.as_deref_mut().unwrap(),
-            size,
-            current_line,
-            end_line,
-        );
+        unsafe {
+            self.screen.as_ref().unwrap().as_ref().get_image(
+                self.window_buffer.as_deref_mut().unwrap(),
+                size,
+                current_line,
+                end_line,
+            )
+        };
 
         // this window may look beyond the end of the screen, in which
         // case there will be an unused area which needs to be filled with blank characters.
@@ -220,11 +225,13 @@ impl ScreenWindow {
     pub fn set_selection_start(&mut self, column: i32, line: i32, column_mode: bool) {
         let current_line = self.current_line();
         let end_line = self.end_window_line();
-        self.screen
-            .as_deref()
-            .unwrap()
-            .borrow_mut()
-            .set_selection_start(column, (line + current_line).min(end_line), column_mode);
+        unsafe {
+            self.screen.as_mut().unwrap().as_mut().set_selection_start(
+                column,
+                (line + current_line).min(end_line),
+                column_mode,
+            )
+        };
 
         self.buffer_needs_update = true;
         emit!(self.selection_changed());
@@ -234,11 +241,13 @@ impl ScreenWindow {
     pub fn set_selection_end(&mut self, column: i32, line: i32) {
         let current_line = self.current_line();
         let end_line = self.end_window_line();
-        self.screen
-            .as_deref()
-            .unwrap()
-            .borrow_mut()
-            .set_selection_end(column, (line + current_line).min(end_line));
+        unsafe {
+            self.screen
+                .as_mut()
+                .unwrap()
+                .as_mut()
+                .set_selection_end(column, (line + current_line).min(end_line))
+        };
 
         self.buffer_needs_update = true;
         emit!(self.selection_changed());
@@ -266,11 +275,7 @@ impl ScreenWindow {
 
     /// Clears the current selection.
     pub fn clear_selection(&mut self) {
-        self.screen
-            .as_deref()
-            .unwrap()
-            .borrow_mut()
-            .clear_selection();
+        unsafe { self.screen.as_mut().unwrap().as_mut().clear_selection() };
 
         emit!(self.selection_changed());
     }
