@@ -6,14 +6,15 @@ pub mod url_filter;
 pub use filter_chain::*;
 pub use regex_filter::*;
 use tmui::tlib::emit;
-use tmui::tlib::object::{ObjectSubclass, ObjectImpl};
-use tmui::tlib::{signals, signal};
+use tmui::tlib::object::{ObjectImpl, ObjectSubclass};
+use tmui::tlib::{signal, signals};
 pub use url_filter::*;
 
 use crate::tools::system_ffi::string_width;
 use lazy_static::__Deref;
 use lazy_static::lazy_static;
 use regex::Regex;
+use std::ptr::NonNull;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use tmui::prelude::*;
 use widestring::U16String;
@@ -243,14 +244,22 @@ impl BaseFilterImpl for BaseFilter {
             if i as usize == self.line_positions.deref().borrow().len() - 1 {
                 next_line = self.buffer.deref().borrow().len() + 1;
             } else {
-                next_line = *self.line_positions.deref().borrow().get(i as usize + 1).unwrap() as usize;
+                next_line = *self
+                    .line_positions
+                    .deref()
+                    .borrow()
+                    .get(i as usize + 1)
+                    .unwrap() as usize;
             }
 
-            if *self.line_positions.deref().borrow().get(i).unwrap() <= position && position < next_line as i32 {
+            if *self.line_positions.deref().borrow().get(i).unwrap() <= position
+                && position < next_line as i32
+            {
                 line_col.0 = i as i32;
                 let line_position = *self.line_positions.deref().borrow().get(i).unwrap() as usize;
-                let mut u16string =
-                    U16String::from_str(&self.buffer.deref().borrow()[line_position..position as usize]);
+                let mut u16string = U16String::from_str(
+                    &self.buffer.deref().borrow()[line_position..position as usize],
+                );
                 u16string.push_char('\0');
                 line_col.1 = string_width(u16string.as_slice()) as i32;
                 return line_col;
@@ -327,7 +336,7 @@ impl FilterObject {
     pub const ACTION_COPY: &'static str = "action-copy";
     pub const ACTION_CLICK: &'static str = "action-click";
 
-    signals!{
+    signals! {
         /// Signal to activate ation `filter activated`.
         action_filter_activated();
 
@@ -353,14 +362,18 @@ impl FilterObject {
     pub fn activate(&self) {
         let filter_ref = self.filter.as_ref();
         if let Some(filter) = filter_ref {
-            let copy = filter.clone();
+            let copy = NonNull::new(filter.clone());
             self.connect_action(self.action_open(), move |_| unsafe {
-                copy.as_ref().unwrap().activate(Self::ACTION_OPEN)
+                if let Some(filter_ref) = copy.as_ref() {
+                    filter_ref.as_ref().activate(Self::ACTION_OPEN)
+                }
             });
 
-            let copy = filter.clone();
+            let copy = NonNull::new(filter.clone());
             self.connect_action(self.action_copy(), move |_| unsafe {
-                copy.as_ref().unwrap().activate(Self::ACTION_COPY)
+                if let Some(filter_ref) = copy.as_ref() {
+                    filter_ref.as_ref().activate(Self::ACTION_COPY)
+                }
             });
         }
     }

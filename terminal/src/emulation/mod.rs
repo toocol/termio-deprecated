@@ -19,6 +19,7 @@ use crate::{
 };
 use std::{
     cell::{Cell, RefCell},
+    ptr::NonNull,
     rc::Rc,
 };
 use tmui::{
@@ -67,7 +68,7 @@ pub struct BaseEmulation {
     /// The manager of keyboard translator.
     pub translator_manager: Option<Rc<RefCell<KeyboardTranslatorManager>>>,
     /// The kayboard layout translator.
-    pub key_translator: RefCell<Option<Rc<RefCell<Box<KeyboardTranslator>>>>>,
+    pub key_translator: RefCell<Option<NonNull<KeyboardTranslator>>>,
     /// Current active screen.
     pub current_screen: RefCell<Rc<RefCell<Box<Screen>>>>,
     /// 0 = primary screen. <br>
@@ -454,17 +455,19 @@ impl Emulation for BaseEmulation {
             .unwrap()
             .borrow_mut()
             .find_translator(name.to_string());
-        *self.key_translator.borrow_mut() = Some(translator);
+        *self.key_translator.borrow_mut() = translator;
     }
 
     fn keyboard_layout(&self) -> String {
-        self.key_translator
-            .borrow()
-            .as_ref()
-            .unwrap()
-            .borrow()
-            .name()
-            .to_string()
+        unsafe {
+            self.key_translator
+                .borrow()
+                .as_ref()
+                .unwrap()
+                .as_ref()
+                .name()
+                .to_string()
+        }
     }
 
     fn clear_entire_screen(&self) {

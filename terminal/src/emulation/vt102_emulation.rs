@@ -847,20 +847,22 @@ impl Emulation for VT102Emulation {
     }
 
     fn erase_char(&self) -> char {
-        let entry = self
-            .emulation
-            .as_ref()
-            .unwrap()
-            .key_translator
-            .borrow()
-            .as_ref()
-            .unwrap()
-            .borrow()
-            .find_entry(
-                KeyCode::KeyBackspace as u32,
-                KeyboardModifier::NoModifier,
-                Some(State::NoState),
-            );
+        let entry = unsafe {
+            self.emulation
+                .as_ref()
+                .unwrap()
+                .key_translator
+                .borrow()
+                .unwrap()
+                .as_ptr()
+                .as_ref()
+                .unwrap()
+                .find_entry(
+                    KeyCode::KeyBackspace as u32,
+                    KeyboardModifier::NoModifier,
+                    Some(State::NoState),
+                )
+        };
         if let Some(entry) = entry {
             let text = entry.text(None, None);
             if text.len() > 0 {

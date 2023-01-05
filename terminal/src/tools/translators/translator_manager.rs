@@ -1,7 +1,7 @@
 use super::{KeyboardTranslator, KeyboardTranslatorReader};
 use crate::asset::Asset;
 use log::warn;
-use std::{collections::HashMap, rc::Rc, cell::RefCell};
+use std::{collections::HashMap, ptr::NonNull};
 
 const LAYOUT_PATH_PREFIX: &'static str = "kb-layouts/";
 const LAYOUT_PATH_SUFFIX: &'static str = ".keytab";
@@ -12,7 +12,7 @@ const LAYOUT_PATH_SUFFIX: &'static str = ".keytab";
 /// The keyboard translations themselves are not loaded until they are
 /// first requested via a call to find_translator()
 pub struct KeyboardTranslatorManager {
-    translators: HashMap<String, Rc<RefCell<Box<KeyboardTranslator>>>>,
+    translators: HashMap<String, Box<KeyboardTranslator>>,
     valid_translator_names: Vec<String>,
     have_load_all: bool,
 }
@@ -29,9 +29,22 @@ impl KeyboardTranslatorManager {
     }
 
     /// Returns the default translator.
-    pub fn default_translator(&self) -> Rc<RefCell<Box<KeyboardTranslator>>> {
+    pub fn default_translator(&mut self) -> Option<NonNull<KeyboardTranslator>> {
+        if self.translators.contains_key("default") {
+            if let Some(translator) = self.translators.get_mut("default") {
+                return NonNull::new(translator.as_mut() as *mut KeyboardTranslator);
+            } else {
+                return None;
+            }
+        }
+
         let translator = self.load_translator("default");
-        Rc::new(RefCell::new(Box::new(translator.unwrap())))
+        let mut box_translator =
+            Box::new(translator.expect("Load `default` KeyboardTranslator failed."));
+        let translator_ptr = box_translator.as_mut() as *mut KeyboardTranslator;
+        self.translators
+            .insert("default".to_string(), box_translator);
+        NonNull::new(translator_ptr)
     }
 
     /// Returns the keyboard translator with the given name or 0 if no translator
@@ -39,20 +52,23 @@ impl KeyboardTranslatorManager {
     ///
     /// The first time that a translator with a particular name is requested,
     /// the on-disk .keyboard file is loaded and parsed.
-    pub fn find_translator(&mut self, name: String) -> Rc<RefCell<Box<KeyboardTranslator>>> {
+    pub fn find_translator(&mut self, name: String) -> Option<NonNull<KeyboardTranslator>> {
         if name.is_empty() {
             return self.default_translator();
         }
 
         if self.translators.contains_key(&name) {
-            return self.translators.get(&name).unwrap().clone();
+            return NonNull::new(
+                self.translators.get_mut(&name).unwrap().as_mut() as *mut KeyboardTranslator
+            );
         }
 
         let translator = self.load_translator(&name);
         if translator.is_some() {
-            let translator = Rc::new(RefCell::new(Box::new(translator.unwrap())));
-            self.translators.insert(name, translator.clone());
-            translator
+            let mut translator = Box::new(translator.unwrap());
+            let translator_ptr = translator.as_mut() as *mut KeyboardTranslator;
+            self.translators.insert(name, translator);
+            NonNull::new(translator_ptr)
         } else {
             warn!(
                 "Unable to load translator `{}`, use the default translator.",
