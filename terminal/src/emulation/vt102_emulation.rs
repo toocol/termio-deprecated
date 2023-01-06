@@ -1128,8 +1128,8 @@ impl VT102Emulation {
         //       Here's a guess of what they could mean.
         } else if token == ty_csi_pr!('h', 1049) {
             // XTerm
-            self.save_cursor();
             screen[1].clear_entire_screen();
+            self.save_cursor();
             self.set_mode(MODE_APP_SCREEN);
         } else if token == ty_csi_pr!('l', 1049) {
             // XTerm
