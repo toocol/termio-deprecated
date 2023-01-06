@@ -14,16 +14,16 @@ pub const LINE_WRAPPED: u8 = 1 << 0;
 pub const LINE_DOUBLE_WIDTH: u8 = 1 << 1;
 pub const LINE_DOUBLE_HEIGHT: u8 = 1 << 2;
 
-pub const DEFAULT_RENDITION: u8 = 0;
-pub const RE_BOLD: u8 = 1 << 0;
-pub const RE_BLINK: u8 = 1 << 1;
-pub const RE_UNDERLINE: u8 = 1 << 2;
-pub const RE_REVERSE: u8 = 1 << 3; // screen only
-pub const RE_INTENSIVE: u8 = 1 << 3; // widget only
-pub const RE_ITALIC: u8 = 1 << 4;
-pub const RE_CURSOR: u8 = 1 << 5;
-pub const RE_EXTEND_CHAR: u8 = 1 << 6;
-pub const RE_FAINT: u8 = 1 << 7;
+pub const DEFAULT_RENDITION: u16 = 0;
+pub const RE_BOLD: u16 = 1 << 0;
+pub const RE_BLINK: u16 = 1 << 1;
+pub const RE_UNDERLINE: u16 = 1 << 2;
+pub const RE_REVERSE: u16 = 1 << 3; // screen only
+pub const RE_INTENSIVE: u16 = 1 << 3; // widget only
+pub const RE_ITALIC: u16 = 1 << 4;
+pub const RE_CURSOR: u16 = 1 << 5;
+pub const RE_EXTEND_CHAR: u16 = 1 << 6;
+pub const RE_FAINT: u16 = 1 << 7;
 pub const RE_STRIKEOUT: u16 = 1 << 8;
 pub const RE_CONCEAL: u16 = 1 << 9;
 pub const RE_OVERLINE: u16 = 1 << 10;
@@ -85,7 +85,7 @@ pub struct Character {
     // The union of character, is one of `Character` or `CharSequence`
     pub character_union: CharacterUnion,
     /// A combination of `rendition` flags which specify options for drawing the character.
-    pub rendition: u8,
+    pub rendition: u16,
     /// The foreground color used to draw this character. */
     pub foreground_color: CharacterColor,
     /// The color used to draw this character's background. */
@@ -104,7 +104,7 @@ impl Default for Character {
 }
 
 impl Character {
-    pub fn new(c: wchar_t, f: CharacterColor, b: CharacterColor, r: u8) -> Self {
+    pub fn new(c: wchar_t, f: CharacterColor, b: CharacterColor, r: u16) -> Self {
         Self {
             character_union: CharacterUnion::Character(c),
             rendition: r,

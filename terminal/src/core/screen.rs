@@ -40,7 +40,7 @@ pub fn bound<T: Ord>(min: T, val: T, max: T) -> T {
 pub struct SavedState {
     cursor_column: i32,
     cursor_line: i32,
-    rendition: u8,
+    rendition: u16,
     foreground: CharacterColor,
     background: CharacterColor,
 }
@@ -102,7 +102,7 @@ pub struct Screen {
     ////// Cursor color and rendition info.
     cursor_foreground: CharacterColor,
     cursor_background: CharacterColor,
-    cursor_rendition: u8,
+    cursor_rendition: u16,
 
     ////// Margins
     top_margin: i32,
@@ -127,7 +127,7 @@ pub struct Screen {
     ////// Effective colors and rendition
     effective_foreground: CharacterColor,
     effective_background: CharacterColor,
-    effective_rendition: u8,
+    effective_rendition: u16,
 
     saved_state: Box<SavedState>,
 
@@ -696,7 +696,7 @@ impl Screen {
     /// appearance of characters on the screen.
     ///
     /// @see Character::rendition
-    pub fn set_rendition(&mut self, rendition: u8) {
+    pub fn set_rendition(&mut self, rendition: u16) {
         self.cursor_rendition |= rendition;
         self.update_effective_rendition();
     }
@@ -705,7 +705,7 @@ impl Screen {
     /// appearance of characters on the screen.
     ///
     /// @see Character::rendition
-    pub fn reset_rendition(&mut self, rendition: u8) {
+    pub fn reset_rendition(&mut self, rendition: u16) {
         self.cursor_rendition &= !rendition;
         self.update_effective_rendition();
     }

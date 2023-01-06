@@ -56,8 +56,8 @@ pub trait EmulationWrapper {
     fn program_bracketed_paste_mode(&self) -> bool;
     fn set_bracketed_paste_mode(&mut self, on: bool);
 
-    fn set_mode(&mut self, mode: i32);
-    fn reset_mode(&mut self, mode: i32);
+    fn set_mode(&mut self, mode: usize);
+    fn reset_mode(&mut self, mode: usize);
 
     fn receive_char(&mut self, ch: wchar_t);
 
@@ -192,11 +192,11 @@ impl<T: Emulation + ActionExt> EmulationWrapper for Option<T> {
         self.as_mut().unwrap().set_bracketed_paste_mode(on)
     }
 
-    fn set_mode(&mut self, mode: i32) {
+    fn set_mode(&mut self, mode: usize) {
         self.as_mut().unwrap().set_mode(mode)
     }
 
-    fn reset_mode(&mut self, mode: i32) {
+    fn reset_mode(&mut self, mode: usize) {
         self.as_mut().unwrap().reset_mode(mode)
     }
 
