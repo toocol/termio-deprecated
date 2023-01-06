@@ -169,7 +169,7 @@ pub struct HtmlDecoder<'a> {
     /// the HTML colour codes in its output
     color_table: &'a [ColorEntry],
     inner_span_open: bool,
-    last_rendition: u8,
+    last_rendition: u16,
     last_fore_color: Option<CharacterColor>,
     last_back_color: Option<CharacterColor>,
 }

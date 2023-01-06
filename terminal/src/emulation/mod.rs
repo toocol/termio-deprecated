@@ -156,8 +156,8 @@ pub trait Emulation: ActionExt + Sized + 'static {
     fn program_bracketed_paste_mode(&self) -> bool;
     fn set_bracketed_paste_mode(&mut self, on: bool);
 
-    fn set_mode(&mut self, mode: i32);
-    fn reset_mode(&mut self, mode: i32);
+    fn set_mode(&mut self, mode: usize);
+    fn reset_mode(&mut self, mode: usize);
 
     /// Processes an incoming character.  @see receive_data() <br>
     /// @p ch A unicode character code.
@@ -531,11 +531,11 @@ impl Emulation for BaseEmulation {
         }
     }
 
-    fn set_mode(&mut self, _: i32) {
+    fn set_mode(&mut self, _: usize) {
         // Default implementation does nothing.
     }
 
-    fn reset_mode(&mut self, _: i32) {
+    fn reset_mode(&mut self, _: usize) {
         // Default implementation does nothing.
     }
 

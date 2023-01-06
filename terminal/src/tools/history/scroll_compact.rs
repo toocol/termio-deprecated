@@ -21,7 +21,7 @@ pub struct CharacterFormat {
     fg_color: CharacterColor,
     bg_color: CharacterColor,
     start_pos: u16,
-    rendition: u8,
+    rendition: u16,
 }
 impl CharacterFormat {
     pub fn new(c: &Character) -> Self {
