@@ -136,3 +136,8 @@ impl From<u8> for DragState {
         }
     }
 }
+
+#[derive(Default)]
+pub struct TerminalView {
+
+}
