@@ -18,6 +18,8 @@ lazy_static! {
 
 #[cfg(target_os = "windows")]
 static CTRL_MODIFIER: KeyboardModifier = KeyboardModifier::ControlModifier;
+#[cfg(target_os = "linux")]
+static CTRL_MODIFIER: KeyboardModifier = KeyboardModifier::ControlModifier;
 #[cfg(target_os = "macos")]
 static CTRL_MODIFIER: KeyboardModifier = KeyboardModifier::MetaModifier;
 
