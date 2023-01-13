@@ -1,8 +1,9 @@
+use super::{
+    BaseFilter, BaseFilterImpl, Filter, HotSpot, HotSpotConstructer, HotSpotImpl, HotSpotType,
+};
 use regex::Regex;
-use std::{rc::Rc, cell::RefCell};
+use std::{cell::RefCell, rc::Rc};
 use tmui::prelude::*;
-
-use super::{HotSpot, HotSpotConstructer, HotSpotImpl, HotSpotType, BaseFilter, BaseFilterImpl, Filter};
 
 /// Type of hotspot created by RegExpFilter.  The capturedTexts() method can be
 /// used to find the text matched by the filter's regular expression.

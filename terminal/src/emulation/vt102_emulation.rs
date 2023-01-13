@@ -244,7 +244,7 @@ pub struct VT102Emulation {
     // TODO: Add timer: title_update_timer
 }
 impl ObjectOperation for VT102Emulation {
-    fn id(&self) -> u64 {
+    fn id(&self) -> u16 {
         self.emulation.as_ref().unwrap().id()
     }
 
