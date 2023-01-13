@@ -133,6 +133,7 @@ impl FilterChainImpl for RefCell<Vec<Rc<RefCell<dyn Filter>>>> {
     }
 }
 
+#[derive(Default)]
 pub struct TerminalImageFilterChain {
     filter_chain: FilterChain,
 

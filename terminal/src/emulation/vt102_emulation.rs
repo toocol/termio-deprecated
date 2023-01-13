@@ -244,7 +244,7 @@ pub struct VT102Emulation {
     // TODO: Add timer: title_update_timer
 }
 impl ObjectOperation for VT102Emulation {
-    fn id(&self) -> u64 {
+    fn id(&self) -> u16 {
         self.emulation.as_ref().unwrap().id()
     }
 
@@ -343,7 +343,6 @@ impl VT102Emulation {
                 .unwrap()
                 .as_mut()
         };
-        let screen = &mut self.emulation.as_mut().unwrap().screen;
         if token == ty_chr!() {
             // UTF-16
             unsafe {
@@ -437,7 +436,7 @@ impl VT102Emulation {
             // RS : ignored
         } else if token == ty_ctl!('_') {
             // US : ignored
-            //////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////
         } else if token == ty_esc!('D') {
             // VT100
             current_screen.index();
@@ -518,7 +517,7 @@ impl VT102Emulation {
         } else if token == ty_esc_cs!('%', '@') {
             // Linux
             // TODO: setCodec(LocaleCodec)
-            //////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////
         } else if token == ty_esc_de!('3') {
             // Double height line, top half.
             current_screen.set_line_property(LINE_DOUBLE_WIDTH, true);
@@ -838,7 +837,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pn!('y') {
             // IGNORED: Confidence test.
             // VT100
-            //////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 1) {
             self.set_mode(MODE_APP_CURSOR_KEY);
         } else if token == ty_csi_pr!('l', 1) {
@@ -863,7 +862,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('l', 4) {
             // IGNORED: soft scrolling.
             // VT100
-            //////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 5) {
             self.set_mode(MODE_SCREEN);
         } else if token == ty_csi_pr!('l', 5) {
@@ -899,7 +898,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('r', 8) {
             // IGNORED: autorepeat off
             // VT100
-            //////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 9) {
             // IGNORED: interlace
             // VT100
@@ -912,7 +911,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('r', 9) {
             // IGNORED: interlace
             // VT100
-            //////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 12) {
             // IGNORED: Cursor blink
             // att610
@@ -925,7 +924,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('r', 12) {
             // IGNORED: Cursor blink
             // att610
-            //////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 25) {
             // VT100
             self.set_mode(MODE_CURSOR);
@@ -958,7 +957,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('r', 41) {
             // IGNORED: obsolete more(1) fix
             // XTerm
-            //////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 47) {
             // VT100
             self.set_mode(MODE_APP_SCREEN);
@@ -984,19 +983,19 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('r', 67) {
             // IGNORED: DECBKM
             // XTerm
-            //////////////////////////////////////////////////////////////
-            // XTerm defines the following modes:
-            // SET_VT200_MOUSE             1000
-            // SET_VT200_HIGHLIGHT_MOUSE   1001
-            // SET_BTN_EVENT_MOUSE         1002
-            // SET_ANY_EVENT_MOUSE         1003
-            //
-            // Note about mouse modes:
-            // There are four mouse modes which xterm-compatible terminals can support
-            // - 1000,1001,1002,1003 Konsole currently supports mode 1000 (basic mouse
-            // press and release) and mode 1002 (dragging the mouse).
-            // TODO:  Implementation of mouse modes 1001 (something called hilight
-            // tracking) and 1003 (a slight variation on dragging the mouse)
+        //////////////////////////////////////////////////////////////
+        // XTerm defines the following modes:
+        // SET_VT200_MOUSE             1000
+        // SET_VT200_HIGHLIGHT_MOUSE   1001
+        // SET_BTN_EVENT_MOUSE         1002
+        // SET_ANY_EVENT_MOUSE         1003
+        //
+        // Note about mouse modes:
+        // There are four mouse modes which xterm-compatible terminals can support
+        // - 1000,1001,1002,1003 Konsole currently supports mode 1000 (basic mouse
+        // press and release) and mode 1002 (dragging the mouse).
+        // TODO:  Implementation of mouse modes 1001 (something called hilight
+        // tracking) and 1003 (a slight variation on dragging the mouse)
         } else if token == ty_csi_pr!('h', 1000) {
             // XTerm
             self.set_mode(MODE_MOUSE_1000);
@@ -1022,7 +1021,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('r', 1001) {
             // IGNORED: hilight mouse tracking
             // XTerm
-            //////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 1002) {
             // XTerm
             self.set_mode(MODE_MOUSE_1002);
@@ -1102,7 +1101,7 @@ impl VT102Emulation {
             self.set_mode(MODE_APP_SCREEN);
         } else if token == ty_csi_pr!('l', 1047) {
             // XTerm
-            screen[1].clear_entire_screen();
+            self.emulation.as_mut().unwrap().screen[1].clear_entire_screen();
             self.reset_mode(MODE_APP_SCREEN);
         } else if token == ty_csi_pr!('s', 1047) {
             // XTerm
@@ -1128,8 +1127,8 @@ impl VT102Emulation {
         //       Here's a guess of what they could mean.
         } else if token == ty_csi_pr!('h', 1049) {
             // XTerm
-            screen[1].clear_entire_screen();
             self.save_cursor();
+            self.emulation.as_mut().unwrap().screen[1].clear_entire_screen();
             self.set_mode(MODE_APP_SCREEN);
         } else if token == ty_csi_pr!('l', 1049) {
             // XTerm
@@ -1432,8 +1431,36 @@ impl VT102Emulation {
     }
 
     /// Resets all modes (except MODE_Allow132Columns).
-    fn reset_modes(&self) {
-        todo!()
+    fn reset_modes(&mut self) {
+        // MODE_Allow132Columns is not reset here
+        // to match Xterm's behaviour (see Xterm's VTReset() function)
+        self.reset_mode(MODE_132_COLUMNS);
+        self.save_mode(MODE_132_COLUMNS);
+        self.reset_mode(MODE_MOUSE_1000);
+        self.save_mode(MODE_MOUSE_1000);
+        self.reset_mode(MODE_MOUSE_1001);
+        self.save_mode(MODE_MOUSE_1001);
+        self.reset_mode(MODE_MOUSE_1002);
+        self.save_mode(MODE_MOUSE_1002);
+        self.reset_mode(MODE_MOUSE_1003);
+        self.save_mode(MODE_MOUSE_1003);
+        self.reset_mode(MODE_MOUSE_1005);
+        self.save_mode(MODE_MOUSE_1005);
+        self.reset_mode(MODE_MOUSE_1006);
+        self.save_mode(MODE_MOUSE_1006);
+        self.reset_mode(MODE_MOUSE_1015);
+        self.save_mode(MODE_MOUSE_1015);
+        self.reset_mode(MODE_BRACKETD_PASTE);
+        self.save_mode(MODE_BRACKETD_PASTE);
+
+        self.reset_mode(MODE_APP_SCREEN);
+        self.save_mode(MODE_APP_SCREEN);
+        self.reset_mode(MODE_APP_CURSOR_KEY);
+        self.save_mode(MODE_APP_CURSOR_KEY);
+        self.reset_mode(MODE_APP_KEY_PAD);
+        self.save_mode(MODE_APP_KEY_PAD);
+        self.reset_mode(MODE_NEWLINE);
+        self.set_mode(MODE_ANSI);
     }
 
     fn report_decoding_error(&self) {
@@ -1499,13 +1526,9 @@ impl VT102Emulation {
         self.send_string(str, -1)
     }
 
-    fn on_scroll_lock(&self) {
-        todo!()
-    }
+    fn on_scroll_lock(&self) {}
 
-    fn scroll_lock(&self, lock: bool) {
-        todo!()
-    }
+    fn scroll_lock(&self, _lock: bool) {}
 
     fn clear_screen_and_set_columns(&mut self, column_count: i32) {
         unsafe {
@@ -1535,12 +1558,26 @@ impl VT102Emulation {
     }
 
     //////////////////////////////////////////////////////// Slots
+    /// The focus lost event can be used by Vim (or other terminal applications)
+    /// to recognize that the konsole window has lost focus.
+    /// The escape sequence is also used by iTerm2.
+    /// Vim needs the following plugin to be installed to convert the escape
+    /// sequence into the FocusLost autocmd: https://github.com/sjl/vitality.vim
     pub fn focus_lost(&self) {
-        todo!()
+        if self.report_focus_event {
+            self.send_string("\u{001b}[O".to_string(), -1);
+        }
     }
 
+    /// The focus gained event can be used by Vim (or other terminal applications)
+    /// to recognize that the konsole window has gained focus again.
+    /// The escape sequence is also used by iTerm2.
+    /// Vim needs the following plugin to be installed to convert the escape
+    /// sequence into the FocusGained autocmd: https://github.com/sjl/vitality.vim
     pub fn focus_gained(&self) {
-        todo!()
+        if self.report_focus_event {
+            self.send_string("\u{001b}[I".to_string(), -1);
+        }
     }
 
     /// causes changeTitle() to be emitted for each (int,QString) pair in

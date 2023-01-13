@@ -2,11 +2,12 @@
 use tmui::graphics::figure::Color;
 
 ///  Specifies the weight to use when drawing text with this color.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum FontWeight {
     /// Always draw text in this color with a bold weight.
     Bold,
     /// Always draw text in this color with a normal weight.
+    #[default]
     Normal,
     /// Use the current font weight set by the terminal application.
     /// This is the default behavior.
@@ -24,7 +25,7 @@ pub enum FontWeight {
 /// Each entry can also be transparent, in which case the terminal
 /// display should avoid drawing the background for any characters
 /// using the entry as a background.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
 pub struct ColorEntry {
     /// The color value of this entry for display.
     pub color: Color,
