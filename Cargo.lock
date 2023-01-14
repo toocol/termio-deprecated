@@ -1547,7 +1547,7 @@ dependencies = [
 [[package]]
 name = "macros"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#2d72bbfe74f02def72868e0504efd94852c1507a"
+source = "git+https://github.com/toocol/tmui#b1d222f6078daef254688b4c2a3400d1832a7fca"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2553,6 +2553,7 @@ dependencies = [
  "lazy_static",
  "libc",
  "log",
+ "log4rs",
  "page_size",
  "regex",
  "rust-embed",
@@ -2663,12 +2664,12 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 [[package]]
 name = "tipc"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#2d72bbfe74f02def72868e0504efd94852c1507a"
+source = "git+https://github.com/toocol/tmui#b1d222f6078daef254688b4c2a3400d1832a7fca"
 
 [[package]]
 name = "tlib"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#2d72bbfe74f02def72868e0504efd94852c1507a"
+source = "git+https://github.com/toocol/tmui#b1d222f6078daef254688b4c2a3400d1832a7fca"
 dependencies = [
  "lazy_static",
  "log",
@@ -2680,7 +2681,7 @@ dependencies = [
 [[package]]
 name = "tmui"
 version = "0.1.0"
-source = "git+https://github.com/toocol/tmui#2d72bbfe74f02def72868e0504efd94852c1507a"
+source = "git+https://github.com/toocol/tmui#b1d222f6078daef254688b4c2a3400d1832a7fca"
 dependencies = [
  "glutin",
  "hex_color",

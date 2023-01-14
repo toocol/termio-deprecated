@@ -7,6 +7,8 @@ mod pty;
 mod tools;
 
 fn main() {
+    log4rs::init_file("terminal/log4rs.yaml", Default::default()).unwrap();
+
     let app = Application::builder()
         .width(1280)
         .height(800)

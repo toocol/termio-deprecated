@@ -148,7 +148,7 @@ impl TerminalImageFilterChain {
             line_positions: Rc::new(RefCell::new(vec![])),
         }
     }
-    fn set_image(
+    pub fn set_image(
         &mut self,
         image: &[Character],
         lines: i32,
