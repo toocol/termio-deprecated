@@ -2,9 +2,10 @@
 use super::screen_window::ScreenWindow;
 use crate::tools::{
     character::{Character, LineProperty},
-    character_color::{ColorEntry, TABLE_COLORS},
+    character_color::{ColorEntry, DEFAULT_BACK_COLOR, TABLE_COLORS},
     filter::{FilterChainImpl, TerminalImageFilterChain},
 };
+use log::warn;
 use std::{
     ptr::NonNull,
     sync::atomic::{AtomicBool, AtomicI32, Ordering},
@@ -16,12 +17,16 @@ use tmui::{
     },
     prelude::*,
     tlib::{
+        emit,
+        events::KeyEvent,
         object::{ObjectImpl, ObjectSubclass},
         signals,
     },
     widget::WidgetImpl,
     Font,
 };
+use wchar::wchar_t;
+use widestring::U16String;
 use LineEncode::*;
 
 #[extends_widget]
@@ -52,7 +57,13 @@ pub struct TerminalView {
     // The total number of columns that can be displayed in the view.
     columns: i32,
 
-    image: Vec<Character>,
+    used_lines: i32,
+    used_columns: i32,
+
+    content_height: i32,
+    content_width: i32,
+
+    image: Option<Vec<Character>>,
     image_size: i32,
 
     line_properties: Vec<LineProperty>,
@@ -115,7 +126,7 @@ pub struct TerminalView {
 
     // TODO: add output_suspend_label
     line_spacing: u32,
-    opacity: f32,
+    opacity: f64,
     size: Size,
 
     // Add background_image Pixmap
@@ -234,44 +245,119 @@ impl TerminalView {
         y * self.columns + x
     }
 
-    /// Returns the terminal color palette used by the view.
-    pub fn get_color_table(&self) -> &[ColorEntry] {
+    //////////////////////////////////////////////// Drawing functions start.  ////////////////////////////////////////////////
+    /// divides the part of the display specified by 'rect' into
+    /// fragments according to their colors and styles and calls
+    /// drawTextFragment() to draw the fragments
+    fn draw_contents(&mut self, painter: &mut Painter, rect: &Rect) {
         todo!()
     }
-    /// Sets the terminal color palette used by the view.
-    pub fn set_color_table(&mut self, table: &[ColorEntry]) {
+    /// draws the cursor character.
+    fn draw_cursor(
+        &mut self,
+        painter: &mut Painter,
+        rect: &Rect,
+        foreground_color: Color,
+        background_color: Color,
+        invert_colors: bool,
+    ) {
         todo!()
+    }
+    /// draws the characters or line graphics in a text fragment.
+    fn draw_characters(
+        &mut self,
+        painter: &mut Painter,
+        rect: &Rect,
+        text: &str,
+        style: &Character,
+        invert_character_color: bool,
+    ) {
+        todo!()
+    }
+    /// draws a string of line graphics.
+    fn draw_line_char_string(
+        &mut self,
+        painter: &mut Painter,
+        x: i32,
+        y: i32,
+        str: &str,
+        attributes: &Character,
+    ) {
+        todo!()
+    }
+    /// draws the preedit string for input methods.
+    fn draw_input_method_preedit_string(&mut self, painter: &mut Painter, rect: &Rect) {
+        todo!()
+    }
+    //////////////////////////////////////////////// Drawing functions end.  ////////////////////////////////////////////////
+
+    /// Returns the terminal color palette used by the view.
+    #[inline]
+    pub fn get_color_table(&self) -> &[ColorEntry] {
+        &self.color_table
+    }
+    /// Sets the terminal color palette used by the view.
+    #[inline]
+    pub fn set_color_table(&mut self, table: &[ColorEntry]) {
+        for i in 0..TABLE_COLORS {
+            self.color_table[i] = table[i];
+        }
+
+        self.set_background_color(self.color_table[DEFAULT_BACK_COLOR as usize].color)
     }
 
     /// Sets the seed used to generate random colors for the view
     /// (in color schemes that support them).
+    #[inline]
     pub fn set_random_seed(&mut self, seed: u32) {
-        todo!()
+        self.random_seed = seed
     }
     /// Returns the seed used to generate random colors for the view
     /// (in color schemes that support them).
+    #[inline]
     pub fn random_seed(&self) -> u32 {
-        todo!()
+        self.random_seed
     }
 
     /// Sets the opacity of the terminal view.
-    pub fn set_opacity(&mut self, opacity: f32) {
-        todo!()
+    #[inline]
+    pub fn set_opacity(&mut self, opacity: f64) {
+        self.opacity = bound(0., opacity, 1.);
     }
 
     /// Sets the background image of the terminal view.
     pub fn set_background_image(&mut self, image: &str) {
-        todo!()
+        if !image.is_empty() {
+            // TODO: load background image to Pixmap
+        } else {
+            // TODO: create a empty Pixmap
+        }
     }
     /// Sets the background image mode of the terminal view.
+    #[inline]
     pub fn set_background_mode(&mut self, mode: BackgroundMode) {
-        todo!()
+        self.background_mode = mode
     }
 
     /// Specifies whether the terminal display has a vertical scroll bar, and if so
     /// whether it is shown on the left or right side of the view.
     pub fn set_scroll_bar_position(&mut self, position: ScrollBarPosition) {
-        todo!()
+        if self.scroll_bar_location == position {
+            return;
+        }
+
+        if position == ScrollBarPosition::NoScrollBar {
+            // TODO: Hide scroll bar
+        } else {
+            // TODO: Show scroll bar
+        }
+
+        self.top_margin = 1;
+        self.left_margin = 1;
+        self.scroll_bar_location = position;
+
+        self.propagate_size();
+        self.update();
     }
     /// Setting the current position and range of the display scroll bar.
     pub fn set_scroll(&mut self, cursor: i32, lines: i32) {
@@ -292,8 +378,8 @@ impl TerminalView {
     ///
     /// To add a new filter to the view, call:
     ///      view->filter_chain()->add_filter( filterObject );
-    pub fn filter_chain(&self) -> &Box<dyn FilterChainImpl> {
-        todo!()
+    pub fn filter_chain(&self) -> &impl FilterChainImpl {
+        self.filter_chain.as_ref()
     }
 
     /// Updates the filters in the display's filter chain.  This will cause
@@ -301,13 +387,36 @@ impl TerminalView {
     ///
     /// TODO: This function can be expensive depending on the
     /// image size and number of filters in the filterChain()
-    pub fn process_filters(&self) {
-        todo!()
+    pub fn process_filters(&mut self) {
+        if self.screen_window.is_none() {
+            return;
+        }
+        let screen_window = unsafe { self.screen_window.as_mut().unwrap().as_mut() };
+
+        let _pre_update_hotspots = self.hotspot_region();
+
+        // use [`ScreenWindow::get_image()`] here rather than `image` because
+        // other classes may call process_filters() when this view's
+        // ScreenWindow emits a scrolled() signal - which will happen before
+        // update_image() is called on the display and therefore _image is
+        // out of date at this point
+        let window_lines = screen_window.window_lines();
+        let window_columns = screen_window.window_columns();
+        let line_properties = &screen_window.get_line_properties();
+        let image = screen_window.get_image();
+        self.filter_chain
+            .set_image(image, window_lines, window_columns, line_properties);
+        self.filter_chain.process();
+
+        let _post_update_hotspots = self.hotspot_region();
+
+        // Should only update the region in pre_update_hotspots|post_update_hotspots
+        self.update();
     }
 
     /// Returns a list of menu actions created by the filters for the content
     /// at the given @p position.
-    pub fn filter_actions(&self, position: Point) -> Vec<Action> {
+    pub fn filter_actions(&self, _position: Point) -> Vec<Action> {
         todo!()
     }
 
@@ -348,26 +457,44 @@ impl TerminalView {
         self.triple_click_mode
     }
 
+    #[inline]
     pub fn set_line_spacing(&mut self, spacing: u32) {
-        todo!()
+        self.line_spacing = spacing;
+        self.set_vt_font(self.font())
     }
+    #[inline]
     pub fn line_spacing(&self) -> u32 {
-        todo!()
+        self.line_spacing
     }
 
+    #[inline]
     pub fn set_margin(&mut self, margin: i32) {
-        todo!()
+        self.top_base_margin = margin;
+        self.left_base_margin = margin;
     }
+    #[inline]
     pub fn margin(&mut self) -> i32 {
-        todo!()
+        self.top_base_margin
     }
 
     pub fn emit_selection(&self, use_x_selection: bool, append_return: bool) {
+        if self.screen_window.is_none() {
+            return;
+        }
+
+        // Paste Clipboard by simulating keypress events
+        // TODO:
         todo!()
     }
 
     /// change and wrap text corresponding to paste mode.
-    pub fn bracket_text(&self, text: &str) {}
+    #[inline]
+    pub fn bracket_text(&self, text: &mut String) {
+        if self.bracketed_paste_mode() && !self.disable_bracketed_paste_mode {
+            text.insert_str(0, "\u{001b}[200~");
+            text.push_str("\u{001b}[201~");
+        }
+    }
 
     /// Sets the shape of the keyboard cursor. This is the cursor drawn
     /// at the position in the terminal where keyboard input will appear.
@@ -376,12 +503,14 @@ impl TerminalView {
     /// the mouse pointer, which can be set using the QWidget::setCursor() method.
     ///
     /// Defaults to BlockCursor
+    #[inline]
     pub fn set_keyboard_cursor_shape(&mut self, shape: KeyboardCursorShape) {
-        todo!()
+        self.cursor_shape = shape
     }
     /// Returns the shape of the keyboard cursor.
+    #[inline]
     pub fn keyboard_cursor_shape(&self) -> KeyboardCursorShape {
-        todo!()
+        self.cursor_shape
     }
     /// Sets the color used to draw the keyboard cursor.
     ///
@@ -395,14 +524,20 @@ impl TerminalView {
     ///
     /// @param [`color`] The color to use to draw the cursor.  This is only taken into
     /// account if @p [`use_foreground_color`] is false.
-    pub fn set_keyboard_cursor_color(&self, use_foreground_color: bool, color: Color) {
-        todo!()
+    #[inline]
+    pub fn set_keyboard_cursor_color(&mut self, use_foreground_color: bool, color: Color) {
+        if use_foreground_color {
+            self.cursor_color = Color::new();
+        } else {
+            self.cursor_color = color
+        }
     }
     /// Returns the color of the keyboard cursor, or an invalid color if the
     /// keyboard cursor color is set to change according to the foreground color of
     /// the character underneath it.
+    #[inline]
     pub fn keyboard_cursor_color(&self) -> Color {
-        todo!()
+        self.cursor_color
     }
 
     /// Returns the number of lines of text which can be displayed in the widget.
@@ -437,10 +572,23 @@ impl TerminalView {
     }
 
     pub fn set_size(&mut self, cols: i32, lins: i32) {
+        // TODO:
         todo!()
     }
     pub fn set_fixed_size(&mut self, cols: i32, lins: i32) {
-        todo!()
+        self.is_fixed_size = true;
+
+        // ensure that display is at least one line by one column in size.
+        self.columns = 1.max(cols);
+        self.lines = 1.max(lins);
+        self.used_columns = self.used_columns.min(self.columns);
+        self.used_lines = self.used_lines.min(self.lines);
+
+        if self.image.is_some() {
+            self.make_image()
+        }
+        self.set_size(cols, lins);
+        // TODO: Set the fixed size to widget?
     }
 
     /// Sets which characters, in addition to letters and numbers,
@@ -452,8 +600,9 @@ impl TerminalView {
     ///
     /// @param [`wc`] An array of characters which are to be considered parts
     /// of a word ( in addition to letters and numbers ).
+    #[inline]
     pub fn set_word_characters(&mut self, wc: String) {
-        todo!()
+        self.word_characters = wc
     }
     /// Returns the characters which are considered part of a word for the
     /// purpose of selecting words in the display with the mouse.
@@ -467,8 +616,9 @@ impl TerminalView {
     ///
     /// The terminal session can trigger the bell effect by calling bell() with
     /// the alert message.
+    #[inline]
     pub fn set_bell_mode(&mut self, mode: i32) {
-        todo!()
+        self.bell_mode = mode
     }
     /// Returns the type of effect used to alert the user when a 'bell' occurs in
     /// the terminal session.
@@ -478,7 +628,7 @@ impl TerminalView {
     }
 
     pub fn set_selection(&mut self, t: String) {
-        todo!()
+        // TODO: set selection to clipboard
     }
 
     /// Returns the font used to draw characters in the view.
@@ -487,8 +637,26 @@ impl TerminalView {
     }
     /// Sets the font used to draw the display.  Has no effect if @p [`font`]
     /// is larger than the size of the display itself.
-    pub fn set_vt_font(&self, font: Font) {
-        todo!()
+    pub fn set_vt_font(&mut self, mut font: Font) {
+        if let Some(typeface) = font.typeface() {
+            if !typeface.is_fixed_pitch() {
+                warn!(
+                    "Using a variable-width font in the terminal.  This may cause 
+performance degradation and display/alignment errors."
+                )
+            }
+        }
+
+        // hint that text should be drawn without anti-aliasing.
+        // depending on the user's font configuration, this may not be respected
+        if ANTIALIAS_TEXT.load(Ordering::SeqCst) {
+            font.set_edging(tmui::font::Edging::AntiAlias);
+        } else {
+            font.set_edging(tmui::font::Edging::AntiAlias);
+        }
+
+        self.set_font(font);
+        self.font_change();
     }
 
     /// Specify whether line chars should be drawn by ourselves or left to
@@ -597,7 +765,7 @@ impl TerminalView {
         self.bracketed_paste_mode = bracketed_paste_mode
     }
     #[inline]
-    pub fn bracketed_paste_mode(&mut self) -> bool {
+    pub fn bracketed_paste_mode(&self) -> bool {
         self.bracketed_paste_mode
     }
 
@@ -714,8 +882,48 @@ impl TerminalView {
     }
 
     ////////////////////////////////////// Private functions. //////////////////////////////////////
-    fn font_change(&mut self, font: Font) {
-        todo!()
+    fn font_change(&mut self) {
+        let font = self.font();
+        let (_, fm) = font.metrics();
+        self.font_height = fm.x_height as i32 + self.line_spacing as i32;
+
+        // "Base character width on widest ASCII character. This prevents too wide
+        // characters in the presence of double wide (e.g. Japanese) characters."
+        // Get the width from representative normal width characters
+        let wstring = U16String::from_str(REPCHAR);
+        let u16_repchar = wstring.as_slice();
+        let mut widths = vec![0f32; u16_repchar.len()];
+        font.get_widths(u16_repchar, &mut widths);
+        let sum_width: f32 = widths.iter().sum();
+        self.font_width = round(sum_width as f64 / u16_repchar.len() as f64);
+
+        self.fixed_font = true;
+
+        let fw = widths[0];
+        for i in 1..widths.len() {
+            if fw != widths[i] {
+                self.fixed_font = false;
+                break;
+            }
+        }
+
+        if self.font_width < 1 {
+            self.font_width = 1;
+        }
+
+        self.font_ascend = fm.ascent as i32;
+
+        emit!(
+            self.changed_font_metrics_signal(),
+            (self.font_height, self.font_width)
+        );
+        self.propagate_size();
+
+        // We will run paint event testing procedure.
+        // Although this operation will destroy the original content,
+        // the content will be drawn again after the test.
+        self.draw_text_test_flag = true;
+        self.update();
     }
 
     fn extend_selection(&mut self, pos: Point) {
@@ -761,10 +969,81 @@ impl TerminalView {
         todo!()
     }
 
-    /// divides the part of the display specified by 'rect' into
-    /// fragments according to their colors and styles and calls
-    /// drawTextFragment() to draw the fragments
-    fn draw_contents(&mut self, painter: &mut Painter, rect: Rect) {
+    /// maps an area in the character image to an area on the widget.
+    fn image_to_widget(&mut self, image_area: &Rect) -> Rect {
+        todo!()
+    }
+
+    /// the area where the preedit string for input methods will be draw.
+    fn preedit_rect(&mut self) -> Rect {
+        todo!()
+    }
+
+    /// shows a notification window in the middle of the widget indicating the
+    /// terminal's current size in columns and lines
+    fn show_resize_notification(&self) {
+        todo!()
+    }
+
+    /// scrolls the image by a number of lines.
+    /// 'lines' may be positive ( to scroll the image down )
+    /// or negative ( to scroll the image up )
+    /// 'region' is the part of the image to scroll - currently only
+    /// the top, bottom and height of 'region' are taken into account,
+    /// the left and right are ignored.
+    fn scroll_image(&mut self, lines: i32, region: &Rect) {
+        todo!()
+    }
+
+    /// shows the multiline prompt
+    fn multiline_confirmation(&mut self, text: &str) -> bool {
+        todo!()
+    }
+
+    fn calc_geometry(&mut self) {
+        todo!()
+    }
+    fn propagate_size(&mut self) {
+        todo!()
+    }
+    fn update_image_size(&mut self) {
+        todo!()
+    }
+    fn make_image(&mut self) {
+        todo!()
+    }
+
+    fn paint_filters(&mut self, painter: &mut Painter) {
+        todo!()
+    }
+
+    fn cal_draw_text_addition_height(&mut self, painter: &mut Painter) {
+        todo!()
+    }
+
+    /// returns a region covering all of the areas of the widget which contain a hotspot.
+    fn hotspot_region(&self) -> Rect {
+        todo!()
+    }
+
+    /// returns the position of the cursor in columns and lines.
+    fn cursor_position(&self) -> Point {
+        todo!()
+    }
+
+    /// redraws the cursor.
+    fn update_cursor(&mut self) {
+        todo!()
+    }
+
+    fn handle_shortcut_override_event(&mut self, event: KeyEvent) {
+        todo!()
+    }
+
+    fn is_line_char(&self, c: wchar_t) -> bool {
+        todo!()
+    }
+    fn is_line_char_string(&self, string: &str) -> bool {
         todo!()
     }
 }
@@ -783,6 +1062,21 @@ abcdefgjijklmnopqrstuvwxyz
 ";
 
 const LTR_OVERRIDE_CHAR: u16 = 0x202D;
+
+#[inline]
+pub fn bound(min: f64, val: f64, max: f64) -> f64 {
+    assert!(max >= min);
+    min.max(max.min(val))
+}
+
+#[inline]
+pub fn round(d: f64) -> i32 {
+    if d >= 0. {
+        (d + 0.5) as i32
+    } else {
+        (d - 0.5) as i32
+    }
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Display Operations
