@@ -102,38 +102,6 @@ impl ScreenWindow {
         Box::new(object)
     }
 
-    pub fn connect_notify_output_changed(&mut self, signal: Signal) {
-        let ptr = NonNull::new(self as *mut Self);
-        self.connect_action(signal, move |_| {
-            let mut ptr = ptr;
-            if let Some(window) = ptr.as_mut() {
-                unsafe { window.as_mut().notify_output_changed() }
-            }
-        });
-    }
-
-    pub fn connect_handle_command_from_keyboard(&mut self, signal: Signal) {
-        let ptr = NonNull::new(self as *mut Self);
-        self.connect_action(signal, move |param| {
-            let command = param.unwrap().get::<u16>();
-            let mut ptr = ptr;
-            if let Some(window) = ptr.as_mut() {
-                unsafe { window.as_mut().handle_command_from_keyboard(command) }
-            }
-        });
-    }
-
-    pub fn connect_scroll_to_end(&mut self, signal: Signal) {
-        let ptr = NonNull::new(self as *mut Self);
-        self.connect_action(signal, move |param| {
-            let line = param.unwrap().get::<i32>();
-            let mut ptr = ptr;
-            if let Some(window) = ptr.as_mut() {
-                unsafe { window.as_mut().scroll_to(line) }
-            }
-        });
-    }
-
     /// Sets the screen which this window looks onto
     pub fn set_screen(&mut self, screen: Option<NonNull<Screen>>) {
         self.screen = screen;
