@@ -22,7 +22,7 @@ use tmui::{
     graphics::figure::Size,
     prelude::*,
     tlib::{
-        emit,
+        connect, emit,
         events::KeyEvent,
         object::{ObjectImpl, ObjectSubclass},
         signals,
@@ -321,6 +321,8 @@ pub trait Emulation: ActionExt + Sized + 'static {
     fn uses_mouse_changed(&mut self, uses_mouse: bool);
 
     fn bracketed_paste_mode_changed(&mut self, bracketed_paste_mode: bool);
+
+    fn emit_cursor_change(&mut self, cursor_shape: u8, enable_blinking_cursor: bool);
 }
 
 impl Emulation for BaseEmulation {
@@ -337,49 +339,9 @@ impl Emulation for BaseEmulation {
         emulation.screen = [screen_0, screen_1];
         emulation.windows = vec![];
 
-        let emulation_ptr = NonNull::new(&mut emulation as *mut Self);
-
-        let ptr = emulation_ptr.clone();
-        emulation.connect_action(emulation.program_uses_mouse_changed(), move |param| {
-            let uses_mouse = param.unwrap().get::<bool>();
-            let mut ptr = ptr;
-            if let Some(emulation) = ptr.as_mut() {
-                unsafe { emulation.as_mut().uses_mouse_changed(uses_mouse) }
-            }
-        });
-
-        let ptr = emulation_ptr.clone();
-        emulation.connect_action(
-            emulation.program_bracketed_paste_mode_changed(),
-            move |param| {
-                let bracketed_paste_mode = param.unwrap().get::<bool>();
-                let mut ptr = ptr;
-                if let Some(emulation) = ptr.as_mut() {
-                    unsafe {
-                        emulation
-                            .as_mut()
-                            .bracketed_paste_mode_changed(bracketed_paste_mode)
-                    }
-                }
-            },
-        );
-
-        let ptr = emulation_ptr.clone();
-        emulation.connect_action(emulation.cursor_changed(), move |param| {
-            let (cursor_shape, blinking_cursor_enable) = param.unwrap().get::<(u8, bool)>();
-            if let Some(emulation) = ptr.as_ref() {
-                emit!(
-                    emulation.as_ref().title_changed(),
-                    (
-                        50,
-                        format!(
-                            "CursorShape={};BlinkingCursorEnabled={}",
-                            cursor_shape, blinking_cursor_enable
-                        )
-                    )
-                );
-            }
-        });
+        connect!(emulation, program_uses_mouse_changed(), emulation, uses_mouse_changed(bool:0));
+        connect!(emulation, program_bracketed_paste_mode_changed(), emulation, bracketed_paste_mode_changed(bool:0));
+        connect!(emulation, cursor_changed(), emulation, emit_cursor_change(u8:0, bool:1));
 
         emulation
     }
@@ -389,16 +351,11 @@ impl Emulation for BaseEmulation {
 
         window.set_screen(self.current_screen.clone());
 
-        let ptr = NonNull::new(self as *mut Self);
-        self.connect_action(window.selection_changed(), move |_| {
-            if let Some(emulation) = ptr.as_ref() {
-                unsafe { emulation.as_ref().buffer_update() }
-            }
-        });
+        connect!(window, selection_changed(), self, buffer_update());
 
-        window.connect_notify_output_changed(self.output_changed());
-        window.connect_handle_command_from_keyboard(self.handle_command_from_keyboard());
-        window.connect_scroll_to_end(self.output_from_keypress_event());
+        connect!(self, output_changed(), window, notify_output_changed());
+        connect!(self, handle_command_from_keyboard(), window, handle_command_from_keyboard(u16:0));
+        connect!(self, output_from_keypress_event(), window, scroll_to(i32:0));
 
         let window_ptr = NonNull::new(window.as_mut() as *mut ScreenWindow);
         self.windows.push(window);
@@ -638,5 +595,18 @@ impl Emulation for BaseEmulation {
 
     fn bracketed_paste_mode_changed(&mut self, bracketed_paste_mode: bool) {
         self.bracket_paste_mode = bracketed_paste_mode
+    }
+
+    fn emit_cursor_change(&mut self, cursor_shape: u8, blinking_cursor_enable: bool) {
+        emit!(
+            self.title_changed(),
+            (
+                50,
+                format!(
+                    "CursorShape={};BlinkingCursorEnabled={}",
+                    cursor_shape, blinking_cursor_enable
+                )
+            )
+        );
     }
 }

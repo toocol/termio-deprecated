@@ -2136,4 +2136,11 @@ impl Emulation for VT102Emulation {
             .unwrap()
             .bracketed_paste_mode_changed(bracketed_paste_mode)
     }
+
+    fn emit_cursor_change(&mut self, cursor_shape: u8, enable_blinking_cursor: bool) {
+        self.emulation
+            .as_mut()
+            .unwrap()
+            .emit_cursor_change(cursor_shape, enable_blinking_cursor)
+    }
 }

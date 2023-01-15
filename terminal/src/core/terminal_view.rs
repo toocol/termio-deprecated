@@ -633,7 +633,7 @@ impl TerminalView {
 
     /// Returns the font used to draw characters in the view.
     pub fn get_vt_font(&self) -> Font {
-        todo!()
+        self.font()
     }
     /// Sets the font used to draw the display.  Has no effect if @p [`font`]
     /// is larger than the size of the display itself.
@@ -647,12 +647,12 @@ performance degradation and display/alignment errors."
             }
         }
 
-        // hint that text should be drawn without anti-aliasing.
+        // hint that text should be drawn with/without anti-aliasing.
         // depending on the user's font configuration, this may not be respected
         if ANTIALIAS_TEXT.load(Ordering::SeqCst) {
             font.set_edging(tmui::font::Edging::AntiAlias);
         } else {
-            font.set_edging(tmui::font::Edging::AntiAlias);
+            font.set_edging(tmui::font::Edging::Alias);
         }
 
         self.set_font(font);
