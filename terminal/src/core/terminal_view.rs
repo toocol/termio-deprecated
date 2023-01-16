@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use super::screen_window::ScreenWindow;
+use super::screen_window::ScreenWindowSignals;
 use crate::tools::{
     character::{Character, LineProperty},
     character_color::{ColorEntry, DEFAULT_BACK_COLOR, TABLE_COLORS},
@@ -17,7 +18,7 @@ use tmui::{
     },
     prelude::*,
     tlib::{
-        emit,
+        connect, emit,
         events::KeyEvent,
         object::{ObjectImpl, ObjectSubclass},
         signals,
@@ -137,6 +138,10 @@ pub struct TerminalView {
 
     cursor_shape: KeyboardCursorShape,
     cursor_color: Color,
+
+    motion_after_pasting: MotionAfterPasting,
+    confirm_multiline_paste: bool,
+    trim_pasted_trailing_new_lines: bool,
 
     input_method_data: InputMethodData,
 
@@ -718,9 +723,18 @@ performance degradation and display/alignment errors."
     ///
     /// In terms of the model-view paradigm, the ScreenWindow is the model which is
     /// rendered by the TerminalView.
-    #[inline]
-    pub fn set_screen_window(&mut self, window: &ScreenWindow) {
-        todo!()
+    pub fn set_screen_window(&mut self, window: &mut ScreenWindow) {
+        // The old ScreenWindow will be disconnected in emulation
+        self.screen_window = NonNull::new(window);
+
+        if self.screen_window.is_some() {
+            connect!(window, output_changed(), self, update_line_properties());
+            connect!(window, output_changed(), self, update_image());
+            connect!(window, output_changed(), self, update_filters());
+            connect!(window, scrolled(), self, update_filters());
+            connect!(window, scroll_to_end(), self, scroll_to_end());
+            window.set_window_lines(self.lines);
+        }
     }
     /// Returns the terminal screen section which is displayed in this widget.
     /// See [`set_screen_window()`]
@@ -732,23 +746,59 @@ performance degradation and display/alignment errors."
         }
     }
 
+    #[inline]
     pub fn set_motion_after_pasting(&mut self, action: MotionAfterPasting) {
-        todo!()
+        self.motion_after_pasting = action
     }
+    #[inline]
     pub fn motion_after_pasting(&self) -> MotionAfterPasting {
-        todo!()
+        self.motion_after_pasting
     }
+    #[inline]
     pub fn set_confirm_multiline_paste(&mut self, confirm_multiline_paste: bool) {
-        todo!()
+        self.confirm_multiline_paste = confirm_multiline_paste
     }
+    #[inline]
     pub fn set_trim_pasted_trailing_new_lines(&mut self, trim_pasted_trailing_new_lines: bool) {
-        todo!()
+        self.trim_pasted_trailing_new_lines = trim_pasted_trailing_new_lines
     }
 
     /// maps a point on the widget to the position ( ie. line and column )
     /// of the character at that point.
     pub fn get_character_position(&self, widget_point: Point) -> (i32, i32) {
-        todo!()
+        let content_rect = self.contents_rect();
+        let mut line = (widget_point.y() - content_rect.top() - self.top_margin) / self.font_height;
+        let mut column;
+        if line < 0 {
+            line = 0;
+        }
+        if line >= self.used_lines {
+            line = self.used_lines - 1;
+        }
+
+        let x = widget_point.x() + self.font_width / 2 - content_rect.left() - self.left_margin;
+        if self.fixed_font {
+            column = x / self.font_width;
+        } else {
+            column = 0;
+            while column + 1 < self.used_columns && x > self.text_width(0, column + 1, line) {
+                column += 1;
+            }
+        }
+
+        if column < 0 {
+            column = 0;
+        }
+
+        // the column value returned can be equal to _usedColumns, which
+        // is the position just after the last character displayed in a line.
+        //
+        // this is required so that the user can select characters in the right-most
+        // column (or left-most for right-to-left input)
+        if column > self.used_columns {
+            column = self.used_columns;
+        }
+        (line, column)
     }
 
     #[inline]
@@ -954,7 +1004,7 @@ performance degradation and display/alignment errors."
     }
 
     /// determine the width of this text.
-    fn text_width(&mut self, start_column: i32, length: i32, line: i32) -> i32 {
+    fn text_width(&self, start_column: i32, length: i32, line: i32) -> i32 {
         todo!()
     }
     /// determine the area that encloses this series of characters.
