@@ -25,7 +25,7 @@ use tmui::{
         connect, emit,
         events::KeyEvent,
         object::{ObjectImpl, ObjectSubclass},
-        signals,
+        signals, disconnect,
     },
 };
 use wchar::{wch, wchar_t};
@@ -339,8 +339,8 @@ impl Emulation for BaseEmulation {
         emulation.screen = [screen_0, screen_1];
         emulation.windows = vec![];
 
-        connect!(emulation, program_uses_mouse_changed(), emulation, uses_mouse_changed(bool:0));
-        connect!(emulation, program_bracketed_paste_mode_changed(), emulation, bracketed_paste_mode_changed(bool:0));
+        connect!(emulation, program_uses_mouse_changed(), emulation, uses_mouse_changed(bool));
+        connect!(emulation, program_bracketed_paste_mode_changed(), emulation, bracketed_paste_mode_changed(bool));
         connect!(emulation, cursor_changed(), emulation, emit_cursor_change(u8:0, bool:1));
 
         emulation
@@ -354,14 +354,16 @@ impl Emulation for BaseEmulation {
         connect!(window, selection_changed(), self, buffer_update());
 
         connect!(self, output_changed(), window, notify_output_changed());
-        connect!(self, handle_command_from_keyboard(), window, handle_command_from_keyboard(u16:0));
-        connect!(self, output_from_keypress_event(), window, scroll_to(i32:0));
+        connect!(self, handle_command_from_keyboard(), window, handle_command_from_keyboard(u16));
+        connect!(self, output_from_keypress_event(), window, scroll_to(i32));
 
         let window_ptr = NonNull::new(window.as_mut() as *mut ScreenWindow);
         self.windows.push(window);
         let len = self.windows.len();
         if len > 1 {
-            self.windows.remove(0);
+            let window_pre = self.windows.remove(0);
+            disconnect!(window_pre, null, null, null);
+            disconnect!(null, null, window_pre, null);
         }
 
         window_ptr
