@@ -21,6 +21,8 @@ use super::Emulation;
 
 /// The wrapper trait used in dyn object, represents the abstraction of `Emulation`.
 pub trait EmulationWrapper {
+    fn initialize(&mut self);
+
     fn create_window(&mut self) -> Option<NonNull<ScreenWindow>>;
 
     fn image_size(&self) -> Size;
@@ -121,6 +123,10 @@ pub trait EmulationWrapper {
 }
 
 impl<T: Emulation + ActionExt> EmulationWrapper for Option<T> {
+    fn initialize(&mut self) {
+        self.as_mut().unwrap().initialize()
+    }
+
     fn create_window(&mut self) -> Option<NonNull<ScreenWindow>> {
         self.as_mut().unwrap().create_window()
     }

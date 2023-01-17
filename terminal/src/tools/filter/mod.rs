@@ -66,6 +66,8 @@ pub trait HotSpotConstructer {
     fn new(start_line: i32, start_column: i32, end_line: i32, end_column: i32) -> Self;
 }
 pub trait HotSpotImpl {
+    fn initialize(&self) {}
+
     /// Returns the line when the hotspot area starts
     fn start_line(&self) -> i32;
 
@@ -188,7 +190,7 @@ impl BaseFilter {
     }
 }
 trait BaseFilterImpl {
-    fn add_hotspot(&mut self, hotspot: Box<dyn HotSpotImpl>);
+    fn add_hotspot(&mut self, hotspot: Box<dyn HotSpotImpl>) -> &dyn HotSpotImpl;
 
     fn get_line_column(&self, position: i32) -> (i32, i32);
 }
@@ -222,7 +224,7 @@ fn filter_equals(one: Rc<RefCell<dyn Filter>>, other: Rc<RefCell<dyn Filter>>) -
         == other.deref().borrow().deref() as *const dyn Filter as *const u8 as i32
 }
 impl BaseFilterImpl for BaseFilter {
-    fn add_hotspot(&mut self, hotspot: Box<dyn HotSpotImpl>) {
+    fn add_hotspot(&mut self, hotspot: Box<dyn HotSpotImpl>) -> &dyn HotSpotImpl {
         let spot = Rc::new(hotspot);
         self.hostspots_list.push(spot.clone());
 
@@ -230,6 +232,7 @@ impl BaseFilterImpl for BaseFilter {
             let values = self.hotspots.entry(i).or_insert(vec![]);
             values.push(spot.clone());
         }
+        &***self.hostspots_list.last().unwrap()
     }
 
     #[allow(unused_assignments)]

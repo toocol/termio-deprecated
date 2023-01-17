@@ -92,8 +92,13 @@ pub trait Emulation: ActionExt + Sized + 'static {
 
     /// Wrap trait `Emulation` to `EmulationWrapper`.
     fn wrap(self: Self) -> Box<dyn EmulationWrapper> {
-        Box::new(Some(self))
+        let mut wrapper: Box<dyn EmulationWrapper> = Box::new(Some(self));
+        wrapper.initialize();
+        wrapper
     }
+
+    /// initialize the emulation.
+    fn initialize(&mut self);
 
     /// Creates a new window onto the output from this emulation.  The contents of the window are then rendered by views
     /// which are set to use this window using the TerminalDisplay::setScreenWindow() method.
@@ -338,12 +343,13 @@ impl Emulation for BaseEmulation {
         emulation.current_screen = NonNull::new(screen_0.as_mut() as *mut Screen);
         emulation.screen = [screen_0, screen_1];
         emulation.windows = vec![];
-
-        connect!(emulation, program_uses_mouse_changed(), emulation, uses_mouse_changed(bool));
-        connect!(emulation, program_bracketed_paste_mode_changed(), emulation, bracketed_paste_mode_changed(bool));
-        connect!(emulation, cursor_changed(), emulation, emit_cursor_change(u8:0, bool:1));
-
         emulation
+    }
+
+    fn initialize(&mut self) {
+        connect!(self, program_uses_mouse_changed(), self, uses_mouse_changed(bool));
+        connect!(self, program_bracketed_paste_mode_changed(), self, bracketed_paste_mode_changed(bool));
+        connect!(self, cursor_changed(), self, emit_cursor_change(u8:0, bool:1));
     }
 
     fn create_window(&mut self) -> Option<NonNull<ScreenWindow>> {

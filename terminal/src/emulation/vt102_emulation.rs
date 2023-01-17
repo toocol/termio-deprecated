@@ -1702,6 +1702,10 @@ impl Emulation for VT102Emulation {
         vt102_emulation
     }
 
+    fn initialize(&mut self) {
+        self.emulation.as_mut().unwrap().initialize()
+    }
+
     fn receive_char(&mut self, cc: wchar_t) {
         if cc == DEL {
             return;

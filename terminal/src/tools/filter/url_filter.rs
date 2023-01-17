@@ -66,13 +66,16 @@ impl HotSpotConstructer for UrlFilterHotSpot {
         hotspot.set_type(HotSpotType::Link);
 
         let ptr = &mut hotspot as *mut UrlFilterHotSpot as *mut dyn HotSpotImpl;
-        hotspot.url_object.borrow().activate();
         hotspot.url_object.borrow_mut().set_filter(ptr);
 
         hotspot
     }
 }
 impl HotSpotImpl for UrlFilterHotSpot {
+    fn initialize(&self) {
+        self.url_object.borrow().activate();
+    }    
+
     #[inline]
     fn start_line(&self) -> i32 {
         self.hotspot.start_line()
@@ -184,7 +187,7 @@ impl UrlFilter {
     }
 }
 impl BaseFilterImpl for UrlFilter {
-    fn add_hotspot(&mut self, hotspot: Box<dyn HotSpotImpl>) {
+    fn add_hotspot(&mut self, hotspot: Box<dyn HotSpotImpl>) -> &dyn HotSpotImpl {
         self.filter.add_hotspot(hotspot)
     }
 
@@ -195,7 +198,35 @@ impl BaseFilterImpl for UrlFilter {
 impl Filter for UrlFilter {
     #[inline]
     fn process(&mut self, regex: &Regex) {
-        self.filter.process(regex)
+        let mut pos;
+        let text = self.buffer().borrow().to_string();
+        assert!(!text.is_empty());
+
+        let iter = regex.captures_iter(&text);
+        for cap in iter {
+            for i in 0..cap.len() {
+                let matched = cap.get(i).unwrap();
+                pos = matched.start() as i32;
+
+                let (start_line, start_column) = self.get_line_column(pos);
+                let (end_line, end_column) =
+                    self.get_line_column(pos + matched.range().len() as i32);
+
+                let mut spot =
+                    UrlFilterHotSpot::new(start_line, start_column, end_line, end_column);
+                let mut captured_texts = vec![];
+                for matched in cap.iter() {
+                    if let Some(m) = matched {
+                        captured_texts.push(m.as_str().to_string());
+                    }
+                }
+                spot.set_captured_texts(captured_texts);
+
+                let spot = Box::new(spot);
+                let spot_ref = self.add_hotspot(spot);
+                spot_ref.initialize();
+            }
+        }
     }
 
     #[inline]
