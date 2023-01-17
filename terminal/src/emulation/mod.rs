@@ -22,10 +22,10 @@ use tmui::{
     graphics::figure::Size,
     prelude::*,
     tlib::{
-        connect, emit,
+        connect, disconnect, emit,
         events::KeyEvent,
         object::{ObjectImpl, ObjectSubclass},
-        signals, disconnect,
+        signals,
     },
 };
 use wchar::{wch, wchar_t};
@@ -347,8 +347,18 @@ impl Emulation for BaseEmulation {
     }
 
     fn initialize(&mut self) {
-        connect!(self, program_uses_mouse_changed(), self, uses_mouse_changed(bool));
-        connect!(self, program_bracketed_paste_mode_changed(), self, bracketed_paste_mode_changed(bool));
+        connect!(
+            self,
+            program_uses_mouse_changed(),
+            self,
+            uses_mouse_changed(bool)
+        );
+        connect!(
+            self,
+            program_bracketed_paste_mode_changed(),
+            self,
+            bracketed_paste_mode_changed(bool)
+        );
         connect!(self, cursor_changed(), self, emit_cursor_change(u8:0, bool:1));
     }
 
@@ -356,12 +366,6 @@ impl Emulation for BaseEmulation {
         let mut window = ScreenWindow::new();
 
         window.set_screen(self.current_screen.clone());
-
-        connect!(window, selection_changed(), self, buffer_update());
-
-        connect!(self, output_changed(), window, notify_output_changed());
-        connect!(self, handle_command_from_keyboard(), window, handle_command_from_keyboard(u16));
-        connect!(self, output_from_keypress_event(), window, scroll_to(i32));
 
         let window_ptr = NonNull::new(window.as_mut() as *mut ScreenWindow);
         self.windows.push(window);
@@ -371,6 +375,32 @@ impl Emulation for BaseEmulation {
             disconnect!(window_pre, null, null, null);
             disconnect!(null, null, window_pre, null);
         }
+
+        connect!(
+            self.windows.last().unwrap(),
+            selection_changed(),
+            self,
+            buffer_update()
+        );
+
+        connect!(
+            self,
+            output_changed(),
+            self.windows.last_mut().unwrap(),
+            notify_output_changed()
+        );
+        connect!(
+            self,
+            handle_command_from_keyboard(),
+            self.windows.last_mut().unwrap(),
+            handle_command_from_keyboard(u16)
+        );
+        connect!(
+            self,
+            output_from_keypress_event(),
+            self.windows.last_mut().unwrap(),
+            scroll_to(i32)
+        );
 
         window_ptr
     }
