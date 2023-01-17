@@ -93,7 +93,7 @@ impl RegexFilter {
     }
 }
 impl BaseFilterImpl for RegexFilter {
-    fn add_hotspot(&mut self, hotspot: Box<dyn HotSpotImpl>) {
+    fn add_hotspot(&mut self, hotspot: Box<dyn HotSpotImpl>) -> &dyn HotSpotImpl {
         self.filter.add_hotspot(hotspot)
     }
 
