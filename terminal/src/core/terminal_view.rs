@@ -728,6 +728,7 @@ performance degradation and display/alignment errors."
         self.screen_window = NonNull::new(window);
 
         if self.screen_window.is_some() {
+            let window = unsafe { self.screen_window.as_mut().unwrap().as_mut() };
             connect!(window, output_changed(), self, update_line_properties());
             connect!(window, output_changed(), self, update_image());
             connect!(window, output_changed(), self, update_filters());
