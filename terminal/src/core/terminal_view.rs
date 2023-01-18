@@ -1,16 +1,23 @@
 #![allow(dead_code)]
 use super::screen_window::ScreenWindow;
 use super::screen_window::ScreenWindowSignals;
+use crate::tools::character::LINE_DOUBLE_HEIGHT;
+use crate::tools::character::RE_BLINK;
+use crate::tools::character_color::CharacterColor;
+use crate::tools::character_color::DEFAULT_FORE_COLOR;
 use crate::tools::{
     character::{Character, LineProperty},
     character_color::{ColorEntry, DEFAULT_BACK_COLOR, TABLE_COLORS},
     filter::{FilterChainImpl, TerminalImageFilterChain},
 };
 use log::warn;
+use std::sync::atomic::AtomicU64;
+use std::time::Duration;
 use std::{
     ptr::NonNull,
-    sync::atomic::{AtomicBool, AtomicI32, Ordering},
+    sync::atomic::{AtomicBool, Ordering},
 };
+use tmui::tlib::timer::Timer;
 use tmui::{
     graphics::{
         figure::{Color, Size},
@@ -97,7 +104,7 @@ pub struct TerminalView {
     // TODO: Add ScrollBar.
     scroll_bar_location: ScrollBarPosition,
     word_characters: String,
-    bell_mode: i32,
+    bell_mode: BellMode,
 
     // hide text in paint event.
     blinking: bool,
@@ -116,14 +123,14 @@ pub struct TerminalView {
     // set in mouseDoubleClickEvent and delete after double_click_interval() delay.
     possible_triple_click: bool,
     triple_click_mode: TripleClickMode,
-    // TODO: add blink_timer
-    // TODO: add blink_cursor_timer
+    blink_timer: Timer,
+    blink_cursor_timer: Timer,
 
     // true during visual bell.
     colors_inverted: bool,
 
     // TODO: add resize label
-    // TODO: add resize Timer
+    resize_timer: Timer,
 
     // TODO: add output_suspend_label
     line_spacing: u32,
@@ -182,6 +189,11 @@ impl WidgetImpl for TerminalView {
     fn size_hint(&mut self, size: Size) {}
 }
 
+impl TerminalView {
+    pub fn new() -> Self {
+        todo!()
+    }
+}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// TerminalView Singals
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -622,13 +634,13 @@ impl TerminalView {
     /// The terminal session can trigger the bell effect by calling bell() with
     /// the alert message.
     #[inline]
-    pub fn set_bell_mode(&mut self, mode: i32) {
+    pub fn set_bell_mode(&mut self, mode: BellMode) {
         self.bell_mode = mode
     }
     /// Returns the type of effect used to alert the user when a 'bell' occurs in
     /// the terminal session.
     #[inline]
-    pub fn bell_mode(&self) -> i32 {
+    pub fn bell_mode(&self) -> BellMode {
         self.bell_mode
     }
 
@@ -728,7 +740,6 @@ performance degradation and display/alignment errors."
         self.screen_window = NonNull::new(window);
 
         if self.screen_window.is_some() {
-            let window = unsafe { self.screen_window.as_mut().unwrap().as_mut() };
             connect!(window, output_changed(), self, update_line_properties());
             connect!(window, output_changed(), self, update_image());
             connect!(window, output_changed(), self, update_filters());
@@ -824,33 +835,268 @@ performance degradation and display/alignment errors."
     /// Causes the terminal view to fetch the latest character image from the
     /// associated terminal screen ( see [`set_screen_window()`] ) and redraw the view.
     pub fn update_image(&mut self) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+        let screen_window = unsafe { self.screen_window.as_mut().unwrap().as_mut() };
+
+        // optimization - scroll the existing image where possible and
+        // avoid expensive text drawing for parts of the image that
+        // can simply be moved up or down
+        self.scroll_image(screen_window.scroll_count(), &screen_window.scroll_region());
+        screen_window.reset_scroll_count();
+
+        if self.image.is_none() {
+            // Create _image.
+            // The emitted changedContentSizeSignal also leads to getImage being
+            // recreated, so do this first.
+            self.update_image_size()
+        }
+
+        let lines = screen_window.window_lines();
+        let columns = screen_window.window_columns();
+
+        self.set_scroll(screen_window.current_line(), screen_window.line_count());
+
+        assert!(self.used_lines <= self.lines);
+        assert!(self.used_columns <= self.columns);
+
+        let tl = self.contents_rect().top_left();
+        let tlx = tl.x();
+        let tly = tl.y();
+        self.has_blinker = false;
+
+        let image = self.image.as_ref().unwrap();
+        let new_img = screen_window.get_image();
+
+        let mut len;
+
+        let mut cf = CharacterColor::default();
+        let mut clipboard;
+        let mut cr;
+
+        let lines_to_update = self.lines.min(0.max(lines));
+        let columns_to_update = self.columns.min(0.max(columns));
+
+        let mut disstr_u = vec![0u16; columns_to_update as usize];
+        // The dirty mask indicates which characters need repainting. We also
+        // mark surrounding neighbours dirty, in case the character exceeds
+        // its cell boundaries
+        let mut dirty_mask = vec![false; columns_to_update as usize + 2];
+        let mut dirty_region = Rect::default();
+
+        // debugging variable, this records the number of lines that are found to
+        // be 'dirty' ( ie. have changed from the old _image to the new _image ) and
+        // which therefore need to be repainted
+        let mut dirty_line_count = 0;
+
+        for y in 0..lines_to_update {
+            let current_line = &image[(y * self.columns) as usize..];
+            let new_line = &mut new_img[(y * columns) as usize..];
+
+            let mut update_line = false;
+
+            for x in 0..columns_to_update as usize {
+                if new_line[x] != current_line[x] {
+                    dirty_mask[x] = true;
+                }
+            }
+
+            if !self.resizing {
+                let mut x = 0usize;
+                while x < columns_to_update as usize {
+                    self.has_blinker = self.has_blinker || (new_line[x].rendition & RE_BLINK > 0);
+
+                    // Start drawing if this character or the next one differs.
+                    // We also take the next one into account to handle the situation
+                    // where characters exceed their cell width.
+                    if dirty_mask[x] {
+                        let c = new_line[x + 0].character_union.data();
+                        if c == 0 {
+                            continue;
+                        }
+
+                        let mut p = 0;
+                        disstr_u[p] = c;
+                        p += 1;
+                        let line_draw = self.is_line_char(c);
+                        let double_width = if x + 1 == columns_to_update as usize {
+                            false
+                        } else {
+                            new_line[x + 1].character_union.data() == 0
+                        };
+                        cr = new_line[x].rendition;
+                        clipboard = new_line[x].background_color;
+
+                        if new_line[x].foreground_color != cf {
+                            cf = new_line[x].foreground_color;
+                        }
+
+                        let lln = columns_to_update as usize - x;
+                        len = 1;
+                        while len < lln {
+                            let ch = new_line[x + len];
+                            if ch.character_union.data() == 0 {
+                                continue;
+                            }
+
+                            let next_is_double_width = if x + len + 1 == columns_to_update as usize
+                            {
+                                false
+                            } else {
+                                new_line[x + len + 1].character_union.data() == 0
+                            };
+
+                            if ch.foreground_color != cf
+                                || ch.background_color != clipboard
+                                || ch.rendition != cr
+                                || !dirty_mask[x + len]
+                                || self.is_line_char(c) != line_draw
+                                || next_is_double_width != double_width
+                            {
+                                break;
+                            }
+
+                            disstr_u[p] = c;
+                            p += 1;
+                            len += 1;
+                        }
+
+                        let unistr = U16String::from_vec(disstr_u[0..p].to_vec());
+
+                        let save_fixed_font = self.fixed_font;
+                        if line_draw {
+                            self.fixed_font = false;
+                        }
+                        if double_width {
+                            self.fixed_font = false;
+                        }
+
+                        update_line = true;
+
+                        self.fixed_font = save_fixed_font;
+                        x += len - 1;
+                    }
+                    x += 1;
+                }
+            }
+
+            // both the top and bottom halves of double height _lines must always be
+            // redrawn although both top and bottom halves contain the same characters,
+            // only the top one is actually drawn.
+            if self.line_properties.len() > y as usize {
+                update_line =
+                    update_line || (self.line_properties[y as usize] & LINE_DOUBLE_HEIGHT > 0);
+            }
+
+            // if the characters on the line are different in the old and the new _image
+            // then this line must be repainted.
+            if update_line {
+                dirty_line_count += 1;
+                let dirty_rect = Rect::new(
+                    self.left_margin + tlx,
+                    self.top_margin + tly + self.font_height * y,
+                    self.font_width * columns_to_update,
+                    self.font_height,
+                );
+
+                dirty_region.or(&dirty_rect);
+            }
+
+            new_line[0..columns_to_update as usize]
+                .copy_from_slice(&current_line[0..columns_to_update as usize]);
+        }
+
+        // if the new _image is smaller than the previous _image, then ensure that the
+        // area outside the new _image is cleared
+        if lines_to_update < self.used_lines {
+            let rect = Rect::new(
+                self.left_margin + tlx + columns_to_update * self.font_width,
+                self.top_margin + tly,
+                self.font_width * (self.used_columns - columns_to_update),
+                self.font_height * self.lines,
+            );
+            dirty_region.or(&rect);
+        }
+        self.used_lines = lines_to_update;
+
+        if columns_to_update < self.used_columns {
+            let rect = Rect::new(
+                self.left_margin + tlx + columns_to_update * self.font_width,
+                self.top_margin + tly,
+                self.font_width * (self.used_columns - columns_to_update),
+                self.font_height * self.lines,
+            );
+            dirty_region.or(&rect);
+        }
+        self.used_columns = columns_to_update;
+
+        dirty_region.or(&self.input_method_data.previous_preedit_rect);
+
+        // update the parts of the display which have changed
+        // TODO: Just update the dirty region
+        self.update();
+
+        if self.has_blinker && !self.blink_timer.is_active() {
+            self.blink_timer.start(Duration::from_millis(
+                TEXT_BLINK_DELAY.load(Ordering::SeqCst),
+            ));
+        }
+        if !self.has_blinker && self.blink_timer.is_active() {
+            self.blink_timer.stop();
+            self.blinking = false;
+        }
     }
 
     /// Essentially calls [`process_filters()`].
     pub fn update_filters(&mut self) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+
+        self.process_filters();
     }
 
     /// Causes the terminal view to fetch the latest line status flags from the
     /// associated terminal screen ( see [`set_screen_window()`] ).
     pub fn update_line_properties(&mut self) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+
+        self.line_properties = unsafe {
+            self.screen_window
+                .as_ref()
+                .unwrap()
+                .as_ref()
+                .get_line_properties()
+        };
     }
 
     /// Copies the selected text to the clipboard.
     pub fn copy_clipboard(&mut self) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+
+        let text = unsafe {
+            self.screen_window
+                .as_ref()
+                .unwrap()
+                .as_ref()
+                .selected_text(self.preserve_line_breaks);
+        };
+        // TODO: copy text to clipboard.
     }
 
     /// Pastes the content of the clipboard into the view.
     pub fn paste_clipboard(&mut self) {
-        todo!()
+        self.emit_selection(false, false)
     }
 
     /// Pastes the content of the selection into the view.
     pub fn paste_selection(&mut self) {
-        todo!()
+        self.emit_selection(true, false)
     }
 
     /// Causes the widget to display or hide a message informing the user that
@@ -877,59 +1123,105 @@ performance degradation and display/alignment errors."
     /// @param [`uses_mouse`] Set to true if the program running in the terminal is
     /// interested in mouse events or false otherwise.
     pub fn set_uses_mouse(&mut self, uses_mouse: bool) {
-        todo!()
+        if self.mouse_marks != uses_mouse {
+            self.mouse_marks = uses_mouse;
+            // TODO: set system cursor shape
+            emit!(self.uses_mouse_changed());
+        }
     }
 
     /// See [`set_uses_mouse()`]
-    pub fn uses_mouse(&mut self) {
-        todo!()
+    pub fn uses_mouse(&mut self) -> bool {
+        self.mouse_marks
     }
 
     /// Shows a notification that a bell event has occurred in the terminal.
     pub fn bell(&mut self, message: &str) {
-        todo!()
+        if self.bell_mode == BellMode::NoBell {
+            return;
+        }
+
+        // limit the rate at which bells can occur
+        //...mainly for sound effects where rapid bells in sequence
+        // produce a horrible noise
+        if self.allow_bell {
+            self.allow_bell = false;
+            // TODO: add the single shot timer.
+        }
     }
 
     /// Sets the background of the view to the specified color.
     /// @see [`set_color_table()`], [`set_foreground_color()`]
     pub fn set_background_color(&mut self, color: Color) {
-        todo!()
+        self.color_table[DEFAULT_BACK_COLOR as usize].color = color;
+        // TODO: Set the palette of the widget?
+        self.update();
     }
 
     /// Sets the text of the view to the specified color.
     /// @see [`set_color_table()`], [`set_background_color()`]
     pub fn set_foreground_color(&mut self, color: Color) {
-        todo!()
+        self.color_table[DEFAULT_FORE_COLOR as usize].color = color;
+        self.update();
     }
 
     pub fn selection_changed(&mut self) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+        emit!(self.copy_avaliable(), unsafe {
+            self.screen_window
+                .as_ref()
+                .unwrap()
+                .as_ref()
+                .selected_text(false)
+                .is_empty()
+                == false
+        });
     }
 
     fn scroll_bar_position_changed(&mut self, value: i32) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+
+        // TODO: set ScrollBar
     }
 
     fn blink_event(&mut self) {
-        todo!()
+        if !self.allow_blinking_text {
+            return;
+        }
+
+        self.blinking = !self.blinking;
+
+        // TODO:  Optimize to only repaint the areas of the widget
+        // where there is blinking text
+        // rather than repainting the whole widget.
+        self.update();
     }
 
     fn blink_cursor_event(&mut self) {
-        todo!()
+        self.cursor_blinking = !self.cursor_blinking;
+        self.update_cursor();
     }
 
     /// Renables bell noises and visuals.  Used to disable further bells for a
     /// short period of time after emitting the first in a sequence of bell events.
     fn enable_bell(&mut self) {
-        todo!()
+        self.allow_bell = true;
     }
 
     fn swap_color_table(&mut self) {
-        todo!()
+        let color = self.color_table[1];
+        self.color_table[1] = self.color_table[0];
+        self.color_table[0] = color;
+        self.colors_inverted = !self.colors_inverted;
+        self.update();
     }
 
     fn triple_click_timeout(&mut self) {
-        todo!()
+        self.possible_triple_click = false;
     }
 
     ////////////////////////////////////// Private functions. //////////////////////////////////////
@@ -978,7 +1270,14 @@ performance degradation and display/alignment errors."
     }
 
     fn extend_selection(&mut self, pos: Point) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+
+        let tl = self.contents_rect().top_left();
+        let tlx = tl.x();
+        let tly = tl.y();
+        // TODO: get ScrollBar value.
     }
 
     fn do_drag(&mut self) {
@@ -992,7 +1291,18 @@ performance degradation and display/alignment errors."
     ///     - Part of a word (returns 'a')
     ///     - Other characters (returns the input character)
     fn char_class(&mut self, ch: u8) -> u8 {
-        todo!()
+        if ch == b' ' {
+            return b' ';
+        }
+
+        if (ch >= b'0' && ch <= b'9')
+            || (ch >= b'a' && ch <= b'z')
+            || (ch >= b'A' && ch <= b'Z' || self.word_characters.contains(ch as char))
+        {
+            return b'a';
+        }
+
+        ch
     }
 
     fn clear_image(&mut self) {
@@ -1104,7 +1414,7 @@ performance degradation and display/alignment errors."
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 static ANTIALIAS_TEXT: AtomicBool = AtomicBool::new(true);
 static HAVE_TRANSPARENCY: AtomicBool = AtomicBool::new(true);
-static TEXT_BLINK_DELAY: AtomicI32 = AtomicI32::new(500);
+static TEXT_BLINK_DELAY: AtomicU64 = AtomicU64::new(500);
 
 const REPCHAR: &'static str = "
 ABCDEFGHIJKLMNOPQRSTUVWXYZ

@@ -436,7 +436,7 @@ impl VT102Emulation {
             // RS : ignored
         } else if token == ty_ctl!('_') {
             // US : ignored
-        //////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////
         } else if token == ty_esc!('D') {
             // VT100
             current_screen.index();
@@ -517,7 +517,7 @@ impl VT102Emulation {
         } else if token == ty_esc_cs!('%', '@') {
             // Linux
             // TODO: setCodec(LocaleCodec)
-        //////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////
         } else if token == ty_esc_de!('3') {
             // Double height line, top half.
             current_screen.set_line_property(LINE_DOUBLE_WIDTH, true);
@@ -837,7 +837,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pn!('y') {
             // IGNORED: Confidence test.
             // VT100
-        //////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 1) {
             self.set_mode(MODE_APP_CURSOR_KEY);
         } else if token == ty_csi_pr!('l', 1) {
@@ -862,7 +862,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('l', 4) {
             // IGNORED: soft scrolling.
             // VT100
-        //////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 5) {
             self.set_mode(MODE_SCREEN);
         } else if token == ty_csi_pr!('l', 5) {
@@ -898,7 +898,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('r', 8) {
             // IGNORED: autorepeat off
             // VT100
-        //////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 9) {
             // IGNORED: interlace
             // VT100
@@ -911,7 +911,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('r', 9) {
             // IGNORED: interlace
             // VT100
-        //////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 12) {
             // IGNORED: Cursor blink
             // att610
@@ -924,7 +924,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('r', 12) {
             // IGNORED: Cursor blink
             // att610
-        //////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 25) {
             // VT100
             self.set_mode(MODE_CURSOR);
@@ -957,7 +957,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('r', 41) {
             // IGNORED: obsolete more(1) fix
             // XTerm
-        //////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 47) {
             // VT100
             self.set_mode(MODE_APP_SCREEN);
@@ -983,19 +983,19 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('r', 67) {
             // IGNORED: DECBKM
             // XTerm
-        //////////////////////////////////////////////////////////////
-        // XTerm defines the following modes:
-        // SET_VT200_MOUSE             1000
-        // SET_VT200_HIGHLIGHT_MOUSE   1001
-        // SET_BTN_EVENT_MOUSE         1002
-        // SET_ANY_EVENT_MOUSE         1003
-        //
-        // Note about mouse modes:
-        // There are four mouse modes which xterm-compatible terminals can support
-        // - 1000,1001,1002,1003 Konsole currently supports mode 1000 (basic mouse
-        // press and release) and mode 1002 (dragging the mouse).
-        // TODO:  Implementation of mouse modes 1001 (something called hilight
-        // tracking) and 1003 (a slight variation on dragging the mouse)
+            //////////////////////////////////////////////////////////////
+            // XTerm defines the following modes:
+            // SET_VT200_MOUSE             1000
+            // SET_VT200_HIGHLIGHT_MOUSE   1001
+            // SET_BTN_EVENT_MOUSE         1002
+            // SET_ANY_EVENT_MOUSE         1003
+            //
+            // Note about mouse modes:
+            // There are four mouse modes which xterm-compatible terminals can support
+            // - 1000,1001,1002,1003 Konsole currently supports mode 1000 (basic mouse
+            // press and release) and mode 1002 (dragging the mouse).
+            // TODO:  Implementation of mouse modes 1001 (something called hilight
+            // tracking) and 1003 (a slight variation on dragging the mouse)
         } else if token == ty_csi_pr!('h', 1000) {
             // XTerm
             self.set_mode(MODE_MOUSE_1000);
@@ -1021,7 +1021,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('r', 1001) {
             // IGNORED: hilight mouse tracking
             // XTerm
-        //////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 1002) {
             // XTerm
             self.set_mode(MODE_MOUSE_1002);
@@ -1095,7 +1095,7 @@ impl VT102Emulation {
         } else if token == ty_csi_pr!('r', 1034) {
             // IGNORED: 8bitinput activation
             // XTerm
-        //////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pr!('h', 1047) {
             // XTerm
             self.set_mode(MODE_APP_SCREEN);
@@ -1150,8 +1150,8 @@ impl VT102Emulation {
         //////////////////////////////////////////////////////////////
         } else if token == ty_csi_pe!('p') {
             // IGNORED: reset
-        //////////////////////////////////////////////////////////////
-        // FIXME: when changing between vt52 and ansi mode evtl do some resetting.
+            //////////////////////////////////////////////////////////////
+            // FIXME: when changing between vt52 and ansi mode evtl do some resetting.
         } else if token == ty_vt52!('A') {
             // VT52
             current_screen.cursor_up(1);
@@ -1901,7 +1901,7 @@ impl Emulation for VT102Emulation {
     fn receive_data(&mut self, buffer: Vec<u8>, len: i32) {
         emit!(self.state_set(), EmulationState::NotifyActivity as u8);
 
-        self.buffer_update();
+        self.buffered_update();
 
         let utf8_text = String::from_utf8(buffer.clone())
             .expect("`Emulation` receive_data() parse utf-8 string failed.");
@@ -2119,12 +2119,12 @@ impl Emulation for VT102Emulation {
         }
     }
 
-    fn show_bulk(&self) {
-        self.emulation.as_ref().unwrap().show_bulk()
+    fn show_bulk(&mut self) {
+        self.emulation.as_mut().unwrap().show_bulk()
     }
 
-    fn buffer_update(&self) {
-        self.emulation.as_ref().unwrap().buffer_update()
+    fn buffered_update(&mut self) {
+        self.emulation.as_mut().unwrap().buffered_update()
     }
 
     fn uses_mouse_changed(&mut self, uses_mouse: bool) {

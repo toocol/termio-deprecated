@@ -1,20 +1,9 @@
 use crate::{
     core::screen_window::ScreenWindow,
-    tools::{
-        history::HistoryType,
-        terminal_character_decoder::TerminalCharacterDecoder,
-    },
+    tools::{history::HistoryType, terminal_character_decoder::TerminalCharacterDecoder},
 };
-use std::{
-    rc::Rc, ptr::NonNull,
-};
-use tmui::{
-    graphics::figure::Size,
-    prelude::*,
-    tlib::{
-        events::KeyEvent,
-    },
-};
+use std::{ptr::NonNull, rc::Rc};
+use tmui::{graphics::figure::Size, prelude::*, tlib::events::KeyEvent};
 use wchar::wchar_t;
 
 use super::Emulation;
@@ -77,9 +66,9 @@ pub trait EmulationWrapper {
 
     fn receive_data(&mut self, buffer: Vec<u8>, len: i32);
 
-    fn show_bulk(&self);
+    fn show_bulk(&mut self);
 
-    fn buffer_update(&self);
+    fn buffered_update(&mut self);
 
     fn uses_mouse_changed(&mut self, uses_mouse: bool);
 
@@ -240,12 +229,12 @@ impl<T: Emulation + ActionExt> EmulationWrapper for Option<T> {
         self.as_mut().unwrap().receive_data(buffer, len)
     }
 
-    fn show_bulk(&self) {
-        self.as_ref().unwrap().show_bulk()
+    fn show_bulk(&mut self) {
+        self.as_mut().unwrap().show_bulk()
     }
 
-    fn buffer_update(&self) {
-        self.as_ref().unwrap().buffer_update()
+    fn buffered_update(&mut self) {
+        self.as_mut().unwrap().buffered_update()
     }
 
     fn uses_mouse_changed(&mut self, uses_mouse: bool) {
