@@ -1,10 +1,12 @@
 #![allow(dead_code)]
 use super::screen_window::ScreenWindow;
 use super::screen_window::ScreenWindowSignals;
+use crate::tools::character::DEFAULT_RENDITION;
 use crate::tools::character::LINE_DOUBLE_HEIGHT;
 use crate::tools::character::RE_BLINK;
 use crate::tools::character_color::CharacterColor;
 use crate::tools::character_color::DEFAULT_FORE_COLOR;
+use crate::tools::system_ffi::string_width;
 use crate::tools::{
     character::{Character, LineProperty},
     character_color::{ColorEntry, DEFAULT_BACK_COLOR, TABLE_COLORS},
@@ -33,6 +35,7 @@ use tmui::{
     widget::WidgetImpl,
     Font,
 };
+use wchar::wch;
 use wchar::wchar_t;
 use widestring::U16String;
 use LineEncode::*;
@@ -157,7 +160,7 @@ pub struct TerminalView {
 
 #[derive(Default)]
 struct InputMethodData {
-    preedit_string: String,
+    preedit_string: U16String,
     previous_preedit_rect: Rect,
 }
 
@@ -602,7 +605,7 @@ impl TerminalView {
         self.used_lines = self.used_lines.min(self.lines);
 
         if self.image.is_some() {
-            self.make_image()
+            self.make_image();
         }
         self.set_size(cols, lins);
         // TODO: Set the fixed size to widget?
@@ -1306,7 +1309,17 @@ performance degradation and display/alignment errors."
     }
 
     fn clear_image(&mut self) {
-        todo!()
+        if self.image.is_none() {
+            return;
+        }
+        // We initialize image[image_size] too. See make_image()
+        for i in 0..self.image_size as usize {
+            let image = self.image.as_mut().unwrap();
+            image[i].character_union.set_data(wch!(' '));
+            image[i].foreground_color = CharacterColor::default_foreground();
+            image[i].background_color = CharacterColor::default_background();
+            image[i].rendition = DEFAULT_RENDITION;
+        }
     }
 
     /// TODO: add MouseEvent
@@ -1316,7 +1329,24 @@ performance degradation and display/alignment errors."
 
     /// determine the width of this text.
     fn text_width(&self, start_column: i32, length: i32, line: i32) -> i32 {
-        todo!()
+        if self.image.is_none() {
+            return 0;
+        }
+        let image = self.image.as_ref().unwrap();
+        let font = self.font();
+        let mut result = 0;
+        let mut widths = vec![];
+        for column in 0..length {
+            font.get_widths(
+                &[image[self.loc(start_column + column, line) as usize]
+                    .character_union
+                    .data()],
+                &mut widths,
+            );
+            let width: f32 = widths.iter().sum();
+            result += width as i32;
+        }
+        result
     }
     /// determine the area that encloses this series of characters.
     fn calculate_text_area(
@@ -1327,17 +1357,51 @@ performance degradation and display/alignment errors."
         line: i32,
         length: i32,
     ) -> Rect {
-        todo!()
+        let left = if self.fixed_font {
+            self.font_width * start_column
+        } else {
+            self.text_width(0, start_column, line)
+        };
+        let top = self.font_height * line;
+        let width = if self.fixed_font {
+            self.font_width * length
+        } else {
+            self.text_width(start_column, length, line)
+        };
+
+        Rect::new(
+            self.left_margin + top_left_x + left,
+            self.top_margin + top_left_y + top,
+            width,
+            self.font_height,
+        )
     }
 
     /// maps an area in the character image to an area on the widget.
     fn image_to_widget(&mut self, image_area: &Rect) -> Rect {
-        todo!()
+        let mut result = Rect::default();
+        result.set_left(self.left_margin + self.font_width * image_area.left());
+        result.set_top(self.top_margin + self.font_height * image_area.top());
+        result.set_width(self.font_width * image_area.width());
+        result.set_height(self.font_height * image_area.height());
+
+        result
     }
 
     /// the area where the preedit string for input methods will be draw.
     fn preedit_rect(&mut self) -> Rect {
-        todo!()
+        let preedit_length = string_width(self.input_method_data.preedit_string.as_slice());
+
+        if preedit_length == 0 {
+            return Rect::default();
+        }
+
+        Rect::new(
+            self.left_margin + self.font_width * self.cursor_position().x(),
+            self.top_margin + self.font_height * self.cursor_position().y(),
+            self.font_width * preedit_length,
+            self.font_height,
+        )
     }
 
     /// shows a notification window in the middle of the widget indicating the
@@ -1368,10 +1432,64 @@ performance degradation and display/alignment errors."
         todo!()
     }
     fn update_image_size(&mut self) {
-        todo!()
+        let old_line = self.lines;
+        let old_col = self.columns;
+
+        let old_image = self.make_image();
+
+        // copy the old image to reduce flicker
+        let mlines = old_line.min(self.lines);
+        let mcolumns = old_col.min(self.columns);
+
+        if old_image.is_some() {
+            for line in 0..mlines {
+                let dist_start = (self.columns * line) as usize;
+                let dist_end = dist_start + mcolumns as usize;
+                let src_start = (old_col * line) as usize;
+                let src_end = src_start + mcolumns as usize;
+                self.image.as_mut().unwrap()[dist_start..dist_end]
+                    .copy_from_slice(&old_image.as_ref().unwrap()[src_start..src_end]);
+            }
+        }
+
+        if self.screen_window.is_some() {
+            unsafe {
+                self.screen_window
+                    .as_mut()
+                    .unwrap()
+                    .as_mut()
+                    .set_window_lines(self.lines)
+            };
+        }
+
+        self.resizing = (old_line != self.lines) || (old_col != self.columns);
+
+        if self.resizing {
+            self.show_resize_notification();
+            emit!(
+                self.changed_content_size_signal(),
+                self.content_height,
+                self.content_width
+            );
+        }
+
+        self.resizing = false
     }
-    fn make_image(&mut self) {
-        todo!()
+    /// Make new image and return the new one.
+    fn make_image(&mut self) -> Option<Vec<Character>> {
+        self.calc_geometry();
+
+        // confirm that array will be of non-zero size, since the painting code
+        // assumes a non-zero array length
+        assert!(self.lines > 0 && self.columns > 0);
+        assert!(self.used_lines <= self.lines && self.used_columns <= self.columns);
+
+        self.image_size = self.lines * self.columns;
+
+        // We over-commit one character so that we can be more relaxed in dealing with
+        // certain boundary conditions: _image[_imageSize] is a valid but unused position.
+        self.image
+            .replace(vec![Character::default(); (self.image_size + 1) as usize])
     }
 
     fn paint_filters(&mut self, painter: &mut Painter) {
@@ -1389,12 +1507,24 @@ performance degradation and display/alignment errors."
 
     /// returns the position of the cursor in columns and lines.
     fn cursor_position(&self) -> Point {
-        todo!()
+        if self.screen_window.is_some() {
+            unsafe {
+                self.screen_window
+                    .as_ref()
+                    .unwrap()
+                    .as_ref()
+                    .cursor_position()
+            }
+        } else {
+            Point::new(0, 0)
+        }
     }
 
     /// redraws the cursor.
     fn update_cursor(&mut self) {
-        todo!()
+        let rect = Rect::from_point_size(self.cursor_position(), Size::new(1, 1));
+        let cursor_rect = self.image_to_widget(&rect);
+        // TODO: repaint()?
     }
 
     fn handle_shortcut_override_event(&mut self, event: KeyEvent) {
@@ -1402,10 +1532,10 @@ performance degradation and display/alignment errors."
     }
 
     fn is_line_char(&self, c: wchar_t) -> bool {
-        todo!()
+        self.draw_line_chars && ((c & 0xFF80) == 0x2500)
     }
-    fn is_line_char_string(&self, string: &str) -> bool {
-        todo!()
+    fn is_line_char_string(&self, string: &U16String) -> bool {
+        string.len() > 0 && self.is_line_char(string.as_slice()[0])
     }
 }
 
