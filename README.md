@@ -40,26 +40,6 @@ Support various local shell startup, also remote protocol of Ssh/Mosh/Telnet/Rsh
 | Workflow                                  | 📌Waiting    |
 | Plug Extension                            | 📌Waiting    |
 
-### Commands
-
-```
- Termio commands:       [param] means optional param
- help                   Show holistic executive command.
- flush                  Flush the screen.
- exit                   Exit Termio.
- theme                  Change the Termio's color theme.
- add                    Add new ssh session property.
- delete                 Delete ssh session property.
- numbers                Select the session to active.
- active                 Active the mutiple session.
-
- Shell commands:        [param] means optional param
- exit                   Exit current shell, close ssh connection and destroy connect channel.
- hang                   Will not close the connection, exit shell with connection running in the background.
- uf                     Batch upload local files to remote connection.
- df                     Batch download remote files to local.
-```
-
 ## License
 
 [AGPL-3.0 license](LICENSE) © Joe Zane
