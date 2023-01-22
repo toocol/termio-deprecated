@@ -936,7 +936,7 @@ performance degradation and display/alignment errors."
     fn font_change(&mut self) {
         let font = self.font();
         let (_, fm) = font.metrics();
-        self.font_height = fm.x_height as i32 + self.line_spacing as i32;
+        self.font_height = fm.cap_height as i32 + self.line_spacing as i32;
 
         // "Base character width on widest ASCII character. This prevents too wide
         // characters in the presence of double wide (e.g. Japanese) characters."
