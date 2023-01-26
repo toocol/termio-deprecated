@@ -33,7 +33,6 @@ use tmui::{
         signals,
     },
     widget::WidgetImpl,
-    Font,
 };
 use wchar::wch;
 use wchar::wchar_t;
@@ -670,9 +669,9 @@ performance degradation and display/alignment errors."
         // hint that text should be drawn with/without anti-aliasing.
         // depending on the user's font configuration, this may not be respected
         if ANTIALIAS_TEXT.load(Ordering::SeqCst) {
-            font.set_edging(tmui::font::Edging::AntiAlias);
+            font.set_edging(tmui::skia_safe::font::Edging::AntiAlias);
         } else {
-            font.set_edging(tmui::font::Edging::Alias);
+            font.set_edging(tmui::skia_safe::font::Edging::Alias);
         }
 
         self.set_font(font);
@@ -781,7 +780,7 @@ performance degradation and display/alignment errors."
     /// maps a point on the widget to the position ( ie. line and column )
     /// of the character at that point.
     pub fn get_character_position(&self, widget_point: Point) -> (i32, i32) {
-        let content_rect = self.contents_rect();
+        let content_rect = self.contents_rect(Some(Coordinate::Widget));
         let mut line = (widget_point.y() - content_rect.top() - self.top_margin) / self.font_height;
         let mut column;
         if line < 0 {
@@ -864,7 +863,7 @@ performance degradation and display/alignment errors."
         assert!(self.used_lines <= self.lines);
         assert!(self.used_columns <= self.columns);
 
-        let tl = self.contents_rect().top_left();
+        let tl = self.contents_rect(Some(Coordinate::Widget)).top_left();
         let tlx = tl.x();
         let tly = tl.y();
         self.has_blinker = false;
@@ -1277,7 +1276,7 @@ performance degradation and display/alignment errors."
             return;
         }
 
-        let tl = self.contents_rect().top_left();
+        let tl = self.contents_rect(Some(Coordinate::Widget)).top_left();
         let tlx = tl.x();
         let tly = tl.y();
         // TODO: get ScrollBar value.
