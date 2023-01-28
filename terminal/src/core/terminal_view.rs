@@ -1,16 +1,28 @@
 #![allow(dead_code)]
 use super::screen_window::ScreenWindow;
 use super::screen_window::ScreenWindowSignals;
+use crate::tools::character::DEFAULT_RENDITION;
+use crate::tools::character::LINE_DOUBLE_HEIGHT;
+use crate::tools::character::LINE_WRAPPED;
+use crate::tools::character::RE_BLINK;
+use crate::tools::character_color::CharacterColor;
+use crate::tools::character_color::DEFAULT_FORE_COLOR;
+use crate::tools::system_ffi::string_width;
 use crate::tools::{
     character::{Character, LineProperty},
     character_color::{ColorEntry, DEFAULT_BACK_COLOR, TABLE_COLORS},
     filter::{FilterChainImpl, TerminalImageFilterChain},
 };
 use log::warn;
+use std::sync::atomic::AtomicU64;
+use std::time::Duration;
 use std::{
     ptr::NonNull,
-    sync::atomic::{AtomicBool, AtomicI32, Ordering},
+    sync::atomic::{AtomicBool, Ordering},
 };
+use tmui::label::Label;
+use tmui::tlib::events::MouseEvent;
+use tmui::tlib::timer::Timer;
 use tmui::{
     graphics::{
         figure::{Color, Size},
@@ -24,8 +36,8 @@ use tmui::{
         signals,
     },
     widget::WidgetImpl,
-    Font,
 };
+use wchar::wch;
 use wchar::wchar_t;
 use widestring::U16String;
 use LineEncode::*;
@@ -97,7 +109,7 @@ pub struct TerminalView {
     // TODO: Add ScrollBar.
     scroll_bar_location: ScrollBarPosition,
     word_characters: String,
-    bell_mode: i32,
+    bell_mode: BellMode,
 
     // hide text in paint event.
     blinking: bool,
@@ -116,16 +128,17 @@ pub struct TerminalView {
     // set in mouseDoubleClickEvent and delete after double_click_interval() delay.
     possible_triple_click: bool,
     triple_click_mode: TripleClickMode,
-    // TODO: add blink_timer
-    // TODO: add blink_cursor_timer
+    blink_timer: Timer,
+    blink_cursor_timer: Timer,
 
     // true during visual bell.
     colors_inverted: bool,
 
-    // TODO: add resize label
-    // TODO: add resize Timer
+    resize_widget: Label,
+    resize_timer: Timer,
 
-    // TODO: add output_suspend_label
+    output_suspend_label: Label,
+
     line_spacing: u32,
     opacity: f64,
     size: Size,
@@ -150,7 +163,7 @@ pub struct TerminalView {
 
 #[derive(Default)]
 struct InputMethodData {
-    preedit_string: String,
+    preedit_string: U16String,
     previous_preedit_rect: Rect,
 }
 
@@ -178,10 +191,13 @@ impl WidgetImpl for TerminalView {
     fn paint(&mut self, mut painter: Painter) {
         painter.set_antialiasing();
     }
-
-    fn size_hint(&mut self, size: Size) {}
 }
 
+impl TerminalView {
+    pub fn new() -> Self {
+        todo!()
+    }
+}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// TerminalView Singals
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -292,6 +308,14 @@ impl TerminalView {
     }
     /// draws the preedit string for input methods.
     fn draw_input_method_preedit_string(&mut self, painter: &mut Painter, rect: &Rect) {
+        todo!()
+    }
+
+    fn paint_filters(&mut self, painter: &mut Painter) {
+        todo!()
+    }
+
+    fn cal_draw_text_addition_height(&mut self, painter: &mut Painter) {
         todo!()
     }
     //////////////////////////////////////////////// Drawing functions end.  ////////////////////////////////////////////////
@@ -590,7 +614,7 @@ impl TerminalView {
         self.used_lines = self.used_lines.min(self.lines);
 
         if self.image.is_some() {
-            self.make_image()
+            self.make_image();
         }
         self.set_size(cols, lins);
         // TODO: Set the fixed size to widget?
@@ -622,13 +646,13 @@ impl TerminalView {
     /// The terminal session can trigger the bell effect by calling bell() with
     /// the alert message.
     #[inline]
-    pub fn set_bell_mode(&mut self, mode: i32) {
+    pub fn set_bell_mode(&mut self, mode: BellMode) {
         self.bell_mode = mode
     }
     /// Returns the type of effect used to alert the user when a 'bell' occurs in
     /// the terminal session.
     #[inline]
-    pub fn bell_mode(&self) -> i32 {
+    pub fn bell_mode(&self) -> BellMode {
         self.bell_mode
     }
 
@@ -655,9 +679,9 @@ performance degradation and display/alignment errors."
         // hint that text should be drawn with/without anti-aliasing.
         // depending on the user's font configuration, this may not be respected
         if ANTIALIAS_TEXT.load(Ordering::SeqCst) {
-            font.set_edging(tmui::font::Edging::AntiAlias);
+            font.set_edging(tmui::skia_safe::font::Edging::AntiAlias);
         } else {
-            font.set_edging(tmui::font::Edging::Alias);
+            font.set_edging(tmui::skia_safe::font::Edging::Alias);
         }
 
         self.set_font(font);
@@ -728,7 +752,6 @@ performance degradation and display/alignment errors."
         self.screen_window = NonNull::new(window);
 
         if self.screen_window.is_some() {
-            let window = unsafe { self.screen_window.as_mut().unwrap().as_mut() };
             connect!(window, output_changed(), self, update_line_properties());
             connect!(window, output_changed(), self, update_image());
             connect!(window, output_changed(), self, update_filters());
@@ -767,7 +790,7 @@ performance degradation and display/alignment errors."
     /// maps a point on the widget to the position ( ie. line and column )
     /// of the character at that point.
     pub fn get_character_position(&self, widget_point: Point) -> (i32, i32) {
-        let content_rect = self.contents_rect();
+        let content_rect = self.contents_rect(Some(Coordinate::Widget));
         let mut line = (widget_point.y() - content_rect.top() - self.top_margin) / self.font_height;
         let mut column;
         if line < 0 {
@@ -824,33 +847,268 @@ performance degradation and display/alignment errors."
     /// Causes the terminal view to fetch the latest character image from the
     /// associated terminal screen ( see [`set_screen_window()`] ) and redraw the view.
     pub fn update_image(&mut self) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+        let screen_window = unsafe { self.screen_window.as_mut().unwrap().as_mut() };
+
+        // optimization - scroll the existing image where possible and
+        // avoid expensive text drawing for parts of the image that
+        // can simply be moved up or down
+        self.scroll_image(screen_window.scroll_count(), &screen_window.scroll_region());
+        screen_window.reset_scroll_count();
+
+        if self.image.is_none() {
+            // Create _image.
+            // The emitted changedContentSizeSignal also leads to getImage being
+            // recreated, so do this first.
+            self.update_image_size()
+        }
+
+        let lines = screen_window.window_lines();
+        let columns = screen_window.window_columns();
+
+        self.set_scroll(screen_window.current_line(), screen_window.line_count());
+
+        assert!(self.used_lines <= self.lines);
+        assert!(self.used_columns <= self.columns);
+
+        let tl = self.contents_rect(Some(Coordinate::Widget)).top_left();
+        let tlx = tl.x();
+        let tly = tl.y();
+        self.has_blinker = false;
+
+        let image = self.image.as_ref().unwrap();
+        let new_img = screen_window.get_image();
+
+        let mut len;
+
+        let mut cf = CharacterColor::default();
+        let mut clipboard;
+        let mut cr;
+
+        let lines_to_update = self.lines.min(0.max(lines));
+        let columns_to_update = self.columns.min(0.max(columns));
+
+        let mut disstr_u = vec![0u16; columns_to_update as usize];
+        // The dirty mask indicates which characters need repainting. We also
+        // mark surrounding neighbours dirty, in case the character exceeds
+        // its cell boundaries
+        let mut dirty_mask = vec![false; columns_to_update as usize + 2];
+        let mut dirty_region = Rect::default();
+
+        // debugging variable, this records the number of lines that are found to
+        // be 'dirty' ( ie. have changed from the old _image to the new _image ) and
+        // which therefore need to be repainted
+        let mut dirty_line_count = 0;
+
+        for y in 0..lines_to_update {
+            let current_line = &image[(y * self.columns) as usize..];
+            let new_line = &mut new_img[(y * columns) as usize..];
+
+            let mut update_line = false;
+
+            for x in 0..columns_to_update as usize {
+                if new_line[x] != current_line[x] {
+                    dirty_mask[x] = true;
+                }
+            }
+
+            if !self.resizing {
+                let mut x = 0usize;
+                while x < columns_to_update as usize {
+                    self.has_blinker = self.has_blinker || (new_line[x].rendition & RE_BLINK > 0);
+
+                    // Start drawing if this character or the next one differs.
+                    // We also take the next one into account to handle the situation
+                    // where characters exceed their cell width.
+                    if dirty_mask[x] {
+                        let c = new_line[x + 0].character_union.data();
+                        if c == 0 {
+                            continue;
+                        }
+
+                        let mut p = 0;
+                        disstr_u[p] = c;
+                        p += 1;
+                        let line_draw = self.is_line_char(c);
+                        let double_width = if x + 1 == columns_to_update as usize {
+                            false
+                        } else {
+                            new_line[x + 1].character_union.data() == 0
+                        };
+                        cr = new_line[x].rendition;
+                        clipboard = new_line[x].background_color;
+
+                        if new_line[x].foreground_color != cf {
+                            cf = new_line[x].foreground_color;
+                        }
+
+                        let lln = columns_to_update as usize - x;
+                        len = 1;
+                        while len < lln {
+                            let ch = new_line[x + len];
+                            if ch.character_union.data() == 0 {
+                                continue;
+                            }
+
+                            let next_is_double_width = if x + len + 1 == columns_to_update as usize
+                            {
+                                false
+                            } else {
+                                new_line[x + len + 1].character_union.data() == 0
+                            };
+
+                            if ch.foreground_color != cf
+                                || ch.background_color != clipboard
+                                || ch.rendition != cr
+                                || !dirty_mask[x + len]
+                                || self.is_line_char(c) != line_draw
+                                || next_is_double_width != double_width
+                            {
+                                break;
+                            }
+
+                            disstr_u[p] = c;
+                            p += 1;
+                            len += 1;
+                        }
+
+                        // let unistr = U16String::from_vec(disstr_u[0..p].to_vec());
+
+                        let save_fixed_font = self.fixed_font;
+                        if line_draw {
+                            self.fixed_font = false;
+                        }
+                        if double_width {
+                            self.fixed_font = false;
+                        }
+
+                        update_line = true;
+
+                        self.fixed_font = save_fixed_font;
+                        x += len - 1;
+                    }
+                    x += 1;
+                }
+            }
+
+            // both the top and bottom halves of double height _lines must always be
+            // redrawn although both top and bottom halves contain the same characters,
+            // only the top one is actually drawn.
+            if self.line_properties.len() > y as usize {
+                update_line =
+                    update_line || (self.line_properties[y as usize] & LINE_DOUBLE_HEIGHT > 0);
+            }
+
+            // if the characters on the line are different in the old and the new _image
+            // then this line must be repainted.
+            if update_line {
+                dirty_line_count += 1;
+                let dirty_rect = Rect::new(
+                    self.left_margin + tlx,
+                    self.top_margin + tly + self.font_height * y,
+                    self.font_width * columns_to_update,
+                    self.font_height,
+                );
+
+                dirty_region.or(&dirty_rect);
+            }
+
+            new_line[0..columns_to_update as usize]
+                .copy_from_slice(&current_line[0..columns_to_update as usize]);
+        }
+
+        // if the new _image is smaller than the previous _image, then ensure that the
+        // area outside the new _image is cleared
+        if lines_to_update < self.used_lines {
+            let rect = Rect::new(
+                self.left_margin + tlx + columns_to_update * self.font_width,
+                self.top_margin + tly,
+                self.font_width * (self.used_columns - columns_to_update),
+                self.font_height * self.lines,
+            );
+            dirty_region.or(&rect);
+        }
+        self.used_lines = lines_to_update;
+
+        if columns_to_update < self.used_columns {
+            let rect = Rect::new(
+                self.left_margin + tlx + columns_to_update * self.font_width,
+                self.top_margin + tly,
+                self.font_width * (self.used_columns - columns_to_update),
+                self.font_height * self.lines,
+            );
+            dirty_region.or(&rect);
+        }
+        self.used_columns = columns_to_update;
+
+        dirty_region.or(&self.input_method_data.previous_preedit_rect);
+
+        // update the parts of the display which have changed
+        // TODO: Just update the dirty region
+        self.update();
+
+        if self.has_blinker && !self.blink_timer.is_active() {
+            self.blink_timer.start(Duration::from_millis(
+                TEXT_BLINK_DELAY.load(Ordering::SeqCst),
+            ));
+        }
+        if !self.has_blinker && self.blink_timer.is_active() {
+            self.blink_timer.stop();
+            self.blinking = false;
+        }
     }
 
     /// Essentially calls [`process_filters()`].
     pub fn update_filters(&mut self) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+
+        self.process_filters();
     }
 
     /// Causes the terminal view to fetch the latest line status flags from the
     /// associated terminal screen ( see [`set_screen_window()`] ).
     pub fn update_line_properties(&mut self) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+
+        self.line_properties = unsafe {
+            self.screen_window
+                .as_ref()
+                .unwrap()
+                .as_ref()
+                .get_line_properties()
+        };
     }
 
     /// Copies the selected text to the clipboard.
     pub fn copy_clipboard(&mut self) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+
+        let text = unsafe {
+            self.screen_window
+                .as_ref()
+                .unwrap()
+                .as_ref()
+                .selected_text(self.preserve_line_breaks);
+        };
+        // TODO: copy text to clipboard.
     }
 
     /// Pastes the content of the clipboard into the view.
     pub fn paste_clipboard(&mut self) {
-        todo!()
+        self.emit_selection(false, false)
     }
 
     /// Pastes the content of the selection into the view.
     pub fn paste_selection(&mut self) {
-        todo!()
+        self.emit_selection(true, false)
     }
 
     /// Causes the widget to display or hide a message informing the user that
@@ -877,59 +1135,128 @@ performance degradation and display/alignment errors."
     /// @param [`uses_mouse`] Set to true if the program running in the terminal is
     /// interested in mouse events or false otherwise.
     pub fn set_uses_mouse(&mut self, uses_mouse: bool) {
-        todo!()
+        if self.mouse_marks != uses_mouse {
+            self.mouse_marks = uses_mouse;
+            self.set_cursor_shape(if self.mouse_marks {
+                SystemCursorShape::IBeamCursor
+            } else {
+                SystemCursorShape::ArrowCursor
+            });
+            emit!(self.uses_mouse_changed());
+        }
     }
 
     /// See [`set_uses_mouse()`]
-    pub fn uses_mouse(&mut self) {
-        todo!()
+    pub fn uses_mouse(&mut self) -> bool {
+        self.mouse_marks
     }
 
     /// Shows a notification that a bell event has occurred in the terminal.
     pub fn bell(&mut self, message: &str) {
-        todo!()
+        if self.bell_mode == BellMode::NoBell {
+            return;
+        }
+
+        // limit the rate at which bells can occur
+        //...mainly for sound effects where rapid bells in sequence
+        // produce a horrible noise
+        if self.allow_bell {
+            self.allow_bell = false;
+            let mut timer = Timer::once();
+            connect!(timer, timeout(), self, enable_bell());
+            timer.start(Duration::from_millis(500));
+
+            match self.bell_mode {
+                BellMode::SystemBeepBell => {
+                    // TODO: system beep
+                    todo!()
+                }
+                BellMode::NotifyBell => {
+                    emit!(self.notify_bell(), message)
+                }
+                BellMode::VisualBell => {
+                    self.swap_color_table();
+                    let mut timer = Timer::once();
+                    connect!(timer, timeout(), self, swap_color_table());
+                    timer.start(Duration::from_millis(200));
+                }
+                _ => {}
+            }
+        }
     }
 
     /// Sets the background of the view to the specified color.
     /// @see [`set_color_table()`], [`set_foreground_color()`]
     pub fn set_background_color(&mut self, color: Color) {
-        todo!()
+        self.color_table[DEFAULT_BACK_COLOR as usize].color = color;
+        // TODO: Set the palette of the widget?
+        self.update();
     }
 
     /// Sets the text of the view to the specified color.
     /// @see [`set_color_table()`], [`set_background_color()`]
     pub fn set_foreground_color(&mut self, color: Color) {
-        todo!()
+        self.color_table[DEFAULT_FORE_COLOR as usize].color = color;
+        self.update();
     }
 
     pub fn selection_changed(&mut self) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+        emit!(self.copy_avaliable(), unsafe {
+            self.screen_window
+                .as_ref()
+                .unwrap()
+                .as_ref()
+                .selected_text(false)
+                .is_empty()
+                == false
+        });
     }
 
     fn scroll_bar_position_changed(&mut self, value: i32) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+
+        // TODO: set ScrollBar
     }
 
     fn blink_event(&mut self) {
-        todo!()
+        if !self.allow_blinking_text {
+            return;
+        }
+
+        self.blinking = !self.blinking;
+
+        // TODO:  Optimize to only repaint the areas of the widget
+        // where there is blinking text
+        // rather than repainting the whole widget.
+        self.update();
     }
 
     fn blink_cursor_event(&mut self) {
-        todo!()
+        self.cursor_blinking = !self.cursor_blinking;
+        self.update_cursor();
     }
 
     /// Renables bell noises and visuals.  Used to disable further bells for a
     /// short period of time after emitting the first in a sequence of bell events.
     fn enable_bell(&mut self) {
-        todo!()
+        self.allow_bell = true;
     }
 
     fn swap_color_table(&mut self) {
-        todo!()
+        let color = self.color_table[1];
+        self.color_table[1] = self.color_table[0];
+        self.color_table[0] = color;
+        self.colors_inverted = !self.colors_inverted;
+        self.update();
     }
 
     fn triple_click_timeout(&mut self) {
-        todo!()
+        self.possible_triple_click = false;
     }
 
     ////////////////////////////////////// Private functions. //////////////////////////////////////
@@ -978,7 +1305,14 @@ performance degradation and display/alignment errors."
     }
 
     fn extend_selection(&mut self, pos: Point) {
-        todo!()
+        if self.screen_window.is_none() {
+            return;
+        }
+
+        let tl = self.contents_rect(Some(Coordinate::Widget)).top_left();
+        let tlx = tl.x();
+        let tly = tl.y();
+        // TODO: get ScrollBar value.
     }
 
     fn do_drag(&mut self) {
@@ -991,22 +1325,128 @@ performance degradation and display/alignment errors."
     ///     - A space (returns ' ')
     ///     - Part of a word (returns 'a')
     ///     - Other characters (returns the input character)
-    fn char_class(&mut self, ch: u8) -> u8 {
-        todo!()
+    fn char_class(&mut self, ch: u16) -> u16 {
+        if ch == b' ' as u16 {
+            return b' ' as u16;
+        }
+
+        if (ch >= b'0' as u16 && ch <= b'9' as u16)
+            || (ch >= b'a' as u16 && ch <= b'z' as u16)
+            || (ch >= b'A' as u16 && ch <= b'Z' as u16
+                || self.word_characters.contains(ch as u8 as char))
+        {
+            return b'a' as u16;
+        }
+
+        ch
     }
 
     fn clear_image(&mut self) {
-        todo!()
+        if self.image.is_none() {
+            return;
+        }
+        // We initialize image[image_size] too. See make_image()
+        for i in 0..self.image_size as usize {
+            let image = self.image.as_mut().unwrap();
+            image[i].character_union.set_data(wch!(' '));
+            image[i].foreground_color = CharacterColor::default_foreground();
+            image[i].background_color = CharacterColor::default_background();
+            image[i].rendition = DEFAULT_RENDITION;
+        }
     }
 
-    /// TODO: add MouseEvent
-    fn mouse_triple_click_event(&mut self) {
-        todo!()
+    fn mouse_triple_click_event(&mut self, ev: MouseEvent) {
+        if self.screen_window.is_none() {
+            return;
+        }
+        let screen_window = unsafe { self.screen_window.as_mut().unwrap().as_mut() };
+
+        let (char_line, char_column) = self.get_character_position(ev.position().into());
+        self.pnt_sel = Point::new(char_column, char_line);
+
+        screen_window.clear_selection();
+
+        self.line_selection_mode = true;
+        self.word_selection_mode = false;
+
+        self.act_sel = 2;
+        emit!(self.is_busy_selecting(), true);
+
+        while self.pnt_sel.y() > 0
+            && self.line_properties[self.pnt_sel.y() as usize - 1] & LINE_WRAPPED > 0
+        {
+            self.pnt_sel.set_y(self.pnt_sel.y() - 1);
+        }
+
+        if self.triple_click_mode == TripleClickMode::SelectForwardsFromCursor {
+            // find word boundary start
+            let mut i = self.loc(self.pnt_sel.x(), self.pnt_sel.y());
+            let sel_class = self.char_class(
+                self.image.as_ref().unwrap()[i as usize]
+                    .character_union
+                    .data(),
+            );
+
+            let mut x = self.pnt_sel.x();
+
+            while (x > 0
+                || (self.pnt_sel.y() > 0
+                    && self.line_properties[self.pnt_sel.y() as usize - 1] & LINE_WRAPPED > 0))
+                && self.char_class(
+                    self.image.as_ref().unwrap()[i as usize - 1]
+                        .character_union
+                        .data(),
+                ) == sel_class
+            {
+                i -= 1;
+                if x > 0 {
+                    x -= 1;
+                } else {
+                    x = self.columns - 1;
+                    self.pnt_sel.set_y(self.pnt_sel.y() - 1);
+                }
+            }
+
+            screen_window.set_selection_start(x, self.pnt_sel.y(), false);
+            self.triple_sel_begin = Point::new(x, self.pnt_sel.y());
+        } else if self.triple_click_mode == TripleClickMode::SelectWholeLine {
+            screen_window.set_selection_start(0, self.pnt_sel.y(), false);
+            self.triple_sel_begin = Point::new(0, self.pnt_sel.y());
+        }
+
+        while self.pnt_sel.y() < self.lines - 1
+            && self.line_properties[self.pnt_sel.y() as usize] & LINE_WRAPPED > 0
+        {
+            self.pnt_sel.set_y(self.pnt_sel.y() + 1);
+        }
+
+        screen_window.set_selection_end(self.columns - 1, self.pnt_sel.y());
+
+        self.set_selection(screen_window.selected_text(self.preserve_line_breaks));
+
+        // TODO: Add scroll bar value to self.pnt_sel.
     }
 
     /// determine the width of this text.
     fn text_width(&self, start_column: i32, length: i32, line: i32) -> i32 {
-        todo!()
+        if self.image.is_none() {
+            return 0;
+        }
+        let image = self.image.as_ref().unwrap();
+        let font = self.font();
+        let mut result = 0;
+        let mut widths = vec![];
+        for column in 0..length {
+            font.get_widths(
+                &[image[self.loc(start_column + column, line) as usize]
+                    .character_union
+                    .data()],
+                &mut widths,
+            );
+            let width: f32 = widths.iter().sum();
+            result += width as i32;
+        }
+        result
     }
     /// determine the area that encloses this series of characters.
     fn calculate_text_area(
@@ -1017,17 +1457,51 @@ performance degradation and display/alignment errors."
         line: i32,
         length: i32,
     ) -> Rect {
-        todo!()
+        let left = if self.fixed_font {
+            self.font_width * start_column
+        } else {
+            self.text_width(0, start_column, line)
+        };
+        let top = self.font_height * line;
+        let width = if self.fixed_font {
+            self.font_width * length
+        } else {
+            self.text_width(start_column, length, line)
+        };
+
+        Rect::new(
+            self.left_margin + top_left_x + left,
+            self.top_margin + top_left_y + top,
+            width,
+            self.font_height,
+        )
     }
 
     /// maps an area in the character image to an area on the widget.
-    fn image_to_widget(&mut self, image_area: &Rect) -> Rect {
-        todo!()
+    fn image_to_widget(&self, image_area: &Rect) -> Rect {
+        let mut result = Rect::default();
+        result.set_left(self.left_margin + self.font_width * image_area.left());
+        result.set_top(self.top_margin + self.font_height * image_area.top());
+        result.set_width(self.font_width * image_area.width());
+        result.set_height(self.font_height * image_area.height());
+
+        result
     }
 
     /// the area where the preedit string for input methods will be draw.
     fn preedit_rect(&mut self) -> Rect {
-        todo!()
+        let preedit_length = string_width(self.input_method_data.preedit_string.as_slice());
+
+        if preedit_length == 0 {
+            return Rect::default();
+        }
+
+        Rect::new(
+            self.left_margin + self.font_width * self.cursor_position().x(),
+            self.top_margin + self.font_height * self.cursor_position().y(),
+            self.font_width * preedit_length,
+            self.font_height,
+        )
     }
 
     /// shows a notification window in the middle of the widget indicating the
@@ -1058,33 +1532,125 @@ performance degradation and display/alignment errors."
         todo!()
     }
     fn update_image_size(&mut self) {
-        todo!()
-    }
-    fn make_image(&mut self) {
-        todo!()
-    }
+        let old_line = self.lines;
+        let old_col = self.columns;
 
-    fn paint_filters(&mut self, painter: &mut Painter) {
-        todo!()
-    }
+        let old_image = self.make_image();
 
-    fn cal_draw_text_addition_height(&mut self, painter: &mut Painter) {
-        todo!()
+        // copy the old image to reduce flicker
+        let mlines = old_line.min(self.lines);
+        let mcolumns = old_col.min(self.columns);
+
+        if old_image.is_some() {
+            for line in 0..mlines {
+                let dist_start = (self.columns * line) as usize;
+                let dist_end = dist_start + mcolumns as usize;
+                let src_start = (old_col * line) as usize;
+                let src_end = src_start + mcolumns as usize;
+                self.image.as_mut().unwrap()[dist_start..dist_end]
+                    .copy_from_slice(&old_image.as_ref().unwrap()[src_start..src_end]);
+            }
+        }
+
+        if self.screen_window.is_some() {
+            unsafe {
+                self.screen_window
+                    .as_mut()
+                    .unwrap()
+                    .as_mut()
+                    .set_window_lines(self.lines)
+            };
+        }
+
+        self.resizing = (old_line != self.lines) || (old_col != self.columns);
+
+        if self.resizing {
+            self.show_resize_notification();
+            emit!(
+                self.changed_content_size_signal(),
+                self.content_height,
+                self.content_width
+            );
+        }
+
+        self.resizing = false
+    }
+    /// Make new image and return the new one.
+    fn make_image(&mut self) -> Option<Vec<Character>> {
+        self.calc_geometry();
+
+        // confirm that array will be of non-zero size, since the painting code
+        // assumes a non-zero array length
+        assert!(self.lines > 0 && self.columns > 0);
+        assert!(self.used_lines <= self.lines && self.used_columns <= self.columns);
+
+        self.image_size = self.lines * self.columns;
+
+        // We over-commit one character so that we can be more relaxed in dealing with
+        // certain boundary conditions: _image[_imageSize] is a valid but unused position.
+        self.image
+            .replace(vec![Character::default(); (self.image_size + 1) as usize])
     }
 
     /// returns a region covering all of the areas of the widget which contain a hotspot.
     fn hotspot_region(&self) -> Rect {
-        todo!()
+        let mut region = Rect::default();
+        let hotspots = self.filter_chain.hotspots();
+
+        hotspots.iter().for_each(|hotspot| {
+            let mut r = Rect::default();
+            if hotspot.start_line() == hotspot.end_line() {
+                r.set_left(hotspot.start_column());
+                r.set_top(hotspot.start_line());
+                r.set_right(hotspot.end_column());
+                r.set_bottom(hotspot.end_line());
+                region.or(&self.image_to_widget(&r))
+            } else {
+                r.set_left(hotspot.start_column());
+                r.set_top(hotspot.start_line());
+                r.set_right(self.columns);
+                r.set_bottom(hotspot.start_line());
+                region.or(&self.image_to_widget(&r));
+
+                for line in hotspot.start_line() + 1..hotspot.end_line() {
+                    r.set_left(0);
+                    r.set_top(line);
+                    r.set_right(self.columns);
+                    r.set_bottom(line);
+                    region.or(&self.image_to_widget(&r));
+                }
+
+                r.set_left(0);
+                r.set_top(hotspot.end_line());
+                r.set_right(hotspot.end_column());
+                r.set_bottom(hotspot.end_line());
+                region.or(&self.image_to_widget(&r));
+            }
+        });
+
+        region
     }
 
     /// returns the position of the cursor in columns and lines.
     fn cursor_position(&self) -> Point {
-        todo!()
+        if self.screen_window.is_some() {
+            unsafe {
+                self.screen_window
+                    .as_ref()
+                    .unwrap()
+                    .as_ref()
+                    .cursor_position()
+            }
+        } else {
+            Point::new(0, 0)
+        }
     }
 
     /// redraws the cursor.
     fn update_cursor(&mut self) {
-        todo!()
+        let rect = Rect::from_point_size(self.cursor_position(), Size::new(1, 1));
+        let cursor_rect = self.image_to_widget(&rect);
+        // TODO: repaint()?
     }
 
     fn handle_shortcut_override_event(&mut self, event: KeyEvent) {
@@ -1092,10 +1658,10 @@ performance degradation and display/alignment errors."
     }
 
     fn is_line_char(&self, c: wchar_t) -> bool {
-        todo!()
+        self.draw_line_chars && ((c & 0xFF80) == 0x2500)
     }
-    fn is_line_char_string(&self, string: &str) -> bool {
-        todo!()
+    fn is_line_char_string(&self, string: &U16String) -> bool {
+        string.len() > 0 && self.is_line_char(string.as_slice()[0])
     }
 }
 
@@ -1104,7 +1670,7 @@ performance degradation and display/alignment errors."
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 static ANTIALIAS_TEXT: AtomicBool = AtomicBool::new(true);
 static HAVE_TRANSPARENCY: AtomicBool = AtomicBool::new(true);
-static TEXT_BLINK_DELAY: AtomicI32 = AtomicI32::new(500);
+static TEXT_BLINK_DELAY: AtomicU64 = AtomicU64::new(500);
 
 const REPCHAR: &'static str = "
 ABCDEFGHIJKLMNOPQRSTUVWXYZ

@@ -17,7 +17,7 @@ use crate::{
         translators::{KeyboardTranslator, KeyboardTranslatorManager},
     },
 };
-use std::{ptr::NonNull, rc::Rc};
+use std::{ptr::NonNull, rc::Rc, time::Duration};
 use tmui::{
     graphics::figure::Size,
     prelude::*,
@@ -26,9 +26,13 @@ use tmui::{
         events::KeyEvent,
         object::{ObjectImpl, ObjectSubclass},
         signals,
+        timer::Timer,
     },
 };
 use wchar::{wch, wchar_t};
+
+const BULK_TIMEOUT1: u64 = 10;
+const BULK_TIMEOUT2: u64 = 40;
 
 #[repr(u8)]
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -74,6 +78,8 @@ pub struct BaseEmulation {
     windows: Vec<Box<ScreenWindow>>,
     use_mouse: bool,
     bracket_paste_mode: bool,
+    bulk_timer1: Timer,
+    bulk_timer2: Timer,
 }
 impl ObjectSubclass for BaseEmulation {
     const NAME: &'static str = "BaseEmulation";
@@ -316,12 +322,12 @@ pub trait Emulation: ActionExt + Sized + 'static {
     fn receive_data(&mut self, buffer: Vec<u8>, len: i32);
 
     /// triggered by timer, causes the emulation to send an updated screen image to each view.
-    fn show_bulk(&self);
+    fn show_bulk(&mut self);
 
     /// Schedules an update of attached views.
     /// Repeated calls to bufferedUpdate() in close succession will result in only
     /// a single update, much like the Qt buffered update of widgets.
-    fn buffer_update(&self);
+    fn buffered_update(&mut self);
 
     fn uses_mouse_changed(&mut self, uses_mouse: bool);
 
@@ -347,6 +353,9 @@ impl Emulation for BaseEmulation {
     }
 
     fn initialize(&mut self) {
+        connect!(self.bulk_timer1, timeout(), self, show_bulk());
+        connect!(self.bulk_timer2, timeout(), self, show_bulk());
+
         connect!(
             self,
             program_uses_mouse_changed(),
@@ -380,7 +389,7 @@ impl Emulation for BaseEmulation {
             self.windows.last().unwrap(),
             selection_changed(),
             self,
-            buffer_update()
+            buffered_update()
         );
 
         connect!(
@@ -488,7 +497,7 @@ impl Emulation for BaseEmulation {
                 .unwrap()
                 .as_mut()
                 .clear_entire_screen();
-            self.buffer_update();
+            self.buffered_update();
         }
     }
 
@@ -567,7 +576,7 @@ impl Emulation for BaseEmulation {
 
         emit!(self.image_size_changed(), (lines, columns));
 
-        self.buffer_update();
+        self.buffered_update();
     }
 
     fn send_text(&self, _: String) {
@@ -593,7 +602,7 @@ impl Emulation for BaseEmulation {
     fn receive_data(&mut self, buffer: Vec<u8>, len: i32) {
         emit!(self.state_set(), EmulationState::NotifyActivity as u8);
 
-        self.buffer_update();
+        self.buffered_update();
 
         let utf8_text = String::from_utf8(buffer.clone())
             .expect("`Emulation` receive_data() parse utf-8 string failed.");
@@ -617,14 +626,24 @@ impl Emulation for BaseEmulation {
         }
     }
 
-    fn show_bulk(&self) {
-        // TODO: need add timer
-        todo!()
+    fn show_bulk(&mut self) {
+        self.bulk_timer1.stop();
+        self.bulk_timer2.stop();
+
+        emit!(self.output_changed());
+
+        let current_screen = unsafe { self.current_screen.as_mut().unwrap().as_mut() };
+        current_screen.reset_scrolled_lines();
+        current_screen.reset_dropped_lines();
     }
 
-    fn buffer_update(&self) {
-        // TODO: need add timer
-        todo!()
+    fn buffered_update(&mut self) {
+        self.bulk_timer1.set_single_shot(true);
+        self.bulk_timer1.start(Duration::from_millis(BULK_TIMEOUT1));
+        if !self.bulk_timer2.is_active() {
+            self.bulk_timer2.set_single_shot(true);
+            self.bulk_timer2.start(Duration::from_millis(BULK_TIMEOUT2));
+        }
     }
 
     fn uses_mouse_changed(&mut self, uses_mouse: bool) {
