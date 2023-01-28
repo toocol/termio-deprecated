@@ -3,6 +3,7 @@ use super::screen_window::ScreenWindow;
 use super::screen_window::ScreenWindowSignals;
 use crate::tools::character::DEFAULT_RENDITION;
 use crate::tools::character::LINE_DOUBLE_HEIGHT;
+use crate::tools::character::LINE_WRAPPED;
 use crate::tools::character::RE_BLINK;
 use crate::tools::character_color::CharacterColor;
 use crate::tools::character_color::DEFAULT_FORE_COLOR;
@@ -19,6 +20,8 @@ use std::{
     ptr::NonNull,
     sync::atomic::{AtomicBool, Ordering},
 };
+use tmui::label::Label;
+use tmui::tlib::events::MouseEvent;
 use tmui::tlib::timer::Timer;
 use tmui::{
     graphics::{
@@ -131,10 +134,11 @@ pub struct TerminalView {
     // true during visual bell.
     colors_inverted: bool,
 
-    // TODO: add resize label
+    resize_widget: Label,
     resize_timer: Timer,
 
-    // TODO: add output_suspend_label
+    output_suspend_label: Label,
+
     line_spacing: u32,
     opacity: f64,
     size: Size,
@@ -187,8 +191,6 @@ impl WidgetImpl for TerminalView {
     fn paint(&mut self, mut painter: Painter) {
         painter.set_antialiasing();
     }
-
-    fn size_hint(&mut self, size: Size) {}
 }
 
 impl TerminalView {
@@ -306,6 +308,14 @@ impl TerminalView {
     }
     /// draws the preedit string for input methods.
     fn draw_input_method_preedit_string(&mut self, painter: &mut Painter, rect: &Rect) {
+        todo!()
+    }
+
+    fn paint_filters(&mut self, painter: &mut Painter) {
+        todo!()
+    }
+
+    fn cal_draw_text_addition_height(&mut self, painter: &mut Painter) {
         todo!()
     }
     //////////////////////////////////////////////// Drawing functions end.  ////////////////////////////////////////////////
@@ -964,7 +974,7 @@ performance degradation and display/alignment errors."
                             len += 1;
                         }
 
-                        let unistr = U16String::from_vec(disstr_u[0..p].to_vec());
+                        // let unistr = U16String::from_vec(disstr_u[0..p].to_vec());
 
                         let save_fixed_font = self.fixed_font;
                         if line_draw {
@@ -1127,7 +1137,11 @@ performance degradation and display/alignment errors."
     pub fn set_uses_mouse(&mut self, uses_mouse: bool) {
         if self.mouse_marks != uses_mouse {
             self.mouse_marks = uses_mouse;
-            // TODO: set system cursor shape
+            self.set_cursor_shape(if self.mouse_marks {
+                SystemCursorShape::IBeamCursor
+            } else {
+                SystemCursorShape::ArrowCursor
+            });
             emit!(self.uses_mouse_changed());
         }
     }
@@ -1148,7 +1162,26 @@ performance degradation and display/alignment errors."
         // produce a horrible noise
         if self.allow_bell {
             self.allow_bell = false;
-            // TODO: add the single shot timer.
+            let mut timer = Timer::once();
+            connect!(timer, timeout(), self, enable_bell());
+            timer.start(Duration::from_millis(500));
+
+            match self.bell_mode {
+                BellMode::SystemBeepBell => {
+                    // TODO: system beep
+                    todo!()
+                }
+                BellMode::NotifyBell => {
+                    emit!(self.notify_bell(), message)
+                }
+                BellMode::VisualBell => {
+                    self.swap_color_table();
+                    let mut timer = Timer::once();
+                    connect!(timer, timeout(), self, swap_color_table());
+                    timer.start(Duration::from_millis(200));
+                }
+                _ => {}
+            }
         }
     }
 
@@ -1292,16 +1325,17 @@ performance degradation and display/alignment errors."
     ///     - A space (returns ' ')
     ///     - Part of a word (returns 'a')
     ///     - Other characters (returns the input character)
-    fn char_class(&mut self, ch: u8) -> u8 {
-        if ch == b' ' {
-            return b' ';
+    fn char_class(&mut self, ch: u16) -> u16 {
+        if ch == b' ' as u16 {
+            return b' ' as u16;
         }
 
-        if (ch >= b'0' && ch <= b'9')
-            || (ch >= b'a' && ch <= b'z')
-            || (ch >= b'A' && ch <= b'Z' || self.word_characters.contains(ch as char))
+        if (ch >= b'0' as u16 && ch <= b'9' as u16)
+            || (ch >= b'a' as u16 && ch <= b'z' as u16)
+            || (ch >= b'A' as u16 && ch <= b'Z' as u16
+                || self.word_characters.contains(ch as u8 as char))
         {
-            return b'a';
+            return b'a' as u16;
         }
 
         ch
@@ -1321,9 +1355,76 @@ performance degradation and display/alignment errors."
         }
     }
 
-    /// TODO: add MouseEvent
-    fn mouse_triple_click_event(&mut self) {
-        todo!()
+    fn mouse_triple_click_event(&mut self, ev: MouseEvent) {
+        if self.screen_window.is_none() {
+            return;
+        }
+        let screen_window = unsafe { self.screen_window.as_mut().unwrap().as_mut() };
+
+        let (char_line, char_column) = self.get_character_position(ev.position().into());
+        self.pnt_sel = Point::new(char_column, char_line);
+
+        screen_window.clear_selection();
+
+        self.line_selection_mode = true;
+        self.word_selection_mode = false;
+
+        self.act_sel = 2;
+        emit!(self.is_busy_selecting(), true);
+
+        while self.pnt_sel.y() > 0
+            && self.line_properties[self.pnt_sel.y() as usize - 1] & LINE_WRAPPED > 0
+        {
+            self.pnt_sel.set_y(self.pnt_sel.y() - 1);
+        }
+
+        if self.triple_click_mode == TripleClickMode::SelectForwardsFromCursor {
+            // find word boundary start
+            let mut i = self.loc(self.pnt_sel.x(), self.pnt_sel.y());
+            let sel_class = self.char_class(
+                self.image.as_ref().unwrap()[i as usize]
+                    .character_union
+                    .data(),
+            );
+
+            let mut x = self.pnt_sel.x();
+
+            while (x > 0
+                || (self.pnt_sel.y() > 0
+                    && self.line_properties[self.pnt_sel.y() as usize - 1] & LINE_WRAPPED > 0))
+                && self.char_class(
+                    self.image.as_ref().unwrap()[i as usize - 1]
+                        .character_union
+                        .data(),
+                ) == sel_class
+            {
+                i -= 1;
+                if x > 0 {
+                    x -= 1;
+                } else {
+                    x = self.columns - 1;
+                    self.pnt_sel.set_y(self.pnt_sel.y() - 1);
+                }
+            }
+
+            screen_window.set_selection_start(x, self.pnt_sel.y(), false);
+            self.triple_sel_begin = Point::new(x, self.pnt_sel.y());
+        } else if self.triple_click_mode == TripleClickMode::SelectWholeLine {
+            screen_window.set_selection_start(0, self.pnt_sel.y(), false);
+            self.triple_sel_begin = Point::new(0, self.pnt_sel.y());
+        }
+
+        while self.pnt_sel.y() < self.lines - 1
+            && self.line_properties[self.pnt_sel.y() as usize] & LINE_WRAPPED > 0
+        {
+            self.pnt_sel.set_y(self.pnt_sel.y() + 1);
+        }
+
+        screen_window.set_selection_end(self.columns - 1, self.pnt_sel.y());
+
+        self.set_selection(screen_window.selected_text(self.preserve_line_breaks));
+
+        // TODO: Add scroll bar value to self.pnt_sel.
     }
 
     /// determine the width of this text.
@@ -1377,7 +1478,7 @@ performance degradation and display/alignment errors."
     }
 
     /// maps an area in the character image to an area on the widget.
-    fn image_to_widget(&mut self, image_area: &Rect) -> Rect {
+    fn image_to_widget(&self, image_area: &Rect) -> Rect {
         let mut result = Rect::default();
         result.set_left(self.left_margin + self.font_width * image_area.left());
         result.set_top(self.top_margin + self.font_height * image_area.top());
@@ -1491,17 +1592,43 @@ performance degradation and display/alignment errors."
             .replace(vec![Character::default(); (self.image_size + 1) as usize])
     }
 
-    fn paint_filters(&mut self, painter: &mut Painter) {
-        todo!()
-    }
-
-    fn cal_draw_text_addition_height(&mut self, painter: &mut Painter) {
-        todo!()
-    }
-
     /// returns a region covering all of the areas of the widget which contain a hotspot.
     fn hotspot_region(&self) -> Rect {
-        todo!()
+        let mut region = Rect::default();
+        let hotspots = self.filter_chain.hotspots();
+
+        hotspots.iter().for_each(|hotspot| {
+            let mut r = Rect::default();
+            if hotspot.start_line() == hotspot.end_line() {
+                r.set_left(hotspot.start_column());
+                r.set_top(hotspot.start_line());
+                r.set_right(hotspot.end_column());
+                r.set_bottom(hotspot.end_line());
+                region.or(&self.image_to_widget(&r))
+            } else {
+                r.set_left(hotspot.start_column());
+                r.set_top(hotspot.start_line());
+                r.set_right(self.columns);
+                r.set_bottom(hotspot.start_line());
+                region.or(&self.image_to_widget(&r));
+
+                for line in hotspot.start_line() + 1..hotspot.end_line() {
+                    r.set_left(0);
+                    r.set_top(line);
+                    r.set_right(self.columns);
+                    r.set_bottom(line);
+                    region.or(&self.image_to_widget(&r));
+                }
+
+                r.set_left(0);
+                r.set_top(hotspot.end_line());
+                r.set_right(hotspot.end_column());
+                r.set_bottom(hotspot.end_line());
+                region.or(&self.image_to_widget(&r));
+            }
+        });
+
+        region
     }
 
     /// returns the position of the cursor in columns and lines.
