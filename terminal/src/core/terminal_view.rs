@@ -21,6 +21,8 @@ use std::{
     sync::atomic::{AtomicBool, Ordering},
 };
 use tmui::label::Label;
+use tmui::scroll_bar::ScrollBar;
+use tmui::tlib::disconnect;
 use tmui::tlib::events::MouseEvent;
 use tmui::tlib::timer::Timer;
 use tmui::{
@@ -106,7 +108,7 @@ pub struct TerminalView {
     column_selection_mode: bool,
 
     // TODO: Add clipboard.
-    // TODO: Add ScrollBar.
+    scroll_bar: ScrollBar,
     scroll_bar_location: ScrollBarPosition,
     word_characters: String,
     bell_mode: BellMode,
@@ -390,11 +392,38 @@ impl TerminalView {
     }
     /// Setting the current position and range of the display scroll bar.
     pub fn set_scroll(&mut self, cursor: i32, lines: i32) {
-        todo!()
+        if self.scroll_bar.minimum() == 0
+            && self.scroll_bar.maximum() == (lines - self.lines)
+            && self.scroll_bar.value() == cursor
+        {
+            return;
+        }
+        disconnect!(self.scroll_bar, value_changed(), self, null);
+        self.scroll_bar.set_range(0, lines - self.lines);
+        self.scroll_bar.set_single_step(1);
+        self.scroll_bar.set_page_step(lines);
+        self.scroll_bar.set_value(cursor);
+        connect!(
+            self.scroll_bar,
+            value_changed(),
+            self,
+            scroll_bar_position_changed(i32)
+        );
     }
     /// Scroll to the bottom of the terminal (reset scrolling).
     pub fn scroll_to_end(&mut self) {
-        todo!()
+        disconnect!(self.scroll_bar, value_changed(), self, null);
+        self.scroll_bar.set_value(self.scroll_bar.maximum());
+        connect!(
+            self.scroll_bar,
+            value_changed(),
+            self,
+            scroll_bar_position_changed(i32)
+        );
+
+        let screen_window = unsafe { self.screen_window.as_mut().unwrap().as_mut() };
+        screen_window.scroll_to(self.scroll_bar.value() + 1);
+        screen_window.set_track_output(screen_window.at_end_of_output());
     }
 
     /// Returns the display's filter chain.  When the image for the display is
@@ -600,9 +629,25 @@ impl TerminalView {
         self.font_width
     }
 
-    pub fn set_size(&mut self, cols: i32, lins: i32) {
-        // TODO:
-        todo!()
+    pub fn set_size(&mut self, _cols: i32, _lins: i32) {
+        let scroll_bar_width = if !self.scroll_bar.visible() {
+            0
+        } else {
+            self.scroll_bar.size_hint().width()
+        };
+
+        let horizontal_margin = 2 * self.left_base_margin;
+        let vertical_margin = 2 * self.top_base_margin;
+
+        let new_size = Size::new(
+            horizontal_margin + scroll_bar_width + (self.columns * self.font_width),
+            vertical_margin + (self.lines * self.font_height),
+        );
+
+        if new_size != self.size() {
+            self.size = new_size;
+            // TODO: updateGeometry()
+        }
     }
     pub fn set_fixed_size(&mut self, cols: i32, lins: i32) {
         self.is_fixed_size = true;
@@ -1189,7 +1234,10 @@ performance degradation and display/alignment errors."
     /// @see [`set_color_table()`], [`set_foreground_color()`]
     pub fn set_background_color(&mut self, color: Color) {
         self.color_table[DEFAULT_BACK_COLOR as usize].color = color;
-        // TODO: Set the palette of the widget?
+
+        self.set_background(color);
+        self.scroll_bar.set_background(color);
+
         self.update();
     }
 
@@ -1215,12 +1263,21 @@ performance degradation and display/alignment errors."
         });
     }
 
-    fn scroll_bar_position_changed(&mut self, value: i32) {
+    fn scroll_bar_position_changed(&mut self, _value: i32) {
         if self.screen_window.is_none() {
             return;
         }
 
-        // TODO: set ScrollBar
+        let screen_window = unsafe { self.screen_window.as_mut().unwrap().as_mut() };
+        screen_window.scroll_to(self.scroll_bar.value());
+
+        // if the thumb has been moved to the bottom of the _scrollBar then set
+        // the display to automatically track new output,
+        // that is, scroll down automatically to how new _lines as they are added.
+        let at_end_of_output = self.scroll_bar.value() == self.scroll_bar.maximum();
+        screen_window.set_track_output(at_end_of_output);
+
+        self.update_image();
     }
 
     fn blink_event(&mut self) {
@@ -1304,7 +1361,7 @@ performance degradation and display/alignment errors."
         self.update();
     }
 
-    fn extend_selection(&mut self, pos: Point) {
+    fn extend_selection(&mut self, mut pos: Point) {
         if self.screen_window.is_none() {
             return;
         }
@@ -1312,7 +1369,242 @@ performance degradation and display/alignment errors."
         let tl = self.contents_rect(Some(Coordinate::Widget)).top_left();
         let tlx = tl.x();
         let tly = tl.y();
-        // TODO: get ScrollBar value.
+        let scroll = self.scroll_bar.value();
+
+        // we're in the process of moving the mouse with the left button pressed
+        // the mouse cursor will kept caught within the bounds of the text in this widget.
+        let mut lines_beyond_widget;
+
+        let text_bounds = Rect::new(
+            tlx + self.left_margin,
+            tly + self.top_margin,
+            self.used_columns * self.font_width - 1,
+            self.used_lines * self.font_height - 1,
+        );
+
+        // Adjust position within text area bounds.
+        let old_pos = pos;
+
+        pos.set_x(tmui::widget::bound(
+            text_bounds.left(),
+            pos.x(),
+            text_bounds.right(),
+        ));
+        pos.set_y(tmui::widget::bound(
+            text_bounds.top(),
+            pos.y(),
+            text_bounds.bottom(),
+        ));
+
+        if old_pos.y() > text_bounds.bottom() {
+            lines_beyond_widget = (old_pos.y() - text_bounds.bottom()) / self.font_height;
+            // Scroll forward
+            self.scroll_bar
+                .set_value(self.scroll_bar.value() + lines_beyond_widget + 1);
+        }
+        if old_pos.y() < text_bounds.top() {
+            lines_beyond_widget = (text_bounds.top() - old_pos.y()) / self.font_height;
+            self.scroll_bar
+                .set_value(self.scroll_bar.value() - lines_beyond_widget - 1);
+        }
+
+        let (char_line, char_column) = self.get_character_position(pos);
+
+        let mut here = Point::new(char_column, char_line);
+        let mut ohere = Point::default();
+        let mut i_pnt_sel_corr = self.i_pnt_sel;
+        i_pnt_sel_corr.set_y(i_pnt_sel_corr.y() - self.scroll_bar.value());
+        let mut pnt_sel_corr = self.pnt_sel;
+        pnt_sel_corr.set_y(pnt_sel_corr.y() - self.scroll_bar.value());
+        let mut swapping = false;
+
+        if self.word_selection_mode {
+            // Extend to word boundaries.
+            let mut i;
+            let mut sel_class;
+
+            let left_not_right = here.y() < i_pnt_sel_corr.y()
+                || (here.y() == i_pnt_sel_corr.y() && here.x() < i_pnt_sel_corr.x());
+            let old_left_not_right = pnt_sel_corr.y() < i_pnt_sel_corr.y()
+                || (pnt_sel_corr.y() == i_pnt_sel_corr.y()
+                    && pnt_sel_corr.x() < i_pnt_sel_corr.x());
+            swapping = left_not_right != old_left_not_right;
+
+            // Find left (left_not_right ? from here : from start)
+            let mut left = if left_not_right { here } else { i_pnt_sel_corr };
+            i = self.loc(left.x(), left.y());
+            if i >= 0 && i <= self.image_size {
+                sel_class = self.char_class(
+                    self.image.as_ref().unwrap()[i as usize]
+                        .character_union
+                        .data(),
+                );
+
+                while (left.x() > 0
+                    || (left.y() > 0
+                        && self.line_properties[left.y() as usize - 1] & LINE_WRAPPED > 0))
+                    && self.char_class(
+                        self.image.as_ref().unwrap()[i as usize - 1]
+                            .character_union
+                            .data(),
+                    ) == sel_class
+                {
+                    i -= 1;
+                    if left.x() > 0 {
+                        left.set_x(left.x() - 1)
+                    } else {
+                        left.set_x(self.used_columns - 1);
+                        left.set_y(left.y() - 1);
+                    }
+                }
+            }
+
+            // Find right (left_not_right ? from start : from here)
+            let mut right = if left_not_right { i_pnt_sel_corr } else { here };
+            i = self.loc(right.x(), right.y());
+            if i >= 0 && i <= self.image_size {
+                sel_class = self.char_class(
+                    self.image.as_ref().unwrap()[i as usize]
+                        .character_union
+                        .data(),
+                );
+                while (right.x() < self.used_columns - 1
+                    || (right.y() < self.used_lines - 1
+                        && self.line_properties[right.y() as usize] & LINE_WRAPPED > 0))
+                    && self.char_class(
+                        self.image.as_ref().unwrap()[i as usize + 1]
+                            .character_union
+                            .data(),
+                    ) == sel_class
+                {
+                    i += 1;
+                    if right.x() < self.used_columns - 1 {
+                        right.set_x(right.x() + 1);
+                    } else {
+                        right.set_x(0);
+                        right.set_y(right.y() + 1);
+                    }
+                }
+            }
+
+            // Pick which is start (ohere) and which is extension (here).
+            ohere.set_x(ohere.x() + 1);
+        }
+
+        if self.line_selection_mode {
+            // Extend to complete line.
+            let above_not_below = here.y() < i_pnt_sel_corr.y();
+
+            let mut above = if above_not_below {
+                here
+            } else {
+                i_pnt_sel_corr
+            };
+            let mut below = if above_not_below {
+                i_pnt_sel_corr
+            } else {
+                here
+            };
+
+            while above.y() > 0 && self.line_properties[above.y() as usize - 1] & LINE_WRAPPED > 0 {
+                above.set_y(above.y() - 1);
+            }
+            while below.y() < self.used_lines - 1
+                && self.line_properties[below.y() as usize] & LINE_WRAPPED > 0
+            {
+                below.set_y(below.y() + 1);
+            }
+
+            above.set_x(0);
+            below.set_x(self.used_columns - 1);
+
+            // Pick which is start (ohere) and which is extension (here)
+            if above_not_below {
+                here = above;
+                ohere = below;
+            } else {
+                here = below;
+                ohere = above;
+            }
+
+            let new_sel_begin = Point::new(ohere.x(), ohere.y());
+            swapping = !(self.triple_sel_begin == new_sel_begin);
+            self.triple_sel_begin = new_sel_begin;
+
+            ohere.set_x(ohere.x() + 1);
+        }
+
+        let mut offset = 0;
+        if !self.word_selection_mode && !self.line_selection_mode {
+            let i;
+            let _sel_class;
+
+            let left_not_right = here.y() < i_pnt_sel_corr.y()
+                || (here.y() == i_pnt_sel_corr.y() && here.x() < i_pnt_sel_corr.x());
+            let old_left_not_right = pnt_sel_corr.y() < i_pnt_sel_corr.y()
+                || (pnt_sel_corr.y() == i_pnt_sel_corr.y()
+                    && pnt_sel_corr.x() < i_pnt_sel_corr.x());
+            swapping = left_not_right != old_left_not_right;
+
+            // Find left (left_not_right ? from here : from start)
+            let left = if left_not_right { here } else { i_pnt_sel_corr };
+
+            // Find right (left_not_right ? from start : from here)
+            let right = if left_not_right { i_pnt_sel_corr } else { here };
+
+            if right.x() > 0 && !self.column_selection_mode {
+                i = self.loc(right.x(), right.y());
+                if i >= 0 && i <= self.image_size {
+                    _sel_class = self.char_class(
+                        self.image.as_ref().unwrap()[i as usize - 1]
+                            .character_union
+                            .data(),
+                    );
+                }
+            }
+
+            // Pick which is start (ohere) and which is extension (here)
+            if left_not_right {
+                here = left;
+                ohere = right;
+                offset = 0;
+            } else {
+                here = right;
+                ohere = left;
+                offset = -1;
+            }
+        }
+
+        if here == pnt_sel_corr && scroll == self.scroll_bar.value() {
+            // Not moved.
+            return;
+        }
+
+        if here == ohere {
+            // It's not left, it's not right.
+            return;
+        }
+
+        let screen_window = unsafe { self.screen_window.as_mut().unwrap().as_mut() };
+        if self.act_sel < 2 || swapping {
+            if self.column_selection_mode && !self.line_selection_mode && !self.word_selection_mode
+            {
+                screen_window.set_selection_start(ohere.x(), ohere.y(), true);
+            } else {
+                screen_window.set_selection_start(ohere.x() - 1 - offset, ohere.y(), false);
+            }
+        }
+
+        self.act_sel = 2;
+        self.pnt_sel = here;
+        self.pnt_sel
+            .set_y(self.pnt_sel.y() + self.scroll_bar.value());
+
+        if self.column_selection_mode && !self.line_selection_mode && !self.word_selection_mode {
+            screen_window.set_selection_end(here.x(), here.y());
+        } else {
+            screen_window.set_selection_end(here.x() + offset, here.y());
+        }
     }
 
     fn do_drag(&mut self) {
