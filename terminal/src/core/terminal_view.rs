@@ -14,6 +14,7 @@ use crate::tools::{
     filter::{FilterChainImpl, TerminalImageFilterChain},
 };
 use log::warn;
+use std::mem::size_of;
 use std::sync::atomic::AtomicU64;
 use std::time::Duration;
 use std::{
@@ -1716,7 +1717,8 @@ performance degradation and display/alignment errors."
 
         self.set_selection(screen_window.selected_text(self.preserve_line_breaks));
 
-        // TODO: Add scroll bar value to self.pnt_sel.
+        self.i_pnt_sel
+            .set_y(self.i_pnt_sel.y() + self.scroll_bar.value());
     }
 
     /// determine the width of this text.
@@ -1808,8 +1810,70 @@ performance degradation and display/alignment errors."
     /// 'region' is the part of the image to scroll - currently only
     /// the top, bottom and height of 'region' are taken into account,
     /// the left and right are ignored.
-    fn scroll_image(&mut self, lines: i32, region: &Rect) {
-        todo!()
+    fn scroll_image(&mut self, lines: i32, screen_window_region: &Rect) {
+        // if the flow control warning is enabled this will interfere with the
+        // scrolling optimizations and cause artifacts.  the simple solution here
+        // is to just disable the optimization whilst it is visible
+        if self.output_suspend_label.visible() {
+            return;
+        }
+
+        // constrain the region to the display
+        // the bottom of the region is capped to the number of lines in the display's
+        // internal image - 2, so that the height of 'region' is strictly less
+        // than the height of the internal image.
+        let mut region = *screen_window_region;
+        region.set_bottom(region.bottom().min(self.lines - 2));
+
+        // return if there is nothing to do
+        if lines == 0
+            || self.image.is_none()
+            || region.is_valid()
+            || region.top() + lines.abs() >= region.bottom()
+            || self.lines <= region.height()
+        {
+            return;
+        }
+
+        // hide terminal size label to prevent it being scrolled.
+        if self.resize_widget.visible() {
+            self.resize_widget.hide()
+        }
+
+        let scroll_bar_width = if self.scroll_bar.visible() {
+            self.scroll_bar.size().width()
+        } else {
+            0
+        };
+        let scrollbar_content_gap = if scroll_bar_width == 0 { 0 } else { 1 };
+        let mut scroll_rect = Rect::default();
+        if self.scroll_bar_location == ScrollBarPosition::ScrollBarLeft {
+            scroll_rect.set_left(scroll_bar_width + scrollbar_content_gap);
+            scroll_rect.set_right(self.size().width());
+        } else {
+            scroll_rect.set_left(0);
+            scroll_rect.set_right(self.size().width() - scroll_bar_width - scrollbar_content_gap);
+        }
+
+        let first_char_pos = &self.image.as_ref().unwrap()[(region.top() * self.columns) as usize];
+        let last_char_pos = &self.image.as_ref().unwrap()[((region.top() + lines.abs()) * self.columns) as usize];
+
+        let top = self.top_margin + (region.top() * self.font_height);
+        let lines_to_move = region.height() - lines.abs();
+        let bytes_to_move = lines_to_move * self.columns * size_of::<Character>() as i32;
+
+        assert!(lines_to_move > 0);
+        assert!(bytes_to_move > 0);
+
+        // Scroll internal image
+        if lines > 0 {
+            // TODO: memmove
+        } else {
+            // TODO: memmove
+        }
+        scroll_rect.set_height(lines_to_move * self.font_height);
+
+        // TODO: Scroll the widget.
     }
 
     /// shows the multiline prompt
