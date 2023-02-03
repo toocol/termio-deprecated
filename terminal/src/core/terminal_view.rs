@@ -1856,7 +1856,8 @@ performance degradation and display/alignment errors."
         }
 
         let first_char_pos = &self.image.as_ref().unwrap()[(region.top() * self.columns) as usize];
-        let last_char_pos = &self.image.as_ref().unwrap()[((region.top() + lines.abs()) * self.columns) as usize];
+        let last_char_pos =
+            &self.image.as_ref().unwrap()[((region.top() + lines.abs()) * self.columns) as usize];
 
         let top = self.top_margin + (region.top() * self.font_height);
         let lines_to_move = region.height() - lines.abs();
@@ -1882,10 +1883,55 @@ performance degradation and display/alignment errors."
     }
 
     fn calc_geometry(&mut self) {
-        todo!()
+        let size_hint = self.scroll_bar.size_hint();
+        let contents_rect = self.contents_rect(Some(Coordinate::Widget));
+
+        let scrollbar_width = if self.scroll_bar.visible() {
+            self.scroll_bar.size().width()
+        } else {
+            0
+        };
+
+        match self.scroll_bar_location {
+            ScrollBarPosition::NoScrollBar => {
+                self.left_margin = self.left_base_margin;
+                self.content_width = contents_rect.width() - 2 * self.left_base_margin;
+            }
+            ScrollBarPosition::ScrollBarLeft => {
+                self.left_margin = self.left_base_margin + scrollbar_width;
+                self.content_width =
+                    contents_rect.width() - 2 * self.left_base_margin - scrollbar_width;
+                // TODO: ScrollBar move
+            }
+            ScrollBarPosition::ScrollBarRight => {
+                self.left_margin = self.left_base_margin;
+                self.content_width =
+                    contents_rect.width() - 2 * self.left_base_margin - scrollbar_width;
+                // TODO: ScrollBar move
+            }
+        }
+
+        self.top_margin = self.top_base_margin;
+        self.content_height = contents_rect.height() - 2 * self.top_base_margin + 1;
+
+        if !self.is_fixed_size {
+            // ensure that display is always at least one column wide
+            self.columns = (self.content_width / self.font_width).max(1);
+            self.used_columns = self.used_columns.min(self.columns);
+
+            // ensure that display is always at least one line high
+            self.lines = (self.content_height / self.font_height).max(1);
+            self.used_lines = self.used_lines.min(self.lines);
+        }
     }
     fn propagate_size(&mut self) {
-        todo!()
+        if self.is_fixed_size {
+            // TODO:
+            todo!()
+        }
+        if self.image.is_some() {
+            self.update_image_size();
+        }
     }
     fn update_image_size(&mut self) {
         let old_line = self.lines;
