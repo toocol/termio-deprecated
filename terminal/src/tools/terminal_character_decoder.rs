@@ -252,7 +252,7 @@ impl<'a> TerminalCharacterDecoder<'a> for HtmlDecoder<'a> {
                 let use_bold;
                 let weight = character[i].font_weight(self.color_table);
                 if weight == FontWeight::UseCurrentFormat {
-                    use_bold = self.last_rendition & RE_BOLD > 0;
+                    use_bold = self.last_rendition & RE_BOLD != 0;
                 } else {
                     use_bold = weight == FontWeight::Bold;
                 }
@@ -261,7 +261,7 @@ impl<'a> TerminalCharacterDecoder<'a> for HtmlDecoder<'a> {
                     style.push_str("font-weight:bold;")
                 }
 
-                if self.last_rendition & RE_UNDERLINE > 0 {
+                if self.last_rendition & RE_UNDERLINE != 0 {
                     style.push_str("font-decoration:underline;")
                 }
 

@@ -1,10 +1,12 @@
 #![allow(dead_code)]
 use super::screen_window::ScreenWindow;
 use super::screen_window::ScreenWindowSignals;
+use crate::tools::character::ExtendedCharTable;
 use crate::tools::character::DEFAULT_RENDITION;
 use crate::tools::character::LINE_DOUBLE_HEIGHT;
 use crate::tools::character::LINE_WRAPPED;
 use crate::tools::character::RE_BLINK;
+use crate::tools::character::RE_EXTEND_CHAR;
 use crate::tools::character_color::CharacterColor;
 use crate::tools::character_color::DEFAULT_FORE_COLOR;
 use crate::tools::system_ffi::string_width;
@@ -48,6 +50,8 @@ use LineEncode::*;
 #[extends_widget]
 #[derive(Default)]
 pub struct TerminalView {
+    extended_char_table: ExtendedCharTable,
+
     screen_window: Option<NonNull<ScreenWindow>>,
 
     allow_bell: bool,
@@ -188,11 +192,31 @@ impl ObjectSubclass for TerminalView {
     type ParentType = Widget;
 }
 
-impl ObjectImpl for TerminalView {}
+impl ObjectImpl for TerminalView {
+    fn initialize(&mut self) {
+        self.extended_char_table.initialize();
+    }
+}
 
 impl WidgetImpl for TerminalView {
     fn paint(&mut self, mut painter: Painter) {
         painter.set_antialiasing();
+        let _cr = self.contents_rect(Some(Coordinate::Widget));
+
+        // TODO: Process the background image.
+
+        if self.draw_text_test_flag {
+            self.cal_draw_text_addition_height(&mut painter);
+        }
+
+        // TODO: Specified the region to redraw
+        let rect = self.contents_rect(Some(Coordinate::Widget));
+        // TODO: Multiple rect
+        self.draw_background(&mut painter, rect, self.background(), true);
+        self.draw_contents(&mut painter, rect);
+
+        // self.draw_input_method_preedit_string(&mut painter, &self.preddit_rect());
+        self.paint_filters(&mut painter);
     }
 }
 
@@ -273,14 +297,104 @@ impl TerminalView {
     /// divides the part of the display specified by 'rect' into
     /// fragments according to their colors and styles and calls
     /// drawTextFragment() to draw the fragments
-    fn draw_contents(&mut self, painter: &mut Painter, rect: &Rect) {
+    fn draw_contents(&mut self, painter: &mut Painter, rect: Rect) {
+        let tl = self.contents_rect(Some(Coordinate::Widget));
+
+        let tlx = tl.x();
+        let tly = tl.y();
+
+        let lux = (self.used_columns - 1)
+            .min(0.max((rect.left() - tlx - self.left_margin) / self.font_width));
+        let luy = (self.used_lines - 1)
+            .min(0.max((rect.top() - tly - self.top_margin) / self.font_height));
+        let rlx = (self.used_columns - 1)
+            .min(0.max((rect.right() - tlx - self.left_margin) / self.font_width));
+        let rly = (self.used_lines - 1)
+            .min(0.max((rect.bottom() - tly - self.top_margin) / self.font_height));
+
+        let buffer_size = self.used_columns as usize;
+        let mut unistr = vec![0u16; buffer_size];
+
+        let mut y = luy;
+        while y <= rly {
+            let mut c = self.image.as_ref().unwrap()[self.loc(lux, y) as usize]
+                .character_union
+                .data();
+            let mut x = lux;
+            if !c != 0 && x != 0 {
+                // Search for start of multi-column character
+                x -= 1;
+            }
+            while x <= rlx {
+                let len = 1;
+                let mut p = 0;
+
+                x += 1;
+
+                unistr.clear();
+
+                // is this a single character or a sequence of characters ?
+                if self.image.as_ref().unwrap()[self.loc(x, y) as usize].rendition & RE_EXTEND_CHAR
+                    != 0
+                {
+                    // sequence of characters
+                    let mut extended_char_length = 0u16;
+                    let chars = ExtendedCharTable::instance().lookup_extended_char(
+                        self.image.as_ref().unwrap()[self.loc(x, y) as usize]
+                            .character_union
+                            .data(),
+                        &mut extended_char_length,
+                    ).unwrap();
+                    for index in 0..extended_char_length as usize {
+                        assert!(p < buffer_size);
+                        unistr[p] = chars[index];
+                    }
+                } else {
+                    c = self.image.as_ref().unwrap()[self.loc(x, y) as usize].character_union.data();
+                    if c != 0 {
+                        assert!(p < buffer_size);
+                        unistr[p] = c;
+                    }
+                }
+
+                let line_draw = self.is_line_char(c);
+            }
+            y += 1;
+        }
+    }
+    /// draws a section of text, all the text in this section
+    /// has a common color and style
+    fn draw_text_fragment(
+        &mut self,
+        painter: &mut Painter,
+        rect: Rect,
+        text: U16String,
+        style: &Character,
+    ) {
         todo!()
+    }
+    /// draws the background for a text fragment
+    /// if useOpacitySetting is true then the color's alpha value will be set to
+    /// the display's transparency (set with setOpacity()), otherwise the
+    /// background will be drawn fully opaque
+    fn draw_background(
+        &mut self,
+        painter: &mut Painter,
+        rect: Rect,
+        color: Color,
+        use_opacity_setting: bool,
+    ) {
+        // TODO: Return if there is a background image
+        // TODO: Set the opacity
+        painter.save();
+        painter.fill_rect(rect, color);
+        painter.restore();
     }
     /// draws the cursor character.
     fn draw_cursor(
         &mut self,
         painter: &mut Painter,
-        rect: &Rect,
+        rect: Rect,
         foreground_color: Color,
         background_color: Color,
         invert_colors: bool,
@@ -291,7 +405,7 @@ impl TerminalView {
     fn draw_characters(
         &mut self,
         painter: &mut Painter,
-        rect: &Rect,
+        rect: Rect,
         text: &str,
         style: &Character,
         invert_character_color: bool,
@@ -963,7 +1077,7 @@ performance degradation and display/alignment errors."
             if !self.resizing {
                 let mut x = 0usize;
                 while x < columns_to_update as usize {
-                    self.has_blinker = self.has_blinker || (new_line[x].rendition & RE_BLINK > 0);
+                    self.has_blinker = self.has_blinker || (new_line[x].rendition & RE_BLINK != 0);
 
                     // Start drawing if this character or the next one differs.
                     // We also take the next one into account to handle the situation
@@ -1044,7 +1158,7 @@ performance degradation and display/alignment errors."
             // only the top one is actually drawn.
             if self.line_properties.len() > y as usize {
                 update_line =
-                    update_line || (self.line_properties[y as usize] & LINE_DOUBLE_HEIGHT > 0);
+                    update_line || (self.line_properties[y as usize] & LINE_DOUBLE_HEIGHT != 0);
             }
 
             // if the characters on the line are different in the old and the new _image
@@ -1443,7 +1557,7 @@ performance degradation and display/alignment errors."
 
                 while (left.x() > 0
                     || (left.y() > 0
-                        && self.line_properties[left.y() as usize - 1] & LINE_WRAPPED > 0))
+                        && self.line_properties[left.y() as usize - 1] & LINE_WRAPPED != 0))
                     && self.char_class(
                         self.image.as_ref().unwrap()[i as usize - 1]
                             .character_union
@@ -1471,7 +1585,7 @@ performance degradation and display/alignment errors."
                 );
                 while (right.x() < self.used_columns - 1
                     || (right.y() < self.used_lines - 1
-                        && self.line_properties[right.y() as usize] & LINE_WRAPPED > 0))
+                        && self.line_properties[right.y() as usize] & LINE_WRAPPED != 0))
                     && self.char_class(
                         self.image.as_ref().unwrap()[i as usize + 1]
                             .character_union
@@ -1507,11 +1621,12 @@ performance degradation and display/alignment errors."
                 here
             };
 
-            while above.y() > 0 && self.line_properties[above.y() as usize - 1] & LINE_WRAPPED > 0 {
+            while above.y() > 0 && self.line_properties[above.y() as usize - 1] & LINE_WRAPPED != 0
+            {
                 above.set_y(above.y() - 1);
             }
             while below.y() < self.used_lines - 1
-                && self.line_properties[below.y() as usize] & LINE_WRAPPED > 0
+                && self.line_properties[below.y() as usize] & LINE_WRAPPED != 0
             {
                 below.set_y(below.y() + 1);
             }
@@ -1666,7 +1781,7 @@ performance degradation and display/alignment errors."
         emit!(self.is_busy_selecting(), true);
 
         while self.pnt_sel.y() > 0
-            && self.line_properties[self.pnt_sel.y() as usize - 1] & LINE_WRAPPED > 0
+            && self.line_properties[self.pnt_sel.y() as usize - 1] & LINE_WRAPPED != 0
         {
             self.pnt_sel.set_y(self.pnt_sel.y() - 1);
         }
@@ -1684,7 +1799,7 @@ performance degradation and display/alignment errors."
 
             while (x > 0
                 || (self.pnt_sel.y() > 0
-                    && self.line_properties[self.pnt_sel.y() as usize - 1] & LINE_WRAPPED > 0))
+                    && self.line_properties[self.pnt_sel.y() as usize - 1] & LINE_WRAPPED != 0))
                 && self.char_class(
                     self.image.as_ref().unwrap()[i as usize - 1]
                         .character_union
@@ -1708,7 +1823,7 @@ performance degradation and display/alignment errors."
         }
 
         while self.pnt_sel.y() < self.lines - 1
-            && self.line_properties[self.pnt_sel.y() as usize] & LINE_WRAPPED > 0
+            && self.line_properties[self.pnt_sel.y() as usize] & LINE_WRAPPED != 0
         {
             self.pnt_sel.set_y(self.pnt_sel.y() + 1);
         }
@@ -2158,77 +2273,77 @@ fn draw_line_char(painter: &mut Painter, x: i32, y: i32, w: i32, h: i32, code: u
     let to_draw = LINE_CHARS[code as usize];
 
     // Top lines:
-    if to_draw & TopL as u32 > 0 {
+    if to_draw & TopL as u32 != 0 {
         painter.draw_line(cx - 1, y, cx - 1, cy - 2);
     }
-    if to_draw & TopC as u32 > 0 {
+    if to_draw & TopC as u32 != 0 {
         painter.draw_line(cx, y, cx, cy - 2);
     }
-    if to_draw & TopR as u32 > 0 {
+    if to_draw & TopR as u32 != 0 {
         painter.draw_line(cx + 1, y, cx + 1, cy - 2);
     }
 
     // Bot lines:
-    if to_draw & BotL as u32 > 0 {
+    if to_draw & BotL as u32 != 0 {
         painter.draw_line(cx - 1, cy + 2, cx - 1, ey);
     }
-    if to_draw & BotC as u32 > 0 {
+    if to_draw & BotC as u32 != 0 {
         painter.draw_line(cx, cy + 2, cx, ey);
     }
-    if to_draw & BotR as u32 > 0 {
+    if to_draw & BotR as u32 != 0 {
         painter.draw_line(cx + 1, cy + 2, cx + 1, ey);
     }
 
     // Left lines:
-    if to_draw & LeftT as u32 > 0 {
+    if to_draw & LeftT as u32 != 0 {
         painter.draw_line(x, cy - 1, cx - 2, cy - 1);
     }
-    if to_draw & LeftC as u32 > 0 {
+    if to_draw & LeftC as u32 != 0 {
         painter.draw_line(x, cy, cx - 2, cy);
     }
-    if to_draw & LeftB as u32 > 0 {
+    if to_draw & LeftB as u32 != 0 {
         painter.draw_line(x, cy + 1, cx - 2, cy + 1);
     }
 
     // Right lines:
-    if to_draw & RightT as u32 > 0 {
+    if to_draw & RightT as u32 != 0 {
         painter.draw_line(cx + 2, cy - 1, ex, cy - 1);
     }
-    if to_draw & RightC as u32 > 0 {
+    if to_draw & RightC as u32 != 0 {
         painter.draw_line(cx + 2, cy, ex, cy);
     }
-    if to_draw & RightB as u32 > 0 {
+    if to_draw & RightB as u32 != 0 {
         painter.draw_line(cx + 2, cy + 1, ex, cy + 1);
     }
 
     // Intersection points.
-    if to_draw & Int11 as u32 > 0 {
+    if to_draw & Int11 as u32 != 0 {
         painter.draw_point(cx - 1, cy - 1);
     }
-    if to_draw & Int12 as u32 > 0 {
+    if to_draw & Int12 as u32 != 0 {
         painter.draw_point(cx, cy - 1);
     }
-    if to_draw & Int13 as u32 > 0 {
+    if to_draw & Int13 as u32 != 0 {
         painter.draw_point(cx + 1, cy - 1);
     }
 
-    if to_draw & Int21 as u32 > 0 {
+    if to_draw & Int21 as u32 != 0 {
         painter.draw_point(cx - 1, cy);
     }
-    if to_draw & Int22 as u32 > 0 {
+    if to_draw & Int22 as u32 != 0 {
         painter.draw_point(cx, cy);
     }
-    if to_draw & Int23 as u32 > 0 {
+    if to_draw & Int23 as u32 != 0 {
         painter.draw_point(cx + 1, cy);
     }
 
-    if to_draw & Int31 as u32 > 0 {
+    if to_draw & Int31 as u32 != 0 {
         painter.draw_point(cx - 1, cy + 1);
     }
-    if to_draw & Int32 as u32 > 0 {
+    if to_draw & Int32 as u32 != 0 {
         painter.draw_point(cx, cy + 1);
     }
-    if to_draw & Int33 as u32 > 0 {
+    if to_draw & Int33 as u32 != 0 {
         painter.draw_point(cx + 1, cy + 1);
     }
 }
