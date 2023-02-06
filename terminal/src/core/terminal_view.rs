@@ -1,49 +1,41 @@
 #![allow(dead_code)]
-use super::screen_window::ScreenWindow;
-use super::screen_window::ScreenWindowSignals;
-use crate::tools::character::ExtendedCharTable;
-use crate::tools::character::DEFAULT_RENDITION;
-use crate::tools::character::LINE_DOUBLE_HEIGHT;
-use crate::tools::character::LINE_WRAPPED;
-use crate::tools::character::RE_BLINK;
-use crate::tools::character::RE_EXTEND_CHAR;
-use crate::tools::character_color::CharacterColor;
-use crate::tools::character_color::DEFAULT_FORE_COLOR;
-use crate::tools::system_ffi::string_width;
+use super::screen_window::{ScreenWindow, ScreenWindowSignals};
 use crate::tools::{
-    character::{Character, LineProperty},
-    character_color::{ColorEntry, DEFAULT_BACK_COLOR, TABLE_COLORS},
+    character::{
+        Character, ExtendedCharTable, LineProperty, DEFAULT_RENDITION, LINE_DOUBLE_HEIGHT,
+        LINE_WRAPPED, RE_BLINK, RE_EXTEND_CHAR,
+    },
+    character_color::{
+        CharacterColor, ColorEntry, DEFAULT_BACK_COLOR, DEFAULT_FORE_COLOR, TABLE_COLORS,
+    },
     filter::{FilterChainImpl, TerminalImageFilterChain},
+    system_ffi::string_width,
 };
 use log::warn;
-use std::mem::size_of;
-use std::sync::atomic::AtomicU64;
-use std::time::Duration;
 use std::{
+    mem::size_of,
     ptr::NonNull,
-    sync::atomic::{AtomicBool, Ordering},
+    sync::atomic::{AtomicBool, AtomicU64, Ordering},
+    time::Duration,
 };
-use tmui::label::Label;
-use tmui::scroll_bar::ScrollBar;
-use tmui::tlib::disconnect;
-use tmui::tlib::events::MouseEvent;
-use tmui::tlib::timer::Timer;
 use tmui::{
     graphics::{
         figure::{Color, Size},
         painter::Painter,
     },
+    label::Label,
     prelude::*,
+    scroll_bar::ScrollBar,
     tlib::{
-        connect, emit,
-        events::KeyEvent,
+        connect, disconnect, emit,
+        events::{KeyEvent, MouseEvent},
         object::{ObjectImpl, ObjectSubclass},
         signals,
+        timer::Timer,
     },
     widget::WidgetImpl,
 };
-use wchar::wch;
-use wchar::wchar_t;
+use wchar::{wch, wchar_t};
 use widestring::U16String;
 use LineEncode::*;
 
@@ -339,18 +331,22 @@ impl TerminalView {
                 {
                     // sequence of characters
                     let mut extended_char_length = 0u16;
-                    let chars = ExtendedCharTable::instance().lookup_extended_char(
-                        self.image.as_ref().unwrap()[self.loc(x, y) as usize]
-                            .character_union
-                            .data(),
-                        &mut extended_char_length,
-                    ).unwrap();
+                    let chars = ExtendedCharTable::instance()
+                        .lookup_extended_char(
+                            self.image.as_ref().unwrap()[self.loc(x, y) as usize]
+                                .character_union
+                                .data(),
+                            &mut extended_char_length,
+                        )
+                        .unwrap();
                     for index in 0..extended_char_length as usize {
                         assert!(p < buffer_size);
                         unistr[p] = chars[index];
                     }
                 } else {
-                    c = self.image.as_ref().unwrap()[self.loc(x, y) as usize].character_union.data();
+                    c = self.image.as_ref().unwrap()[self.loc(x, y) as usize]
+                        .character_union
+                        .data();
                     if c != 0 {
                         assert!(p < buffer_size);
                         unistr[p] = c;

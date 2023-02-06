@@ -185,7 +185,7 @@ impl Character {
 /// character ( ushort ) so that it can occupy the same space in a structure.
 #[derive(Debug, Default)]
 pub struct ExtendedCharTable(
-    /// internal, maps hash keys to character sequence buffers.  The first ushort
+    /// internal, maps hash keys to character sequence buffers.  The first u16
     /// in each value is the length of the buffer, followed by the ushorts in the buffer themselves.
     RefCell<HashMap<u16, Vec<u16>>>,
 );
