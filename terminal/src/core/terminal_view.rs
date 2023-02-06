@@ -318,12 +318,13 @@ impl TerminalView {
                 x -= 1;
             }
             while x <= rlx {
-                let len = 1;
+                let mut len = 1;
                 let mut p = 0;
 
                 x += 1;
 
-                unistr.clear();
+                // reset buffer to the maximal size
+                unistr.resize(buffer_size, 0);
 
                 // is this a single character or a sequence of characters ?
                 if self.image.as_ref().unwrap()[self.loc(x, y) as usize].rendition & RE_EXTEND_CHAR
@@ -354,6 +355,58 @@ impl TerminalView {
                 }
 
                 let line_draw = self.is_line_char(c);
+                let double_width = self.image.as_ref().unwrap()
+                    [self.image_size.min(self.loc(x, y) + 1) as usize]
+                    .character_union
+                    .data()
+                    == 0;
+
+                let img = &self.image.as_ref().unwrap()[self.loc(x, y) as usize];
+                let current_foreground = img.foreground_color;
+                let current_background = img.background_color;
+                let current_rendition = img.rendition;
+
+                let mut img = &self.image.as_ref().unwrap()[self.loc(x + len, y) as usize];
+                while x + len <= rlx
+                    && img.foreground_color == current_foreground
+                    && img.background_color == current_background
+                    && img.rendition == current_rendition
+                    && (self.image.as_ref().unwrap()
+                        [self.image_size.min(self.loc(x + len, y) + 1) as usize]
+                        .character_union
+                        .data()
+                        == 0)
+                        == double_width
+                    && self.is_line_char(img.character_union.data()) == line_draw
+                {
+                    c = img.character_union.data();
+                    if c != 0 {
+                        unistr[p] = c;
+                        p += 1;
+                    }
+
+                    if double_width {
+                        len += 1;
+                    }
+                    len += 1;
+
+                    img = &self.image.as_ref().unwrap()[self.loc(x + len, y) as usize];
+                }
+
+                if x + len < self.used_columns
+                    && !self.image.as_ref().unwrap()[self.loc(x + len, y) as usize]
+                        .character_union
+                        .data()
+                        != 0
+                {
+                    len += 1;
+                }
+
+                let save_fixed_font = self.fixed_font;
+                if line_draw {
+                    self.fixed_font = false;
+                }
+                unistr.resize(p as usize, 0);
             }
             y += 1;
         }
