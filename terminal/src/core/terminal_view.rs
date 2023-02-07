@@ -3,7 +3,7 @@ use super::screen_window::{ScreenWindow, ScreenWindowSignals};
 use crate::tools::{
     character::{
         Character, ExtendedCharTable, LineProperty, DEFAULT_RENDITION, LINE_DOUBLE_HEIGHT,
-        LINE_WRAPPED, RE_BLINK, RE_EXTEND_CHAR,
+        LINE_DOUBLE_WIDTH, LINE_WRAPPED, RE_BLINK, RE_EXTEND_CHAR,
     },
     character_color::{
         CharacterColor, ColorEntry, DEFAULT_BACK_COLOR, DEFAULT_FORE_COLOR, TABLE_COLORS,
@@ -20,7 +20,7 @@ use std::{
 };
 use tmui::{
     graphics::{
-        figure::{Color, Size},
+        figure::{Color, Size, Transform},
         painter::Painter,
     },
     label::Label,
@@ -407,6 +407,57 @@ impl TerminalView {
                     self.fixed_font = false;
                 }
                 unistr.resize(p as usize, 0);
+
+                // Create a text scaling matrix for double width and double height lines.
+                let mut text_scale = Transform::new();
+
+                if y < self.line_properties.len() as i32 {
+                    if self.line_properties[y as usize] & LINE_DOUBLE_WIDTH != 0 {
+                        text_scale.scale(2., 1.);
+                    }
+                    if self.line_properties[y as usize] & LINE_DOUBLE_HEIGHT != 0 {
+                        text_scale.scale(1., 2.);
+                    }
+                }
+
+                // calculate the area in which the text will be drawn
+                let mut text_area = self.calculate_text_area(tlx, tly, x, y, len);
+
+                // move the calculated area to take account of scaling applied to the
+                // painter. the position of the area from the origin (0,0) is scaled by
+                // the opposite of whatever transformation has been applied to the
+                // painter. this ensures that painting does actually start from
+                // textArea.topLeft()
+                //(instead of textArea.topLeft() * painter-scale)
+                text_area.move_top_left(&text_scale.inverted().map_point(&text_area.top_left()));
+
+                // Apply text scaling matrix.
+                painter.set_transform(text_scale, true);
+
+                // paint text fragment
+                let style = self.image.as_ref().unwrap()[self.loc(x, y) as usize];
+                self.draw_text_fragment(
+                    painter,
+                    text_area,
+                    U16String::from_vec(unistr.clone()),
+                    &style,
+                );
+
+                self.fixed_font = save_fixed_font;
+
+                // reset back to single-width, single-height lines.
+                painter.set_transform(text_scale.inverted(), true);
+
+                if y < self.line_properties.len() as i32 - 1 {
+                    // double-height lines are represented by two adjacent lines
+                    // containing the same characters
+                    // both lines will have the LINE_DOUBLEHEIGHT attribute.
+                    // If the current line has the LINE_DOUBLEHEIGHT attribute,
+                    // we can therefore skip the next line
+                    y += 1;
+                }
+
+                x += len - 1;
             }
             y += 1;
         }
@@ -1549,12 +1600,12 @@ performance degradation and display/alignment errors."
         // Adjust position within text area bounds.
         let old_pos = pos;
 
-        pos.set_x(tmui::widget::bound(
+        pos.set_x(tmui::tlib::global::bound(
             text_bounds.left(),
             pos.x(),
             text_bounds.right(),
         ));
-        pos.set_y(tmui::widget::bound(
+        pos.set_y(tmui::tlib::global::bound(
             text_bounds.top(),
             pos.y(),
             text_bounds.bottom(),
