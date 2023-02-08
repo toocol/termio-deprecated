@@ -3,7 +3,7 @@ use super::screen_window::{ScreenWindow, ScreenWindowSignals};
 use crate::tools::{
     character::{
         Character, ExtendedCharTable, LineProperty, DEFAULT_RENDITION, LINE_DOUBLE_HEIGHT,
-        LINE_DOUBLE_WIDTH, LINE_WRAPPED, RE_BLINK, RE_EXTEND_CHAR,
+        LINE_DOUBLE_WIDTH, LINE_WRAPPED, RE_BLINK, RE_CURSOR, RE_EXTEND_CHAR, RE_CONCEAL, RE_BOLD, RE_UNDERLINE, RE_ITALIC, RE_STRIKEOUT, RE_OVERLINE,
     },
     character_color::{
         CharacterColor, ColorEntry, DEFAULT_BACK_COLOR, DEFAULT_FORE_COLOR, TABLE_COLORS,
@@ -20,7 +20,7 @@ use std::{
 };
 use tmui::{
     graphics::{
-        figure::{Color, Size, Transform},
+        figure::{Color, FRect, Size, Transform},
         painter::Painter,
     },
     label::Label,
@@ -471,7 +471,30 @@ impl TerminalView {
         text: U16String,
         style: &Character,
     ) {
-        todo!()
+        painter.save();
+
+        let foreground_color = style.foreground_color.color(&self.color_table);
+        let background_color = style.background_color.color(&self.color_table);
+
+        if background_color != self.background() {
+            self.draw_background(painter, rect, background_color, false);
+        }
+
+        let mut invert_character_color = false;
+
+        // draw text
+        self.draw_characters(painter, rect, &text, style, invert_character_color);
+
+        if style.rendition & RE_CURSOR != 0 {
+            self.draw_cursor(
+                painter,
+                rect,
+                foreground_color,
+                &mut invert_character_color,
+            );
+        }
+
+        painter.restore();
     }
     /// draws the background for a text fragment
     /// if useOpacitySetting is true then the color's alpha value will be set to
@@ -496,21 +519,90 @@ impl TerminalView {
         painter: &mut Painter,
         rect: Rect,
         foreground_color: Color,
-        background_color: Color,
-        invert_colors: bool,
+        invert_colors: &mut bool,
     ) {
-        todo!()
+        let mut cursor_rect: FRect = rect.into();
+        cursor_rect.set_height(self.font_height as f32 - self.line_spacing as f32 - 1.);
+
+        if !self.cursor_blinking {
+            if self.cursor_color.valid {
+                painter.set_color(self.cursor_color);
+            } else {
+                painter.set_color(foreground_color);
+            }
+
+            if self.cursor_shape == KeyboardCursorShape::BlockCursor {
+                // draw the cursor outline, adjusting the area so that
+                // it is draw entirely inside 'rect'
+                let line_width = painter.line_width().max(1.);
+
+                painter.draw_rect(cursor_rect.adjusted(
+                    line_width / 2.,
+                    line_width / 2.,
+                    -line_width / 2.,
+                    -line_width / 2.,
+                ));
+
+                if self.is_focus() {
+                    painter.fill_rect(
+                        rect,
+                        if self.cursor_color.valid {
+                            self.cursor_color
+                        } else {
+                            foreground_color
+                        },
+                    );
+
+                    if !self.cursor_color.valid {
+                        // invert the colour used to draw the text to ensure that the
+                        // character at the cursor position is readable
+                        *invert_colors = true;
+                    }
+                }
+            } else if self.cursor_shape == KeyboardCursorShape::UnderlineCursor {
+                painter.draw_line_f(
+                    cursor_rect.left(),
+                    cursor_rect.bottom(),
+                    cursor_rect.right(),
+                    cursor_rect.bottom(),
+                )
+            } else if self.cursor_shape == KeyboardCursorShape::IBeamCursor {
+                painter.draw_line_f(
+                    cursor_rect.left(),
+                    cursor_rect.top(),
+                    cursor_rect.left(),
+                    cursor_rect.bottom(),
+                )
+            }
+        }
     }
     /// draws the characters or line graphics in a text fragment.
     fn draw_characters(
         &mut self,
         painter: &mut Painter,
         rect: Rect,
-        text: &str,
+        text: &U16String,
         style: &Character,
         invert_character_color: bool,
     ) {
-        todo!()
+        // Don't draw text which is currently blinking.
+        if self.blinking && style.rendition & RE_BLINK != 0 {
+            return
+        }
+
+        // Don't draw concealed characters.
+        if style.rendition & RE_CONCEAL != 0 {
+            return
+        }
+
+        // Setup bold, underline, intalic, strkeout and overline
+        let use_bold = style.rendition & RE_BOLD != 0 && self.bold_intense;
+        let use_underline = style.rendition & RE_UNDERLINE != 0;
+        let use_italic = style.rendition & RE_ITALIC != 0;
+        let use_strike_out = style.rendition & RE_STRIKEOUT != 0;
+        let use_overline = style.rendition & RE_OVERLINE != 0;
+
+        let font = self.font();
     }
     /// draws a string of line graphics.
     fn draw_line_char_string(
@@ -848,7 +940,7 @@ impl TerminalView {
         let scroll_bar_width = if !self.scroll_bar.visible() {
             0
         } else {
-            self.scroll_bar.size_hint().width()
+            self.scroll_bar.size_hint().width() as i32
         };
 
         let horizontal_margin = 2 * self.left_base_margin;
