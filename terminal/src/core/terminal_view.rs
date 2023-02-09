@@ -20,7 +20,7 @@ use std::{
 };
 use tmui::{
     graphics::{
-        figure::{Color, FRect, Size, Transform},
+        figure::{Color, FRect, Size, Transform, FontTypeface},
         painter::Painter,
     },
     label::Label,
@@ -33,7 +33,7 @@ use tmui::{
         signals,
         timer::Timer,
     },
-    widget::WidgetImpl,
+    widget::WidgetImpl, skia_safe::{Typeface, FontStyle},
 };
 use wchar::{wch, wchar_t};
 use widestring::U16String;
@@ -602,7 +602,12 @@ impl TerminalView {
         let use_strike_out = style.rendition & RE_STRIKEOUT != 0;
         let use_overline = style.rendition & RE_OVERLINE != 0;
 
-        let font = self.font();
+        let mut font = self.font();
+        let typeface = FontTypeface::builder()
+            .bold(use_bold)
+            .italic(use_italic)
+            .build();
+        font.set_typeface(typeface);
     }
     /// draws a string of line graphics.
     fn draw_line_char_string(
