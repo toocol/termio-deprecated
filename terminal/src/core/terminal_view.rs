@@ -3,7 +3,8 @@ use super::screen_window::{ScreenWindow, ScreenWindowSignals};
 use crate::tools::{
     character::{
         Character, ExtendedCharTable, LineProperty, DEFAULT_RENDITION, LINE_DOUBLE_HEIGHT,
-        LINE_DOUBLE_WIDTH, LINE_WRAPPED, RE_BLINK, RE_CURSOR, RE_EXTEND_CHAR, RE_CONCEAL, RE_BOLD, RE_UNDERLINE, RE_ITALIC, RE_STRIKEOUT, RE_OVERLINE,
+        LINE_DOUBLE_WIDTH, LINE_WRAPPED, RE_BLINK, RE_BOLD, RE_CONCEAL, RE_CURSOR, RE_EXTEND_CHAR,
+        RE_ITALIC, RE_OVERLINE, RE_STRIKEOUT, RE_UNDERLINE,
     },
     character_color::{
         CharacterColor, ColorEntry, DEFAULT_BACK_COLOR, DEFAULT_FORE_COLOR, TABLE_COLORS,
@@ -20,12 +21,13 @@ use std::{
 };
 use tmui::{
     graphics::{
-        figure::{Color, FRect, Size, Transform, FontTypeface},
+        figure::{Color, FRect, FontTypeface, Size, Transform},
         painter::Painter,
     },
     label::Label,
     prelude::*,
     scroll_bar::ScrollBar,
+    skia_safe::{FontStyle, Typeface},
     tlib::{
         connect, disconnect, emit,
         events::{KeyEvent, MouseEvent},
@@ -33,7 +35,7 @@ use tmui::{
         signals,
         timer::Timer,
     },
-    widget::WidgetImpl, skia_safe::{Typeface, FontStyle},
+    widget::WidgetImpl,
 };
 use wchar::{wch, wchar_t};
 use widestring::U16String;
@@ -486,12 +488,7 @@ impl TerminalView {
         self.draw_characters(painter, rect, &text, style, invert_character_color);
 
         if style.rendition & RE_CURSOR != 0 {
-            self.draw_cursor(
-                painter,
-                rect,
-                foreground_color,
-                &mut invert_character_color,
-            );
+            self.draw_cursor(painter, rect, foreground_color, &mut invert_character_color);
         }
 
         painter.restore();
@@ -587,12 +584,12 @@ impl TerminalView {
     ) {
         // Don't draw text which is currently blinking.
         if self.blinking && style.rendition & RE_BLINK != 0 {
-            return
+            return;
         }
 
         // Don't draw concealed characters.
         if style.rendition & RE_CONCEAL != 0 {
-            return
+            return;
         }
 
         // Setup bold, underline, intalic, strkeout and overline
@@ -608,6 +605,56 @@ impl TerminalView {
             .italic(use_italic)
             .build();
         font.set_typeface(typeface);
+        painter.set_font(font);
+
+        let text_color = if invert_character_color {
+            style.background_color
+        } else {
+            style.foreground_color
+        };
+        let color = text_color.color(&self.color_table);
+        painter.set_color(color);
+
+        // Draw text
+        if self.is_line_char_string(text) {
+            self.draw_line_char_string(painter, rect.x(), rect.y(), text, style);
+        } else {
+            let text = text
+                .to_string()
+                .expect("`draw_characters()` transfer u16 text to utf-8 failed.");
+
+            if self.bidi_enable {
+                painter.fill_rect(rect, style.background_color.color(&self.color_table));
+                painter.draw_text(
+                    &text,
+                    (
+                        rect.x(),
+                        rect.y() + self.font_ascend + self.line_spacing as i32,
+                    ),
+                );
+            } else {
+                let mut draw_rect = Rect::new(rect.x(), rect.y(), rect.width(), rect.height());
+                draw_rect.set_height(rect.height() + self.draw_text_addition_height);
+                painter.fill_rect(draw_rect, style.background_color.color(&self.color_table));
+                // Draw the text start at the left-bottom.
+                painter.draw_text(&text, (rect.left(), rect.bottom()));
+
+                if use_underline {
+                    let y = rect.bottom() as f32 - 0.5;
+                    painter.draw_line_f(rect.left() as f32, y, rect.right() as f32, y)
+                }
+
+                if use_strike_out {
+                    let y = (rect.top() as f32 + rect.bottom() as f32) / 2.;
+                    painter.draw_line_f(rect.left() as f32, y, rect.right() as f32, y)
+                }
+
+                if use_overline {
+                    let y = rect.top() as f32 + 0.5;
+                    painter.draw_line_f(rect.left() as f32, y, rect.right() as f32, y)
+                }
+            }
+        }
     }
     /// draws a string of line graphics.
     fn draw_line_char_string(
@@ -615,10 +662,40 @@ impl TerminalView {
         painter: &mut Painter,
         x: i32,
         y: i32,
-        str: &str,
+        str: &U16String,
         attributes: &Character,
     ) {
-        todo!()
+        //TODO: Save the pen status: Color, Font, line width etc...
+
+        if attributes.rendition & RE_BOLD != 0 && self.bold_intense {
+            painter.set_line_width(3.);
+        }
+
+        let u16_bytes = str.as_vec();
+        for i in 0..u16_bytes.len() {
+            let code = (u16_bytes[i] & 0xff) as u8;
+            if LINE_CHARS[code as usize] != 0 {
+                draw_line_char(
+                    painter,
+                    x + (self.font_width * i as i32),
+                    y,
+                    self.font_width,
+                    self.font_height,
+                    code,
+                )
+            } else {
+                draw_other_char(
+                    painter,
+                    x + (self.font_width * i as i32),
+                    y,
+                    self.font_width,
+                    self.font_height,
+                    code,
+                )
+            }
+        }
+
+        //TODO: Restore the pen status
     }
     /// draws the preedit string for input methods.
     fn draw_input_method_preedit_string(&mut self, painter: &mut Painter, rect: &Rect) {
