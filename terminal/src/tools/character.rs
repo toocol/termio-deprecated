@@ -1,6 +1,11 @@
 #![allow(dead_code)]
 use lazy_static::lazy_static;
-use std::{cell::RefCell, collections::HashMap, sync::Mutex};
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    ptr::null_mut,
+    sync::atomic::{AtomicPtr, Ordering},
+};
 use wchar::{wch, wchar_t};
 
 use super::character_color::{
@@ -180,12 +185,20 @@ impl Character {
 /// character ( ushort ) so that it can occupy the same space in a structure.
 #[derive(Debug, Default)]
 pub struct ExtendedCharTable(
-    /// internal, maps hash keys to character sequence buffers.  The first ushort
+    /// internal, maps hash keys to character sequence buffers.  The first u16
     /// in each value is the length of the buffer, followed by the ushorts in the buffer themselves.
     RefCell<HashMap<u16, Vec<u16>>>,
 );
 
 impl ExtendedCharTable {
+    pub fn instance<'a>() -> &'a Self {
+        unsafe { INSTANCE.load(Ordering::SeqCst).as_ref().unwrap() }
+    }
+
+    pub fn initialize(&mut self) {
+        INSTANCE.store(self, Ordering::SeqCst);
+    }
+
     /// Adds a sequences of unicode characters to the table and returns
     /// a hash code which can be used later to look up the sequence using lookupExtendedChar()
     ///
@@ -273,5 +286,5 @@ impl ExtendedCharTable {
 }
 
 lazy_static! {
-    pub static ref INSTANCE: Mutex<ExtendedCharTable> = Mutex::new(ExtendedCharTable::default());
+    static ref INSTANCE: AtomicPtr<ExtendedCharTable> = AtomicPtr::new(null_mut());
 }

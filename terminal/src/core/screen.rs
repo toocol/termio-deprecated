@@ -1379,7 +1379,7 @@ impl Screen {
         }
 
         // Add new line character at end.
-        let omit_line_break = (current_line_properties & LINE_WRAPPED > 0) || !preserve_line_breaks;
+        let omit_line_break = (current_line_properties & LINE_WRAPPED != 0) || !preserve_line_breaks;
 
         if !omit_line_break && append_new_line && (count + 1 < MAX_CHARS as i32) {
             self.character_buffer.borrow_mut()[count as usize]
@@ -1601,7 +1601,7 @@ impl Screen {
 
             self.history.add_cells_list(self.screen_lines[0].clone());
             self.history
-                .add_line(self.line_properties[0] & LINE_WRAPPED > 0);
+                .add_line(self.line_properties[0] & LINE_WRAPPED != 0);
 
             let new_history_lines = self.history.get_lines();
             let begin_is_tl = self.select_begin == self.select_top_left;
@@ -1655,7 +1655,7 @@ impl Screen {
 
     fn update_effective_rendition(&mut self) {
         self.effective_rendition = self.cursor_rendition;
-        if self.cursor_rendition & RE_REVERSE > 0 {
+        if self.cursor_rendition & RE_REVERSE != 0 {
             self.effective_foreground = self.cursor_background;
             self.effective_background = self.cursor_foreground;
         } else {
@@ -1663,7 +1663,7 @@ impl Screen {
             self.effective_background = self.cursor_background;
         }
 
-        if self.cursor_rendition & RE_BOLD > 0 {
+        if self.cursor_rendition & RE_BOLD != 0 {
             self.effective_foreground.set_intensive();
         }
     }

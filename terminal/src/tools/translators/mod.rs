@@ -94,7 +94,7 @@ impl State {
 
     pub fn has(&self, has: Self) -> bool {
         match self {
-            Self::Combination(state) => state & has.as_u8() > 0,
+            Self::Combination(state) => state & has.as_u8() != 0,
             _ => *self == has,
         }
     }
@@ -177,7 +177,7 @@ impl Command {
 
     pub fn has(&self, has: Self) -> bool {
         match self {
-            Self::Combination(cmd) => cmd & has.as_u16() > 0,
+            Self::Combination(cmd) => cmd & has.as_u16() != 0,
             _ => *self == has,
         }
     }
@@ -540,8 +540,8 @@ impl Entry {
 
         let any_modifiers_set = modifiers != KeyboardModifier::NoModifier
             && modifiers != KeyboardModifier::KeypadModifier;
-        let want_any_modifier = self.state.as_u8() & State::AnyModifierState.as_u8() > 0;
-        if self.state_mask.as_u8() & State::AnyModifierState.as_u8() > 0 {
+        let want_any_modifier = self.state.as_u8() & State::AnyModifierState.as_u8() != 0;
+        if self.state_mask.as_u8() & State::AnyModifierState.as_u8() != 0 {
             if want_any_modifier != any_modifiers_set {
                 return false;
             }
@@ -554,7 +554,7 @@ impl Entry {
             return;
         }
 
-        if modifier.as_u32() & self.modifiers.as_u32() > 0 {
+        if modifier.as_u32() & self.modifiers.as_u32() != 0 {
             item.push('+');
         } else {
             item.push('-');
@@ -578,7 +578,7 @@ impl Entry {
             return;
         }
 
-        if state.as_u8() & self.state.as_u8() > 0 {
+        if state.as_u8() & self.state.as_u8() != 0 {
             item.push('+');
         } else {
             item.push('-');

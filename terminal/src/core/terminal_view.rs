@@ -1,52 +1,51 @@
 #![allow(dead_code)]
-use super::screen_window::ScreenWindow;
-use super::screen_window::ScreenWindowSignals;
-use crate::tools::character::DEFAULT_RENDITION;
-use crate::tools::character::LINE_DOUBLE_HEIGHT;
-use crate::tools::character::LINE_WRAPPED;
-use crate::tools::character::RE_BLINK;
-use crate::tools::character_color::CharacterColor;
-use crate::tools::character_color::DEFAULT_FORE_COLOR;
-use crate::tools::system_ffi::string_width;
+use super::screen_window::{ScreenWindow, ScreenWindowSignals};
 use crate::tools::{
-    character::{Character, LineProperty},
-    character_color::{ColorEntry, DEFAULT_BACK_COLOR, TABLE_COLORS},
+    character::{
+        Character, ExtendedCharTable, LineProperty, DEFAULT_RENDITION, LINE_DOUBLE_HEIGHT,
+        LINE_DOUBLE_WIDTH, LINE_WRAPPED, RE_BLINK, RE_BOLD, RE_CONCEAL, RE_CURSOR, RE_EXTEND_CHAR,
+        RE_ITALIC, RE_OVERLINE, RE_STRIKEOUT, RE_UNDERLINE,
+    },
+    character_color::{
+        CharacterColor, ColorEntry, DEFAULT_BACK_COLOR, DEFAULT_FORE_COLOR, TABLE_COLORS,
+    },
     filter::{FilterChainImpl, TerminalImageFilterChain},
+    system_ffi::string_width,
 };
 use log::warn;
-use std::sync::atomic::AtomicU64;
-use std::time::Duration;
 use std::{
+    mem::size_of,
     ptr::NonNull,
-    sync::atomic::{AtomicBool, Ordering},
+    sync::atomic::{AtomicBool, AtomicU64, Ordering},
+    time::Duration,
 };
-use tmui::label::Label;
-use tmui::scroll_bar::ScrollBar;
-use tmui::tlib::disconnect;
-use tmui::tlib::events::MouseEvent;
-use tmui::tlib::timer::Timer;
 use tmui::{
     graphics::{
-        figure::{Color, Size},
+        figure::{Color, FRect, FontTypeface, Size, Transform},
         painter::Painter,
     },
+    label::Label,
     prelude::*,
+    scroll_bar::ScrollBar,
+    skia_safe::{FontStyle, Typeface},
     tlib::{
-        connect, emit,
-        events::KeyEvent,
+        connect, disconnect, emit,
+        events::{KeyEvent, MouseEvent},
         object::{ObjectImpl, ObjectSubclass},
         signals,
+        timer::Timer,
     },
     widget::WidgetImpl,
 };
-use wchar::wch;
-use wchar::wchar_t;
+use wchar::{wch, wchar_t};
 use widestring::U16String;
 use LineEncode::*;
 
 #[extends_widget]
 #[derive(Default)]
 pub struct TerminalView {
+    extended_char_table: ExtendedCharTable,
+
     screen_window: Option<NonNull<ScreenWindow>>,
 
     allow_bell: bool,
@@ -187,11 +186,31 @@ impl ObjectSubclass for TerminalView {
     type ParentType = Widget;
 }
 
-impl ObjectImpl for TerminalView {}
+impl ObjectImpl for TerminalView {
+    fn initialize(&mut self) {
+        self.extended_char_table.initialize();
+    }
+}
 
 impl WidgetImpl for TerminalView {
     fn paint(&mut self, mut painter: Painter) {
         painter.set_antialiasing();
+        let _cr = self.contents_rect(Some(Coordinate::Widget));
+
+        // TODO: Process the background image.
+
+        if self.draw_text_test_flag {
+            self.cal_draw_text_addition_height(&mut painter);
+        }
+
+        // TODO: Specified the region to redraw
+        let rect = self.contents_rect(Some(Coordinate::Widget));
+        // TODO: Multiple rect
+        self.draw_background(&mut painter, rect, self.background(), true);
+        self.draw_contents(&mut painter, rect);
+
+        // self.draw_input_method_preedit_string(&mut painter, &self.preddit_rect());
+        self.paint_filters(&mut painter);
     }
 }
 
@@ -272,30 +291,370 @@ impl TerminalView {
     /// divides the part of the display specified by 'rect' into
     /// fragments according to their colors and styles and calls
     /// drawTextFragment() to draw the fragments
-    fn draw_contents(&mut self, painter: &mut Painter, rect: &Rect) {
-        todo!()
+    fn draw_contents(&mut self, painter: &mut Painter, rect: Rect) {
+        let tl = self.contents_rect(Some(Coordinate::Widget));
+
+        let tlx = tl.x();
+        let tly = tl.y();
+
+        let lux = (self.used_columns - 1)
+            .min(0.max((rect.left() - tlx - self.left_margin) / self.font_width));
+        let luy = (self.used_lines - 1)
+            .min(0.max((rect.top() - tly - self.top_margin) / self.font_height));
+        let rlx = (self.used_columns - 1)
+            .min(0.max((rect.right() - tlx - self.left_margin) / self.font_width));
+        let rly = (self.used_lines - 1)
+            .min(0.max((rect.bottom() - tly - self.top_margin) / self.font_height));
+
+        let buffer_size = self.used_columns as usize;
+        let mut unistr = vec![0u16; buffer_size];
+
+        let mut y = luy;
+        while y <= rly {
+            let mut c = self.image.as_ref().unwrap()[self.loc(lux, y) as usize]
+                .character_union
+                .data();
+            let mut x = lux;
+            if !c != 0 && x != 0 {
+                // Search for start of multi-column character
+                x -= 1;
+            }
+            while x <= rlx {
+                let mut len = 1;
+                let mut p = 0;
+
+                x += 1;
+
+                // reset buffer to the maximal size
+                unistr.resize(buffer_size, 0);
+
+                // is this a single character or a sequence of characters ?
+                if self.image.as_ref().unwrap()[self.loc(x, y) as usize].rendition & RE_EXTEND_CHAR
+                    != 0
+                {
+                    // sequence of characters
+                    let mut extended_char_length = 0u16;
+                    let chars = ExtendedCharTable::instance()
+                        .lookup_extended_char(
+                            self.image.as_ref().unwrap()[self.loc(x, y) as usize]
+                                .character_union
+                                .data(),
+                            &mut extended_char_length,
+                        )
+                        .unwrap();
+                    for index in 0..extended_char_length as usize {
+                        assert!(p < buffer_size);
+                        unistr[p] = chars[index];
+                    }
+                } else {
+                    c = self.image.as_ref().unwrap()[self.loc(x, y) as usize]
+                        .character_union
+                        .data();
+                    if c != 0 {
+                        assert!(p < buffer_size);
+                        unistr[p] = c;
+                    }
+                }
+
+                let line_draw = self.is_line_char(c);
+                let double_width = self.image.as_ref().unwrap()
+                    [self.image_size.min(self.loc(x, y) + 1) as usize]
+                    .character_union
+                    .data()
+                    == 0;
+
+                let img = &self.image.as_ref().unwrap()[self.loc(x, y) as usize];
+                let current_foreground = img.foreground_color;
+                let current_background = img.background_color;
+                let current_rendition = img.rendition;
+
+                let mut img = &self.image.as_ref().unwrap()[self.loc(x + len, y) as usize];
+                while x + len <= rlx
+                    && img.foreground_color == current_foreground
+                    && img.background_color == current_background
+                    && img.rendition == current_rendition
+                    && (self.image.as_ref().unwrap()
+                        [self.image_size.min(self.loc(x + len, y) + 1) as usize]
+                        .character_union
+                        .data()
+                        == 0)
+                        == double_width
+                    && self.is_line_char(img.character_union.data()) == line_draw
+                {
+                    c = img.character_union.data();
+                    if c != 0 {
+                        unistr[p] = c;
+                        p += 1;
+                    }
+
+                    if double_width {
+                        len += 1;
+                    }
+                    len += 1;
+
+                    img = &self.image.as_ref().unwrap()[self.loc(x + len, y) as usize];
+                }
+
+                if x + len < self.used_columns
+                    && !self.image.as_ref().unwrap()[self.loc(x + len, y) as usize]
+                        .character_union
+                        .data()
+                        != 0
+                {
+                    len += 1;
+                }
+
+                let save_fixed_font = self.fixed_font;
+                if line_draw {
+                    self.fixed_font = false;
+                }
+                unistr.resize(p as usize, 0);
+
+                // Create a text scaling matrix for double width and double height lines.
+                let mut text_scale = Transform::new();
+
+                if y < self.line_properties.len() as i32 {
+                    if self.line_properties[y as usize] & LINE_DOUBLE_WIDTH != 0 {
+                        text_scale.scale(2., 1.);
+                    }
+                    if self.line_properties[y as usize] & LINE_DOUBLE_HEIGHT != 0 {
+                        text_scale.scale(1., 2.);
+                    }
+                }
+
+                // calculate the area in which the text will be drawn
+                let mut text_area = self.calculate_text_area(tlx, tly, x, y, len);
+
+                // move the calculated area to take account of scaling applied to the
+                // painter. the position of the area from the origin (0,0) is scaled by
+                // the opposite of whatever transformation has been applied to the
+                // painter. this ensures that painting does actually start from
+                // textArea.topLeft()
+                //(instead of textArea.topLeft() * painter-scale)
+                text_area.move_top_left(&text_scale.inverted().map_point(&text_area.top_left()));
+
+                // Apply text scaling matrix.
+                painter.set_transform(text_scale, true);
+
+                // paint text fragment
+                let style = self.image.as_ref().unwrap()[self.loc(x, y) as usize];
+                self.draw_text_fragment(
+                    painter,
+                    text_area,
+                    U16String::from_vec(unistr.clone()),
+                    &style,
+                );
+
+                self.fixed_font = save_fixed_font;
+
+                // reset back to single-width, single-height lines.
+                painter.set_transform(text_scale.inverted(), true);
+
+                if y < self.line_properties.len() as i32 - 1 {
+                    // double-height lines are represented by two adjacent lines
+                    // containing the same characters
+                    // both lines will have the LINE_DOUBLEHEIGHT attribute.
+                    // If the current line has the LINE_DOUBLEHEIGHT attribute,
+                    // we can therefore skip the next line
+                    y += 1;
+                }
+
+                x += len - 1;
+            }
+            y += 1;
+        }
+    }
+    /// draws a section of text, all the text in this section
+    /// has a common color and style
+    fn draw_text_fragment(
+        &mut self,
+        painter: &mut Painter,
+        rect: Rect,
+        text: U16String,
+        style: &Character,
+    ) {
+        painter.save();
+
+        let foreground_color = style.foreground_color.color(&self.color_table);
+        let background_color = style.background_color.color(&self.color_table);
+
+        if background_color != self.background() {
+            self.draw_background(painter, rect, background_color, false);
+        }
+
+        let mut invert_character_color = false;
+
+        // draw text
+        self.draw_characters(painter, rect, &text, style, invert_character_color);
+
+        if style.rendition & RE_CURSOR != 0 {
+            self.draw_cursor(painter, rect, foreground_color, &mut invert_character_color);
+        }
+
+        painter.restore();
+    }
+    /// draws the background for a text fragment
+    /// if useOpacitySetting is true then the color's alpha value will be set to
+    /// the display's transparency (set with setOpacity()), otherwise the
+    /// background will be drawn fully opaque
+    fn draw_background(
+        &mut self,
+        painter: &mut Painter,
+        rect: Rect,
+        color: Color,
+        use_opacity_setting: bool,
+    ) {
+        // TODO: Return if there is a background image
+        // TODO: Set the opacity
+        painter.save();
+        painter.fill_rect(rect, color);
+        painter.restore();
     }
     /// draws the cursor character.
     fn draw_cursor(
         &mut self,
         painter: &mut Painter,
-        rect: &Rect,
+        rect: Rect,
         foreground_color: Color,
-        background_color: Color,
-        invert_colors: bool,
+        invert_colors: &mut bool,
     ) {
-        todo!()
+        let mut cursor_rect: FRect = rect.into();
+        cursor_rect.set_height(self.font_height as f32 - self.line_spacing as f32 - 1.);
+
+        if !self.cursor_blinking {
+            if self.cursor_color.valid {
+                painter.set_color(self.cursor_color);
+            } else {
+                painter.set_color(foreground_color);
+            }
+
+            if self.cursor_shape == KeyboardCursorShape::BlockCursor {
+                // draw the cursor outline, adjusting the area so that
+                // it is draw entirely inside 'rect'
+                let line_width = painter.line_width().max(1.);
+
+                painter.draw_rect(cursor_rect.adjusted(
+                    line_width / 2.,
+                    line_width / 2.,
+                    -line_width / 2.,
+                    -line_width / 2.,
+                ));
+
+                if self.is_focus() {
+                    painter.fill_rect(
+                        rect,
+                        if self.cursor_color.valid {
+                            self.cursor_color
+                        } else {
+                            foreground_color
+                        },
+                    );
+
+                    if !self.cursor_color.valid {
+                        // invert the colour used to draw the text to ensure that the
+                        // character at the cursor position is readable
+                        *invert_colors = true;
+                    }
+                }
+            } else if self.cursor_shape == KeyboardCursorShape::UnderlineCursor {
+                painter.draw_line_f(
+                    cursor_rect.left(),
+                    cursor_rect.bottom(),
+                    cursor_rect.right(),
+                    cursor_rect.bottom(),
+                )
+            } else if self.cursor_shape == KeyboardCursorShape::IBeamCursor {
+                painter.draw_line_f(
+                    cursor_rect.left(),
+                    cursor_rect.top(),
+                    cursor_rect.left(),
+                    cursor_rect.bottom(),
+                )
+            }
+        }
     }
     /// draws the characters or line graphics in a text fragment.
     fn draw_characters(
         &mut self,
         painter: &mut Painter,
-        rect: &Rect,
-        text: &str,
+        rect: Rect,
+        text: &U16String,
         style: &Character,
         invert_character_color: bool,
     ) {
-        todo!()
+        // Don't draw text which is currently blinking.
+        if self.blinking && style.rendition & RE_BLINK != 0 {
+            return;
+        }
+
+        // Don't draw concealed characters.
+        if style.rendition & RE_CONCEAL != 0 {
+            return;
+        }
+
+        // Setup bold, underline, intalic, strkeout and overline
+        let use_bold = style.rendition & RE_BOLD != 0 && self.bold_intense;
+        let use_underline = style.rendition & RE_UNDERLINE != 0;
+        let use_italic = style.rendition & RE_ITALIC != 0;
+        let use_strike_out = style.rendition & RE_STRIKEOUT != 0;
+        let use_overline = style.rendition & RE_OVERLINE != 0;
+
+        let mut font = self.font();
+        let typeface = FontTypeface::builder()
+            .bold(use_bold)
+            .italic(use_italic)
+            .build();
+        font.set_typeface(typeface);
+        painter.set_font(font);
+
+        let text_color = if invert_character_color {
+            style.background_color
+        } else {
+            style.foreground_color
+        };
+        let color = text_color.color(&self.color_table);
+        painter.set_color(color);
+
+        // Draw text
+        if self.is_line_char_string(text) {
+            self.draw_line_char_string(painter, rect.x(), rect.y(), text, style);
+        } else {
+            let text = text
+                .to_string()
+                .expect("`draw_characters()` transfer u16 text to utf-8 failed.");
+
+            if self.bidi_enable {
+                painter.fill_rect(rect, style.background_color.color(&self.color_table));
+                painter.draw_text(
+                    &text,
+                    (
+                        rect.x(),
+                        rect.y() + self.font_ascend + self.line_spacing as i32,
+                    ),
+                );
+            } else {
+                let mut draw_rect = Rect::new(rect.x(), rect.y(), rect.width(), rect.height());
+                draw_rect.set_height(rect.height() + self.draw_text_addition_height);
+                painter.fill_rect(draw_rect, style.background_color.color(&self.color_table));
+                // Draw the text start at the left-bottom.
+                painter.draw_text(&text, (rect.left(), rect.bottom()));
+
+                if use_underline {
+                    let y = rect.bottom() as f32 - 0.5;
+                    painter.draw_line_f(rect.left() as f32, y, rect.right() as f32, y)
+                }
+
+                if use_strike_out {
+                    let y = (rect.top() as f32 + rect.bottom() as f32) / 2.;
+                    painter.draw_line_f(rect.left() as f32, y, rect.right() as f32, y)
+                }
+
+                if use_overline {
+                    let y = rect.top() as f32 + 0.5;
+                    painter.draw_line_f(rect.left() as f32, y, rect.right() as f32, y)
+                }
+            }
+        }
     }
     /// draws a string of line graphics.
     fn draw_line_char_string(
@@ -303,10 +662,40 @@ impl TerminalView {
         painter: &mut Painter,
         x: i32,
         y: i32,
-        str: &str,
+        str: &U16String,
         attributes: &Character,
     ) {
-        todo!()
+        //TODO: Save the pen status: Color, Font, line width etc...
+
+        if attributes.rendition & RE_BOLD != 0 && self.bold_intense {
+            painter.set_line_width(3.);
+        }
+
+        let u16_bytes = str.as_vec();
+        for i in 0..u16_bytes.len() {
+            let code = (u16_bytes[i] & 0xff) as u8;
+            if LINE_CHARS[code as usize] != 0 {
+                draw_line_char(
+                    painter,
+                    x + (self.font_width * i as i32),
+                    y,
+                    self.font_width,
+                    self.font_height,
+                    code,
+                )
+            } else {
+                draw_other_char(
+                    painter,
+                    x + (self.font_width * i as i32),
+                    y,
+                    self.font_width,
+                    self.font_height,
+                    code,
+                )
+            }
+        }
+
+        //TODO: Restore the pen status
     }
     /// draws the preedit string for input methods.
     fn draw_input_method_preedit_string(&mut self, painter: &mut Painter, rect: &Rect) {
@@ -633,7 +1022,7 @@ impl TerminalView {
         let scroll_bar_width = if !self.scroll_bar.visible() {
             0
         } else {
-            self.scroll_bar.size_hint().width()
+            self.scroll_bar.size_hint().width() as i32
         };
 
         let horizontal_margin = 2 * self.left_base_margin;
@@ -962,7 +1351,7 @@ performance degradation and display/alignment errors."
             if !self.resizing {
                 let mut x = 0usize;
                 while x < columns_to_update as usize {
-                    self.has_blinker = self.has_blinker || (new_line[x].rendition & RE_BLINK > 0);
+                    self.has_blinker = self.has_blinker || (new_line[x].rendition & RE_BLINK != 0);
 
                     // Start drawing if this character or the next one differs.
                     // We also take the next one into account to handle the situation
@@ -1043,7 +1432,7 @@ performance degradation and display/alignment errors."
             // only the top one is actually drawn.
             if self.line_properties.len() > y as usize {
                 update_line =
-                    update_line || (self.line_properties[y as usize] & LINE_DOUBLE_HEIGHT > 0);
+                    update_line || (self.line_properties[y as usize] & LINE_DOUBLE_HEIGHT != 0);
             }
 
             // if the characters on the line are different in the old and the new _image
@@ -1385,12 +1774,12 @@ performance degradation and display/alignment errors."
         // Adjust position within text area bounds.
         let old_pos = pos;
 
-        pos.set_x(tmui::widget::bound(
+        pos.set_x(tmui::tlib::global::bound(
             text_bounds.left(),
             pos.x(),
             text_bounds.right(),
         ));
-        pos.set_y(tmui::widget::bound(
+        pos.set_y(tmui::tlib::global::bound(
             text_bounds.top(),
             pos.y(),
             text_bounds.bottom(),
@@ -1442,7 +1831,7 @@ performance degradation and display/alignment errors."
 
                 while (left.x() > 0
                     || (left.y() > 0
-                        && self.line_properties[left.y() as usize - 1] & LINE_WRAPPED > 0))
+                        && self.line_properties[left.y() as usize - 1] & LINE_WRAPPED != 0))
                     && self.char_class(
                         self.image.as_ref().unwrap()[i as usize - 1]
                             .character_union
@@ -1470,7 +1859,7 @@ performance degradation and display/alignment errors."
                 );
                 while (right.x() < self.used_columns - 1
                     || (right.y() < self.used_lines - 1
-                        && self.line_properties[right.y() as usize] & LINE_WRAPPED > 0))
+                        && self.line_properties[right.y() as usize] & LINE_WRAPPED != 0))
                     && self.char_class(
                         self.image.as_ref().unwrap()[i as usize + 1]
                             .character_union
@@ -1506,11 +1895,12 @@ performance degradation and display/alignment errors."
                 here
             };
 
-            while above.y() > 0 && self.line_properties[above.y() as usize - 1] & LINE_WRAPPED > 0 {
+            while above.y() > 0 && self.line_properties[above.y() as usize - 1] & LINE_WRAPPED != 0
+            {
                 above.set_y(above.y() - 1);
             }
             while below.y() < self.used_lines - 1
-                && self.line_properties[below.y() as usize] & LINE_WRAPPED > 0
+                && self.line_properties[below.y() as usize] & LINE_WRAPPED != 0
             {
                 below.set_y(below.y() + 1);
             }
@@ -1665,7 +2055,7 @@ performance degradation and display/alignment errors."
         emit!(self.is_busy_selecting(), true);
 
         while self.pnt_sel.y() > 0
-            && self.line_properties[self.pnt_sel.y() as usize - 1] & LINE_WRAPPED > 0
+            && self.line_properties[self.pnt_sel.y() as usize - 1] & LINE_WRAPPED != 0
         {
             self.pnt_sel.set_y(self.pnt_sel.y() - 1);
         }
@@ -1683,7 +2073,7 @@ performance degradation and display/alignment errors."
 
             while (x > 0
                 || (self.pnt_sel.y() > 0
-                    && self.line_properties[self.pnt_sel.y() as usize - 1] & LINE_WRAPPED > 0))
+                    && self.line_properties[self.pnt_sel.y() as usize - 1] & LINE_WRAPPED != 0))
                 && self.char_class(
                     self.image.as_ref().unwrap()[i as usize - 1]
                         .character_union
@@ -1707,7 +2097,7 @@ performance degradation and display/alignment errors."
         }
 
         while self.pnt_sel.y() < self.lines - 1
-            && self.line_properties[self.pnt_sel.y() as usize] & LINE_WRAPPED > 0
+            && self.line_properties[self.pnt_sel.y() as usize] & LINE_WRAPPED != 0
         {
             self.pnt_sel.set_y(self.pnt_sel.y() + 1);
         }
@@ -1716,7 +2106,8 @@ performance degradation and display/alignment errors."
 
         self.set_selection(screen_window.selected_text(self.preserve_line_breaks));
 
-        // TODO: Add scroll bar value to self.pnt_sel.
+        self.i_pnt_sel
+            .set_y(self.i_pnt_sel.y() + self.scroll_bar.value());
     }
 
     /// determine the width of this text.
@@ -1808,8 +2199,71 @@ performance degradation and display/alignment errors."
     /// 'region' is the part of the image to scroll - currently only
     /// the top, bottom and height of 'region' are taken into account,
     /// the left and right are ignored.
-    fn scroll_image(&mut self, lines: i32, region: &Rect) {
-        todo!()
+    fn scroll_image(&mut self, lines: i32, screen_window_region: &Rect) {
+        // if the flow control warning is enabled this will interfere with the
+        // scrolling optimizations and cause artifacts.  the simple solution here
+        // is to just disable the optimization whilst it is visible
+        if self.output_suspend_label.visible() {
+            return;
+        }
+
+        // constrain the region to the display
+        // the bottom of the region is capped to the number of lines in the display's
+        // internal image - 2, so that the height of 'region' is strictly less
+        // than the height of the internal image.
+        let mut region = *screen_window_region;
+        region.set_bottom(region.bottom().min(self.lines - 2));
+
+        // return if there is nothing to do
+        if lines == 0
+            || self.image.is_none()
+            || region.is_valid()
+            || region.top() + lines.abs() >= region.bottom()
+            || self.lines <= region.height()
+        {
+            return;
+        }
+
+        // hide terminal size label to prevent it being scrolled.
+        if self.resize_widget.visible() {
+            self.resize_widget.hide()
+        }
+
+        let scroll_bar_width = if self.scroll_bar.visible() {
+            self.scroll_bar.size().width()
+        } else {
+            0
+        };
+        let scrollbar_content_gap = if scroll_bar_width == 0 { 0 } else { 1 };
+        let mut scroll_rect = Rect::default();
+        if self.scroll_bar_location == ScrollBarPosition::ScrollBarLeft {
+            scroll_rect.set_left(scroll_bar_width + scrollbar_content_gap);
+            scroll_rect.set_right(self.size().width());
+        } else {
+            scroll_rect.set_left(0);
+            scroll_rect.set_right(self.size().width() - scroll_bar_width - scrollbar_content_gap);
+        }
+
+        let first_char_pos = &self.image.as_ref().unwrap()[(region.top() * self.columns) as usize];
+        let last_char_pos =
+            &self.image.as_ref().unwrap()[((region.top() + lines.abs()) * self.columns) as usize];
+
+        let top = self.top_margin + (region.top() * self.font_height);
+        let lines_to_move = region.height() - lines.abs();
+        let bytes_to_move = lines_to_move * self.columns * size_of::<Character>() as i32;
+
+        assert!(lines_to_move > 0);
+        assert!(bytes_to_move > 0);
+
+        // Scroll internal image
+        if lines > 0 {
+            // TODO: memmove
+        } else {
+            // TODO: memmove
+        }
+        scroll_rect.set_height(lines_to_move * self.font_height);
+
+        // TODO: Scroll the widget.
     }
 
     /// shows the multiline prompt
@@ -1818,10 +2272,55 @@ performance degradation and display/alignment errors."
     }
 
     fn calc_geometry(&mut self) {
-        todo!()
+        let size_hint = self.scroll_bar.size_hint();
+        let contents_rect = self.contents_rect(Some(Coordinate::Widget));
+
+        let scrollbar_width = if self.scroll_bar.visible() {
+            self.scroll_bar.size().width()
+        } else {
+            0
+        };
+
+        match self.scroll_bar_location {
+            ScrollBarPosition::NoScrollBar => {
+                self.left_margin = self.left_base_margin;
+                self.content_width = contents_rect.width() - 2 * self.left_base_margin;
+            }
+            ScrollBarPosition::ScrollBarLeft => {
+                self.left_margin = self.left_base_margin + scrollbar_width;
+                self.content_width =
+                    contents_rect.width() - 2 * self.left_base_margin - scrollbar_width;
+                // TODO: ScrollBar move
+            }
+            ScrollBarPosition::ScrollBarRight => {
+                self.left_margin = self.left_base_margin;
+                self.content_width =
+                    contents_rect.width() - 2 * self.left_base_margin - scrollbar_width;
+                // TODO: ScrollBar move
+            }
+        }
+
+        self.top_margin = self.top_base_margin;
+        self.content_height = contents_rect.height() - 2 * self.top_base_margin + 1;
+
+        if !self.is_fixed_size {
+            // ensure that display is always at least one column wide
+            self.columns = (self.content_width / self.font_width).max(1);
+            self.used_columns = self.used_columns.min(self.columns);
+
+            // ensure that display is always at least one line high
+            self.lines = (self.content_height / self.font_height).max(1);
+            self.used_lines = self.used_lines.min(self.lines);
+        }
     }
     fn propagate_size(&mut self) {
-        todo!()
+        if self.is_fixed_size {
+            // TODO:
+            todo!()
+        }
+        if self.image.is_some() {
+            self.update_image_size();
+        }
     }
     fn update_image_size(&mut self) {
         let old_line = self.lines;
@@ -2048,77 +2547,77 @@ fn draw_line_char(painter: &mut Painter, x: i32, y: i32, w: i32, h: i32, code: u
     let to_draw = LINE_CHARS[code as usize];
 
     // Top lines:
-    if to_draw & TopL as u32 > 0 {
+    if to_draw & TopL as u32 != 0 {
         painter.draw_line(cx - 1, y, cx - 1, cy - 2);
     }
-    if to_draw & TopC as u32 > 0 {
+    if to_draw & TopC as u32 != 0 {
         painter.draw_line(cx, y, cx, cy - 2);
     }
-    if to_draw & TopR as u32 > 0 {
+    if to_draw & TopR as u32 != 0 {
         painter.draw_line(cx + 1, y, cx + 1, cy - 2);
     }
 
     // Bot lines:
-    if to_draw & BotL as u32 > 0 {
+    if to_draw & BotL as u32 != 0 {
         painter.draw_line(cx - 1, cy + 2, cx - 1, ey);
     }
-    if to_draw & BotC as u32 > 0 {
+    if to_draw & BotC as u32 != 0 {
         painter.draw_line(cx, cy + 2, cx, ey);
     }
-    if to_draw & BotR as u32 > 0 {
+    if to_draw & BotR as u32 != 0 {
         painter.draw_line(cx + 1, cy + 2, cx + 1, ey);
     }
 
     // Left lines:
-    if to_draw & LeftT as u32 > 0 {
+    if to_draw & LeftT as u32 != 0 {
         painter.draw_line(x, cy - 1, cx - 2, cy - 1);
     }
-    if to_draw & LeftC as u32 > 0 {
+    if to_draw & LeftC as u32 != 0 {
         painter.draw_line(x, cy, cx - 2, cy);
     }
-    if to_draw & LeftB as u32 > 0 {
+    if to_draw & LeftB as u32 != 0 {
         painter.draw_line(x, cy + 1, cx - 2, cy + 1);
     }
 
     // Right lines:
-    if to_draw & RightT as u32 > 0 {
+    if to_draw & RightT as u32 != 0 {
         painter.draw_line(cx + 2, cy - 1, ex, cy - 1);
     }
-    if to_draw & RightC as u32 > 0 {
+    if to_draw & RightC as u32 != 0 {
         painter.draw_line(cx + 2, cy, ex, cy);
     }
-    if to_draw & RightB as u32 > 0 {
+    if to_draw & RightB as u32 != 0 {
         painter.draw_line(cx + 2, cy + 1, ex, cy + 1);
     }
 
     // Intersection points.
-    if to_draw & Int11 as u32 > 0 {
+    if to_draw & Int11 as u32 != 0 {
         painter.draw_point(cx - 1, cy - 1);
     }
-    if to_draw & Int12 as u32 > 0 {
+    if to_draw & Int12 as u32 != 0 {
         painter.draw_point(cx, cy - 1);
     }
-    if to_draw & Int13 as u32 > 0 {
+    if to_draw & Int13 as u32 != 0 {
         painter.draw_point(cx + 1, cy - 1);
     }
 
-    if to_draw & Int21 as u32 > 0 {
+    if to_draw & Int21 as u32 != 0 {
         painter.draw_point(cx - 1, cy);
     }
-    if to_draw & Int22 as u32 > 0 {
+    if to_draw & Int22 as u32 != 0 {
         painter.draw_point(cx, cy);
     }
-    if to_draw & Int23 as u32 > 0 {
+    if to_draw & Int23 as u32 != 0 {
         painter.draw_point(cx + 1, cy);
     }
 
-    if to_draw & Int31 as u32 > 0 {
+    if to_draw & Int31 as u32 != 0 {
         painter.draw_point(cx - 1, cy + 1);
     }
-    if to_draw & Int32 as u32 > 0 {
+    if to_draw & Int32 as u32 != 0 {
         painter.draw_point(cx, cy + 1);
     }
-    if to_draw & Int33 as u32 > 0 {
+    if to_draw & Int33 as u32 != 0 {
         painter.draw_point(cx + 1, cy + 1);
     }
 }
