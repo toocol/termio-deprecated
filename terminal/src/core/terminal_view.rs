@@ -13,6 +13,7 @@ use crate::tools::{
     system_ffi::string_width,
 };
 use log::warn;
+use regex::Regex;
 use std::{
     mem::size_of,
     ptr::NonNull,
@@ -27,7 +28,6 @@ use tmui::{
     label::Label,
     prelude::*,
     scroll_bar::ScrollBar,
-    skia_safe::{FontStyle, Typeface},
     tlib::{
         connect, disconnect, emit,
         events::{KeyEvent, MouseEvent},
@@ -35,11 +35,16 @@ use tmui::{
         signals,
         timer::Timer,
     },
-    widget::WidgetImpl,
+    widget::WidgetImpl, system::System, clipboard::ClipboardLevel,
 };
 use wchar::{wch, wchar_t};
 use widestring::U16String;
 use LineEncode::*;
+use lazy_static::lazy_static;
+
+lazy_static! {
+    pub static ref REGULAR_EXPRESSION: Regex = Regex::new("\\r+$").unwrap();
+}
 
 #[extends_widget]
 #[derive(Default)]
@@ -924,14 +929,44 @@ impl TerminalView {
         self.top_base_margin
     }
 
-    pub fn emit_selection(&self, use_x_selection: bool, append_return: bool) {
+    /// @param [`use_x_selection`] Store and retrieve data from global mouse selection. 
+    /// Support for selection is only available on systems with global mouse selection (such as X11).
+    pub fn emit_selection(&mut self, _use_x_selection: bool, append_return: bool) {
         if self.screen_window.is_none() {
             return;
         }
 
         // Paste Clipboard by simulating keypress events
-        // TODO:
-        todo!()
+        let text = System::clipboard().text(ClipboardLevel::Os);
+        if let Some(mut text) = text {
+            if text.is_empty() {
+                return
+            }
+
+            text = text.replace("\r\n", "\n").replace("\n", "\r");
+
+            if self.trim_pasted_trailing_new_lines {
+                text = REGULAR_EXPRESSION.replace(&text, "").to_string();
+            }
+
+            if self.confirm_multiline_paste && text.contains('\r') {
+                if !self.multiline_confirmation(&text) {
+                    return
+                }
+            }
+
+            self.bracket_text(&mut text);
+
+            // appendReturn is intentionally handled _after_ enclosing texts with
+            // brackets as that feature is used to allow execution of commands
+            // immediately after paste. Ref: https://bugs.kde.org/show_bug.cgi?id=16179
+            if append_return {
+                text.push('\r');
+            }
+
+            // TODO: 
+            todo!()
+        }
     }
 
     /// change and wrap text corresponding to paste mode.
@@ -1334,7 +1369,7 @@ performance degradation and display/alignment errors."
         // debugging variable, this records the number of lines that are found to
         // be 'dirty' ( ie. have changed from the old _image to the new _image ) and
         // which therefore need to be repainted
-        let mut dirty_line_count = 0;
+        let mut _dirty_line_count = 0;
 
         for y in 0..lines_to_update {
             let current_line = &image[(y * self.columns) as usize..];
@@ -1438,7 +1473,7 @@ performance degradation and display/alignment errors."
             // if the characters on the line are different in the old and the new _image
             // then this line must be repainted.
             if update_line {
-                dirty_line_count += 1;
+                _dirty_line_count += 1;
                 let dirty_rect = Rect::new(
                     self.left_margin + tlx,
                     self.top_margin + tly + self.font_height * y,
@@ -2273,6 +2308,7 @@ performance degradation and display/alignment errors."
 
     fn calc_geometry(&mut self) {
         let size_hint = self.scroll_bar.size_hint();
+        self.scroll_bar.resize(size_hint.width(), size_hint.height());
         let contents_rect = self.contents_rect(Some(Coordinate::Widget));
 
         let scrollbar_width = if self.scroll_bar.visible() {
@@ -2853,5 +2889,16 @@ impl From<u8> for DragState {
             2 => Self::DiDragging,
             _ => unimplemented!(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_regular_replace() {
+        let str = "hello\r";
+        assert_eq!(REGULAR_EXPRESSION.replace(str, ""), "hello");
     }
 }
