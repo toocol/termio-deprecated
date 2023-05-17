@@ -12,7 +12,9 @@ use crate::tools::{
     filter::{FilterChainImpl, TerminalImageFilterChain},
     system_ffi::string_width,
 };
+use lazy_static::lazy_static;
 use log::warn;
+use regex::Regex;
 use std::{
     mem::size_of,
     ptr::NonNull,
@@ -20,6 +22,7 @@ use std::{
     time::Duration,
 };
 use tmui::{
+    clipboard::ClipboardLevel,
     graphics::{
         figure::{Color, FRect, FontTypeface, Size, Transform},
         painter::Painter,
@@ -27,10 +30,11 @@ use tmui::{
     label::Label,
     prelude::*,
     scroll_bar::ScrollBar,
-    skia_safe::{FontStyle, Typeface},
+    system::System,
     tlib::{
         connect, disconnect, emit,
-        events::{KeyEvent, MouseEvent},
+        events::{EventType, KeyEvent, MouseEvent},
+        namespace::{KeyCode, KeyboardModifier},
         object::{ObjectImpl, ObjectSubclass},
         signals,
         timer::Timer,
@@ -40,6 +44,10 @@ use tmui::{
 use wchar::{wch, wchar_t};
 use widestring::U16String;
 use LineEncode::*;
+
+lazy_static! {
+    pub static ref REGULAR_EXPRESSION: Regex = Regex::new("\\r+$").unwrap();
+}
 
 #[extends_widget]
 #[derive(Default)]
@@ -106,7 +114,6 @@ pub struct TerminalView {
     preserve_line_breaks: bool,
     column_selection_mode: bool,
 
-    // TODO: Add clipboard.
     scroll_bar: ScrollBar,
     scroll_bar_location: ScrollBarPosition,
     word_characters: String,
@@ -665,7 +672,7 @@ impl TerminalView {
         str: &U16String,
         attributes: &Character,
     ) {
-        //TODO: Save the pen status: Color, Font, line width etc...
+        painter.save_pen();
 
         if attributes.rendition & RE_BOLD != 0 && self.bold_intense {
             painter.set_line_width(3.);
@@ -695,7 +702,7 @@ impl TerminalView {
             }
         }
 
-        //TODO: Restore the pen status
+        painter.restore_pen();
     }
     /// draws the preedit string for input methods.
     fn draw_input_method_preedit_string(&mut self, painter: &mut Painter, rect: &Rect) {
@@ -924,14 +931,63 @@ impl TerminalView {
         self.top_base_margin
     }
 
-    pub fn emit_selection(&self, use_x_selection: bool, append_return: bool) {
+    /// @param [`use_x_selection`] Store and retrieve data from global mouse selection.
+    /// Support for selection is only available on systems with global mouse selection (such as X11).
+    pub fn emit_selection(&mut self, _use_x_selection: bool, append_return: bool) {
         if self.screen_window.is_none() {
             return;
         }
 
         // Paste Clipboard by simulating keypress events
-        // TODO:
-        todo!()
+        let text = System::clipboard().text(ClipboardLevel::Os);
+        if let Some(mut text) = text {
+            if text.is_empty() {
+                return;
+            }
+
+            text = text.replace("\r\n", "\n").replace("\n", "\r");
+
+            if self.trim_pasted_trailing_new_lines {
+                text = REGULAR_EXPRESSION.replace(&text, "").to_string();
+            }
+
+            if self.confirm_multiline_paste && text.contains('\r') {
+                if !self.multiline_confirmation(&text) {
+                    return;
+                }
+            }
+
+            self.bracket_text(&mut text);
+
+            // appendReturn is intentionally handled _after_ enclosing texts with
+            // brackets as that feature is used to allow execution of commands
+            // immediately after paste. Ref: https://bugs.kde.org/show_bug.cgi?id=16179
+            if append_return {
+                text.push('\r');
+            }
+
+            let e = KeyEvent::new(
+                EventType::KeyPress,
+                KeyCode::Unknown,
+                text,
+                KeyboardModifier::NoModifier,
+            );
+            emit!(self.key_pressed_signal(), e, true);
+
+            let screen_window = unsafe { self.screen_window.as_mut().unwrap().as_mut() };
+            screen_window.clear_selection();
+
+            match self.motion_after_pasting {
+                MotionAfterPasting::MoveStartScreenWindow => {
+                    screen_window.set_track_output(true);
+                    screen_window.scroll_to(0);
+                }
+                MotionAfterPasting::MoveEndScreenWindow => {
+                    self.scroll_to_end();
+                }
+                MotionAfterPasting::NoMoveScreenWindow => {}
+            }
+        }
     }
 
     /// change and wrap text corresponding to paste mode.
@@ -1091,7 +1147,7 @@ impl TerminalView {
     }
 
     pub fn set_selection(&mut self, t: String) {
-        // TODO: set selection to clipboard
+        System::clipboard().set_text(t, ClipboardLevel::Os);
     }
 
     /// Returns the font used to draw characters in the view.
@@ -1334,7 +1390,7 @@ performance degradation and display/alignment errors."
         // debugging variable, this records the number of lines that are found to
         // be 'dirty' ( ie. have changed from the old _image to the new _image ) and
         // which therefore need to be repainted
-        let mut dirty_line_count = 0;
+        let mut _dirty_line_count = 0;
 
         for y in 0..lines_to_update {
             let current_line = &image[(y * self.columns) as usize..];
@@ -1438,7 +1494,7 @@ performance degradation and display/alignment errors."
             // if the characters on the line are different in the old and the new _image
             // then this line must be repainted.
             if update_line {
-                dirty_line_count += 1;
+                _dirty_line_count += 1;
                 let dirty_rect = Rect::new(
                     self.left_margin + tlx,
                     self.top_margin + tly + self.font_height * y,
@@ -1530,9 +1586,9 @@ performance degradation and display/alignment errors."
                 .as_ref()
                 .unwrap()
                 .as_ref()
-                .selected_text(self.preserve_line_breaks);
+                .selected_text(self.preserve_line_breaks)
         };
-        // TODO: copy text to clipboard.
+        System::clipboard().set_text(text, ClipboardLevel::Os);
     }
 
     /// Pastes the content of the clipboard into the view.
@@ -2273,6 +2329,8 @@ performance degradation and display/alignment errors."
 
     fn calc_geometry(&mut self) {
         let size_hint = self.scroll_bar.size_hint();
+        self.scroll_bar
+            .resize(size_hint.width(), size_hint.height());
         let contents_rect = self.contents_rect(Some(Coordinate::Widget));
 
         let scrollbar_width = if self.scroll_bar.visible() {
@@ -2853,5 +2911,16 @@ impl From<u8> for DragState {
             2 => Self::DiDragging,
             _ => unimplemented!(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_regular_replace() {
+        let str = "hello\r";
+        assert_eq!(REGULAR_EXPRESSION.replace(str, ""), "hello");
     }
 }
